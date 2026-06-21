@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;700&family=Inter:wght@400;500;600;700;900&family=Playfair+Display:ital,wght@1,600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif-vintage: 'Playfair Display', Georgia, serif;
+  --font-cursive-signature: 'Alex Brush', cursive;
+  --font-display-serif: 'Cinzel', serif;
+}
+
+/* Scrollbar delgado pegado al borde */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #475569;
+  border-radius: 999px;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
