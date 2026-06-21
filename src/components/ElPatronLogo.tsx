@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-const DEFAULT_LOGO_SRC = '/logo-el-patron.jpeg';
-const LOGO_STORAGE_KEY = 'el_potro_custom_logo';
-const LEGACY_LOGO_STORAGE_KEY = 'el_patron_custom_logo';
-const LOGO_CHANGE_EVENT = 'el_patron_logo_changed';
+const DEFAULT_LOGO_SRC = '/logo-el-patron.png';
+const LOGO_STORAGE_KEY = 'colores_pizzeria_custom_logo';
+const LEGACY_LOGO_STORAGE_KEY = 'el_potro_custom_logo';
+const LOGO_CHANGE_EVENT = 'colores_logo_changed';
 
 interface ElPatronLogoProps {
   className?: string;
@@ -47,7 +47,7 @@ function MonogramFallback({ className, color }: { className: string; color: stri
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <circle cx="100" cy="100" r="90" fill="#FAF4EE" stroke={color} strokeWidth="2" />
+      <circle cx="100" cy="100" r="90" fill="#18181b" stroke={color} strokeWidth="2" />
       <circle cx="100" cy="100" r="84" fill="none" stroke={color} strokeWidth="0.5" strokeDasharray="3 2" opacity="0.8" />
       <text
         x="100"
@@ -96,7 +96,7 @@ export default function ElPatronLogo({ className = 'w-16 h-16', color = '#5C4033
         src={logoSrc}
         alt="Colores Pizzería"
         loading="lazy" decoding="async"
-        className="w-full h-full object-contain rounded-full bg-[#FAF4EE] border border-stone-300/40 p-0.5 shadow-sm"
+        className="w-full h-full object-contain rounded-full bg-zinc-900 border border-zinc-800 p-0.5 shadow-sm"
         onError={() => {
           if (logoSrc !== DEFAULT_LOGO_SRC) {
             setLogoSrc(DEFAULT_LOGO_SRC);
