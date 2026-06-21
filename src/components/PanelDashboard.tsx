@@ -207,10 +207,10 @@ export default function PanelDashboard({
                                       <button
                                                         key={view}
                                                         onClick={() => onNavigate(view)}
-                                                        className="flex items-center justify-between p-3 rounded-xl border border-stone-150 hover:bg-[#F5F1E9] transition-all text-left group cursor-pointer"
+                                                        className="flex items-center justify-between p-3 rounded-xl border border-stone-150 hover:bg-zinc-100 transition-all text-left group cursor-pointer"
                                                       >
                                                       <div className="flex items-center gap-3">
-                                                                        <div className="w-8 h-8 rounded-lg bg-[#624A3E]/10 text-[#624A3E] flex items-center justify-center">
+                                                                        <div className="w-8 h-8 rounded-lg bg-zinc-100 text-brand-yellow flex items-center justify-center">
                                                                           {icon}
                                                                         </div>
                                                                         <div>
@@ -218,7 +218,7 @@ export default function PanelDashboard({
                                                                                             <span className="text-[10px] text-stone-400 block">{desc}</span>
                                                                         </div>
                                                       </div>
-                                                      <ArrowRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-[#624A3E] transition-colors" />
+                                                      <ArrowRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-brand-yellow transition-colors" />
                                       </button>
                                     ))}
                                 </div>
@@ -230,7 +230,7 @@ export default function PanelDashboard({
                                             <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Pedidos Activos</h4>
                                             <button
                                                             onClick={() => onNavigate('cocina')}
-                                                            className="text-[10px] text-[#624A3E] font-bold hover:underline"
+                                                            className="text-[10px] text-brand-orange font-bold hover:underline"
                                                           >
                                                           Ver Cocina →
                                             </button>

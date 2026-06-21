@@ -105,7 +105,7 @@ export default function HomeMenuModule({
     if (hour >= 12 && hour < 16) {
       return { label: 'Servicio de Almuerzo ☀️', color: 'bg-amber-100 text-amber-800 border-amber-200' };
     } else if (hour >= 19 && hour <= 23) {
-      return { label: 'Servicio de Cena 🌙', color: 'bg-[#624A3E]/20 text-[#624A3E] border-[#624A3E]/30' };
+      return { label: 'Servicio de Cena 🌙', color: 'bg-brand-yellow/15 text-brand-yellow border-brand-yellow/30' };
     } else {
       return { label: 'Preparación de Turno ☕', color: 'bg-stone-100 text-stone-700 border-stone-200' };
     }
@@ -168,7 +168,7 @@ export default function HomeMenuModule({
       description: 'Tomar pedidos en mesas, enviar comandas a cocina y gestionar consumos parciales.',
       icon: Smartphone,
       color: 'from-amber-600/10 to-amber-700/5 hover:border-amber-500',
-      iconColor: 'text-[#8C6239]',
+      iconColor: 'text-brand-orange',
       badge: {
         text: 'Terminal Táctil',
         type: 'neutral'
@@ -263,8 +263,8 @@ export default function HomeMenuModule({
       title: 'Mesas',
       description: 'Distribución física del salón comedor, ocupación de mesas y control de capacidad.',
       icon: Users,
-      color: 'from-[#624A3E]/10 to-[#4D3227]/5 hover:border-[#624A3E]',
-      iconColor: 'text-[#624A3E]',
+      color: 'from-zinc-500/10 to-zinc-650/5 hover:border-zinc-400',
+      iconColor: 'text-zinc-650',
       badge: {
         text: `${occupiedTables} ocupadas`,
         type: occupiedTables > 0 ? 'amber' : 'neutral'
@@ -348,15 +348,15 @@ export default function HomeMenuModule({
     <div className="space-y-8 animate-fadeIn" id="home-operational-menu">
       
       {/* 1. Impact Brand Header Block */}
-      <div className="bg-gradient-to-br from-[#4A2D1B] via-[#6B4A35] to-[#2E190E] rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border-b-4 border-[#6B4A35]">
+      <div className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border-b-4 border-brand-yellow">
         {/* Subtle decorative logo outline in the background of the banner */}
         <div className="absolute right-[-25px] bottom-[-25px] opacity-10 rotate-12 scale-110 pointer-events-none">
-          <ElPatronLogo className="w-64 h-64" variant="icon" color="#FFFDF8" />
+          <ElPatronLogo className="w-64 h-64" variant="icon" color="#E8B800" />
         </div>
         
         {/* Prominent circular badge logo on the banner with object-contain */}
-        <div className="w-24 h-24 md:w-28 md:h-28 bg-[#FFFDF8] rounded-full flex items-center justify-center p-1.5 shadow-lg border border-white/10 shrink-0 relative z-10">
-          <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#4A2D1B" />
+        <div className="w-24 h-24 md:w-28 md:h-28 bg-zinc-900 rounded-full flex items-center justify-center p-1.5 shadow-lg border border-zinc-800 shrink-0 relative z-10">
+          <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#E8B800" />
         </div>
 
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -364,24 +364,24 @@ export default function HomeMenuModule({
           <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border shadow-xs ${shiftInfo.color}`}>
             {shiftInfo.label}
           </span>
-          <span className="bg-[#22C55E]/20 text-emerald-300 border border-[#22C55E]/30 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
-            <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse" />
+          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             Servicio Activo
           </span>
         </div>
 
         <div className="flex-1 space-y-2.5 relative z-10 text-center md:text-left">
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-[#FFFDF8] font-sans">
-            Bienvenido a El Patrón
+          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-white font-display uppercase tracking-wider">
+            Bienvenido a Pizzería Colores
           </h2>
-          <p className="text-base md:text-lg text-[#FAF4EE]/90 font-medium leading-relaxed max-w-xl">
-            Sistema integral de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja, facturación e inventario de alta precisión.
+          <p className="text-base md:text-lg text-zinc-400 font-medium leading-relaxed max-w-xl">
+            Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja, facturación e inventario.
           </p>
           <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
-            <span className="bg-white/10 text-amber-200 text-[11px] px-3 py-1 rounded-full font-bold border border-white/5 font-mono">
+            <span className="bg-zinc-900 text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-800 font-mono">
               Estación Principal Terminal POS
             </span>
-            <span className="bg-white/10 text-[#FFFDF8] text-[11px] px-3 py-1 rounded-full font-bold border border-white/5 font-sans">
+            <span className="bg-zinc-900 text-zinc-350 text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-800 font-sans">
               Mesa de Enlace Local
             </span>
           </div>
@@ -406,7 +406,7 @@ export default function HomeMenuModule({
                     : 'border-amber-200 hover:border-amber-400'
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   <AlertTriangle className={`w-4 h-4 ${alert.type === 'danger' ? 'text-red-500' : 'text-amber-500'}`} />
                   <span className="text-stone-850 leading-snug">{alert.text}</span>
                 </div>
@@ -567,7 +567,7 @@ export default function HomeMenuModule({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`group bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all text-left flex flex-col justify-between min-h-[160px] cursor-pointer bg-gradient-to-br ${item.color} border-l-4 border-l-[#8C6239]/80`}
+                className={`group bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all text-left flex flex-col justify-between min-h-[160px] cursor-pointer bg-gradient-to-br ${item.color} border-l-4 border-l-brand-yellow`}
               >
                 {/* Module Top Row */}
                 <div className="w-full flex items-center justify-between gap-4">
