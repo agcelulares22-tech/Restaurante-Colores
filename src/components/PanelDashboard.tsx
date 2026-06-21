@@ -125,7 +125,7 @@ export default function PanelDashboard({
                                             <div className="flex items-center gap-2 mt-1">
                                                           <div className="w-24 bg-stone-100 h-1.5 rounded-full overflow-hidden">
                                                                           <div
-                                                                                              className="bg-[#624A3E] h-1.5 rounded-full transition-all"
+                                                                                              className="bg-brand-yellow h-1.5 rounded-full transition-all"
                                                                                               style={{ width: `${mesas.length ? (activeTables / mesas.length) * 100 : 0}%` }}
                                                                                             />
                                                           </div>
@@ -136,7 +136,7 @@ export default function PanelDashboard({
                                                           )}
                                             </div>
                                 </div>
-                                <div className="w-12 h-12 rounded-xl bg-[#624A3E]/10 border border-[#624A3E]/20 flex items-center justify-center text-[#624A3E]">
+                                <div className="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-600">
                                             <Users className="w-5 h-5" />
                                 </div>
                       </div>

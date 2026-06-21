@@ -1,10 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;700&family=Inter:wght@400;500;600;700;900&family=Playfair+Display:ital,wght@1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-serif-vintage: 'Playfair Display', Georgia, serif;
-  --font-cursive-signature: 'Alex Brush', cursive;
-  --font-display-serif: 'Cinzel', serif;
+  --font-display: 'Anton', sans-serif;
+  --font-sans: 'Poppins', sans-serif;
+  --color-brand-yellow: #E8B800;
+  --color-brand-orange: #E85D00;
+  --color-brand-red: #D42B2B;
+  --color-brand-black: #000000;
+  --color-brand-white: #FFFFFF;
 }
 
 /* Scrollbar delgado pegado al borde */

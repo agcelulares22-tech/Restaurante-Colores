@@ -1065,7 +1065,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#F5F1E9] flex font-sans text-stone-800 antialiased selection:bg-[#624A3E] selection:text-white">
+    <div className="h-screen overflow-hidden bg-[#fafafa] flex font-sans text-zinc-900 antialiased selection:bg-brand-yellow selection:text-brand-black">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
@@ -1085,7 +1085,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-[#C8956A] text-[#3B1F10]/90 border-r border-[#A67550]/40 shadow-xl shadow-black/15 transition-all duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
         id="sidebar-left-panel"
@@ -1093,19 +1093,19 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         {/* Logo */}
         <div 
           onClick={() => setShowDiagnostics(true)}
-          className={`flex items-center border-b border-[#3B1F10]/10 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
+          className={`flex items-center border-b border-zinc-900 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
           title="Ver estado de conexión"
         >
-          <div className="w-8 h-8 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-[#A67550]/40 p-0.5 overflow-hidden shrink-0 relative">
-            <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#4A2D1B" />
-            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white ${
+          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
+            <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
+            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
               tryGetActiveSupabaseClient() !== null ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
             }`} />
           </div>
           {!isSidebarCollapsed && (
             <div className="ml-3 min-w-0">
-              <span className="font-bold text-sm text-[#3B1F10] block leading-tight truncate">El Patrón</span>
-              <span className="text-[7px] uppercase font-bold text-[#3B1F10]/50 tracking-wider block leading-tight flex items-center gap-1">
+              <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
+              <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight flex items-center gap-1">
                 {tryGetActiveSupabaseClient() !== null ? '🟢 Supabase Cloud' : '🟡 Modo Local'}
               </span>
             </div>
@@ -1145,8 +1145,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   isSidebarCollapsed ? 'justify-center' : 'justify-start'
                 } ${
                   isActive
-                    ? 'bg-[#4A2D1B] text-white'
-                    : 'text-[#3B1F10]/65 hover:text-[#3B1F10] hover:bg-[#B07A48]/35'
+                    ? 'bg-brand-yellow text-brand-black font-black'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
                 }`}
               >
                 <span className="text-base shrink-0 leading-none">{item.icon}</span>
@@ -1154,7 +1154,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   <span className="text-sm whitespace-nowrap truncate">{item.label}</span>
                 )}
                 {!isSidebarCollapsed && isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-300 shadow-sm shadow-amber-400/50 shrink-0" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-black shrink-0" />
                 )}
               </button>
             );
@@ -1162,11 +1162,11 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-[#3B1F10]/10 p-3">
+        <div className="border-t border-zinc-900 p-3">
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? 'Cerrar sesión' : ''}
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[#7B2D12]/10 text-[#7B2D12] transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-red-950/20 text-brand-red transition-colors cursor-pointer ${
               isSidebarCollapsed ? 'justify-center' : 'justify-start'
             }`}
           >
@@ -1177,7 +1177,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
           <button
             onClick={() => setIsSidebarCollapsed(c => !c)}
             title={isSidebarCollapsed ? 'Expandir' : 'Colapsar'}
-            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-[#3B1F10]/10 text-[#3B1F10]/70 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 transition-colors cursor-pointer"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>

@@ -21,7 +21,7 @@ export default function BottomNavigation({ activeView, allowedViews, onNavigate 
   const visible = NAV_ITEMS.filter(item => allowedViews.includes(item.id));
 
   return (
-    <nav className="mobile-bottom-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 safe-area-bottom shadow-lg">
+    <nav className="mobile-bottom-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-zinc-950 border-t border-zinc-900 safe-area-bottom shadow-lg">
       <div className="flex justify-around items-center w-full h-16">
         {visible.map(item => {
           const Icon = item.icon;
@@ -33,11 +33,11 @@ export default function BottomNavigation({ activeView, allowedViews, onNavigate 
               className="touch-target flex-col gap-0.5 flex-1 py-1 transition-colors cursor-pointer"
               style={{ minHeight: 48 }}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-[#624A3E]' : 'text-stone-400'}`} />
-              <span className={`text-[9px] font-bold uppercase ${isActive ? 'text-[#624A3E]' : 'text-stone-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-brand-yellow' : 'text-zinc-500'}`} />
+              <span className={`text-[9px] font-bold uppercase ${isActive ? 'text-brand-yellow' : 'text-zinc-500'}`}>
                 {item.label}
               </span>
-              {isActive && <div className="w-4 h-0.5 bg-[#624A3E] rounded-full mt-0.5" />}
+              {isActive && <div className="w-4 h-0.5 bg-brand-yellow rounded-full mt-0.5" />}
             </button>
           );
         })}
