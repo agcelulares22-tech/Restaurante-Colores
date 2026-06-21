@@ -1,11 +1,11 @@
-﻿import type { VercerRequest, VercerResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const AFIP_URLS = {
   homologacion: "https://wswhomo.afip.gov.ar/wsfev1/service.asmx",
   produccion: "https://servicios1.afip.gov.ar/wsfev1/service.asmx",
 };
 
-export default async function handler(req: VercerRequest, res: VercerResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
