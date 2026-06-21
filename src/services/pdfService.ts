@@ -94,8 +94,8 @@ export const pdfService = {
   async exportToPDF(data: TicketData): Promise<void> {
     const doc = await this.generateTicketPDF(data);
     const filename = data.tipoComprobante.startsWith('factura')
-      ? `factura-el-patron-${sanitizeFile(data.nroComprobante)}.pdf`
-      : `ticket-el-patron-${sanitizeFile(data.nroComprobante || String(data.idPedido))}.pdf`;
+      ? `factura-pizzeria-colores-${sanitizeFile(data.nroComprobante)}.pdf`
+      : `ticket-pizzeria-colores-${sanitizeFile(data.nroComprobante || String(data.idPedido))}.pdf`;
     doc.save(filename);
   },
 
@@ -390,7 +390,7 @@ export const pdfService = {
     y += 2;
     line();
     center(data.mensajePie || 'Gracias por su visita.', 6.8);
-    center('El Patron Restaurante', 7.5, true);
+    center('Pizzería Colores', 7.5, true);
     center('Conserve este comprobante', 6.2);
 
     return doc;
@@ -648,7 +648,7 @@ export const pdfService = {
     doc.rect(5, y, 70, 13, 'F');
     doc.setTextColor(255, 255, 255);
     y += 5;
-    center('EL PATRON', 10, true);
+    center('PIZZERIA COLORES', 10, true);
     center(`COMANDA DE ${tipo.toUpperCase()}`, 7, false);
     y += 5;
 

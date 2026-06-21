@@ -26,9 +26,9 @@ const DEFAULT_CLIENTES: Cliente[] = [
   {
     id_cliente: 'cli_003',
     dni_cuit: '30-71649251-4',
-    nombre: 'Gastronomia El Patron SAS',
-    email: 'administracion@elpatron.com',
-    telefono: '+54 11 4802-9988',
+    nombre: 'Pizzería Colores S.A.S.',
+    email: 'administracion@pizzeriacolores.com.ar',
+    telefono: '+54 11 4802-1234',
     puntos: 1200,
     fecha_registro: new Date('2026-03-01T09:00:00.000Z')
   }

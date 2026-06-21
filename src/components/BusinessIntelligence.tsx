@@ -171,7 +171,7 @@ export default function BusinessIntelligence({
     return ((enTiempo / conTiempo.length) * 100).toFixed(1);
   }, [pedidosCobrados]);
 
-  /** Ranking de platos más vendidos (top 5) con sus ingresos reales */
+  /** Ranking de pizzas y variedades más vendidas (top 5) con sus ingresos reales */
   const rankingPlatos = useMemo(() => {
     const totales = new Map<string, { nombre: string; cantidad: number; ingresos: number }>();
     pedidosCobrados.forEach(p => {
@@ -220,11 +220,11 @@ export default function BusinessIntelligence({
   const tiempoPromedio = tiempoPromedioReal ?? '—';
   const efectividad = efectividadReal ?? '—';
   const waitTimesData = waitTimesReal.length > 0 ? waitTimesReal : [
-    { plato: 'Bife de Chorizo', minutos: 15.4, ideal: 14.0 },
-    { plato: 'Pastas Caseras', minutos: 9.8, ideal: 11.0 },
-    { plato: 'Entraña Arriera', minutos: 17.1, ideal: 15.0 },
-    { plato: 'Hamburguesa Gourmet', minutos: 11.2, ideal: 10.0 },
-    { plato: 'Tarta Rústica', minutos: 8.5, ideal: 9.0 },
+    { plato: 'Pizza Muzzarella Tradicional', minutos: 11.4, ideal: 12.0 },
+    { plato: 'Pizza Fugazzeta con Queso', minutos: 14.8, ideal: 15.0 },
+    { plato: 'Pizza Especial de Jamón y Morrones', minutos: 13.1, ideal: 14.0 },
+    { plato: 'Pizza Margherita Premium', minutos: 11.2, ideal: 12.0 },
+    { plato: 'Empanadas de Carne a la Leña', minutos: 8.5, ideal: 8.0 },
   ];
 
   // 2. Costo de Recetas e Integración con Rentabilidad
@@ -326,13 +326,13 @@ export default function BusinessIntelligence({
 
     if (totals.size === 0) {
       return [
-        { nombre: 'Bife de Chorizo', x: 80, y: 85, tipo: 'Estrella 🌟', desc: 'Plato insignia. Alta demanda y excelente rentabilidad.', color: 'bg-yellow-500' },
-        { nombre: 'Entraña Arriera', x: 45, y: 90, tipo: 'Incógnita ❓', desc: 'Alto margen de receta pero volumen de ventas moderado.', color: 'bg-purple-500' },
+        { nombre: 'Pizza Margherita Premium', x: 80, y: 85, tipo: 'Estrella 🌟', desc: 'Pizza premium insignia. Alta demanda y excelente rentabilidad.', color: 'bg-yellow-500' },
+        { nombre: 'Pizza de Rúcula y Jamón Crudo', x: 45, y: 90, tipo: 'Incógnita ❓', desc: 'Alto margen de receta pero volumen de ventas moderado.', color: 'bg-purple-500' },
         { nombre: 'Vino Rutini Cabernet', x: 25, y: 80, tipo: 'Incógnita ❓', desc: 'Margen excelente, venta ocasional premium.', color: 'bg-purple-500' },
-        { nombre: 'Hamburguesa Completa', x: 85, y: 45, tipo: 'Vaca Sagrada 🐄', desc: 'Volumen alto, genera flujo constante con margen ajustado.', color: 'bg-emerald-500' },
-        { nombre: 'Pastas Caseras', x: 75, y: 55, tipo: 'Vaca Sagrada 🐄', desc: 'Muy popular. Costo moderado, rotación saludable.', color: 'bg-emerald-500' },
-        { nombre: 'Ensalada César', x: 60, y: 40, tipo: 'Vaca Sagrada 🐄', desc: 'Entrada recurrente de costo operativo bajo.', color: 'bg-emerald-500' },
-        { nombre: 'Tarta Rústica', x: 30, y: 25, tipo: 'Perro 🐕', desc: 'Baja demanda y rentabilidad baja. Evaluar recambio de carta.', color: 'bg-slate-400' },
+        { nombre: 'Pizza Calabresa', x: 85, y: 45, tipo: 'Vaca Sagrada 🐄', desc: 'Volumen alto, genera flujo constante con margen ajustado.', color: 'bg-emerald-500' },
+        { nombre: 'Pizza Muzzarella Tradicional', x: 75, y: 55, tipo: 'Vaca Sagrada 🐄', desc: 'Muy popular. Costo moderado, rotación saludable.', color: 'bg-emerald-500' },
+        { nombre: 'Empanadas de Carne a la Leña', x: 60, y: 40, tipo: 'Vaca Sagrada 🐄', desc: 'Entrada recurrente de costo operativo bajo.', color: 'bg-emerald-500' },
+        { nombre: 'Fainá con Cebolla de Verdeo', x: 30, y: 25, tipo: 'Perro 🐕', desc: 'Baja demanda y rentabilidad baja. Evaluar recambio de carta.', color: 'bg-slate-400' },
       ];
     }
 
@@ -482,7 +482,7 @@ export default function BusinessIntelligence({
               {metricasFinancieras.margenPromedio.toFixed(1)}%
             </h4>
             <p className="text-[9px] text-stone-500 mt-1.5 font-sans leading-tight font-bold">
-              Promedio de platos con receta
+              Promedio de pizzas con receta
             </p>
           </div>
           <div className="w-10 h-10 bg-[#10B981] text-white rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/10 shrink-0">
@@ -526,7 +526,7 @@ export default function BusinessIntelligence({
       {/* CORE BI GRAPHS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
-        {/* TOP PLATOS POR INGRESOS */}
+        {/* TOP PIZZAS / VARIEDADES POR INGRESOS */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-stone-100">
@@ -535,7 +535,7 @@ export default function BusinessIntelligence({
               </div>
               <div className="min-w-0">
                 <h3 className="font-extrabold text-sm text-stone-850 tracking-tight">
-                  Top Platos por Ingresos
+                  Top Pizzas por Ingresos
                 </h3>
                 <p className="text-[10px] sm:text-[11px] text-stone-400">Calculado desde pedidos cobrados en tiempo real</p>
               </div>
@@ -711,7 +711,7 @@ export default function BusinessIntelligence({
 
           <div className="bg-stone-50 rounded-xl p-3 border border-stone-200 text-[10px] sm:text-[10.5px] text-stone-500 flex items-start gap-1.5 leading-snug">
             <Info className="w-4 h-4 text-stone-400 shrink-0" />
-            <span>Pase el cursor por los puntos de color para auditar las recomendaciones de margen por plato.</span>
+            <span>Pase el cursor por los puntos de color para auditar las recomendaciones de margen por pizza.</span>
           </div>
         </div>
 
@@ -721,10 +721,10 @@ export default function BusinessIntelligence({
             <div className="min-w-0">
               <h4 className="font-extrabold text-sm text-stone-850 tracking-tight flex items-center gap-2">
                 <BarChart3 className="w-4.5 h-4.5 text-stone-600 shrink-0" />
-                Tiempos de Demora por Plato
+                Tiempos de Cocción por Pizza
               </h4>
               <p className="text-[10px] sm:text-[11px] text-stone-400">
-                Minutos promedio desde comanda a "Listo".
+                Minutos promedio de cocción y horneado desde la comanda.
               </p>
             </div>
             <span className="text-[9px] font-mono bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded shrink-0">

@@ -443,12 +443,12 @@ export function useMozoTerminal({
         mesa: pedido.numero_mesa,
         mozo: pedido.mozo,
         cajero: 'Mozo',
-        nombreComercial: 'El Patron Restaurante',
-        razonSocial: 'Gastronomia El Patron S.A.S.',
+        nombreComercial: 'Pizzería Colores',
+        razonSocial: 'Pizzería Colores S.A.S.',
         cuit: '30-71649251-4',
-        direccion: 'Av. Pres. Figueroa Alcorta 3420, CABA',
-        telefono: '+54 11 4802-9988',
-        email: 'facturas@elpatronrestaurante.com.ar',
+        direccion: 'Av. Corrientes 1234, CABA',
+        telefono: '+54 11 4802-1234',
+        email: 'contacto@pizzeriacolores.com.ar',
         items: ticketItems,
         subtotal: neto,
         descuento: 0,
@@ -457,7 +457,7 @@ export function useMozoTerminal({
         total: total,
         metodosPago: [],
         vuelto: 0,
-        mensajePie: 'Gracias por su visita. Pre-comprobante generado por El Patron Terminal Mozo.'
+        mensajePie: 'Gracias por elegir Pizzería Colores! Pre-comprobante generado por Terminal Mozo.'
       };
 
       await pdfService.exportToPDF(ticketData);

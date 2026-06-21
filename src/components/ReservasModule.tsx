@@ -58,7 +58,7 @@ function weekRangeLabel(start: Date): string {
 
 function getWhatsAppLink(nombre: string, telefono: string, fecha: string, hora: string, pax: number): string {
   const cleanPhone = telefono.replace(/[^\d+]/g, '');
-  const message = `¡Hola ${nombre}! 🌟 Te confirmamos tu reserva en *El Patrón* para el día *${fecha}* a las *${hora}* para *${pax}* ${pax === 1 ? 'persona' : 'personas'}. ¡Te esperamos para compartir una hermosa experiencia criolla! 🍷🥩`;
+  const message = `¡Hola ${nombre}! 🌟 Te confirmamos tu reserva en *Pizzería Colores* para el día *${fecha}* a las *${hora}* para *${pax}* ${pax === 1 ? 'persona' : 'personas'}. ¡Te esperamos para compartir una hermosa experiencia con las mejores pizzas al horno de barro! 🍕🍷`;
   return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
 }
 

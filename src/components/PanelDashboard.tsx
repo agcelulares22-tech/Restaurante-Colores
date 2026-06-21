@@ -144,7 +144,7 @@ export default function PanelDashboard({
                 {/* Cocina */}
                       <div id="kpi-cocina" className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs flex items-center justify-between">
                                 <div className="space-y-1">
-                                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Cocina Activa</span>
+                                             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Horno y Elaboración</span>
                                             <h3 className="text-2xl font-black text-stone-900 font-mono">
                                               {pendingOrders}{' '}
                                                           <span className="text-xs text-stone-500 font-normal">en proceso</span>
@@ -157,7 +157,7 @@ export default function PanelDashboard({
                                                           )}
                                               {readyOrders === 0 && (
                           <span className="text-[10px] text-amber-600 font-semibold animate-pulse">
-                                            Cocina activa
+                                             Horno activo
                           </span>
                                                           )}
                                             </div>
@@ -200,7 +200,7 @@ export default function PanelDashboard({
                                 <div className="grid grid-cols-1 gap-2.5">
                                   {[
           { view: 'mozo', icon: <Smartphone className="w-4 h-4" />, label: 'Terminal Mozo', desc: 'Tomar pedidos y mesas' },
-          { view: 'cocina', icon: <ChefHat className="w-4 h-4" />, label: 'Cocina', desc: 'Cocina y semáforo de comandas' },
+          { view: 'cocina', icon: <ChefHat className="w-4 h-4" />, label: 'Horno y Elaboración', desc: 'Cocción y semáforo de pizzas' },
           { view: 'caja', icon: <Receipt className="w-4 h-4" />, label: 'Módulo Caja', desc: 'Cobros y cierre de turno' },
           { view: 'inventario', icon: <Package className="w-4 h-4" />, label: 'Inventario', desc: 'Stock y mermas' },
                       ].filter(({ view }) => allowedViews.includes(view as AppView)).map(({ view, icon, label, desc }) => (
@@ -232,7 +232,7 @@ export default function PanelDashboard({
                                                             onClick={() => onNavigate('cocina')}
                                                             className="text-[10px] text-brand-orange font-bold hover:underline"
                                                           >
-                                                          Ver Cocina →
+                                                           Ver Horno →
                                             </button>
                                 </div>
                                 <div className="space-y-2 max-h-64 overflow-y-auto">

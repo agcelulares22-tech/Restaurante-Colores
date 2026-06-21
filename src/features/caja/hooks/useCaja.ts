@@ -44,15 +44,15 @@ export function useCaja({
 }: UseCajaProps) {
   // Configurable Restaurant Details
   const [restaurante, setRestaurante] = useState({
-    nombreComercial: 'El Patrón Restaurante',
-    razonSocial: 'Gastronomía El Patrón S.A.S.',
+    nombreComercial: 'Pizzería Colores',
+    razonSocial: 'Pizzería Colores S.A.S.',
     cuit: '30-71649251-4',
-    direccion: 'Av. Pres. Figueroa Alcorta 3420, CABA',
-    telefono: '+54 11 4802-9988',
-    email: 'facturas@elpatronrestaurante.com.ar',
+    direccion: 'Av. Corrientes 1234, CABA',
+    telefono: '+54 11 4802-1234',
+    email: 'contacto@pizzeriacolores.com.ar',
     inicioActividades: '15/04/2022',
     condicionIva: 'Responsable Inscripto',
-    mensajePie: 'Gracias por su visita al verdadero rincón criollo.',
+    mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.',
     moneda: 'ARS'
   });
 
@@ -488,7 +488,7 @@ export function useCaja({
     addLog('sistema', `CAJA: Turno fiscal cerrado por ${finalShift.usuario_cajero}. Arqueo Real: $${finalShift.monto_real?.toLocaleString('es-AR')}. Diferencia: ARS $${finalShift.diferencia?.toLocaleString('es-AR')}`);
 
     const csvRows = [
-      ['EL PATRON GRILL - REPORTE DE BALANCE DIARIO'],
+      ['PIZZERIA COLORES - REPORTE DE BALANCE DIARIO'],
       ['Cajero Responsable', finalShift.usuario_cajero],
       ['Apertura', finalShift.fecha_apertura],
       ['Cierre de Turno', finalShift.fecha_cierre || 'N/A'],
