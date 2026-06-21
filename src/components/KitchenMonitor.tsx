@@ -225,10 +225,11 @@ export default function KitchenMonitor({
   };
 
   const renderColumn = (estado: Pedido['estado_comanda'], title: string, icon: React.ReactNode, headerClass: string, orders: Pedido[]) => {
+    const isEmpty = orders.length === 0;
     const emptyMessages = {
-      pendiente: { text: 'Sin pizzas pendientes', icon: <ChefHat className="w-8 h-8 text-zinc-650 mb-2" /> },
-      en_cocina: { text: 'Sin pizzas en el Horno', icon: <Flame className="w-8 h-8 text-zinc-650 mb-2" /> },
-      listo: { text: 'Sin pizzas listas para servir', icon: <Utensils className="w-8 h-8 text-zinc-650 mb-2" /> }
+      pendiente: { text: 'Sin pizzas pendientes', icon: <ChefHat className="w-8 h-8 text-brand-yellow mb-2" /> },
+      en_cocina: { text: 'Sin pizzas en el Horno', icon: <Flame className="w-8 h-8 text-brand-yellow mb-2" /> },
+      listo: { text: 'Sin pizzas listas para servir', icon: <Utensils className="w-8 h-8 text-brand-yellow mb-2" /> }
     };
 
     return (
@@ -238,16 +239,16 @@ export default function KitchenMonitor({
             {icon}
             {title}
           </h4>
-          <span className="bg-zinc-900 text-brand-yellow text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border border-zinc-800">
+          <span className={`text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border ${isEmpty ? 'bg-zinc-900 text-zinc-500 border-zinc-800' : 'bg-brand-yellow text-brand-black border-brand-yellow'}`}>
             {orders.length}
           </span>
         </div>
 
         <div className="space-y-4 max-h-[700px] overflow-y-auto pr-1">
-          {orders.length === 0 ? (
-            <div className="h-36 border border-zinc-800 rounded-[20px] flex flex-col justify-center items-center text-center p-4 bg-zinc-950">
+          {isEmpty ? (
+            <div className="h-40 border-2 border-dashed border-brand-yellow/40 bg-zinc-900/80 rounded-[20px] flex flex-col justify-center items-center text-center p-4">
               {emptyMessages[estado].icon}
-              <p className="text-[11px] text-zinc-400 font-semibold">{emptyMessages[estado].text}</p>
+              <p className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wide">{emptyMessages[estado].text}</p>
             </div>
           ) : (
             orders.map(p => renderTicket(p, estado))
@@ -262,15 +263,15 @@ export default function KitchenMonitor({
       <div className="bg-zinc-950 rounded-[20px] p-5 border border-zinc-800 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-zinc-850">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 text-brand-yellow flex items-center justify-center text-xl shadow-sm border border-zinc-800">
+            <div className="w-10 h-10 rounded-xl bg-brand-yellow text-brand-black flex items-center justify-center text-xl shadow-sm border border-brand-yellow">
               📋
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-lg text-white font-display uppercase tracking-wide">Producción agrupada</h3>
+              <h3 className="font-black text-lg text-brand-yellow font-display uppercase tracking-wide">Producción agrupada</h3>
               <p className="text-xs text-zinc-400 font-semibold">Consolidado de preparaciones activas en fuegos.</p>
             </div>
           </div>
-          <span className="bg-zinc-900 text-brand-yellow border border-zinc-800 text-xs font-black py-1 px-3 rounded-full shadow-sm w-fit">
+          <span className="bg-zinc-900 text-brand-yellow border border-brand-yellow/40 text-xs font-black py-1 px-3 rounded-full shadow-sm w-fit">
             {batchProduction.reduce((sum, item) => sum + item.cantidad, 0)} UNIDADES
           </span>
         </div>
@@ -284,9 +285,9 @@ export default function KitchenMonitor({
             {batchProduction.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm font-black text-white shadow-sm hover:border-brand-orange transition-colors"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm font-black text-white shadow-sm hover:border-brand-yellow transition-colors"
               >
-                <span className="bg-zinc-950 text-brand-yellow text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-zinc-850">
+                <span className="bg-brand-yellow text-brand-black text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-brand-yellow">
                   {item.cantidad}
                 </span>
                 <span>{item.nombre}</span>
@@ -299,21 +300,21 @@ export default function KitchenMonitor({
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-zinc-950 rounded-[20px] p-4 border border-zinc-800 shadow-sm">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-zinc-550 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar mesa, mozo o pizza..."
             value={kitchenSearch}
             onChange={e => setKitchenSearch(e.target.value)}
-            className="w-full min-h-11 pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-orange/30"
+            className="w-full min-h-11 pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-yellow/40 focus:border-brand-yellow"
           />
         </div>
         <button
           onClick={() => setShowOnlyKitchen(!showOnlyKitchen)}
           className={`min-h-11 flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-sm font-black transition-all cursor-pointer border ${
             showOnlyKitchen
-              ? 'bg-brand-orange text-white border-brand-orange'
-              : 'bg-zinc-900 text-zinc-300 border border-zinc-800 hover:bg-zinc-850'
+              ? 'bg-brand-yellow text-brand-black border-brand-yellow hover:bg-[#D4A700]'
+              : 'bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-brand-yellow hover:text-white'
           }`}
         >
           <Filter className="w-3.5 h-3.5" />
