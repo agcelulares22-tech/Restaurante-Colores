@@ -174,8 +174,8 @@ export default function MozoTerminal({
                 onClick={() => onMozoChange(usuario.nombre)}
                 className={`min-h-11 py-2 px-3 rounded-lg text-sm font-extrabold transition-all cursor-pointer ${
                   activeMozo === usuario.nombre
-                    ? 'bg-[#624A3E] text-white shadow-sm scale-[1.02] border border-[#5d3a2e]' 
-                    : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-[#F5F1E9]'
+                    ? 'bg-brand-yellow text-brand-black shadow-sm scale-[1.02] border border-brand-yellow' 
+                    : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-100'
                 }`}
               >
                 {usuario.nombre}
@@ -208,7 +208,7 @@ export default function MozoTerminal({
               let labelText = "Libre";
 
               if (isSelected) {
-                stateClasses = "bg-[#624A3E] text-white border-[#5d3a2e] shadow-md shadow-[#624A3E]/30 scale-[1.03] ring-4 ring-[#624A3E]/20";
+                stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] ring-4 ring-brand-yellow/20";
                 labelText = isOcupada ? "Ocupada (Sel)" : isInCuenta ? "En Cuenta" : isReservada ? "Reservada" : "Libre";
               } else if (isReservada) {
                 stateClasses = "border-[#6d3f9e] bg-[#6d3f9e]/5 text-[#6d3f9e] hover:bg-[#6d3f9e]/10";
@@ -335,14 +335,14 @@ export default function MozoTerminal({
                     </button>
                     <button
                       onClick={() => onFacturarMesa(activePedidoDeMesa.id_pedido)}
-                      className="flex-1 py-1 px-2.5 bg-slate-900 border border-transparent hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
+                      className="flex-1 py-1.5 px-2.5 bg-slate-900 border border-transparent hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
                     >
                       Cobrar Mesa
                     </button>
                   </div>
                   <button
                     onClick={() => handleDownloadPreTicket(activePedidoDeMesa)}
-                    className="w-full mt-2 py-2 px-3 bg-[#e2dabf] hover:bg-[#d4b89a] text-[#4b3621] rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-[#d4b89a] cursor-pointer"
+                    className="w-full mt-2 py-2 px-3 bg-zinc-100 hover:bg-brand-yellow hover:text-brand-black text-zinc-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-zinc-200 cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     Descargar / Imprimir Pre-Ticket
@@ -350,13 +350,13 @@ export default function MozoTerminal({
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => handlePrintSplitTicket(activePedidoDeMesa, 'cocina')}
-                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-[#e2dabf] text-[#4b3621] rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
+                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-brand-yellow hover:text-brand-black text-stone-700 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
                     >
                       🍳 Comanda Cocina
                     </button>
                     <button
                       onClick={() => handlePrintSplitTicket(activePedidoDeMesa, 'barra')}
-                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-[#e2dabf] text-[#4b3621] rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
+                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-brand-yellow hover:text-brand-black text-stone-700 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
                     >
                       🍷 Comanda Barra
                     </button>
@@ -409,18 +409,18 @@ export default function MozoTerminal({
                   onClick={() => setSelectedCategoria(cat.id)}
                   className={`py-1.5 px-3 text-xs font-extrabold rounded-lg whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 flex items-center gap-1 shrink-0 ${
                     selectedCategoria === cat.id 
-                      ? 'bg-[#624A3E] text-white shadow-sm ring-1 ring-amber-900/10' 
-                      : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-[#F5F1E9] hover:text-stone-900'
+                      ? 'bg-brand-yellow text-brand-black shadow-sm ring-1 ring-brand-yellow/10' 
+                      : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-100 hover:text-stone-900'
                   }`}
                 >
                   {cat.label}
-                  <span className={`text-[9px] font-bold ml-0.5 ${selectedCategoria === cat.id ? 'text-white/70' : 'text-stone-400'}`}>({count})</span>
+                  <span className={`text-[9px] font-bold ml-0.5 ${selectedCategoria === cat.id ? 'text-brand-black/75' : 'text-stone-400'}`}>({count})</span>
                 </button>
               );
             })}
           </div>
         </div>
-
+ 
         {/* Product Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-2 gap-3 lg:max-h-[550px] lg:overflow-y-auto lg:pr-1">
           {filteredProducts.map(p => {
@@ -428,7 +428,7 @@ export default function MozoTerminal({
             const isOutOfStock = stockRemaining <= 0;
             const isLowStock = stockRemaining > 0 && stockRemaining <= 3;
             const currentInCart = cart[p.id_producto] || 0;
-
+ 
             return (
               <div
                 key={p.id_producto}
@@ -437,7 +437,7 @@ export default function MozoTerminal({
                   isOutOfStock 
                     ? 'opacity-60 border-rose-100 pointer-events-none bg-stone-50' 
                     : currentInCart > 0 
-                      ? 'border-[#624A3E] bg-[#F5F1E9]/40 ring-1 ring-[#624A3E]/20' 
+                      ? 'border-brand-yellow bg-zinc-50 ring-1 ring-brand-yellow/25' 
                       : 'border-stone-200/80 hover:-translate-y-1'
                 }`}
                 style={{ contentVisibility: 'auto' }}
@@ -455,12 +455,12 @@ export default function MozoTerminal({
                   {/* Category icon badge */}
                   <div className="absolute top-2 left-2 p-1.5 rounded-lg backdrop-blur-md bg-white/90 shadow-sm border border-stone-100">
                     {p.categoria === 'bebidas' ? (
-                      <Wine className="w-3.5 h-3.5 text-[#624A3E]" />
+                      <Wine className="w-3.5 h-3.5 text-brand-orange" />
                     ) : (
-                      <UtensilsCrossed className="w-3.5 h-3.5 text-[#624A3E]" />
+                      <UtensilsCrossed className="w-3.5 h-3.5 text-brand-orange" />
                     )}
                   </div>
-
+ 
                   {/* Stock Tag Alert */}
                   {isOutOfStock ? (
                     <div className="absolute inset-0 bg-red-950/60 flex items-center justify-center text-center p-2">
@@ -483,10 +483,10 @@ export default function MozoTerminal({
                     </div>
                   )}
                 </div>
-
+ 
                 {/* Content: stacked layout - name full width, price+actions below */}
                 <div className="p-3 bg-white">
-                  <h4 className="font-extrabold text-stone-800 text-sm font-sans line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-[#624A3E] transition-colors">
+                  <h4 className="font-extrabold text-stone-800 text-sm font-sans line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-brand-orange transition-colors">
                     {p.nombre}
                   </h4>
                   <div className="flex items-center justify-between gap-2 mt-2">
@@ -495,11 +495,11 @@ export default function MozoTerminal({
                         <div className="flex items-center gap-1">
                           <input type="number" value={editingPriceValue} step={100}
                             onChange={e => setEditingPriceValue(Number(e.target.value))}
-                            className="w-24 text-xs font-black font-mono p-1 border border-[#624A3E] rounded bg-amber-50 focus:outline-none"
+                            className="w-24 text-xs font-black font-mono p-1 border border-brand-yellow rounded bg-zinc-50 focus:outline-none"
                             autoFocus
                           />
                           <button onClick={() => handleUpdatePrice(p.id_producto, editingPriceValue)}
-                            className="text-[10px] bg-[#624A3E] text-white px-1.5 py-1 rounded font-bold cursor-pointer">OK</button>
+                            className="text-[10px] bg-brand-yellow text-brand-black px-1.5 py-1 rounded font-bold cursor-pointer">OK</button>
                           <button onClick={() => setEditingPriceProduct(null)}
                             className="text-[10px] bg-stone-200 px-1.5 py-1 rounded font-bold cursor-pointer">
                             <X className="w-3 h-3" /></button>
@@ -510,7 +510,7 @@ export default function MozoTerminal({
                         </span>
                       )}
                       {currentInCart > 0 && (
-                        <span className="bg-[#624A3E] text-white rounded-full px-1.5 py-0.1 text-[9px] font-black font-mono shrink-0">
+                        <span className="bg-brand-yellow text-brand-black rounded-full px-1.5 py-0.1 text-[9px] font-black font-mono shrink-0">
                           {currentInCart} en bolsa
                         </span>
                       )}
@@ -523,7 +523,7 @@ export default function MozoTerminal({
                             e.stopPropagation();
                             if (!isOutOfStock) handleAddToCart(p.id_producto, n);
                           }}
-                          className="touch-target w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-[#624A3E]/10 text-[#624A3E] hover:bg-[#624A3E] hover:text-white active:scale-90 transition-all text-xs font-extrabold cursor-pointer flex items-center justify-center"
+                          className="touch-target w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-brand-yellow/10 text-brand-orange hover:bg-brand-yellow hover:text-brand-black active:scale-90 transition-all text-xs font-extrabold cursor-pointer flex items-center justify-center"
                           title={`Agregar ${n}`}
                         >
                           +{n}
