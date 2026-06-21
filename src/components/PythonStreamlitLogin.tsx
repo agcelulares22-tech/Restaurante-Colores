@@ -140,7 +140,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess }: PythonStreamlit
         <div className="text-center space-y-4 flex flex-col items-center">
           <ElPatronLogo className="w-32 h-32 sm:w-36 sm:h-36 drop-shadow-md" variant="badge" />
           <div className="space-y-1">
-            <h1 className="text-2xl font-black text-[#4A2D1B] tracking-tight">El Patrón Pro</h1>
+            <h1 className="text-2xl font-black text-[#4A2D1B] tracking-tight">Colores Pizzería Pro</h1>
             <p className="text-[10px] uppercase font-bold text-[#6B4A35] tracking-widest">
               Sistema Gestor Gastronómico
             </p>
@@ -240,7 +240,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess }: PythonStreamlit
       )}
 
       <div className="absolute bottom-4 left-0 right-0 text-center text-[10px] text-stone-400/80">
-        El Patrón Gastronomía Premium S.A. • Terminal POS Autorizada
+        Colores Pizzería • Terminal POS Autorizada
       </div>
     </div>
   );

@@ -1,190 +1,148 @@
 export const RECIPES_DETAILS: Record<string, { pasos_preparacion: string[]; alergenos: string[]; consejo_emplatado: string }> = {
-  prod_ent_carpaccio: {
-    pasos_preparacion: [
-      'Cortar el lomo curado en láminas ultrafinas con la cortadora de fiambres fría.',
-      'Disponer las láminas en forma de abanico en el plato frío sin encimarlas demasiado.',
-      'Distribuir homogéneamente las alcaparras escurridas y las lascas de queso parmesano.',
-      'Terminar rociando con el hilo de aceite de oliva trufado en forma de espiral.'
-    ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir en plato plano negro pre-enfriado para resaltar el color de la carne curada.'
-  },
-  prod_ent_burrata: {
-    pasos_preparacion: [
-      'Retirar la burrata de su suero y escurrir sobre papel absorbente.',
-      'Colocar una base de tomates confitados templados en el centro del plato hondo.',
-      'Asentar la burrata sobre la cama de tomates confitados.',
-      'Decorar alrededor con cucharadas de pesto fresco de albahaca y trazar líneas con la reducción de aceto balsámico.'
-    ],
-    alergenos: ['Lácteos', 'Frutos Secos'],
-    consejo_emplatado: 'Utilizar plato hondo rústico de de cerámica clara. Témpera la burrata a temperatura ambiente 10 min antes.'
-  },
-  prod_ent_mollejas: {
-    pasos_preparacion: [
-      'Cortar las mollejas previamente blanqueadas en rodajas de 1.5 cm.',
-      'Dorar en sartén de hierro bien caliente con manteca y aceite hasta que estén crocantes.',
-      'Agregar la cebolla de verdeo picada fina y rehogar 1 minuto.',
-      'Desglasar con el vino blanco Chardonnay, reducir a la mitad y agregar crema de leche. Cocinar hasta espesar.'
-    ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir en cazuela de barro precalentada para retener la temperatura de la salsa de crema.'
-  },
   prod_ent_provoleta: {
     pasos_preparacion: [
-      'Espolvorear la provoleta fría con harina por ambas caras.',
-      'Llevar a la plancha a alta temperatura o al horno a leña en una provoletera de hierro fundido.',
-      'Dar vuelta cuando forme costra dorada y crocante de un lado.',
-      'Retirar, decorar con orégano fresco, tomates secos rehidratados y un chorrito de aceite de oliva.'
+      'Espolvorear la provoleta fría con orégano por ambas caras.',
+      'Llevar al horno de barro en provoletera de hierro fundido hasta fundir y dorar las esquinas.',
+      'Retirar, decorar con tomates confitados y terminar con un hilo de aceite de oliva.'
     ],
-    alergenos: ['Lácteos', 'Gluten'],
-    consejo_emplatado: 'Servir directamente sobre la provoleta caliente de hierro apoyada sobre una base de madera.'
+    alergenos: ['Lácteos'],
+    consejo_emplatado: 'Servir en la misma provoletera de hierro caliente apoyada sobre una tabla de madera.'
   },
   prod_ent_empanadas: {
     pasos_preparacion: [
-      'Pintar las empanadas rellenas con huevo batido.',
-      'Hornear en el horno a leña precalentado a 250°C durante 8 a 10 minutos.',
-      'Rotar las empanadas a mitad de cocción para lograr un dorado parejo y burbujeante.'
+      'Disponer las empanadas de carne criolla en una bandeja para horno.',
+      'Hornear a leña a 280°C durante 6-8 minutos hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
     alergenos: ['Gluten', 'Huevo'],
-    consejo_emplatado: 'Servir en una canasta de mimbre o plato de madera criollo con una servilleta de tela rústica.'
+    consejo_emplatado: 'Presentar en canastita de mimbre rústica con servilleta de papel absorbente.'
   },
-  prod_pas_rotolo: {
+  prod_ent_faina_simple: {
     pasos_preparacion: [
-      'Estirar la masa de huevo a 1mm y disponer el relleno de cabrito desmechado cocido a baja temperatura.',
-      'Enrollar en forma cilíndrica (rotolo) y envolver en papel manteca.',
-      'Hervir en agua con sal durante 10 minutos.',
-      'Retirar el envoltorio, cortar rodajas de 4 cm y dorar levemente en una sartén con manteca noisette.'
+      'Preparar la mezcla líquida con harina de garbanzos, agua, sal, pimienta y aceite.',
+      'Verter en molde pizzero bien caliente y aceitado.',
+      'Hornear a fuego fuerte a leña hasta lograr un dorado crocante en la base y los bordes.'
     ],
-    alergenos: ['Gluten', 'Huevo'],
-    consejo_emplatado: 'Servir en plato hondo amplio, salseado con la reducción del propio jugo de cocción del cabrito.'
+    alergenos: [],
+    consejo_emplatado: 'Servir cortada en porciones triangulares finas.'
   },
-  prod_pas_cintas_sepia: {
+  prod_ent_faina_verdeo: {
     pasos_preparacion: [
-      'Cocinar las cintas de tinta de sepia en agua hirviendo con abundante sal por 3 minutos.',
-      'En sartén aparte, dorar langostinos, calamares y mejillones en aceite de oliva virgen.',
-      'Incorporar tomates cherry cortados a la mitad, ajo picado y desglasar con vino blanco.',
-      'Colar las pastas e incorporarlas a la sartén de mariscos, saltear por 1 minuto emulsionando el líquido de cocción.'
+      'Preparar la mezcla líquida de fainá incorporando cebolla de verdeo rehogada previamente.',
+      'Verter en molde pizzero caliente.',
+      'Antes de terminar la cocción, espolvorear parmesano rallado y gratinar.'
     ],
-    alergenos: ['Gluten', 'Moluscos', 'Crustáceos'],
-    consejo_emplatado: 'Servir en plato hondo rústico de color blanco para generar un fuerte contraste visual con las pastas negras.'
+    alergenos: ['Lácteos'],
+    consejo_emplatado: 'Servir caliente espolvoreada con verdeo fresco picado.'
   },
-  prod_pas_sorrentinos_cordero: {
+  prod_pas_muzarela: {
     pasos_preparacion: [
-      'Hervir los sorrentinos congelados en abundante agua hirviendo con sal durante 5 a 6 minutos.',
-      'Mientras tanto, hidratar los hongos de pino y saltearlos con manteca, ajo y crema de leche suave.',
-      'Escurrir los sorrentinos con espumadera con cuidado para evitar roturas.',
-      'Volcar los sorrentinos en la salsa de hongos de pino y saltear a fuego mínimo por 1 minuto para homogeneizar.'
-    ],
-    alergenos: ['Gluten', 'Huevo', 'Lácteos'],
-    consejo_emplatado: 'Servir en plato hondo amplio, decorado con perejil fresco picado y láminas finas de queso parmesano.'
-  },
-  prod_pas_ravioles_calabaza: {
-    pasos_preparacion: [
-      'Hervir los ravioles en abundante agua salada durante 4 a 5 minutos.',
-      'En una sartén, calentar la crema de leche y disolver a fuego lento el queso azul.',
-      'Escurrir los ravioles y mezclarlos suavemente con la crema de queso azul en la sartén.',
-      'Retirar del fuego y añadir las almendras fileteadas y tostadas por encima.'
-    ],
-    alergenos: ['Gluten', 'Huevo', 'Lácteos', 'Frutos Secos'],
-    consejo_emplatado: 'Emplatar en plato hondo rústico espolvoreando nueces trituradas en el contorno.'
-  },
-  prod_pas_gnocchis: {
-    pasos_preparacion: [
-      'Cocinar los gnocchis de papa en agua hirviendo salada hasta que floten (aproximadamente 2 minutos).',
-      'En una sartén grande, calentar la salsa pomodoro casera a fuego medio.',
-      'Pasar los gnocchis escurridos directamente a la sartén con la salsa pomodoro y saltear rápidamente.',
-      'Servir en el plato caliente y coronar en el centro con la stracciatella fresca a temperatura ambiente.'
+      'Estirar el bollo de masa de pizza base en un molde de 35 cm de diámetro.',
+      'Esparcir la salsa de tomate casera de forma uniforme.',
+      'Llevar a una primera cocción rápida (precocinar la masa).',
+      'Distribuir el queso mozzarella rallado y hornear a leña hasta fundir y gratinar el queso.',
+      'Decorar con aceitunas verdes y orégano.'
     ],
     alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Emplatar en cazuela de cerámica oscura para destacar el rojo de la salsa y el blanco de la stracciatella.'
+    consejo_emplatado: 'Cortar en 8 porciones y presentar en tabla de madera para pizza de mesa.'
   },
-  prod_car_ojo_bife: {
+  prod_pas_especial: {
     pasos_preparacion: [
-      'Marcar el ojo de bife a la parrilla sobre brasas de leña fuerte para sellar.',
-      'Cocinar al punto solicitado por el cliente (Jugoso: 52°C interno; A punto: 57°C; Cocido: 63°C).',
-      'En cazo aparte, calentar el puré de papa andina con manteca y crema. Incorporar el queso fontina y mozzarella rallados.',
-      'Trabajar vigorosamente el puré en caliente con cuchara de madera hasta lograr la textura elástica (hilo del aligot).'
+      'Estirar el bollo de masa y agregar salsa de tomate base.',
+      'Distribuir queso mozzarella y hornear hasta fundir.',
+      'Al retirar del horno, cubrir con fetas de jamón cocido y colocar tiras de morrones asados en conserva.',
+      'Terminar con aceitunas verdes y espolvorear orégano.'
     ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir la carne trinchada de lado y verter el aligot caliente al momento frente al cliente en plato rústico.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Servir caliente en bandeja metálica redonda clásica de pizzería.'
   },
-  prod_car_bife_madurado: {
+  prod_pas_calabresa: {
     pasos_preparacion: [
-      'Atemperar el bife madurado a temperatura ambiente por 20 minutos antes de llevar a la cocción.',
-      'Cocinar a la parrilla de carbón y leña, preferentemente jugoso para conservar la terneza e intensidad.',
-      'Salpimentar al dar vuelta la carne con sal en escamas.',
-      'Grillar vegetales seleccionados (morrones, cebollas y calabazas) pincelados con aceite de ajo.'
+      'Estirar la masa y colocar salsa de tomate casera.',
+      'Distribuir la mozzarella y las rodajas finas de longaniza calabresa.',
+      'Hornear a alta temperatura hasta dorar los bordes e integrar el aceite de la longaniza con el queso.',
+      'Coronar con aceitunas negras y una pizca de ají molido.'
     ],
-    alergenos: [],
-    consejo_emplatado: 'Presentar sobre tabla de madera de quebracho curada. Colocar un cuenco con sal en escamas al costado.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Cortar en 8 porciones simétricas y servir caliente.'
   },
-  prod_car_costillar: {
+  prod_pas_fugazzeta: {
     pasos_preparacion: [
-      'Retirar la porción de costillar envasada al vacío de la cámara fría.',
-      'Regenerar en horno de vapor o baño maría térmico a 75°C durante 15 minutos.',
-      'Terminar en horno de leña a alta temperatura por 3 minutos para dorar la superficie exterior y lograr textura crocante.'
+      'Estirar la masa y cubrir con una capa generosa de queso mozzarella.',
+      'Colocar encima la cebolla cortada en juliana fina y previamente sazonada con oliva y sal.',
+      'Hornear a leña hasta que la cebolla quede tierna y levemente caramelizada en las puntas.'
     ],
-    alergenos: [],
-    consejo_emplatado: 'Servir en una bandeja de metal ovalada vintage con su propio jugo reducido vertido por encima.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Servir recién salida del horno en tabla de madera rústica.'
   },
-  prod_car_entrana: {
+  prod_car_margherita_premium: {
     pasos_preparacion: [
-      'Limpiar el exceso de grasa y la membrana exterior de la entraña.',
-      'Cocinar a fuego muy fuerte a la parrilla, aproximadamente 6-8 minutos por lado.',
-      'Al dar vuelta, salar y bañar ligeramente con chimichurri.',
-      'Cortar las papas rústicas en cuñas, saltear con romero fresco y aceite de oliva.'
+      'Estirar el bollo de masa estilo napolitano a mano, dejando el borde (cornicione) alto.',
+      'Trazar círculos de salsa de tomate triturado de alta calidad.',
+      'Colocar trozos de mozzarella Fior di Latte esparcidos.',
+      'Hornear a la piedra a máxima temperatura por 90 segundos.',
+      'Al retirar, decorar con hojas de albahaca fresca y verter un hilo de aceite de oliva extra virgen.'
     ],
-    alergenos: [],
-    consejo_emplatado: 'Servir la entraña cortada al sesgo en una tabla de madera rústica con las papas en un montículo al lado.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Presentar entera sobre plato plano grande de cerámica para apreciar los bordes aireados.'
   },
-  prod_car_matambrito: {
+  prod_car_cuatro_quesos: {
     pasos_preparacion: [
-      'Tiernizar el matambre de cerdo hirviéndolo en leche con hierbas durante 30 minutos.',
-      'Llevar a la parrilla a fuego medio para dorar y desengrasar.',
-      'En una sartén, reducir crema de leche con abundante cebolla de verdeo cortada al bies.',
-      'Bañar el matambre con la crema de verdeo caliente justo antes de retirar de la parrilla.'
+      'Estirar la masa base de pizza.',
+      'Distribuir de forma equitativa muzzarella, provolone rallado y queso azul desgranado.',
+      'Hornear a leña hasta fundir y amalgamar los quesos.',
+      'Al retirar, espolvorear queso parmesano rallado fresco.'
     ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir en plato ovalado amplio de loza blanca, salseando generosamente.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Servir bien caliente para disfrutar la combinación de texturas de los quesos fundidos.'
   },
-  prod_pes_salmon: {
+  prod_car_rucula_crudo: {
     pasos_preparacion: [
-      'Pintar la parte superior del filet de salmón con clara de huevo y rebozar con el mix de sésamo blanco y negro.',
-      'Sellar en plancha bien caliente por el lado de las semillas durante 2 minutos hasta dorar.',
-      'Dar vuelta y terminar la cocción por 4 minutos a fuego medio (debe quedar rosado y jugoso en el centro).',
-      'Blanquear los espárragos y saltearlos rápidamente con manteca.'
+      'Estirar la masa, colocar salsa de tomate y muzzarella.',
+      'Hornear hasta que el queso esté completamente derretido y burbujeante.',
+      'Al salir del horno, colocar las fetas de jamón crudo de forma decorativa.',
+      'Cubrir con hojas de rúcula fresca lavada y coronar con lascas de queso parmesano.'
     ],
-    alergenos: ['Pescado', 'Sésamo', 'Huevo', 'Lácteos'],
-    consejo_emplatado: 'Disponer el colchón de espárragos en el centro, asentar el salmón encima y rodear con gotas de emulsión de limón.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Servir en tabla de madera de eucalipto para destacar los colores frescos de la rúcula y el crudo.'
   },
-  prod_pes_abadejo: {
+  prod_car_panceta_verdeo: {
     pasos_preparacion: [
-      'Sellar el filet de abadejo harinado en aceite caliente hasta dorar ambas caras.',
-      'En una sartén pequeña, dorar las láminas de ajo con el ají panca y aceite de oliva.',
-      'Colocar el abadejo en una fuente, bañar con el aceite de ajos caliente.',
-      'Acompañar con papas hervidas al vapor cortadas en rodajas gruesas.'
+      'Estirar la masa y esparcir queso mozzarella.',
+      'Colocar tiras de panceta ahumada laminada.',
+      'Hornear hasta fundir el queso y lograr que la panceta quede crujiente.',
+      'Al retirar, agregar cebolla de verdeo picada fina y terminar con oliva.'
     ],
-    alergenos: ['Pescado', 'Gluten'],
-    consejo_emplatado: 'Servir en plato llano amplio con el abadejo salseado en el centro y las papas al vapor al rededor.'
+    alergenos: ['Gluten', 'Lácteos'],
+    consejo_emplatado: 'Servir cortado en porciones en bandeja redonda.'
   },
   prod_pos_flan: {
     pasos_preparacion: [
-      'Colocar en la base del molde el caramelo líquido hecho a base de azúcar quemada.',
-      'Mezclar huevos frescos, leche entera y azúcar sin batir en exceso para evitar burbujas de aire.',
-      'Colar la preparación y verterla suavemente sobre el molde con caramelo.',
-      'Cocinar a baño maría en el horno a 140°C durante 50 a 60 minutos. Enfriar por al menos 4 horas antes de desmoldar.'
+      'Caramelizar el molde de flan con azúcar fundido.',
+      'Mezclar leche entera, huevos y azúcar sin incorporar aire.',
+      'Cocinar a baño maría lentamente en horno a 140°C durante 60 minutos.',
+      'Enfriar en heladera antes de desmoldar.'
     ],
     alergenos: ['Huevo', 'Lácteos'],
-    consejo_emplatado: 'Servir una porción generosa acompañada con una quenelle de dulce de leche repostero y crema batida.'
+    consejo_emplatado: 'Acompañar la porción con dulce de leche repostero y crema batida.'
   },
   prod_pos_volcan: {
     pasos_preparacion: [
-      'Derretir chocolate amargo 70% con manteca premium a baño maría.',
-      'Batir huevos y yemas con azúcar a blanco, luego incorporar el chocolate fundido tibio.',
-      'Tamizar e incorporar suavemente la harina de trigo.',
-      'Llenar moldes individuales enmantecados y espolvoreados con cacao. Hornear a 200°C por exactamente 8 minutos para conservar el centro líquido.'
+      'Fundir chocolate amargo 70% con manteca.',
+      'Mezclar con huevo batido con azúcar y agregar harina tamizada.',
+      'Hornear en molde individual a 200°C por exactamente 8 minutos para lograr el centro fluido.'
     ],
     alergenos: ['Gluten', 'Huevo', 'Lácteos'],
-    consejo_emplatado: 'Desmoldar en caliente en el centro del plato, espolvorear azúcar impalpable y colocar una bocha de helado de crema americana al costado.'
+    consejo_emplatado: 'Desmoldar al momento de servir y coronar con una bocha de helado de crema americana.'
+  },
+  prod_pos_tiramisu: {
+    pasos_preparacion: [
+      'Preparar la crema de mascarpone batiendo yemas con azúcar y mascarpone.',
+      'Humedecer vainillas en café expreso mezclado con licor de café.',
+      'Alternar capas de vainillas mojadas y crema de mascarpone.',
+      'Espolvorear con abundante cacao amargo y enfriar por al menos 4 horas.'
+    ],
+    alergenos: ['Gluten', 'Huevo', 'Lácteos'],
+    consejo_emplatado: 'Servir frío cortado en porciones cuadradas espolvoreadas con cacao extra.'
   }
 };
