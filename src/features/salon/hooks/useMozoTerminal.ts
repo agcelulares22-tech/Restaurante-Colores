@@ -492,6 +492,128 @@ export function useMozoTerminal({
     setProductosMenu(prev => prev.map(p => p.id_producto === id ? { ...p, precio_venta: newPrice } : p));
   };
 
+  const AVAILABLE_TOPPINGS = [
+    { id: 'top_doble_queso', nombre: 'Doble Queso', precio: 1000, insumoId: 'ins_mozzarella', qty: 150 },
+    { id: 'top_aceitunas', nombre: 'Aceitunas Extra', precio: 500, insumoId: 'ins_aceitunas', qty: 30 },
+    { id: 'top_albahaca', nombre: 'Albahaca Fresca', precio: 300, insumoId: 'ins_albahaca', qty: 10 },
+    { id: 'top_ajo', nombre: 'Ajo y Oliva', precio: 300, insumoId: 'ins_aceite_oliva', qty: 10 }
+  ];
+
+  const handleCreateHalfHalfPizza = (prodAId: string, prodBId: string) => {
+    const prodA = productosMenu.find(p => p.id_producto === prodAId);
+    const prodB = productosMenu.find(p => p.id_producto === prodBId);
+    if (!prodA || !prodB) return;
+
+    const customId = `half_${prodA.id_producto}_${prodB.id_producto}`;
+    const customName = `Pizza 1/2 ${prodA.nombre.replace('Pizza ', '')} y 1/2 ${prodB.nombre.replace('Pizza ', '')}`;
+    const customPrice = Math.round((prodA.precio_venta + prodB.precio_venta) / 2);
+
+    if (!productosMenu.some(p => p.id_producto === customId)) {
+      const newProduct: ProductoMenu = {
+        id_producto: customId,
+        nombre: customName,
+        descripcion: `Mitad y mitad: ${prodA.nombre} y ${prodB.nombre}.`,
+        precio_venta: customPrice,
+        categoria: 'Pizzas Tradicionales',
+        activo: true,
+        imagen: prodA.imagen || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+        tipo: 'plato',
+        tiempo_preparacion_estimado: Math.max(prodA.tiempo_preparacion_estimado || 12, prodB.tiempo_preparacion_estimado || 12),
+        requiere_cocina: true
+      };
+      setProductosMenu(prev => [...prev, newProduct]);
+
+      const recipesA = recetas.filter(r => r.id_producto === prodAId);
+      const recipesB = recetas.filter(r => r.id_producto === prodBId);
+      recipesA.forEach(r => {
+        recetas.push({
+          id_receta: `esc_${customId}_${r.id_insumo}`,
+          id_producto: customId,
+          id_insumo: r.id_insumo,
+          cantidad_a_descontar: r.cantidad_a_descontar / 2,
+          unidad_medida: r.unidad_medida
+        });
+      });
+      recipesB.forEach(r => {
+        const existing = recetas.find(rec => rec.id_producto === customId && rec.id_insumo === r.id_insumo);
+        if (existing) {
+          existing.cantidad_a_descontar += r.cantidad_a_descontar / 2;
+        } else {
+          recetas.push({
+            id_receta: `esc_${customId}_${r.id_insumo}`,
+            id_producto: customId,
+            id_insumo: r.id_insumo,
+            cantidad_a_descontar: r.cantidad_a_descontar / 2,
+            unidad_medida: r.unidad_medida
+          });
+        }
+      });
+    }
+
+    handleAddToCart(customId, 1);
+  };
+
+  const handleCreatePizzaWithToppings = (baseProdId: string, selectedToppingIds: string[]) => {
+    const baseProd = productosMenu.find(p => p.id_producto === baseProdId);
+    if (!baseProd) return;
+
+    if (selectedToppingIds.length === 0) {
+      handleAddToCart(baseProdId, 1);
+      return;
+    }
+
+    const toppings = AVAILABLE_TOPPINGS.filter(t => selectedToppingIds.includes(t.id));
+    const sortedIds = [...selectedToppingIds].sort().join('_');
+    const customId = `${baseProd.id_producto}_with_${sortedIds}`;
+    const toppingsName = toppings.map(t => t.nombre).join(', ');
+    const customName = `${baseProd.nombre} (con ${toppingsName})`;
+    const customPrice = baseProd.precio_venta + toppings.reduce((sum, t) => sum + t.precio, 0);
+
+    if (!productosMenu.some(p => p.id_producto === customId)) {
+      const newProduct: ProductoMenu = {
+        id_producto: customId,
+        nombre: customName,
+        descripcion: `${baseProd.descripcion} con adicionales de ${toppingsName}.`,
+        precio_venta: customPrice,
+        categoria: baseProd.categoria,
+        activo: true,
+        imagen: baseProd.imagen,
+        tipo: 'plato',
+        tiempo_preparacion_estimado: baseProd.tiempo_preparacion_estimado || 12,
+        requiere_cocina: baseProd.requiere_cocina
+      };
+      setProductosMenu(prev => [...prev, newProduct]);
+
+      const baseRecipes = recetas.filter(r => r.id_producto === baseProdId);
+      baseRecipes.forEach(r => {
+        recetas.push({
+          id_receta: `esc_${customId}_${r.id_insumo}`,
+          id_producto: customId,
+          id_insumo: r.id_insumo,
+          cantidad_a_descontar: r.cantidad_a_descontar,
+          unidad_medida: r.unidad_medida
+        });
+      });
+
+      toppings.forEach(t => {
+        const existing = recetas.find(rec => rec.id_producto === customId && rec.id_insumo === t.insumoId);
+        if (existing) {
+          existing.cantidad_a_descontar += t.qty;
+        } else {
+          recetas.push({
+            id_receta: `esc_${customId}_${t.id}`,
+            id_producto: customId,
+            id_insumo: t.insumoId,
+            cantidad_a_descontar: t.qty,
+            unidad_medida: t.insumoId === 'ins_aceite_oliva' ? 'ml' : 'g'
+          });
+        }
+      });
+    }
+
+    handleAddToCart(customId, 1);
+  };
+
   // Admin: toggle availability (soft delete)
   const handleToggleAvailability = (id: string) => {
     setAdminMenuProduct(null);
@@ -499,6 +621,9 @@ export function useMozoTerminal({
   };
 
   return {
+    AVAILABLE_TOPPINGS,
+    handleCreateHalfHalfPizza,
+    handleCreatePizzaWithToppings,
     selectedMesaId,
     setSelectedMesaId,
     comensales,

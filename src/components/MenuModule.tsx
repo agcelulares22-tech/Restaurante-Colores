@@ -19,7 +19,7 @@ interface MenuModuleProps {
 
 type PendingAction = 'create' | `toggle_${string}` | `edit_${string}` | `duplicate_${string}`;
 
-const CATEGORIAS = ['Entradas', 'Pastas', 'Carnes', 'Pescados', 'Comidas Criollas', 'Postres', 'Bebidas', 'Bodega'] as const;
+const CATEGORIAS = ['Entradas', 'Pizzas Tradicionales', 'Pizzas Gourmet', 'Empanadas', 'Fainá', 'Postres', 'Bebidas', 'Bodega'] as const;
 const FILTER_CATEGORIAS = ['todos', ...CATEGORIAS] as const;
 
 const ALLERGENS_LIST = [

@@ -84,6 +84,9 @@ export default function MozoTerminal({
   const isOnline = Boolean(tryGetActiveSupabaseClient());
 
   const {
+    AVAILABLE_TOPPINGS,
+    handleCreateHalfHalfPizza,
+    handleCreatePizzaWithToppings,
     selectedMesaId,
     comensales,
     setComensales,
@@ -140,6 +143,18 @@ export default function MozoTerminal({
     permitirVentaSinStock,
     toast
   });
+
+  const [showHalfHalfModal, setShowHalfHalfModal] = React.useState(false);
+  const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
+  const [halfPizzaB, setHalfPizzaB] = React.useState<string>('');
+
+  const [showToppingsModal, setShowToppingsModal] = React.useState(false);
+  const [toppingsBaseProduct, setToppingsBaseProduct] = React.useState<any>(null);
+  const [selectedToppings, setSelectedToppings] = React.useState<string[]>([]);
+
+  const pizzaProducts = useMemo(() => {
+    return productosMenu.filter(p => p.activo && (p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pizzas Gourmet') && !p.id_producto.startsWith('half_') && !p.id_producto.includes('_with_'));
+  }, [productosMenu]);
 
   return (
     <>
@@ -378,15 +393,33 @@ export default function MozoTerminal({
         <div className="bg-white rounded-2xl p-3 sm:p-4 border border-stone-105 shadow-sm space-y-3">
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
             <h3 className="font-extrabold text-sm md:text-base text-[#624A3E] tracking-wider uppercase">Filtro de Categorías Premium</h3>
-            <div className="relative w-full sm:w-56">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar plato o bebida..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full min-h-11 pl-9 pr-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#624A3E] focus:border-[#624A3E] transition-all"
-              />
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-56">
+                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Buscar pizza o bebida..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full min-h-11 pl-9 pr-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#624A3E] focus:border-[#624A3E] transition-all"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  if (pizzaProducts.length > 0) {
+                    setHalfPizzaA(pizzaProducts[0].id_producto);
+                    setHalfPizzaB(pizzaProducts.length > 1 ? pizzaProducts[1].id_producto : pizzaProducts[0].id_producto);
+                    setShowHalfHalfModal(true);
+                  } else {
+                    toast.error('No hay pizzas suficientes disponibles para armar Mitad y Mitad.');
+                  }
+                }}
+                className="min-h-11 py-2 px-4 rounded-xl text-xs font-black bg-brand-orange text-white hover:bg-brand-orange/95 cursor-pointer transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm border border-brand-orange/20"
+                title="Armar pizza Mitad y Mitad"
+              >
+                <Pizza className="w-3.5 h-3.5" />
+                Mitad y Mitad
+              </button>
             </div>
           </div>
 
@@ -394,10 +427,10 @@ export default function MozoTerminal({
             {[
               { id: 'todo', label: 'Todos' },
               { id: 'Entradas', label: 'Entradas' },
-              { id: 'Pastas', label: 'Pastas' },
-              { id: 'Carnes', label: 'Carnes' },
-              { id: 'Pescados', label: 'Pescados' },
-              { id: 'Comidas Criollas', label: 'Criollas' },
+              { id: 'Pizzas Tradicionales', label: 'Tradicionales' },
+              { id: 'Pizzas Gourmet', label: 'Gourmet' },
+              { id: 'Empanadas', label: 'Empanadas' },
+              { id: 'Fainá', label: 'Fainá' },
               { id: 'Postres', label: 'Postres' },
               { id: 'Bebidas', label: 'Bebidas' },
               { id: 'Bodega', label: 'Bodega' }
@@ -516,6 +549,20 @@ export default function MozoTerminal({
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {(p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pizzas Gourmet') && !p.id_producto.includes('_with_') && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setToppingsBaseProduct(p);
+                            setSelectedToppings([]);
+                            setShowToppingsModal(true);
+                          }}
+                          className="touch-target px-2 h-10 sm:h-11 rounded-lg bg-zinc-950 text-brand-yellow hover:bg-zinc-900 border border-zinc-800 active:scale-90 transition-all text-xs font-black cursor-pointer flex items-center justify-center gap-1 mr-1 shadow-sm"
+                          title="Adicionales de pizza"
+                        >
+                          🍕 +Extras
+                        </button>
+                      )}
                       {[1, 2, 3].map(n => (
                         <button
                           key={n}
@@ -865,6 +912,176 @@ export default function MozoTerminal({
         </div>
       )}
     </div>
+
+      {/* MODAL MITAD Y MITAD */}
+      {showHalfHalfModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-stone-100 flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+              <h3 className="font-extrabold text-stone-800 text-base uppercase tracking-wider flex items-center gap-2">
+                🍕 Armar Pizza Mitad y Mitad
+              </h3>
+              <button onClick={() => setShowHalfHalfModal(false)} className="text-stone-400 hover:text-stone-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Primera Mitad:</label>
+                <select
+                  value={halfPizzaA}
+                  onChange={(e) => setHalfPizzaA(e.target.value)}
+                  className="w-full min-h-11 px-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold text-stone-700 focus:outline-none"
+                >
+                  {pizzaProducts.map(p => (
+                    <option key={p.id_producto} value={p.id_producto}>
+                      {p.nombre} (${p.precio_venta.toLocaleString('es-AR')})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Segunda Mitad:</label>
+                <select
+                  value={halfPizzaB}
+                  onChange={(e) => setHalfPizzaB(e.target.value)}
+                  className="w-full min-h-11 px-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold text-stone-700 focus:outline-none"
+                >
+                  {pizzaProducts.map(p => (
+                    <option key={p.id_producto} value={p.id_producto}>
+                      {p.nombre} (${p.precio_venta.toLocaleString('es-AR')})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const prodA = pizzaProducts.find(p => p.id_producto === halfPizzaA);
+                const prodB = pizzaProducts.find(p => p.id_producto === halfPizzaB);
+                if (!prodA || !prodB) return null;
+                const avgPrice = Math.round((prodA.precio_venta + prodB.precio_venta) / 2);
+                return (
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                    <span className="text-[10px] font-bold text-amber-800 uppercase block">Precio Proporcional Estimado:</span>
+                    <span className="font-mono text-lg font-black text-amber-900">${avgPrice.toLocaleString('es-AR')}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowHalfHalfModal(false)}
+                className="flex-1 min-h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-sm cursor-pointer transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleCreateHalfHalfPizza(halfPizzaA, halfPizzaB);
+                  setShowHalfHalfModal(false);
+                  toast.success('Pizza Mitad y Mitad agregada a la bolsa.');
+                }}
+                className="flex-1 min-h-11 bg-brand-yellow text-brand-black hover:bg-brand-yellow/90 font-black rounded-xl text-sm cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar Pizza
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TOPPINGS / EXTRAS */}
+      {showToppingsModal && toppingsBaseProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-stone-100 flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+              <h3 className="font-extrabold text-stone-800 text-base uppercase tracking-wider flex items-center gap-2">
+                🍕 Adicionales: {toppingsBaseProduct.nombre}
+              </h3>
+              <button onClick={() => setShowToppingsModal(false)} className="text-stone-400 hover:text-stone-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-stone-400 font-medium">Seleccioná los ingredientes adicionales que querés sumar a la pizza:</p>
+              
+              <div className="space-y-2">
+                {AVAILABLE_TOPPINGS.map(topping => {
+                  const isChecked = selectedToppings.includes(topping.id);
+                  return (
+                    <label
+                      key={topping.id}
+                      className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                        isChecked 
+                          ? 'border-brand-yellow bg-amber-50/20 text-stone-900 font-bold' 
+                          : 'border-stone-200 text-stone-600 hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setSelectedToppings(prev => prev.filter(id => id !== topping.id));
+                            } else {
+                              setSelectedToppings(prev => [...prev, topping.id]);
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-brand-yellow focus:ring-brand-yellow"
+                        />
+                        <span className="text-sm">{topping.nombre}</span>
+                      </div>
+                      <span className="font-mono text-xs text-stone-500 font-black">+${topping.precio}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {(() => {
+                const toppingsTotal = AVAILABLE_TOPPINGS
+                  .filter(t => selectedToppings.includes(t.id))
+                  .reduce((sum, t) => sum + t.precio, 0);
+                const finalPrice = toppingsBaseProduct.precio_venta + toppingsTotal;
+                return (
+                  <div className="bg-zinc-950 text-white rounded-xl p-3 flex justify-between items-center mt-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-stone-400 uppercase block">Total con Adicionales:</span>
+                      <span className="font-mono text-base font-black text-brand-yellow">${finalPrice.toLocaleString('es-AR')}</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 font-bold">Base: ${toppingsBaseProduct.precio_venta.toLocaleString('es-AR')}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowToppingsModal(false)}
+                className="flex-1 min-h-11 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-sm cursor-pointer transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleCreatePizzaWithToppings(toppingsBaseProduct.id_producto, selectedToppings);
+                  setShowToppingsModal(false);
+                  toast.success('Pizza con adicionales agregada.');
+                }}
+                className="flex-1 min-h-11 bg-brand-yellow text-brand-black hover:bg-brand-yellow/90 font-black rounded-xl text-sm cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>

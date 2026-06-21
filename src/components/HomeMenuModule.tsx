@@ -176,8 +176,8 @@ export default function HomeMenuModule({
     },
     {
       id: 'cocina',
-      title: 'Cocina',
-      description: 'Monitor de preparación de platos en tiempo real y descuento automático de insumos.',
+      title: 'Horno y Elaboración',
+      description: 'Monitor de preparación de pizzas en tiempo real y descuento de insumos en masa y toppings.',
       icon: ChefHat,
       color: 'from-orange-500/10 to-orange-600/5 hover:border-orange-400',
       iconColor: 'text-orange-700',
