@@ -345,17 +345,17 @@ export default function HomeMenuModule({
   ];
 
   return (
-    <div className="space-y-8 animate-fadeIn" id="home-operational-menu">
+    <div className="space-y-8 animate-fadeIn bg-vintage-beige-light rounded-3xl p-4 sm:p-6" id="home-operational-menu">
       
       {/* 1. Impact Brand Header Block */}
-      <div className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border-b-4 border-brand-yellow">
+      <div className="bg-gradient-to-br from-[#2D2A26] via-[#3D3933] to-[#2D2A26] rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border-b-4 border-brand-yellow">
         {/* Subtle decorative logo outline in the background of the banner */}
         <div className="absolute right-[-25px] bottom-[-25px] opacity-10 rotate-12 scale-110 pointer-events-none">
           <ElPatronLogo className="w-64 h-64" variant="icon" color="#E8B800" />
         </div>
         
         {/* Prominent circular badge logo on the banner with object-contain */}
-        <div className="w-24 h-24 md:w-28 md:h-28 bg-zinc-900 rounded-full flex items-center justify-center p-1.5 shadow-lg border border-zinc-800 shrink-0 relative z-10">
+        <div className="w-24 h-24 md:w-28 md:h-28 bg-[#1C1A17] rounded-full flex items-center justify-center p-1.5 shadow-lg border border-[#4A4540] shrink-0 relative z-10">
           <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#E8B800" />
         </div>
 
@@ -374,14 +374,14 @@ export default function HomeMenuModule({
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-white font-display uppercase tracking-wider">
             Bienvenido a Pizzería Colores
           </h2>
-          <p className="text-base md:text-lg text-zinc-400 font-medium leading-relaxed max-w-xl">
+          <p className="text-base md:text-lg text-[#D4CFC5] font-medium leading-relaxed max-w-xl">
             Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja, facturación e inventario.
           </p>
           <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
-            <span className="bg-zinc-900 text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-800 font-mono">
+            <span className="bg-[#1C1A17] text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-[#4A4540] font-mono">
               Estación Principal Terminal POS
             </span>
-            <span className="bg-zinc-900 text-zinc-350 text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-800 font-sans">
+            <span className="bg-[#1C1A17] text-[#A8A29E] text-[11px] px-3 py-1 rounded-full font-bold border border-[#4A4540] font-sans">
               Mesa de Enlace Local
             </span>
           </div>
@@ -390,8 +390,8 @@ export default function HomeMenuModule({
 
       {/* Live Action Center - Notifications bell */}
       {activeAlerts.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 max-w-7xl mx-auto space-y-2.5 shadow-sm">
-          <h4 className="text-xs font-bold text-amber-950 uppercase tracking-widest flex items-center gap-1.5 font-sans">
+        <div className="bg-[#FDF9F1] border border-[#E8DCC8] rounded-2xl p-4 max-w-7xl mx-auto space-y-2.5 shadow-sm">
+          <h4 className="text-xs font-bold text-[#8B7355] uppercase tracking-widest flex items-center gap-1.5 font-sans">
             <Bell className="w-4 h-4 text-amber-600 animate-bounce" />
             Centro de Mensajes y Alertas en Vivo
           </h4>
@@ -400,7 +400,7 @@ export default function HomeMenuModule({
               <div 
                 key={idx} 
                 onClick={() => onNavigate(alert.action)}
-                className={`p-3 rounded-xl border flex justify-between items-center text-xs font-medium cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all bg-white shadow-2xs ${
+                className={`p-3 rounded-xl border flex justify-between items-center text-xs font-medium cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all bg-vintage-beige-light shadow-2xs ${
                   alert.type === 'danger' 
                     ? 'border-red-200 hover:border-red-400' 
                     : 'border-amber-200 hover:border-amber-400'
@@ -408,9 +408,9 @@ export default function HomeMenuModule({
               >
                 <div className="flex items-center">
                   <AlertTriangle className={`w-4 h-4 ${alert.type === 'danger' ? 'text-red-500' : 'text-amber-500'}`} />
-                  <span className="text-stone-850 leading-snug">{alert.text}</span>
+                  <span className="text-[#2D3436] leading-snug">{alert.text}</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[#9CA3AF] shrink-0" />
               </div>
             ))}
           </div>
@@ -418,32 +418,32 @@ export default function HomeMenuModule({
       )}
 
       {/* 2. Top-Level Operational Context Row (Live stats + quick action info) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-5 md:p-6 rounded-2xl border border-stone-200/80 shadow-xs max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-vintage-beige-light p-5 md:p-6 rounded-2xl border border-[#E8DCC8] shadow-xs max-w-7xl mx-auto">
         
         {/* Salon Capacity & Shift Widget */}
-        <div className="space-y-2 md:border-r border-stone-100/80 md:pr-4 last:border-0">
-          <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block mb-2">Estado del Salón</span>
+        <div className="space-y-2 md:border-r border-[#E8DCC8] md:pr-4 last:border-0">
+          <span className="text-xs font-bold text-[#8B7355] uppercase tracking-widest block mb-2">Estado del Salón</span>
           <div className="flex items-center gap-2">
-            <div className="bg-stone-50 border border-stone-200/60 px-3 py-1.5 rounded-xl text-stone-800 text-sm font-bold flex items-center gap-2 w-full">
+            <div className="bg-vintage-beige border border-[#E8DCC8] px-3 py-1.5 rounded-xl text-[#2D3436] text-sm font-bold flex items-center gap-2 w-full">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               <span>Ocupación: {Math.round((occupiedTables / (mesas.length || 1)) * 100)}%</span>
             </div>
           </div>
-          <p className="text-sm text-stone-405 text-stone-400">{occupiedTables} mesas ocupadas de {mesas.length} totales.</p>
+          <p className="text-sm text-[#8B7355]">{occupiedTables} mesas ocupadas de {mesas.length} totales.</p>
         </div>
 
         {/* Active operator / logged user */}
-        <div className="space-y-2 md:border-r border-stone-100/80 md:px-4 last:border-0">
-          <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block mb-2">Usuario Activo</span>
+        <div className="space-y-2 md:border-r border-[#E8DCC8] md:px-4 last:border-0">
+          <span className="text-xs font-bold text-[#8B7355] uppercase tracking-widest block mb-2">Usuario Activo</span>
           <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-600">
-              <User className="w-4 h-4 text-stone-500" />
+            <div className="w-7 h-7 rounded-full bg-vintage-beige border border-[#E8DCC8] flex items-center justify-center text-[#8B7355]">
+              <User className="w-4 h-4 text-[#8B7355]" />
             </div>
             {canChangeUser ? (
               <select
                 value={activeMozo}
                 onChange={(e) => onMozoChange(e.target.value)}
-                className="text-sm bg-transparent border-0 font-medium text-stone-800 focus:outline-none focus:ring-0 p-0 cursor-pointer hover:text-[#624A3E]"
+                className="text-sm bg-transparent border-0 font-medium text-[#2D3436] focus:outline-none focus:ring-0 p-0 cursor-pointer hover:text-brand-orange"
               >
                 {usuarios.filter(usuario => usuario.activo !== false).map(usuario => (
                   <option key={usuario.id_usuario} value={usuario.nombre}>
@@ -452,23 +452,23 @@ export default function HomeMenuModule({
                 ))}
               </select>
             ) : (
-              <span className="text-sm font-medium text-stone-800">{activeMozo}</span>
+              <span className="text-sm font-medium text-[#2D3436]">{activeMozo}</span>
             )}
           </div>
-          <p className="text-sm text-stone-400/95">Persona logueada de forma segura.</p>
+          <p className="text-sm text-[#8B7355]">Persona logueada de forma segura.</p>
         </div>
 
         {/* Simulated shift time with clock advancement */}
-        <div className="space-y-2 md:border-r border-stone-100/80 md:px-4 last:border-0 bg-stone-50/50 p-4 rounded-xl border border-dashed border-stone-200">
+        <div className="space-y-2 md:border-r border-[#E8DCC8] md:px-4 last:border-0 bg-vintage-beige p-4 rounded-xl border border-dashed border-[#E8DCC8]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-400 uppercase tracking-widest flex items-center gap-1 font-mono">
-              <Clock className="w-3 h-3 text-stone-500" />
+            <span className="text-xs font-bold text-[#8B7355] uppercase tracking-widest flex items-center gap-1 font-mono">
+              <Clock className="w-3 h-3 text-[#8B7355]" />
               Reloj Operacional
             </span>
             <span className={`h-1.5 w-1.5 rounded-full ${autoTimerRunning ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-base font-medium text-stone-800 font-mono tracking-tight">{getSimulatedTimeStr()}</span>
+            <span className="text-base font-medium text-[#2D3436] font-mono tracking-tight">{getSimulatedTimeStr()}</span>
             <div className="flex gap-1">
               <button
                 onClick={onToggleAutoTimer}
@@ -479,42 +479,42 @@ export default function HomeMenuModule({
               </button>
               <button
                 onClick={() => onAdvanceTime(15)}
-                className="text-[10px] px-2 py-1 font-bold bg-white border border-stone-250 rounded hover:bg-stone-100 cursor-pointer"
+                className="text-[10px] px-2 py-1 font-bold bg-vintage-beige-light border border-[#E8DCC8] rounded hover:bg-vintage-beige-dark cursor-pointer"
               >
                 +15m
               </button>
             </div>
           </div>
-          <p className="text-sm text-stone-400 font-medium">Control de comanda en reloj.</p>
+          <p className="text-sm text-[#8B7355] font-medium">Control de comanda en reloj.</p>
         </div>
 
         {/* Mini Manager Insights */}
         <div className="space-y-2 md:pl-4">
-          <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block mb-2">Turno en Cifras</span>
-          <div className="flex flex-col gap-1 text-xs text-stone-700 font-medium">
+          <span className="text-xs font-bold text-[#8B7355] uppercase tracking-widest block mb-2">Turno en Cifras</span>
+          <div className="flex flex-col gap-1 text-xs text-[#2D3436] font-medium">
             <div className="flex justify-between items-center">
               <span>Ventas del Turno:</span>
               <strong className="text-emerald-700 font-mono text-sm">${totalSales.toLocaleString('es-AR')}</strong>
             </div>
-            <div className="flex justify-between items-center border-t border-stone-100 pt-1">
+            <div className="flex justify-between items-center border-t border-[#E8DCC8] pt-1">
               <span>Ticket Promedio:</span>
-              <strong className="text-stone-900 font-mono">${averageTicket.toLocaleString('es-AR')}</strong>
+              <strong className="text-[#2D3436] font-mono">${averageTicket.toLocaleString('es-AR')}</strong>
             </div>
           </div>
-          <p className="text-[10px] text-stone-400 mt-1">Estimados consolidados de caja.</p>
+          <p className="text-[10px] text-[#8B7355] mt-1">Estimados consolidados de caja.</p>
         </div>
 
       </div>
 
       {/* Quick Shortcuts Panel */}
-      <div className="bg-white border border-stone-200/80 rounded-2xl p-5 max-w-7xl mx-auto space-y-4 shadow-sm">
-        <h4 className="text-xs font-bold text-stone-500 uppercase tracking-widest font-sans pl-1">
+      <div className="bg-vintage-beige-light border border-[#E8DCC8] rounded-2xl p-5 max-w-7xl mx-auto space-y-4 shadow-sm">
+        <h4 className="text-xs font-bold text-[#8B7355] uppercase tracking-widest font-sans pl-1">
           Acciones y Consultas Rápidas
         </h4>
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => onNavigate('caja')}
-            className="flex items-center gap-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-stone-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 bg-vintage-beige hover:bg-vintage-beige-dark border border-[#E8DCC8] text-[#2D3436] hover:text-[#1A1A1A] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
             Registrar Pago en Caja
@@ -522,7 +522,7 @@ export default function HomeMenuModule({
           
           <button
             onClick={() => onNavigate('inventario')}
-            className="flex items-center gap-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-stone-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 bg-vintage-beige hover:bg-vintage-beige-dark border border-[#E8DCC8] text-[#2D3436] hover:text-[#1A1A1A] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             Insumos Críticos
@@ -530,7 +530,7 @@ export default function HomeMenuModule({
 
           <button
             onClick={() => onNavigate('recetas')}
-            className="flex items-center gap-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-stone-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 bg-vintage-beige hover:bg-vintage-beige-dark border border-[#E8DCC8] text-[#2D3436] hover:text-[#1A1A1A] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <ChefHat className="w-3.5 h-3.5 text-orange-500" />
             Recetas y Emplatados
@@ -538,7 +538,7 @@ export default function HomeMenuModule({
 
           <button
             onClick={() => onNavigate('sistema')}
-            className="flex items-center gap-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-stone-900 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 bg-vintage-beige hover:bg-vintage-beige-dark border border-[#E8DCC8] text-[#2D3436] hover:text-[#1A1A1A] px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <ExternalLink className="w-3.5 h-3.5 text-indigo-500" />
             Diagnóstico de Servidores
@@ -549,7 +549,7 @@ export default function HomeMenuModule({
 
       {/* 3. Elegantly designed modules dashboard grid (operational focus) */}
       <div className="max-w-7xl mx-auto px-0 md:px-0 space-y-6">
-        <h3 className="text-lg font-semibold text-stone-500 uppercase tracking-widest mb-6">
+        <h3 className="text-lg font-semibold text-[#8B7355] uppercase tracking-widest mb-6">
           Módulos y Terminales de Operación
         </h3>
 
@@ -558,7 +558,7 @@ export default function HomeMenuModule({
             const Icon = item.icon;
             
             // Determine badge theme colors
-            let badgeStyle = 'bg-stone-100 text-stone-600 border border-stone-200';
+            let badgeStyle = 'bg-vintage-beige text-[#8B7355] border border-[#E8DCC8]';
             if (item.badge.type === 'emerald') badgeStyle = 'bg-emerald-50 text-emerald-800 border border-emerald-200';
             if (item.badge.type === 'amber') badgeStyle = 'bg-amber-50 text-amber-800 border border-amber-200 animate-pulse';
             if (item.badge.type === 'rose') badgeStyle = 'bg-rose-50 text-rose-800 border border-rose-200 animate-bounce';
@@ -567,11 +567,11 @@ export default function HomeMenuModule({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`group bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all text-left flex flex-col justify-between min-h-[160px] cursor-pointer bg-gradient-to-br ${item.color} border-l-4 border-l-brand-yellow`}
+                className={`group bg-vintage-beige-light p-6 rounded-2xl border border-[#E8DCC8] shadow-xs hover:shadow-md transition-all text-left flex flex-col justify-between min-h-[160px] cursor-pointer bg-gradient-to-br ${item.color} border-l-4 border-l-brand-yellow`}
               >
                 {/* Module Top Row */}
                 <div className="w-full flex items-center justify-between gap-4">
-                  <div className={`p-2.5 rounded-xl bg-white shadow-xs border border-stone-150 ${item.iconColor}`}>
+                  <div className={`p-2.5 rounded-xl bg-vintage-beige-light shadow-xs border border-[#E8DCC8] ${item.iconColor}`}>
                     <Icon className="w-6 h-6 shrink-0" />
                   </div>
                   
@@ -582,11 +582,11 @@ export default function HomeMenuModule({
 
                 {/* Module description content */}
                 <div className="space-y-1.5 pt-3">
-                  <h4 className="font-semibold text-xl text-stone-900 group-hover:text-[#624A3E] transition-colors tracking-tight flex items-center gap-1">
+                  <h4 className="font-semibold text-xl text-[#2D3436] group-hover:text-brand-orange transition-colors tracking-tight flex items-center gap-1">
                     <span>{item.title}</span>
-                    <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-4 h-4 text-[#9CA3AF] group-hover:translate-x-0.5 transition-transform" />
                   </h4>
-                  <p className="text-sm text-stone-500 group-hover:text-stone-600 transition-colors line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-[#6B7280] group-hover:text-[#2D3436] transition-colors line-clamp-2 leading-relaxed">
                     {item.description}
                   </p>
                 </div>
