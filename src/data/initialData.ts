@@ -66,7 +66,7 @@ export const INITIAL_INSUMOS: Insumo[] = [
   { id_insumo: "ins_vin_trumpeter_chardonnay", nombre: "Trumpeter Chardonnay Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos blancos", proveedor: "La Rural Winery", costo_unitario: 2900.0, es_bebida_directa: true },
   { id_insumo: "ins_vin_trumpeter_doux", nombre: "Trumpeter Doux Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos blancos", proveedor: "La Rural Winery", costo_unitario: 2900.0, es_bebida_directa: true },
   { id_insumo: "ins_vin_encuentro_malbec", nombre: "Encuentro Malbec Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 4800.0, es_bebida_directa: true },
-  { id_insumo: "ins_vin_rutini_malbec", nombre: "Rutini Malbec Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 6800.0, es_bebida_directa: true },
+  { id_insumo: "ins_vin_rutini_malbec", nombre: "GIUS Blonde runner (Blonde Ale) Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 6800.0, es_bebida_directa: true },
   { id_insumo: "ins_vin_rutini_cabernet_sauvignon", nombre: "Rutini Cabernet Sauvignon Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 6800.0, es_bebida_directa: true },
   { id_insumo: "ins_vin_rutini_cabernet_franc", nombre: "Rutini Cabernet Franc Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 7200.0, es_bebida_directa: true },
   { id_insumo: "ins_vin_rutini_merlot", nombre: "Rutini Merlot Botella", stock_actual: 20.0, stock_minimo: 4.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Vinos tintos", proveedor: "La Rural Winery", costo_unitario: 6500.0, es_bebida_directa: true },
@@ -164,462 +164,899 @@ export const INITIAL_INSUMOS: Insumo[] = [
 ];
 
 export const INITIAL_PRODUCTOS_MENU: ProductoMenu[] = [
-  // ================= 1. ENTRADAS & ACOMPAÑAMIENTOS =================
   {
-    id_producto: 'prod_ent_provoleta',
-    nombre: 'Provoleta al Horno de Barro',
-    descripcion: 'Queso provolone fundido con orégano fresco, tomates confitados y un toque de oliva.',
-    precio_venta: 4900.00,
-    categoria: 'Entradas',
+    id_producto: 'prod_calz_empa_saltena',
+    nombre: 'Empa Salteña',
+    descripcion: 'Carne a cuchillo, cebolla, verdeo, aceituna, papa, huevo',
+    precio_venta: 2300.0,
+    categoria: 'Calzone y Empanadas',
     activo: true,
-    imagen: '/images/provoleta.jpg',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 10,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_ent_empanadas',
-    nombre: 'Empanadas de Carne a la Leña',
-    descripcion: 'Tradicionales empanadas criollas horneadas a alta temperatura (porción de 2 unidades).',
-    precio_venta: 3200.00,
-    categoria: 'Empanadas',
-    activo: true,
-    imagen: '/images/empanadas.jpg',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_ent_faina_simple',
-    nombre: 'Fainá Simple Dorada',
-    descripcion: 'Porción clásica de fainá crujiente de garbanzos cocida al molde de piedra.',
-    precio_venta: 1800.00,
-    categoria: 'Fainá',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=500&q=80&auto=format&fit=crop',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 5,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_ent_faina_verdeo',
-    nombre: 'Fainá con Cebolla de Verdeo',
-    descripcion: 'Nuestra fainá clásica con cebolla de verdeo salteada y parmesano gratinado.',
-    precio_venta: 2200.00,
-    categoria: 'Fainá',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=500&q=80&auto=format&fit=crop',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-
-  // ================= 2. PIZZAS TRADICIONALES =================
-  {
-    id_producto: 'prod_pas_muzarela',
-    nombre: 'Pizza Muzzarella Tradicional',
-    descripcion: 'Salsa de tomate casera, abundante muzzarella, aceitunas y orégano.',
-    precio_venta: 7500.00,
-    categoria: 'Pizzas Tradicionales',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pas_especial',
-    nombre: 'Pizza Especial de Jamón y Morrones',
-    descripcion: 'Salsa de tomate casera, muzzarella, jamón cocido y pimientos morrones en tiras.',
-    precio_venta: 9200.00,
-    categoria: 'Pizzas Tradicionales',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=500&q=80',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 14,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pas_calabresa',
-    nombre: 'Pizza Calabresa',
-    descripcion: 'Muzzarella, rodajas finas de longaniza calabresa, orégano y aceitunas negras.',
-    precio_venta: 9800.00,
-    categoria: 'Pizzas Tradicionales',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=500&q=80',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pas_fugazzeta',
-    nombre: 'Pizza Fugazzeta con Queso',
-    descripcion: 'Abundante cebolla en pluma, muzzarella, aceite de oliva, orégano y aceitunas.',
-    precio_venta: 8500.00,
-    categoria: 'Pizzas Tradicionales',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80',
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
     tipo: 'plato',
     tiempo_preparacion_estimado: 15,
     requiere_cocina: true
   },
-
-  // ================= 3. PIZZAS GOURMET =================
   {
-    id_producto: 'prod_car_margherita_premium',
-    nombre: 'Pizza Margherita Premium',
-    descripcion: 'Salsa de tomates italianos, mozzarella Fior di Latte fresca, albahaca y aceite de oliva virgen.',
-    precio_venta: 11000.00,
-    categoria: 'Pizzas Gourmet',
+    id_producto: 'prod_calz_empa_criolla',
+    nombre: 'Empa Criolla',
+    descripcion: 'Carne picada, cebolla, huevo.',
+    precio_venta: 2000.0,
+    categoria: 'Calzone y Empanadas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=500&q=80',
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_calz_media_docena_de_saltenas',
+    nombre: 'Media Docena De Salteñas',
+    descripcion: 'Salteñas',
+    precio_venta: 12000.0,
+    categoria: 'Calzone y Empanadas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_calz_calzonne_napolitano',
+    nombre: 'Calzonne Napolitano',
+    descripcion: 'Salsa Napo + muzarella + jamón cocido + provenzal + reggianito + cherrys',
+    precio_venta: 20000.0,
+    categoria: 'Calzone y Empanadas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_calz_calzonne_de_la_reina',
+    nombre: 'Calzonne de la reina',
+    descripcion: 'Salsa de hongos, jamon cocido, muzarella, cebolla caramelizada.',
+    precio_venta: 22000.0,
+    categoria: 'Calzone y Empanadas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_calz_media_docena_de_criollas',
+    nombre: 'Media Docena De Criollas',
+    descripcion: 'Criollas',
+    precio_venta: 10000.0,
+    categoria: 'Calzone y Empanadas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizz_arma_tu_pizza_individual',
+    nombre: 'Arma Tu Pizza Individual',
+    descripcion: 'Elegi 4 Toppings',
+    precio_venta: 11000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizz_arma_tu_pizza_grande',
+    nombre: 'Arma Tu Pizza Grande',
+    descripcion: 'Elegi 4 Toppings ',
+    precio_venta: 22000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_bebi_gius_blonde_runner_blonde_ale',
+    nombre: 'GIUS Blonde runner (Blonde Ale) ',
+    descripcion: 'Cuerpo ligero-medio, amargor bajo.',
+    precio_venta: 3400.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/8oyRnVpvVAiojRs3CTmFKP_HzANo6j2k_wsoCkl5qYRE3k0_iuwGGzmMZ0IRp35wVzTvmbBmbFpLOrk2qcijfXp-n2XsGMB8o6oxcw',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_gius_indomable_dry_stout',
+    nombre: 'GIUS Indomable (Dry Stout)',
+    descripcion: 'Cerveza negra irlandesa',
+    precio_venta: 3700.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/tA_R5pFH1tmHkHK3JC71oZ8XhZR-4A77ugWOYmw6NCt8kNxOtGjB8iqLp4Zq5Pjkg7Vd_bg73ftBn5inqwLOzkwJEQSHEPd3ym7_',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_gius_ojo_loco_irish_red_ale',
+    nombre: 'GIUS Ojo Loco (Irish Red Ale)',
+    descripcion: 'Cerveza roja Irlandesa',
+    precio_venta: 3500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/g88zpwMW8qf9cX8k7S73sfJ74jkvkPNdHiLnQUHahLxv-XLQI1MFLjO2zJD-a_0IQEvXguP-NtVTGKCN9Zpt47dRyEKsFQUkjoToYK8',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_gius_anda_pa_alla_honey_ale',
+    nombre: 'GIUS Anda pa alla (Honey Ale)',
+    descripcion: 'Caracterizada por la adicion de miel.',
+    precio_venta: 3450.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/iTR9ydpk3TxcNkP5-7jifTb5z1VOULhsvh2r4X_LA9Xu9zvt20zCJUcUJqZ6pbJ4AWhj3jHPOMBCet_C_Jkbgn5xXUDEnh-qF9WGFw',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_coca_cola_500cc',
+    nombre: 'Coca Cola 500cc',
+    descripcion: '',
+    precio_venta: 2500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/Mo5OtvBFHCFIuM8cSfozJATpN7Q0jmtCTt_L-QsmOHustLSGJNOjCLEwQa1Fd2qiC1DfUEHukkEci4q9HOPTLQhneJucSP8bIMcOCw',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_bonaqua_500cc',
+    nombre: 'Bonaqua 500cc',
+    descripcion: '',
+    precio_venta: 2500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/XZRwwEkSjXp7fZ-F7wtgxPT3GGhPtxc9xlmCCBb0EX6pFonU_2lzA-O8tP2FgzT0hPL9NMXUaOA7Djy5wPPwbWCJ0dTYJ1cx7xx8Gg',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_gius_gente_despierta_light_lager',
+    nombre: 'GIUS Gente despierta (Light Lager)',
+    descripcion: 'Rubia, ligera y referescante.',
+    precio_venta: 3400.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/XAQi604TF_JLNPwnD082_OaePFvKBsoVajtRJ4k-GqbiIws6ww90dRvUnVvykTP27V8iw26bUhrijsKeS0WY45W_SeunAZq6zP4bSQ',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_sprite_500cc',
+    nombre: 'Sprite 500cc',
+    descripcion: '',
+    precio_venta: 2500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/ppKTHcrAb9w6Z_ma01mkc3fUPgt5NOrNnULBQFs-BFRpb8kkfqLD3y-jMlLGqt9xEtN0dAEMPeGf8AOFjBFY056M0W0FVCvPfZkh',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_coca_cola_zero_500cc',
+    nombre: 'Coca Cola Zero 500cc',
+    descripcion: '',
+    precio_venta: 2500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/ZyO5iYSdFntSmqI17FvSsuDn8YbTCN6LtQFv0Bv5o8t65VdNbjVo1z-7lemtig6BKl1tW0LbrmbM7cvb80ow4GV93tHd2Ql7sOq7HA',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_bebi_fanta_500cc',
+    nombre: 'Fanta 500cc',
+    descripcion: '',
+    precio_venta: 2500.0,
+    categoria: 'Bebidas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/jcw8Z_52tb6mj_uGL_8Qk2us3PUmQGJw-uJDy4NYkMP6WHGhN7cGqMiZRvMvJnv2KU3gfsf0uhsBsMU4N2lNH0jQg8qxow9mB1ak',
+    tipo: 'bebida',
+    tiempo_preparacion_estimado: 3,
+    requiere_cocina: false
+  },
+  {
+    id_producto: 'prod_post_tiramisu',
+    nombre: 'Tiramisú',
+    descripcion: 'Clasico postre italiano a base de mascarpone, cafe y vainillas',
+    precio_venta: 9000.0,
+    categoria: 'Postres',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/uIjG724abXQHUMlirhnmd3MRs2naji9r72sd0jvC5JaG_S_fcsJ7YzArvDy55gFyBZSgdJIzj4X2UZPE6X8ZPDiiOcPJxh1MU8ojxw',
+    tipo: 'postre',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_post_bombas_de_crema_chantilly',
+    nombre: 'Bombas de Crema Chantilly',
+    descripcion: '8 Unidades',
+    precio_venta: 6000.0,
+    categoria: 'Postres',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&q=80',
+    tipo: 'postre',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_post_tarta_de_ricotta',
+    nombre: 'Tarta de Ricotta',
+    descripcion: '',
+    precio_venta: 6000.0,
+    categoria: 'Postres',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/xlHujpdjb-GI0G0D9Xh2WUzh4xl_iOU8d9opQnO3YYfXb3ZeVM6mUIouPDhvwU8_dGOU4ZELw0oncplOQG6oYg6SuEDHT6L3-akxew',
+    tipo: 'postre',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_sand_baguette_lomo',
+    nombre: 'Baguette Lomo',
+    descripcion: 'Carne de ternera en tiras, jamon cocido, muzarella, mayo casera con papas.',
+    precio_venta: 10000.0,
+    categoria: 'Sandwiches',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/cLCFuyE14D_c4jhLvgn--aCDvXGzWOkS-b_930suXSVQCCCXTZa4rdsbF7Rm7UQfv-ogoKCQw5SyHM7TORGdS2D6WUJeegoq0M6k_A',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizz_especial_grande_2_pintas_gius_ipa',
+    nombre: 'Especial Grande + 2 Pintas GIUS IPA',
+    descripcion: '',
+    precio_venta: 29000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/Elsa8nk3wjF5UAAREcvJ2JzfqzYAY1-LcIetYKz07RunpKIS-xhzjLdZYuVG5ge3sZPwff8q8xBu0jhc2VxpAv-v327cjmrxdTn2DA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizz_pizza_comun',
+    nombre: 'Pizza Común',
+    descripcion: 'Salsa de tomate natural sobre una masa aireada fermentada hasta por 96 horas',
+    precio_venta: 19000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/Gfb13YeP1igGDideYATi26z_Kjb380yldPtb2SzfhQZcfDy4omzF3I72mU_O2MK0JgUQ67mU68JdYtCFt8M7cJeHIK06RPV4h3_lQQ',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizz_3x2_de_la_casa',
+    nombre: '3x2 De La Casa',
+    descripcion: 'Pepperoni individual, Especial Individual, 5 Quesos  Individual.',
+    precio_venta: 25000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_5_quesos_grande',
+    nombre: 'Pizza 5 Quesos Grande',
+    descripcion: 'Azul, provolone, morbier, fynbo, reggianito',
+    precio_venta: 23000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/uKvNeoO6OjsLpV8AUYnjoj_uHDjnm39q3fA7BuvqpG8H60EYwA-gezgPKAkMdq7yxMYeZEGgfZGiZTQ5WL3iJkNydy2-lkErV0OdUg',
     tipo: 'plato',
     tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_car_cuatro_quesos',
-    nombre: 'Pizza Cuatro Quesos de la Casa',
-    descripcion: 'Muzzarella, provolone hilado, queso azul premium y lluvia de parmesano rallado.',
-    precio_venta: 12500.00,
-    categoria: 'Pizzas Gourmet',
+    id_producto: 'prod_pizza_5_quesos_individual',
+    nombre: 'Pizza 5 Quesos Individual',
+    descripcion: 'Azul, provolone, morbier, fynbo, reggianito',
+    precio_venta: 11500.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1573821663912-569905455b1c?w=500&q=80',
+    imagen: 'https://lh3.googleusercontent.com/uKvNeoO6OjsLpV8AUYnjoj_uHDjnm39q3fA7BuvqpG8H60EYwA-gezgPKAkMdq7yxMYeZEGgfZGiZTQ5WL3iJkNydy2-lkErV0OdUg',
     tipo: 'plato',
-    tiempo_preparacion_estimado: 14,
+    tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_car_rucula_crudo',
-    nombre: 'Pizza de Rúcula y Jamón Crudo',
-    descripcion: 'Muzzarella, hojas de rúcula fresca, jamón crudo estacionado y lascas de parmesano.',
-    precio_venta: 13500.00,
-    categoria: 'Pizzas Gourmet',
+    id_producto: 'prod_pizza_pepperoni_individual',
+    nombre: 'Pizza Pepperoni Individual',
+    descripcion: 'Salame Español',
+    precio_venta: 11000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1574126154517-d1e0d89ef734?w=500&q=80',
+    imagen: 'https://lh3.googleusercontent.com/3ry2JTqTgIoP_t583K64-qXnJH0fCOhgAUu217Cgf4olw-9AUlEmDDbKWqL5WCGhczK_m8a_buMmNmJngwSLS527J1Ywm0oEl7nB',
     tipo: 'plato',
-    tiempo_preparacion_estimado: 13,
+    tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_car_panceta_verdeo',
-    nombre: 'Pizza de Panceta y Verdeo',
-    descripcion: 'Muzzarella, panceta ahumada crujiente, cebolla de verdeo al horno y oliva.',
-    precio_venta: 12000.00,
-    categoria: 'Pizzas Gourmet',
+    id_producto: 'prod_pizza_pepperoni_grande',
+    nombre: 'Pizza Pepperoni Grande',
+    descripcion: 'Salame Español',
+    precio_venta: 22000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/3ry2JTqTgIoP_t583K64-qXnJH0fCOhgAUu217Cgf4olw-9AUlEmDDbKWqL5WCGhczK_m8a_buMmNmJngwSLS527J1Ywm0oEl7nB',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_tai_pizza_grande',
+    nombre: 'Pizza Tai Pizza Grande',
+    descripcion: 'Langostinos, curry, cebolla de verdeo',
+    precio_venta: 25000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/molPTKzBMySDaSlYgHwJQTuDqIhQ8EZRNr4CuHy3W6Nk59znSpHpVXrIvAe0ClMAbR_8JGkt2fdi4MFpRjKqtX06LNcSjTwGN8RGUA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_tai_pizza_individual',
+    nombre: 'Pizza Tai Pizza Individual',
+    descripcion: 'Langostinos, curry, cebolla de verdeo',
+    precio_venta: 12500.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/molPTKzBMySDaSlYgHwJQTuDqIhQ8EZRNr4CuHy3W6Nk59znSpHpVXrIvAe0ClMAbR_8JGkt2fdi4MFpRjKqtX06LNcSjTwGN8RGUA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_colores_especial_individual',
+    nombre: 'Pizza Colores Especial Individual',
+    descripcion: 'Jamón horneado artesanal y pesto de morron',
+    precio_venta: 11000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/Elsa8nk3wjF5UAAREcvJ2JzfqzYAY1-LcIetYKz07RunpKIS-xhzjLdZYuVG5ge3sZPwff8q8xBu0jhc2VxpAv-v327cjmrxdTn2DA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_colores_especial_grande',
+    nombre: 'Pizza Colores Especial Grande',
+    descripcion: 'Jamón horneado artesanal y pesto de morron',
+    precio_venta: 22000.0,
+    categoria: 'Pizzas',
+    activo: true,
+    imagen: 'https://lh3.googleusercontent.com/Elsa8nk3wjF5UAAREcvJ2JzfqzYAY1-LcIetYKz07RunpKIS-xhzjLdZYuVG5ge3sZPwff8q8xBu0jhc2VxpAv-v327cjmrxdTn2DA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_hongos_y_cerdo_individual',
+    nombre: 'Pizza Hongos y Cerdo Individual',
+    descripcion: 'Girgolas, Jamon horneado artesanal.',
+    precio_venta: 11500.0,
+    categoria: 'Pizzas',
     activo: true,
     imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
     tipo: 'plato',
-    tiempo_preparacion_estimado: 14,
-    requiere_cocina: true
-  },
-
-  // ================= 4. POSTRES =================
-  {
-    id_producto: 'prod_pos_flan',
-    nombre: 'Flan Casero con Dulce de Leche y Crema',
-    descripcion: 'El clásico flan de huevo sedoso con dulce de leche familiar y crema batida.',
-    precio_venta: 3500.00,
-    categoria: 'Postres',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=500&q=80&auto=format&fit=crop',
-    tipo: 'postre',
-    tiempo_preparacion_estimado: 5,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pos_volcan',
-    nombre: 'Volcán de Chocolate con Helado',
-    descripcion: 'Con centro de chocolate líquido caliente, acompañado de helado de crema americana.',
-    precio_venta: 4800.00,
-    categoria: 'Postres',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80&auto=format&fit=crop',
-    tipo: 'postre',
     tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_pos_tiramisu',
-    nombre: 'Tiramisú de Mascarpone y Café',
-    descripcion: 'Vainillas humedecidas en expreso italiano, crema de mascarpone y cacao amargo.',
-    precio_venta: 4200.00,
-    categoria: 'Postres',
+    id_producto: 'prod_pizza_hongos_y_cerdo_grande',
+    nombre: 'Pizza Hongos y Cerdo Grande',
+    descripcion: 'Girgolas, Jamon horneado artesanal.',
+    precio_venta: 24000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=500&q=80&auto=format&fit=crop',
-    tipo: 'postre',
-    tiempo_preparacion_estimado: 4,
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
-
-  // ================= 5. BODEGA & BEBIDAS GENERALES =================
-  // La Rural
   {
-    id_producto: "prod_vin_trumpeter_malbec",
-    nombre: "Trumpeter Malbec",
-    descripcion: "Bodega La Rural. Excelente maridaje para nuestras pizzas gourmet.",
-    precio_venta: 9500.00,
-    categoria: "Bodega",
-    subcategoria: "Vinos tintos",
+    id_producto: 'prod_pizza_fresca_grande',
+    nombre: 'Pizza Fresca Grande',
+    descripcion: 'Rúcula, tomates secos, olivas, provolone, ralladura de limón',
+    precio_venta: 22000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: "https://images.unsplash.com/photo-1553184118-d20774c4c1db?w=500&q=80",
-    tipo: "vino",
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/FUeMzvSzgRQ61FsliWtqep3gPNFHv9otJwz3F8qqhOi7_Y74btbZlj4HvAlih8wdijTGjlsLHE3dKCunm8MhZIRkpVcknLW9vSEV5g',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: "prod_vin_trumpeter_red_blend",
-    nombre: "Trumpeter Red Blend",
-    descripcion: "Bodega La Rural. Delicado blend de uvas seleccionadas.",
-    precio_venta: 9000.00,
-    categoria: "Bodega",
-    subcategoria: "Vinos tintos",
+    id_producto: 'prod_pizza_fresca_individual',
+    nombre: 'Pizza Fresca Individual',
+    descripcion: 'Rúcula, tomates secos, olivas, provolone, ralladura de limón',
+    precio_venta: 11000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: "https://images.unsplash.com/photo-1553184118-d20774c4c1db?w=500&q=80",
-    tipo: "vino",
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/FUeMzvSzgRQ61FsliWtqep3gPNFHv9otJwz3F8qqhOi7_Y74btbZlj4HvAlih8wdijTGjlsLHE3dKCunm8MhZIRkpVcknLW9vSEV5g',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: "prod_vin_trumpeter_chardonnay",
-    nombre: "Trumpeter Chardonnay",
-    descripcion: "Bodega La Rural. Vino blanco fresco y afrutado.",
-    precio_venta: 8500.00,
-    categoria: "Bodega",
-    subcategoria: "Vinos blancos",
+    id_producto: 'prod_pizza_comun_grande',
+    nombre: 'Pizza Común Grande',
+    descripcion: 'Salsa tomate, Muzzarella',
+    precio_venta: 19000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: "https://images.unsplash.com/photo-1585553616435-2dc0a54e2319?w=500&q=80",
-    tipo: "vino",
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/Gfb13YeP1igGDideYATi26z_Kjb380yldPtb2SzfhQZcfDy4omzF3I72mU_O2MK0JgUQ67mU68JdYtCFt8M7cJeHIK06RPV4h3_lQQ',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: "prod_vin_rutini_malbec",
-    nombre: "Rutini Malbec",
-    descripcion: "Crianza distinguida en roble. Alta gama.",
-    precio_venta: 18000.00,
-    categoria: "Bodega",
-    subcategoria: "Vinos tintos",
+    id_producto: 'prod_pizza_comun_individual',
+    nombre: 'Pizza Común Individual',
+    descripcion: 'Salsa tomate, Muzzarella',
+    precio_venta: 10000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: "https://images.unsplash.com/photo-1553184118-d20774c4c1db?w=500&q=80",
-    tipo: "vino",
-    requiere_cocina: false
-  },
-
-  // Spirits
-  {
-    id_producto: "prod_spir_fernet_branca",
-    nombre: "Fernet Branca con Cola",
-    descripcion: "Trago clásico argentino preparado con hielo y Coca-Cola.",
-    precio_venta: 4200.00,
-    categoria: "Bebidas",
-    subcategoria: "Fernet",
-    activo: true,
-    imagen: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&q=80",
-    tipo: "bebida",
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/Gfb13YeP1igGDideYATi26z_Kjb380yldPtb2SzfhQZcfDy4omzF3I72mU_O2MK0JgUQ67mU68JdYtCFt8M7cJeHIK06RPV4h3_lQQ',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: "prod_spir_aperol_spritz",
-    nombre: "Aperol Spritz",
-    descripcion: "Aperol, espumante, soda y rodaja de naranja fresca.",
-    precio_venta: 4500.00,
-    categoria: "Bebidas",
-    subcategoria: "Aperitivos",
+    id_producto: 'prod_pizza_funghi_individual',
+    nombre: 'Pizza Funghi Individual',
+    descripcion: 'Salsa de hongos, jamon cocido, portobellos, fugazza, reggianito',
+    precio_venta: 11500.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: "https://images.unsplash.com/photo-1556881286-fc6915169721?w=500&q=80",
-    tipo: "bebida",
-    requiere_cocina: false
-  },
-
-  // Gaseosas y Básicos
-  {
-    id_producto: 'prod_gaseosa',
-    nombre: 'Gaseosa Cola Común (Lata)',
-    descripcion: 'Lata de Coca-Cola sabor original de 354ml bien helada.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80&auto=format&fit=crop',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/wAo_y-_X_ongyG_9D9yhNYawk0pWHwxhupiOXubcFAyRjJ7p4sAvR7pKIDWH8oiLIHwpKWFP9psgBEwMeJuXmWvu4czUnVMBxeOFlg',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: 'prod_coca_cola_original',
-    nombre: 'Coca-Cola Sabor Original (Lata)',
-    descripcion: 'Lata de Coca-Cola original de 354ml.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
+    id_producto: 'prod_pizza_funghi_grande',
+    nombre: 'Pizza Funghi Grande',
+    descripcion: 'Salsa de hongos, jamon cocido, portobellos, fugazza, reggianito',
+    precio_venta: 24000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80&auto=format&fit=crop',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/wAo_y-_X_ongyG_9D9yhNYawk0pWHwxhupiOXubcFAyRjJ7p4sAvR7pKIDWH8oiLIHwpKWFP9psgBEwMeJuXmWvu4czUnVMBxeOFlg',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: 'prod_coca_cola_zero',
-    nombre: 'Coca-Cola Sin Azúcar (Lata)',
-    descripcion: 'Lata de Coca-Cola Zero azúcar de 354ml.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
+    id_producto: 'prod_pizza_anchovy_individual',
+    nombre: 'Pizza Anchovy Individual',
+    descripcion: 'Anchoas, salsa cesar, reggianito.',
+    precio_venta: 11500.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=500&q=80&auto=format&fit=crop',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/pZxTefehninSEjMSyoAgRmeG8voIQG09E4LOwLMj58iCpL5ZNW5b7jAAEUTVva-mCTsg-F4TZXNn9UJHz584c4UI6Y6rFChHxQJ3oA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: 'prod_sprite',
-    nombre: 'Sprite Sabor Original (Lata)',
-    descripcion: 'Lata de Sprite de 354ml bien fría.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
+    id_producto: 'prod_pizza_anchovy_grande',
+    nombre: 'Pizza Anchovy Grande',
+    descripcion: 'Anchoas, salsa cesar, reggianito.',
+    precio_venta: 23000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1625772291928-9d9300f73f61?w=500&q=80',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://lh3.googleusercontent.com/pZxTefehninSEjMSyoAgRmeG8voIQG09E4LOwLMj58iCpL5ZNW5b7jAAEUTVva-mCTsg-F4TZXNn9UJHz584c4UI6Y6rFChHxQJ3oA',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: 'prod_sprite_zero',
-    nombre: 'Sprite Sin Azúcar (Lata)',
-    descripcion: 'Lata de Sprite Sin Azúcar de 354ml.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
+    id_producto: 'prod_pizza_napolitana_individual',
+    nombre: 'Pizza Napolitana Individual',
+    descripcion: 'Rodajas de tomate, ajo rallado, provenzal',
+    precio_venta: 11000.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1625772291928-9d9300f73f61?w=500&q=80',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   },
   {
-    id_producto: 'prod_fanta',
-    nombre: 'Fanta Naranja (Lata)',
-    descripcion: 'Lata de Fanta Naranja de 354ml.',
-    precio_venta: 2200.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Gaseosas',
+    id_producto: 'prod_pizza_napolitana_grande',
+    nombre: 'Pizza Napolitana Grande',
+    descripcion: 'Rodajas de tomate, ajo rallado, provenzal',
+    precio_venta: 21500.0,
+    categoria: 'Pizzas',
     activo: true,
-    imagen: 'https://images.unsplash.com/photo-1624515699009-471206137d3c?w=500&q=80',
-    tipo: 'bebida',
-    requiere_cocina: false
-  },
-  {
-    id_producto: 'prod_agua',
-    nombre: 'Agua de Manantial con/sin Gas 500ml',
-    descripcion: 'Frescura mineral pura embotellada.',
-    precio_venta: 1500.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Agua',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1608885898957-a599fb1b467a?w=400&q=80',
-    tipo: 'bebida',
-    requiere_cocina: false
-  },
-  {
-    id_producto: 'prod_cafe_espresso',
-    nombre: 'Café Espresso Doble',
-    descripcion: 'Café expreso concentrado de grano italiano.',
-    precio_venta: 1800.00,
-    categoria: 'Bebidas',
-    subcategoria: 'Cafetería',
-    activo: true,
-    imagen: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80',
-    tipo: 'bebida',
-    requiere_cocina: false
+    imagen: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 12,
+    requiere_cocina: true
   }
 ];
 
 export const INITIAL_RECETAS_ESCANDALLO: RecetaEscandallo[] = [
-  // Provoleta
-  { id_receta: 'esc_provo_base', id_producto: 'prod_ent_provoleta', id_insumo: 'ins_provolone', cantidad_a_descontar: 180.00, unidad_medida: 'g' },
-
-  // Empanadas
-  { id_receta: 'esc_empa_patron', id_producto: 'prod_ent_empanadas', id_insumo: 'ins_empanada_relleno', cantidad_a_descontar: 160.00, unidad_medida: 'g' },
-  { id_receta: 'esc_empa_masa', id_producto: 'prod_ent_empanadas', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 60.00, unidad_medida: 'g' },
-
-  // Fainá Simple
-  { id_receta: 'esc_faina_s_garbanzo', id_producto: 'prod_ent_faina_simple', id_insumo: 'ins_faina_preparacion', cantidad_a_descontar: 100.00, unidad_medida: 'g' },
-  
-  // Fainá Verdeo
-  { id_receta: 'esc_faina_v_garbanzo', id_producto: 'prod_ent_faina_verdeo', id_insumo: 'ins_faina_preparacion', cantidad_a_descontar: 100.00, unidad_medida: 'g' },
-  { id_receta: 'esc_faina_v_cebolla', id_producto: 'prod_ent_faina_verdeo', id_insumo: 'ins_cebolla', cantidad_a_descontar: 20.00, unidad_medida: 'g' },
-
-  // Pizza Muzzarella
-  { id_receta: 'esc_muz_harina', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_muz_levadura', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_levadura', cantidad_a_descontar: 5.00, unidad_medida: 'g' },
-  { id_receta: 'esc_muz_tomate', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_pure_tomate', cantidad_a_descontar: 120.00, unidad_medida: 'g' },
-  { id_receta: 'esc_muz_queso', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 280.00, unidad_medida: 'g' },
-  { id_receta: 'esc_muz_oliva', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_aceite_oliva', cantidad_a_descontar: 10.00, unidad_medida: 'ml' },
-  { id_receta: 'esc_muz_aceituna', id_producto: 'prod_pas_muzarela', id_insumo: 'ins_aceitunas', cantidad_a_descontar: 30.00, unidad_medida: 'g' },
-
-  // Pizza Especial
-  { id_receta: 'esc_esp_harina', id_producto: 'prod_pas_especial', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_esp_tomate', id_producto: 'prod_pas_especial', id_insumo: 'ins_pure_tomate', cantidad_a_descontar: 120.00, unidad_medida: 'g' },
-  { id_receta: 'esc_esp_queso', id_producto: 'prod_pas_especial', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_esp_jamon', id_producto: 'prod_pas_especial', id_insumo: 'ins_jamon_cocido', cantidad_a_descontar: 120.00, unidad_medida: 'g' },
-  { id_receta: 'esc_esp_morron', id_producto: 'prod_pas_especial', id_insumo: 'ins_morrones', cantidad_a_descontar: 60.00, unidad_medida: 'g' },
-
-  // Pizza Calabresa
-  { id_receta: 'esc_cal_harina', id_producto: 'prod_pas_calabresa', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cal_tomate', id_producto: 'prod_pas_calabresa', id_insumo: 'ins_pure_tomate', cantidad_a_descontar: 120.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cal_queso', id_producto: 'prod_pas_calabresa', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cal_cantimpalo', id_producto: 'prod_pas_calabresa', id_insumo: 'ins_cantimpalo', cantidad_a_descontar: 80.00, unidad_medida: 'g' },
-
-  // Pizza Fugazzeta
-  { id_receta: 'esc_fug_harina', id_producto: 'prod_pas_fugazzeta', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_fug_queso', id_producto: 'prod_pas_fugazzeta', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 280.00, unidad_medida: 'g' },
-  { id_receta: 'esc_fug_cebolla', id_producto: 'prod_pas_fugazzeta', id_insumo: 'ins_cebolla', cantidad_a_descontar: 180.00, unidad_medida: 'g' },
-
-  // Pizza Margherita Premium
-  { id_receta: 'esc_mar_harina', id_producto: 'prod_car_margherita_premium', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_mar_tomate', id_producto: 'prod_car_margherita_premium', id_insumo: 'ins_pure_tomate', cantidad_a_descontar: 140.00, unidad_medida: 'g' },
-  { id_receta: 'esc_mar_fior', id_producto: 'prod_car_margherita_premium', id_insumo: 'ins_fior_di_latte', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_mar_albahaca', id_producto: 'prod_car_margherita_premium', id_insumo: 'ins_albahaca', cantidad_a_descontar: 15.00, unidad_medida: 'g' },
-
-  // Pizza Cuatro Quesos
-  { id_receta: 'esc_cuat_harina', id_producto: 'prod_car_cuatro_quesos', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cuat_muz', id_producto: 'prod_car_cuatro_quesos', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 150.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cuat_prov', id_producto: 'prod_car_cuatro_quesos', id_insumo: 'ins_provolone', cantidad_a_descontar: 50.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cuat_azul', id_producto: 'prod_car_cuatro_quesos', id_insumo: 'ins_queso_azul', cantidad_a_descontar: 50.00, unidad_medida: 'g' },
-  { id_receta: 'esc_cuat_parm', id_producto: 'prod_car_cuatro_quesos', id_insumo: 'ins_parmesano', cantidad_a_descontar: 30.00, unidad_medida: 'g' },
-
-  // Pizza Rúcula y Crudo
-  { id_receta: 'esc_ruc_harina', id_producto: 'prod_car_rucula_crudo', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_ruc_tomate', id_producto: 'prod_car_rucula_crudo', id_insumo: 'ins_pure_tomate', cantidad_a_descontar: 100.00, unidad_medida: 'g' },
-  { id_receta: 'esc_ruc_muz', id_producto: 'prod_car_rucula_crudo', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 200.00, unidad_medida: 'g' },
-  { id_receta: 'esc_ruc_crudo', id_producto: 'prod_car_rucula_crudo', id_insumo: 'ins_jamon_crudo', cantidad_a_descontar: 100.00, unidad_medida: 'g' },
-
-  // Pizza Panceta y Verdeo
-  { id_receta: 'esc_pan_harina', id_producto: 'prod_car_panceta_verdeo', id_insumo: 'ins_harina_trigo', cantidad_a_descontar: 250.00, unidad_medida: 'g' },
-  { id_receta: 'esc_pan_muz', id_producto: 'prod_car_panceta_verdeo', id_insumo: 'ins_mozzarella', cantidad_a_descontar: 220.00, unidad_medida: 'g' },
-  { id_receta: 'esc_pan_panceta', id_producto: 'prod_car_panceta_verdeo', id_insumo: 'ins_panceta', cantidad_a_descontar: 90.00, unidad_medida: 'g' },
-  { id_receta: 'esc_pan_cebolla', id_producto: 'prod_car_panceta_verdeo', id_insumo: 'ins_cebolla', cantidad_a_descontar: 30.00, unidad_medida: 'g' },
-
-  // Postres
-  { id_receta: 'esc_pos_flan_dl', id_producto: 'prod_pos_flan', id_insumo: 'ins_dulce_leche', cantidad_a_descontar: 40.00, unidad_medida: 'g' },
-  { id_receta: 'esc_pos_vol_choc', id_producto: 'prod_pos_volcan', id_insumo: 'ins_chocolate_belga', cantidad_a_descontar: 60.00, unidad_medida: 'g' },
-  { id_receta: 'esc_pos_vol_ice', id_producto: 'prod_pos_volcan', id_insumo: 'ins_helado_crema', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_pos_tir_choc', id_producto: 'prod_pos_tiramisu', id_insumo: 'ins_chocolate_belga', cantidad_a_descontar: 15.00, unidad_medida: 'g' },
-
-  // Bebidas directas
-  // La Rural
-  { id_receta: 'esc_trumpeter_malbec', id_producto: 'prod_vin_trumpeter_malbec', id_insumo: 'ins_vin_trumpeter_malbec', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_trumpeter_red_blend', id_producto: 'prod_vin_trumpeter_red_blend', id_insumo: 'ins_vin_trumpeter_red_blend', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_trumpeter_chardonnay', id_producto: 'prod_vin_trumpeter_chardonnay', id_insumo: 'ins_vin_trumpeter_chardonnay', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_rutini_malbec', id_producto: 'prod_vin_rutini_malbec', id_insumo: 'ins_vin_rutini_malbec', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-
-  // Spirits
-  { id_receta: 'esc_fernet_branca', id_producto: 'prod_spir_fernet_branca', id_insumo: 'ins_spir_fernet_branca', cantidad_a_descontar: 0.08, unidad_medida: 'unidades' },
-  { id_receta: 'esc_aperol_spritz', id_producto: 'prod_spir_aperol_spritz', id_insumo: 'ins_spir_aperol_spritz', cantidad_a_descontar: 0.10, unidad_medida: 'unidades' },
-
-  // Soft drinks & basics
-  { id_receta: 'esc_gaseosa_lata', id_producto: 'prod_gaseosa', id_insumo: 'ins_beb_gaseosa', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_coca_original', id_producto: 'prod_coca_cola_original', id_insumo: 'ins_beb_coca_cola_original', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_coca_zero', id_producto: 'prod_coca_cola_zero', id_insumo: 'ins_beb_coca_cola_zero', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_sprite', id_producto: 'prod_sprite', id_insumo: 'ins_beb_sprite', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_sprite_zero', id_producto: 'prod_sprite_zero', id_insumo: 'ins_beb_sprite_zero', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_fanta', id_producto: 'prod_fanta', id_insumo: 'ins_beb_fanta', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_agua_botella', id_producto: 'prod_agua', id_insumo: 'ins_beb_agua', cantidad_a_descontar: 1.00, unidad_medida: 'unidades' },
-  { id_receta: 'esc_cafe_espresso_rec', id_producto: 'prod_cafe_espresso', id_insumo: 'ins_cafe_grano', cantidad_a_descontar: 18.00, unidad_medida: 'g' }
+  {
+    id_receta: 'esc_gius_blond',
+    id_producto: 'prod_bebi_gius_blonde_runner_blonde_ale',
+    id_insumo: 'ins_beb_gius_blonde_runner_blonde_ale',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_gius_indom',
+    id_producto: 'prod_bebi_gius_indomable_dry_stout',
+    id_insumo: 'ins_beb_gius_indomable_dry_stout',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_gius_ojo_l',
+    id_producto: 'prod_bebi_gius_ojo_loco_irish_red_ale',
+    id_insumo: 'ins_beb_gius_ojo_loco_irish_red_ale',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_gius_anda',
+    id_producto: 'prod_bebi_gius_anda_pa_alla_honey_ale',
+    id_insumo: 'ins_beb_gius_anda_pa_alla_honey_ale',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_coca_cola',
+    id_producto: 'prod_bebi_coca_cola_500cc',
+    id_insumo: 'ins_beb_coca_cola_500cc',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_bonaqua_50',
+    id_producto: 'prod_bebi_bonaqua_500cc',
+    id_insumo: 'ins_beb_bonaqua_500cc',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_gius_gente',
+    id_producto: 'prod_bebi_gius_gente_despierta_light_lager',
+    id_insumo: 'ins_beb_gius_gente_despierta_light_lager',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_sprite_500',
+    id_producto: 'prod_bebi_sprite_500cc',
+    id_insumo: 'ins_beb_sprite_500cc',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_coca_cola',
+    id_producto: 'prod_bebi_coca_cola_zero_500cc',
+    id_insumo: 'ins_beb_coca_cola_zero_500cc',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_fanta_500c',
+    id_producto: 'prod_bebi_fanta_500cc',
+    id_insumo: 'ins_beb_fanta_500cc',
+    cantidad_a_descontar: 1.0,
+    unidad_medida: 'unidades'
+  },
+  {
+    id_receta: 'esc_pizza_5_quesos_gran',
+    id_producto: 'prod_pizza_5_quesos_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_5_quesos_gran',
+    id_producto: 'prod_pizza_5_quesos_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_5_quesos_indi',
+    id_producto: 'prod_pizza_5_quesos_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_5_quesos_indi',
+    id_producto: 'prod_pizza_5_quesos_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_pepperon_indi',
+    id_producto: 'prod_pizza_pepperoni_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_pepperon_indi',
+    id_producto: 'prod_pizza_pepperoni_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_pepperon_gran',
+    id_producto: 'prod_pizza_pepperoni_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_pepperon_gran',
+    id_producto: 'prod_pizza_pepperoni_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_tai_pizz_gran',
+    id_producto: 'prod_pizza_tai_pizza_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_tai_pizz_gran',
+    id_producto: 'prod_pizza_tai_pizza_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_tai_pizz_indi',
+    id_producto: 'prod_pizza_tai_pizza_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_tai_pizz_indi',
+    id_producto: 'prod_pizza_tai_pizza_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_colores_indi',
+    id_producto: 'prod_pizza_colores_especial_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_colores_indi',
+    id_producto: 'prod_pizza_colores_especial_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_colores_gran',
+    id_producto: 'prod_pizza_colores_especial_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_colores_gran',
+    id_producto: 'prod_pizza_colores_especial_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_hongos_y_indi',
+    id_producto: 'prod_pizza_hongos_y_cerdo_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_hongos_y_indi',
+    id_producto: 'prod_pizza_hongos_y_cerdo_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_hongos_y_gran',
+    id_producto: 'prod_pizza_hongos_y_cerdo_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_hongos_y_gran',
+    id_producto: 'prod_pizza_hongos_y_cerdo_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_fresca_gran',
+    id_producto: 'prod_pizza_fresca_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_fresca_gran',
+    id_producto: 'prod_pizza_fresca_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_fresca_indi',
+    id_producto: 'prod_pizza_fresca_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_fresca_indi',
+    id_producto: 'prod_pizza_fresca_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_comun_gran',
+    id_producto: 'prod_pizza_comun_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_comun_gran',
+    id_producto: 'prod_pizza_comun_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_comun_indi',
+    id_producto: 'prod_pizza_comun_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_comun_indi',
+    id_producto: 'prod_pizza_comun_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_funghi_indi',
+    id_producto: 'prod_pizza_funghi_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_funghi_indi',
+    id_producto: 'prod_pizza_funghi_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_funghi_gran',
+    id_producto: 'prod_pizza_funghi_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_funghi_gran',
+    id_producto: 'prod_pizza_funghi_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_anchovy_indi',
+    id_producto: 'prod_pizza_anchovy_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_anchovy_indi',
+    id_producto: 'prod_pizza_anchovy_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_anchovy_gran',
+    id_producto: 'prod_pizza_anchovy_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_anchovy_gran',
+    id_producto: 'prod_pizza_anchovy_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_napolita_indi',
+    id_producto: 'prod_pizza_napolitana_individual',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 140.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_napolita_indi',
+    id_producto: 'prod_pizza_napolitana_individual',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 125.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_napolita_gran',
+    id_producto: 'prod_pizza_napolitana_grande',
+    id_insumo: 'ins_mozzarella',
+    cantidad_a_descontar: 280.0,
+    unidad_medida: 'g'
+  },
+  {
+    id_receta: 'esc_pizza_m_napolita_gran',
+    id_producto: 'prod_pizza_napolitana_grande',
+    id_insumo: 'ins_harina_trigo',
+    cantidad_a_descontar: 250.0,
+    unidad_medida: 'g'
+  }
 ];
 
 export const INITIAL_PEDIDOS: Pedido[] = [
@@ -630,9 +1067,9 @@ export const INITIAL_PEDIDOS: Pedido[] = [
     mozo: 'Enzo',
     estado_comanda: 'listo',
     items: [
-      { id_producto: 'prod_ent_empanadas', nombre: 'Empanadas de Carne a la Leña', cantidad: 1, categoria: 'Empanadas' },
-      { id_producto: 'prod_pas_muzarela', nombre: 'Pizza Muzzarella Tradicional', cantidad: 1, categoria: 'Pizzas Tradicionales' },
-      { id_producto: 'prod_agua', nombre: 'Agua de Manantial con/sin Gas 500ml', cantidad: 2, categoria: 'Bebidas' }
+      { id_producto: 'prod_calz_empa_criolla', nombre: 'Empa Criolla', cantidad: 1, categoria: 'Empanadas' },
+      { id_producto: 'prod_pizza_comun_grande', nombre: 'Pizza Común Grande', cantidad: 1, categoria: 'Pizzas Tradicionales' },
+      { id_producto: 'prod_bebi_bonaqua_500cc', nombre: 'Bonaqua 500cc', cantidad: 2, categoria: 'Bebidas' }
     ],
     observaciones: 'El agua sin gas, por favor.',
     fecha_hora: new Date(Date.now() - 30 * 60 * 1000), // Hace 30 min
@@ -648,8 +1085,8 @@ export const INITIAL_PEDIDOS: Pedido[] = [
     mozo: 'Enzo',
     estado_comanda: 'en_cocina',
     items: [
-      { id_producto: 'prod_pas_fugazzeta', nombre: 'Pizza Fugazzeta con Queso', cantidad: 1, categoria: 'Pizzas Tradicionales' },
-      { id_producto: 'prod_ent_faina_simple', nombre: 'Fainá Simple Dorada', cantidad: 2, categoria: 'Fainá' }
+      { id_producto: 'prod_pizza_funghi_grande', nombre: 'Pizza Funghi Grande', cantidad: 1, categoria: 'Pizzas Tradicionales' },
+      { id_producto: 'prod_calz_empa_saltena', nombre: 'Empa Salteña', cantidad: 2, categoria: 'Fainá' }
     ],
     observaciones: 'Fugazzeta con cebolla bien dorada.',
     fecha_hora: new Date(Date.now() - 12 * 60 * 1000),
@@ -663,8 +1100,8 @@ export const INITIAL_PEDIDOS: Pedido[] = [
     mozo: 'Micaela',
     estado_comanda: 'pendiente',
     items: [
-      { id_producto: 'prod_car_margherita_premium', nombre: 'Pizza Margherita Premium', cantidad: 1, categoria: 'Pizzas Gourmet' },
-      { id_producto: 'prod_vin_rutini_malbec', nombre: 'Rutini Malbec', cantidad: 1, categoria: 'Bodega' }
+      { id_producto: 'prod_pizza_fresca_grande', nombre: 'Pizza Fresca Grande', cantidad: 1, categoria: 'Pizzas Gourmet' },
+      { id_producto: 'prod_bebi_gius_blonde_runner_blonde_ale', nombre: 'GIUS Blonde runner (Blonde Ale)', cantidad: 1, categoria: 'Bodega' }
     ],
     observaciones: 'Margherita con abundante albahaca.',
     fecha_hora: new Date(Date.now() - 2 * 60 * 1000),

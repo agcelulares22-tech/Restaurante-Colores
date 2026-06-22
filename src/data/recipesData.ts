@@ -1,148 +1,439 @@
 export const RECIPES_DETAILS: Record<string, { pasos_preparacion: string[]; alergenos: string[]; consejo_emplatado: string }> = {
-  prod_ent_provoleta: {
+  prod_calz_empa_saltena: {
     pasos_preparacion: [
-      'Espolvorear la provoleta fría con orégano por ambas caras.',
-      'Llevar al horno de barro en provoletera de hierro fundido hasta fundir y dorar las esquinas.',
-      'Retirar, decorar con tomates confitados y terminar con un hilo de aceite de oliva.'
-    ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir en la misma provoletera de hierro caliente apoyada sobre una tabla de madera.'
-  },
-  prod_ent_empanadas: {
-    pasos_preparacion: [
-      'Disponer las empanadas de carne criolla en una bandeja para horno.',
-      'Hornear a leña a 280°C durante 6-8 minutos hasta que la masa quede inflada y dorada.',
+      'Disponer Empa Salteña en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
       'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Gluten', 'Huevo'],
-    consejo_emplatado: 'Presentar en canastita de mimbre rústica con servilleta de papel absorbente.'
-  },
-  prod_ent_faina_simple: {
-    pasos_preparacion: [
-      'Preparar la mezcla líquida con harina de garbanzos, agua, sal, pimienta y aceite.',
-      'Verter en molde pizzero bien caliente y aceitado.',
-      'Hornear a fuego fuerte a leña hasta lograr un dorado crocante en la base y los bordes.'
+    alergenos: [
+      'Gluten'
     ],
-    alergenos: [],
-    consejo_emplatado: 'Servir cortada en porciones triangulares finas.'
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_ent_faina_verdeo: {
+  prod_calz_empa_criolla: {
     pasos_preparacion: [
-      'Preparar la mezcla líquida de fainá incorporando cebolla de verdeo rehogada previamente.',
-      'Verter en molde pizzero caliente.',
-      'Antes de terminar la cocción, espolvorear parmesano rallado y gratinar.'
+      'Disponer Empa Criolla en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Lácteos'],
-    consejo_emplatado: 'Servir caliente espolvoreada con verdeo fresco picado.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pas_muzarela: {
+  prod_calz_media_docena_de_saltenas: {
     pasos_preparacion: [
-      'Estirar el bollo de masa de pizza base en un molde de 35 cm de diámetro.',
-      'Esparcir la salsa de tomate casera de forma uniforme.',
-      'Llevar a una primera cocción rápida (precocinar la masa).',
-      'Distribuir el queso mozzarella rallado y hornear a leña hasta fundir y gratinar el queso.',
-      'Decorar con aceitunas verdes y orégano.'
+      'Disponer Media Docena De Salteñas en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Cortar en 8 porciones y presentar en tabla de madera para pizza de mesa.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pas_especial: {
+  prod_calz_calzonne_napolitano: {
     pasos_preparacion: [
-      'Estirar el bollo de masa y agregar salsa de tomate base.',
-      'Distribuir queso mozzarella y hornear hasta fundir.',
-      'Al retirar del horno, cubrir con fetas de jamón cocido y colocar tiras de morrones asados en conserva.',
-      'Terminar con aceitunas verdes y espolvorear orégano.'
+      'Disponer Calzonne Napolitano en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Servir caliente en bandeja metálica redonda clásica de pizzería.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pas_calabresa: {
+  prod_calz_calzonne_de_la_reina: {
     pasos_preparacion: [
-      'Estirar la masa y colocar salsa de tomate casera.',
-      'Distribuir la mozzarella y las rodajas finas de longaniza calabresa.',
-      'Hornear a alta temperatura hasta dorar los bordes e integrar el aceite de la longaniza con el queso.',
-      'Coronar con aceitunas negras y una pizca de ají molido.'
+      'Disponer Calzonne de la reina en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Cortar en 8 porciones simétricas y servir caliente.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pas_fugazzeta: {
+  prod_calz_media_docena_de_criollas: {
     pasos_preparacion: [
-      'Estirar la masa y cubrir con una capa generosa de queso mozzarella.',
-      'Colocar encima la cebolla cortada en juliana fina y previamente sazonada con oliva y sal.',
-      'Hornear a leña hasta que la cebolla quede tierna y levemente caramelizada en las puntas.'
+      'Disponer Media Docena De Criollas en una bandeja para horno.',
+      'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.',
+      'Retirar y dejar reposar 1 minuto antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Servir recién salida del horno en tabla de madera rústica.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_car_margherita_premium: {
+  prod_pizz_arma_tu_pizza_individual: {
     pasos_preparacion: [
-      'Estirar el bollo de masa estilo napolitano a mano, dejando el borde (cornicione) alto.',
-      'Trazar círculos de salsa de tomate triturado de alta calidad.',
-      'Colocar trozos de mozzarella Fior di Latte esparcidos.',
-      'Hornear a la piedra a máxima temperatura por 90 segundos.',
-      'Al retirar, decorar con hojas de albahaca fresca y verter un hilo de aceite de oliva extra virgen.'
+      'Preparar los ingredientes para Arma Tu Pizza Individual.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Presentar entera sobre plato plano grande de cerámica para apreciar los bordes aireados.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_car_cuatro_quesos: {
+  prod_pizz_arma_tu_pizza_grande: {
     pasos_preparacion: [
-      'Estirar la masa base de pizza.',
-      'Distribuir de forma equitativa muzzarella, provolone rallado y queso azul desgranado.',
-      'Hornear a leña hasta fundir y amalgamar los quesos.',
-      'Al retirar, espolvorear queso parmesano rallado fresco.'
+      'Preparar los ingredientes para Arma Tu Pizza Grande.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Servir bien caliente para disfrutar la combinación de texturas de los quesos fundidos.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_car_rucula_crudo: {
+  prod_post_tiramisu: {
     pasos_preparacion: [
-      'Estirar la masa, colocar salsa de tomate y muzzarella.',
-      'Hornear hasta que el queso esté completamente derretido y burbujeante.',
-      'Al salir del horno, colocar las fetas de jamón crudo de forma decorativa.',
-      'Cubrir con hojas de rúcula fresca lavada y coronar con lascas de queso parmesano.'
+      'Preparar la base del postre Tiramisú.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Decorar y refrigerar/hornear según corresponda.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Servir en tabla de madera de eucalipto para destacar los colores frescos de la rúcula y el crudo.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_car_panceta_verdeo: {
+  prod_post_bombas_de_crema_chantilly: {
     pasos_preparacion: [
-      'Estirar la masa y esparcir queso mozzarella.',
-      'Colocar tiras de panceta ahumada laminada.',
-      'Hornear hasta fundir el queso y lograr que la panceta quede crujiente.',
-      'Al retirar, agregar cebolla de verdeo picada fina y terminar con oliva.'
+      'Preparar la base del postre Bombas de Crema Chantilly.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Decorar y refrigerar/hornear según corresponda.'
     ],
-    alergenos: ['Gluten', 'Lácteos'],
-    consejo_emplatado: 'Servir cortado en porciones en bandeja redonda.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pos_flan: {
+  prod_post_tarta_de_ricotta: {
     pasos_preparacion: [
-      'Caramelizar el molde de flan con azúcar fundido.',
-      'Mezclar leche entera, huevos y azúcar sin incorporar aire.',
-      'Cocinar a baño maría lentamente en horno a 140°C durante 60 minutos.',
-      'Enfriar en heladera antes de desmoldar.'
+      'Preparar la base del postre Tarta de Ricotta.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Decorar y refrigerar/hornear según corresponda.'
     ],
-    alergenos: ['Huevo', 'Lácteos'],
-    consejo_emplatado: 'Acompañar la porción con dulce de leche repostero y crema batida.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pos_volcan: {
+  prod_sand_baguette_lomo: {
     pasos_preparacion: [
-      'Fundir chocolate amargo 70% con manteca.',
-      'Mezclar con huevo batido con azúcar y agregar harina tamizada.',
-      'Hornear en molde individual a 200°C por exactamente 8 minutos para lograr el centro fluido.'
+      'Preparar los ingredientes para Baguette Lomo.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
     ],
-    alergenos: ['Gluten', 'Huevo', 'Lácteos'],
-    consejo_emplatado: 'Desmoldar al momento de servir y coronar con una bocha de helado de crema americana.'
+    alergenos: [
+      'Gluten'
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
   },
-  prod_pos_tiramisu: {
+  prod_pizz_especial_grande_2_pintas_gius_ipa: {
     pasos_preparacion: [
-      'Preparar la crema de mascarpone batiendo yemas con azúcar y mascarpone.',
-      'Humedecer vainillas en café expreso mezclado con licor de café.',
-      'Alternar capas de vainillas mojadas y crema de mascarpone.',
-      'Espolvorear con abundante cacao amargo y enfriar por al menos 4 horas.'
+      'Preparar los ingredientes para Especial Grande + 2 Pintas GIUS IPA.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
     ],
-    alergenos: ['Gluten', 'Huevo', 'Lácteos'],
-    consejo_emplatado: 'Servir frío cortado en porciones cuadradas espolvoreadas con cacao extra.'
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
+  },
+  prod_pizz_pizza_comun: {
+    pasos_preparacion: [
+      'Preparar los ingredientes para Pizza Común.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
+    ],
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
+  },
+  prod_pizz_3x2_de_la_casa: {
+    pasos_preparacion: [
+      'Preparar los ingredientes para 3x2 De La Casa.',
+      'Cocinar siguiendo la receta tradicional de la casa.',
+      'Controlar la temperatura y calidad antes de servir.'
+    ],
+    alergenos: [
+    ],
+    consejo_emplatado: 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'
+  },
+  prod_pizza_5_quesos_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Azul, provolone, morbier, fynbo, reggianito.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_5_quesos_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Azul, provolone, morbier, fynbo, reggianito.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_pepperoni_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salame Español.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_pepperoni_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salame Español.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_tai_pizza_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Langostinos, curry, cebolla de verdeo.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_tai_pizza_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Langostinos, curry, cebolla de verdeo.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_colores_especial_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Jamón horneado artesanal y pesto de morron.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_colores_especial_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Jamón horneado artesanal y pesto de morron.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_hongos_y_cerdo_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Girgolas, Jamon horneado artesanal..',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_hongos_y_cerdo_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Girgolas, Jamon horneado artesanal..',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_fresca_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Rúcula, tomates secos, olivas, provolone, ralladura de limón.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_fresca_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Rúcula, tomates secos, olivas, provolone, ralladura de limón.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_comun_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salsa tomate, Muzzarella.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_comun_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salsa tomate, Muzzarella.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_funghi_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salsa de hongos, jamon cocido, portobellos, fugazza, reggianito.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_funghi_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Salsa de hongos, jamon cocido, portobellos, fugazza, reggianito.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_anchovy_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Anchoas, salsa cesar, reggianito..',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_anchovy_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Anchoas, salsa cesar, reggianito..',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_napolitana_individual: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (individual).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Rodajas de tomate, ajo rallado, provenzal.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
+  },
+  prod_pizza_napolitana_grande: {
+    pasos_preparacion: [
+      'Estirar el bollo de masa de pizza estilo napolitano (grande).',
+      'Esparcir la salsa de tomate natural sobre la base.',
+      'Distribuir los ingredientes: Rodajas de tomate, ajo rallado, provenzal.',
+      'Hornear a leña a alta temperatura hasta fundir el queso y dorar el cornicione.',
+      'Retirar, decorar y terminar con un hilo de aceite de oliva virgen.'
+    ],
+    alergenos: [
+      'Gluten',
+      'Lácteos'
+    ],
+    consejo_emplatado: 'Servir en tabla de madera para pizza de mesa. Cortar en 8 porciones si es Grande, o servir entera si es Individual.'
   }
 };
