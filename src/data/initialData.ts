@@ -161,7 +161,126 @@ export const INITIAL_INSUMOS: Insumo[] = [
   { id_insumo: "ins_beb_fanta", nombre: "Lata Fanta Naranja 354ml", stock_actual: 90.0, stock_minimo: 20.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Gaseosas", proveedor: "Coca-Cola Andina", costo_unitario: 650.0, es_bebida_directa: true },
   { id_insumo: "ins_beb_agua", nombre: "Botella Agua de Manantial 500ml", stock_actual: 150.0, stock_minimo: 40.0, unidad_medida: "unidades", categoria: "bodega", subcategoria: "Agua", proveedor: "Cervecería Quilmes", costo_unitario: 450.0, es_bebida_directa: true },
   { id_insumo: "ins_cafe_grano", nombre: "Café de especialidad grano tostado", stock_actual: 10000.0, stock_minimo: 2000.0, unidad_medida: "g", categoria: "secos", subcategoria: "Cafetería", proveedor: "Caffé Zatti", costo_unitario: 15.0, es_bebida_directa: false },
-];
+  {
+    id_insumo: 'ins_beb_gius_blonde_runner_blonde_ale',
+    nombre: 'GIUS Blonde runner (Blonde Ale) ',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Cervezas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1530.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_gius_indomable_dry_stout',
+    nombre: 'GIUS Indomable (Dry Stout)',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Cervezas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1665.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_gius_ojo_loco_irish_red_ale',
+    nombre: 'GIUS Ojo Loco (Irish Red Ale)',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Cervezas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1575.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_gius_anda_pa_alla_honey_ale',
+    nombre: 'GIUS Anda pa alla (Honey Ale)',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Cervezas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1552.5,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_coca_cola_500cc',
+    nombre: 'Coca Cola 500cc',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Gaseosas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1125.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_bonaqua_500cc',
+    nombre: 'Bonaqua 500cc',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Gaseosas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1125.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_gius_gente_despierta_light_lager',
+    nombre: 'GIUS Gente despierta (Light Lager)',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Cervezas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1530.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_sprite_500cc',
+    nombre: 'Sprite 500cc',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Gaseosas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1125.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_coca_cola_zero_500cc',
+    nombre: 'Coca Cola Zero 500cc',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Gaseosas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1125.0,
+    es_bebida_directa: true
+  },
+  {
+    id_insumo: 'ins_beb_fanta_500cc',
+    nombre: 'Fanta 500cc',
+    stock_actual: 120.0,
+    stock_minimo: 30.0,
+    unidad_medida: 'unidades',
+    categoria: 'bodega',
+    subcategoria: 'Gaseosas',
+    proveedor: 'Distribuidora Río Cuarto',
+    costo_unitario: 1125.0,
+    es_bebida_directa: true
+  }];
 
 export const INITIAL_PRODUCTOS_MENU: ProductoMenu[] = [
   {

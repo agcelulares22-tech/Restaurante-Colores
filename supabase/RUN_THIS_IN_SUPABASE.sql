@@ -372,7 +372,17 @@ INSERT INTO public.insumos (id_insumo, nombre, stock_actual, stock_minimo, unida
     ('ins_beb_sprite_zero', 'Lata Sprite Sin Azúcar 354ml', 80.0, 20.0, 'unidades', 'bodega', 'Gaseosas', 'Coca-Cola Andina', 650.0, true),
     ('ins_beb_fanta', 'Lata Fanta Naranja 354ml', 90.0, 20.0, 'unidades', 'bodega', 'Gaseosas', 'Coca-Cola Andina', 650.0, true),
     ('ins_beb_agua', 'Botella Agua de Manantial 500ml', 150.0, 40.0, 'unidades', 'bodega', 'Agua', 'Cervecería Quilmes', 450.0, true),
-    ('ins_cafe_grano', 'Café de especialidad grano tostado', 10000.0, 2000.0, 'g', 'secos', 'Cafetería', 'Caffé Zatti', 15.0, false)
+    ('ins_cafe_grano', 'Café de especialidad grano tostado', 10000.0, 2000.0, 'g', 'secos', 'Cafetería', 'Caffé Zatti', 15.0, false),
+    ('ins_beb_gius_blonde_runner_blonde_ale', 'GIUS Blonde runner (Blonde Ale) ', 120.0, 30.0, 'unidades', 'bodega', 'Cervezas', 'Distribuidora Río Cuarto', 1530.0, true),
+    ('ins_beb_gius_indomable_dry_stout', 'GIUS Indomable (Dry Stout)', 120.0, 30.0, 'unidades', 'bodega', 'Cervezas', 'Distribuidora Río Cuarto', 1665.0, true),
+    ('ins_beb_gius_ojo_loco_irish_red_ale', 'GIUS Ojo Loco (Irish Red Ale)', 120.0, 30.0, 'unidades', 'bodega', 'Cervezas', 'Distribuidora Río Cuarto', 1575.0, true),
+    ('ins_beb_gius_anda_pa_alla_honey_ale', 'GIUS Anda pa alla (Honey Ale)', 120.0, 30.0, 'unidades', 'bodega', 'Cervezas', 'Distribuidora Río Cuarto', 1552.5, true),
+    ('ins_beb_coca_cola_500cc', 'Coca Cola 500cc', 120.0, 30.0, 'unidades', 'bodega', 'Gaseosas', 'Distribuidora Río Cuarto', 1125.0, true),
+    ('ins_beb_bonaqua_500cc', 'Bonaqua 500cc', 120.0, 30.0, 'unidades', 'bodega', 'Gaseosas', 'Distribuidora Río Cuarto', 1125.0, true),
+    ('ins_beb_gius_gente_despierta_light_lager', 'GIUS Gente despierta (Light Lager)', 120.0, 30.0, 'unidades', 'bodega', 'Cervezas', 'Distribuidora Río Cuarto', 1530.0, true),
+    ('ins_beb_sprite_500cc', 'Sprite 500cc', 120.0, 30.0, 'unidades', 'bodega', 'Gaseosas', 'Distribuidora Río Cuarto', 1125.0, true),
+    ('ins_beb_coca_cola_zero_500cc', 'Coca Cola Zero 500cc', 120.0, 30.0, 'unidades', 'bodega', 'Gaseosas', 'Distribuidora Río Cuarto', 1125.0, true),
+    ('ins_beb_fanta_500cc', 'Fanta 500cc', 120.0, 30.0, 'unidades', 'bodega', 'Gaseosas', 'Distribuidora Río Cuarto', 1125.0, true)
 ON CONFLICT (id_insumo) DO NOTHING;
 
 -- Productos del Menú y Recetas reales
