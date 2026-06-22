@@ -71,53 +71,53 @@ export default function KitchenMonitor({
     const holdMinutes = estado === 'listo' ? Math.floor((p.segundos_en_listo ?? 0) / 60) : 0;
 
     const headerTheme = {
-      pendiente: 'bg-zinc-950 text-white',
-      en_cocina: 'bg-brand-orange text-white',
-      listo: 'bg-emerald-600 text-white'
+      pendiente: 'bg-white text-[#1A1A1A] border-b-2 border-[#E8B800]',
+      en_cocina: 'bg-[#FFF5EE] text-[#1A1A1A] border-b-2 border-[#E85D00]',
+      listo: 'bg-emerald-50 text-[#1A1A1A] border-b-2 border-emerald-500'
     }[estado];
 
     const btnTheme = {
-      pendiente: 'bg-zinc-900 hover:bg-zinc-800 text-white border-zinc-900',
-      en_cocina: 'bg-brand-orange hover:bg-brand-orange/95 text-white border-brand-orange',
-      listo: 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+      pendiente: 'bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] border-[#E8B800]',
+      en_cocina: 'bg-[#E85D00] hover:bg-[#d14f00] text-white border-[#E85D00]',
+      listo: 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500'
     }[estado];
 
     return (
       <div
         key={p.id_pedido}
-        className={`rounded-[20px] border border-zinc-800 bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || ''} border-l-4`}
+        className={`rounded-[20px] border border-[#E8B800]/30 bg-white shadow-md overflow-hidden relative ${sem?.border || ''} border-l-4`}
       >
         {cold && (
-          <div className="bg-red-600 text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow">
+          <div className="bg-[#D42B2B] text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow">
             <Snowflake className="w-3.5 h-3.5 animate-spin" />
             <span>Alerta: Pizza Fría • {holdMinutes}m sin retirar</span>
           </div>
         )}
 
         {sem?.delayed && (
-          <div className="bg-red-600 text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow animate-pulse">
-            <AlertTriangle className="w-3.5 h-3.5 text-yellow-300 animate-bounce" />
+          <div className="bg-[#D42B2B] text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow animate-pulse">
+            <AlertTriangle className="w-3.5 h-3.5 text-[#E8B800] animate-bounce" />
             <span>Retraso Crítico en Horno</span>
           </div>
         )}
 
-        <div className={`p-4 flex justify-between items-start ${headerTheme} shadow-inner`}>
+        <div className={`p-4 flex justify-between items-start ${headerTheme} shadow-sm`}>
           <div className="flex flex-col min-w-0">
-            <span className="text-[1.6rem] sm:text-[2rem] font-black leading-none tracking-tight uppercase font-display truncate">
+            <span className="text-[1.6rem] sm:text-[2rem] font-black leading-none tracking-tight uppercase font-display truncate text-[#1A1A1A]">
               {p.numero_mesa}
             </span>
-            <span className="text-[10px] uppercase font-black tracking-widest opacity-70 font-mono mt-1 truncate">
+            <span className="text-[10px] uppercase font-black tracking-widest opacity-60 font-mono mt-1 truncate text-[#2D3436]">
               Orden #{p.id_pedido}
             </span>
           </div>
 
           <div className="text-right flex flex-col items-end shrink-0 gap-1">
-            <span className="text-[9px] font-black uppercase text-zinc-350 bg-black/30 px-2 py-0.5 rounded-full">
+            <span className="text-[9px] font-black uppercase text-[#2D3436] bg-[#E8B800]/15 px-2 py-0.5 rounded-full border border-[#E8B800]/30">
               {p.origen || 'MOZO'}
             </span>
-            <div className="flex items-center gap-1.5 text-xs font-mono bg-black/20 border border-black/10 px-2 py-0.5 rounded-full">
-              <Clock className="w-3 h-3 text-zinc-400" />
-              <span className={`text-sm font-black ${sem?.timeText || 'text-white'}`}>{p.minutos_transcurridos}m</span>
+            <div className="flex items-center gap-1.5 text-xs font-mono bg-[#F5F5F5] border border-[#E8B800]/20 px-2 py-0.5 rounded-full">
+              <Clock className="w-3 h-3 text-[#E8B800]" />
+              <span className={`text-sm font-black ${sem?.timeText || 'text-[#1A1A1A]'}`}>{p.minutos_transcurridos}m</span>
               {sem && <span className={`w-1.5 h-1.5 rounded-full ${sem.timeDot}`} />}
             </div>
           </div>
@@ -128,12 +128,12 @@ export default function KitchenMonitor({
             {p.items.map((it, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 py-2.5 border-b border-dashed border-zinc-800 last:border-0"
+                className="flex items-center gap-3 py-2.5 border-b border-dashed border-[#E8B800]/30 last:border-0"
               >
-                <span className="text-lg font-black text-brand-yellow font-mono shrink-0">
+                <span className="text-lg font-black text-[#E85D00] font-mono shrink-0">
                   {it.cantidad}x
                 </span>
-                <span className="flex-1 font-bold text-zinc-300 text-sm leading-snug truncate">
+                <span className="flex-1 font-bold text-[#2D3436] text-sm leading-snug truncate">
                   {it.nombre}
                 </span>
                 <button
@@ -144,12 +144,12 @@ export default function KitchenMonitor({
                       setSelectedRecipeProduct(prod);
                     }
                   }}
-                  className="touch-target p-1 text-brand-orange hover:text-brand-yellow hover:bg-zinc-900 rounded transition-colors shrink-0"
+                  className="touch-target p-1 text-[#E85D00] hover:text-[#E8B800] hover:bg-[#E8B800]/10 rounded transition-colors shrink-0"
                   title="Ver Receta y Emplatado"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                 </button>
-                <span className="text-[9px] uppercase font-black tracking-wider text-brand-black bg-brand-yellow px-2 py-0.5 rounded-md shrink-0">
+                <span className="text-[9px] uppercase font-black tracking-wider text-brand-black bg-[#E8B800] px-2 py-0.5 rounded-md shrink-0">
                   {isBarItem(it) ? 'BAR' : 'HORNO'}
                 </span>
               </div>
@@ -157,8 +157,8 @@ export default function KitchenMonitor({
           </div>
 
           {p.observaciones && (
-            <div className="bg-zinc-900 text-zinc-300 text-xs p-3 rounded-xl border border-zinc-800 italic font-medium leading-relaxed">
-              <strong className="text-[10px] uppercase font-black tracking-wider text-brand-orange block mb-0.5">
+            <div className="bg-[#F5F5F5] text-[#2D3436] text-xs p-3 rounded-xl border border-[#E8B800]/20 italic font-medium leading-relaxed">
+              <strong className="text-[10px] uppercase font-black tracking-wider text-[#E85D00] block mb-0.5">
                 ⚠️ Observación:
               </strong>
               "{p.observaciones}"
@@ -205,7 +205,7 @@ export default function KitchenMonitor({
           )}
 
           <div className="grid grid-cols-2 gap-3 mt-2">
-            <button className="min-h-10 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-zinc-800">
+            <button className="min-h-10 py-2 px-3 bg-white hover:bg-[#F5F5F5] text-[#2D3436] rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-[#E8B800]/40">
               <Pencil className="w-3.5 h-3.5" /> Editar
             </button>
             <button
@@ -214,7 +214,7 @@ export default function KitchenMonitor({
                 title: estado === 'pendiente' ? 'Cancelar comanda pendiente' : 'Cancelar preparación en curso',
                 detail: 'La orden saldrá de la cola de cocina y quedará marcada como cancelada.'
               })}
-              className="min-h-10 py-2 px-3 bg-transparent hover:bg-red-950/20 text-red-500 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-950/45"
+              className="min-h-10 py-2 px-3 bg-white hover:bg-red-50 text-[#D42B2B] rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-[#D42B2B]/30"
             >
               Cancelar
             </button>
@@ -227,28 +227,31 @@ export default function KitchenMonitor({
   const renderColumn = (estado: Pedido['estado_comanda'], title: string, icon: React.ReactNode, headerClass: string, orders: Pedido[]) => {
     const isEmpty = orders.length === 0;
     const emptyMessages = {
-      pendiente: { text: 'Sin pizzas pendientes', icon: <ChefHat className="w-8 h-8 text-brand-yellow mb-2" /> },
-      en_cocina: { text: 'Sin pizzas en el Horno', icon: <Flame className="w-8 h-8 text-brand-yellow mb-2" /> },
-      listo: { text: 'Sin pizzas listas para servir', icon: <Utensils className="w-8 h-8 text-brand-yellow mb-2" /> }
+      pendiente: { text: 'Sin pizzas pendientes', Icon: ChefHat },
+      en_cocina: { text: 'Sin pizzas en el Horno', Icon: Flame },
+      listo: { text: 'Sin pizzas listas para servir', Icon: Utensils }
     };
 
     return (
       <div className="space-y-4">
-        <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] ${headerClass}`}>
-          <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-white">
+        <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] bg-white text-[#1A1A1A] shadow-sm ${headerClass}`}>
+          <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-[#1A1A1A]">
             {icon}
             {title}
           </h4>
-          <span className={`text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border ${isEmpty ? 'bg-zinc-900 text-zinc-500 border-zinc-800' : 'bg-brand-yellow text-brand-black border-brand-yellow'}`}>
+          <span className={`text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border ${isEmpty ? 'bg-[#F5F5F5] text-[#6B7280] border-[#E8B800]/30' : 'bg-[#E8B800] text-[#1A1A1A] border-[#E8B800]'}`}>
             {orders.length}
           </span>
         </div>
 
         <div className="space-y-4 max-h-[700px] overflow-y-auto pr-1">
           {isEmpty ? (
-            <div className="h-40 border-2 border-dashed border-brand-yellow/40 bg-zinc-900/80 rounded-[20px] flex flex-col justify-center items-center text-center p-4">
-              {emptyMessages[estado].icon}
-              <p className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wide">{emptyMessages[estado].text}</p>
+            <div className="h-40 border-2 border-dashed border-[#E8B800]/40 bg-white rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-sm">
+              {(() => {
+                const { Icon } = emptyMessages[estado];
+                return <Icon className="w-12 h-12 text-[#E8B800] mb-3" />;
+              })()}
+              <p className="text-xs text-[#2D3436] font-semibold uppercase tracking-wide">{emptyMessages[estado].text}</p>
             </div>
           ) : (
             orders.map(p => renderTicket(p, estado))
@@ -259,25 +262,25 @@ export default function KitchenMonitor({
   };
 
   return (
-    <div className="space-y-5" id="kitchen-monitor-container">
-      <div className="bg-zinc-950 rounded-[20px] p-5 border border-zinc-800 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-zinc-850">
+    <div className="space-y-5 bg-[#FAFAFA] p-4 rounded-[24px]" id="kitchen-monitor-container">
+      <div className="bg-white rounded-[20px] p-5 border border-[#E8B800]/30 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-[#E8B800]/20">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-brand-yellow text-brand-black flex items-center justify-center text-xl shadow-sm border border-brand-yellow">
+            <div className="w-10 h-10 rounded-xl bg-[#E8B800] text-[#1A1A1A] flex items-center justify-center text-xl shadow-sm border border-[#E8B800]">
               📋
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-lg text-brand-yellow font-display uppercase tracking-wide">Producción agrupada</h3>
-              <p className="text-xs text-zinc-400 font-semibold">Consolidado de preparaciones activas en fuegos.</p>
+              <h3 className="font-black text-lg text-[#E8B800] font-display uppercase tracking-wide">Producción agrupada</h3>
+              <p className="text-xs text-[#6B7280] font-semibold">Consolidado de preparaciones activas en fuegos.</p>
             </div>
           </div>
-          <span className="bg-zinc-900 text-brand-yellow border border-brand-yellow/40 text-xs font-black py-1 px-3 rounded-full shadow-sm w-fit">
+          <span className="bg-[#E8B800]/10 text-[#1A1A1A] border border-[#E8B800]/40 text-xs font-black py-1 px-3 rounded-full shadow-sm w-fit">
             {batchProduction.reduce((sum, item) => sum + item.cantidad, 0)} UNIDADES
           </span>
         </div>
 
         {batchProduction.length === 0 ? (
-          <p className="text-xs text-zinc-500 italic text-center py-3 bg-zinc-900/40 rounded-xl">
+          <p className="text-xs text-[#6B7280] italic text-center py-3 bg-[#F5F5F5] rounded-xl">
             No hay comida activa en la línea de fuegos.
           </p>
         ) : (
@@ -285,9 +288,9 @@ export default function KitchenMonitor({
             {batchProduction.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm font-black text-white shadow-sm hover:border-brand-yellow transition-colors"
+                className="bg-white border border-[#E8B800]/30 rounded-xl px-4 py-2.5 flex items-center gap-3 text-sm font-black text-[#1A1A1A] shadow-sm hover:border-[#E8B800] transition-colors"
               >
-                <span className="bg-brand-yellow text-brand-black text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-brand-yellow">
+                <span className="bg-[#E8B800] text-[#1A1A1A] text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-[#E8B800]">
                   {item.cantidad}
                 </span>
                 <span>{item.nombre}</span>
@@ -298,23 +301,23 @@ export default function KitchenMonitor({
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-zinc-950 rounded-[20px] p-4 border border-zinc-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-white rounded-[20px] p-4 border border-[#E8B800]/30 shadow-sm">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar mesa, mozo o pizza..."
             value={kitchenSearch}
             onChange={e => setKitchenSearch(e.target.value)}
-            className="w-full min-h-11 pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-yellow/40 focus:border-brand-yellow"
+            className="w-full min-h-11 pl-9 pr-3 py-2 bg-white border border-[#E8B800]/50 rounded-xl text-sm text-[#1A1A1A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#E8B800]/40 focus:border-[#E8B800]"
           />
         </div>
         <button
           onClick={() => setShowOnlyKitchen(!showOnlyKitchen)}
           className={`min-h-11 flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-sm font-black transition-all cursor-pointer border ${
             showOnlyKitchen
-              ? 'bg-brand-yellow text-brand-black border-brand-yellow hover:bg-[#D4A700]'
-              : 'bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-brand-yellow hover:text-white'
+              ? 'bg-[#E8B800] text-[#1A1A1A] border-[#E8B800] hover:bg-[#D4A700]'
+              : 'bg-white text-[#1A1A1A] border border-[#E8B800]/50 hover:border-[#E8B800]'
           }`}
         >
           <Filter className="w-3.5 h-3.5" />
@@ -327,22 +330,22 @@ export default function KitchenMonitor({
         {renderColumn(
           'pendiente',
           'Pendientes (Ingresos)',
-          <CircleDot className="w-4 h-4 text-brand-orange" />,
-          'bg-zinc-900 border-zinc-850',
+          <CircleDot className="w-4 h-4 text-[#E8B800]" />,
+          'border-[#E8B800]',
           ordersPendientes
         )}
         {renderColumn(
           'en_cocina',
           'En Preparación (Horno)',
-          <Flame className="w-4 h-4 text-brand-orange" />,
-          'bg-brand-orange/15 border-brand-orange/30',
+          <Flame className="w-4 h-4 text-[#E85D00]" />,
+          'border-[#E85D00]',
           ordersEnCocina
         )}
         {renderColumn(
           'listo',
           'Listos (A Servir)',
           <CheckCircle className="w-4 h-4 text-emerald-500" />,
-          'bg-emerald-950/20 border-emerald-900/30',
+          'border-emerald-500',
           ordersListo
         )}
       </div>
@@ -475,7 +478,7 @@ export default function KitchenMonitor({
                     <ol className="space-y-2.5">
                       {selectedRecipeProduct.pasos_preparacion.map((step, idx) => (
                         <li key={idx} className="flex gap-2.5 items-start text-xs leading-relaxed text-stone-700 font-medium">
-                          <span className="w-5 h-5 rounded-full bg-[#624A3E] text-white flex items-center justify-center shrink-0 font-mono font-bold text-[10px]">
+                          <span className="w-5 h-5 rounded-full bg-[#E8B800] text-[#1A1A1A] flex items-center justify-center shrink-0 font-mono font-bold text-[10px]">
                             {idx + 1}
                           </span>
                           <span className="pt-0.5">{step}</span>
@@ -507,7 +510,7 @@ export default function KitchenMonitor({
             <div className="pt-2 border-t border-[#d4b89a]/30 flex justify-end">
               <button
                 onClick={() => setSelectedRecipeProduct(null)}
-                className="touch-target px-5 py-2 bg-[#624A3E] hover:bg-[#503C32] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="touch-target px-5 py-2 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               >
                 Cerrar Recetario
               </button>
