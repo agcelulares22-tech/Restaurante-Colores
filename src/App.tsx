@@ -51,7 +51,7 @@ const UsuariosModule = lazy(() => import('./components/UsuariosModule'));
 const MenuModule = lazy(() => import('./components/MenuModule'));
 const RecetasModule = lazy(() => import('./components/RecetasModule'));
 const MesasModule = lazy(() => import('./components/MesasModule'));
-const MesasProto1 = lazy(() => import('./components/MesasProto1'));
+const DeliveryModule = lazy(() => import('./components/DeliveryModule'));
 const ProveedoresModule = lazy(() => import('./components/ProveedoresModule'));
 const PromocionesModule = lazy(() => import('./components/PromocionesModule'));
 const ReservasModule = lazy(() => import('./components/ReservasModule'));
@@ -1124,7 +1124,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'reportes', label: 'Reportes', icon: '📈' },
             { id: 'menu', label: 'Menú', icon: '📖' },
             { id: 'recetas', label: 'Recetas', icon: '⚖️' },
-            { id: 'mesas', label: 'Mesas', icon: '🪑' },
+            { id: 'mesas', label: 'Delivery', icon: '🛵' },
             { id: 'inventario', label: 'Inventario', icon: '📦' },
             { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
             { id: 'promociones', label: 'Promociones', icon: '🏷️' },
@@ -1262,7 +1262,15 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               </RecetasErrorBoundary>
             )}
             {activeView === 'mesas' && (
-              <MesasProto1 mesas={mesas} onMesasChange={setMesas} addLog={addLog} />
+              <DeliveryModule 
+                pedidos={pedidos}
+                productosMenu={productosMenu}
+                onCrearPedido={handleCrearPedido}
+                onCambiarEstadoPedido={handleCambiarEstadoPedido}
+                onFacturarMesa={handleFacturarMesa}
+                addLog={addLog}
+                activeMozo={activeMozo}
+              />
             )}
             {activeView === 'proveedores' && <ProveedoresModule addLog={addLog} />}
             {activeView === 'promociones' && <PromocionesModule addLog={addLog} />}
