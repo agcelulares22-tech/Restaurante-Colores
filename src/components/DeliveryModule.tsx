@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Minus, X, Bike, MapPin, Phone, Clock, 
   DollarSign, CheckCircle2, AlertCircle, Trash2, 
-  ShoppingBag, Clipboard, Send, Compass, User
+  ShoppingBag, Clipboard, Send, Compass, User, Map as MapIcon, HelpCircle
 } from 'lucide-react';
 import { Pedido, ProductoMenu, PedidoItem } from '../types';
 import { useToast } from './ToastContainer';
@@ -16,6 +16,12 @@ interface DeliveryModuleProps {
   addLog: (tipo: any, mensaje: string) => void;
   activeMozo: string;
 }
+
+// Default Central Pizzeria Location (Buenos Aires Obelisk Area)
+const ORIGEN_LAT = -34.6037;
+const ORIGEN_LNG = -58.3816;
+const TARIFA_BASE_DEFAULT = 1000;
+const COSTO_POR_KM_DEFAULT = 500;
 
 export default function DeliveryModule({
   pedidos,
@@ -44,6 +50,227 @@ export default function DeliveryModule({
   const [productSearch, setProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('todo');
 
+  // Geo / Route / Estimations state
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [estimatedDistance, setEstimatedDistance] = useState<number | null>(null);
+  const [estimatedDuration, setEstimatedDuration] = useState<number | null>(null);
+  const [deliveryCost, setDeliveryCost] = useState<number>(0);
+  const [costBreakdown, setCostBreakdown] = useState<{ base: number; distance: number; surge: number } | null>(null);
+  
+  // Leaflet map reference
+  const mapRef = useRef<any>(null);
+  const routeLayerRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+
+  // Load Leaflet library dynamically when the modal opens
+  useEffect(() => {
+    if (showNewOrderModal) {
+      const loadLeaflet = () => {
+        if ((window as any).L) {
+          initMap();
+          return;
+        }
+
+        // Stylesheet
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+
+        // Script
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => {
+          initMap();
+        };
+        document.head.appendChild(script);
+      };
+
+      // Delay slightly to ensure modal is fully rendered
+      setTimeout(loadLeaflet, 200);
+    } else {
+      // Destroy map instance when modal closes
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        routeLayerRef.current = null;
+        markersRef.current = [];
+      }
+      // Reset estimations
+      setEstimatedDistance(null);
+      setEstimatedDuration(null);
+      setDeliveryCost(0);
+      setCostBreakdown(null);
+    }
+  }, [showNewOrderModal]);
+
+  const initMap = () => {
+    const L = (window as any).L;
+    if (!L || mapRef.current) return;
+
+    try {
+      // Create map centered at pizzeria
+      mapRef.current = L.map('delivery-route-map', {
+        zoomControl: true,
+        scrollWheelZoom: true
+      }).setView([ORIGEN_LAT, ORIGEN_LNG], 13);
+
+      // Add OpenStreetMap tiles (premium looking style)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 20
+      }).addTo(mapRef.current);
+
+      // Add Pizzeria origin marker (Blue)
+      const pizzeriaIcon = L.divIcon({
+        className: 'custom-pizzeria-marker',
+        html: '<div style="background-color: #3B82F6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
+        iconSize: [12, 12]
+      });
+
+      L.marker([ORIGEN_LAT, ORIGEN_LNG], { icon: pizzeriaIcon })
+        .addTo(mapRef.current)
+        .bindPopup('Pizzería Colores (Despacho Central)')
+        .openPopup();
+
+    } catch (err) {
+      console.error('Leaflet initialization error:', err);
+    }
+  };
+
+  // Estimate distance and price (with FastAPI backend falling back to client-side OSM/OSRM)
+  const handleEstimateRoute = async () => {
+    if (!clientAddress.trim()) {
+      toast.warning('Ingresa una dirección primero para calcular la ruta.');
+      return;
+    }
+
+    setIsEstimating(true);
+    const L = (window as any).L;
+
+    try {
+      let data;
+      try {
+        // Attempt calling local Python FastAPI backend
+        const response = await fetch('http://localhost:8000/api/delivery/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: clientAddress })
+        });
+        
+        if (response.ok) {
+          data = await response.json();
+        } else {
+          throw new Error('Python backend returned error or is offline');
+        }
+      } catch (backendError) {
+        console.warn('FastAPI backend unreachable, falling back to client-side Nominatim/OSRM routing...');
+        
+        // Client-side Fallback using OSM Nominatim for Geocoding
+        const searchAddr = clientAddress.includes('argentina') ? clientAddress : `${clientAddress}, Buenos Aires, Argentina`;
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
+          headers: { 'User-Agent': 'PizzeriaColoresClientCalculator/1.0' }
+        });
+        const geoData = await geoResp.json();
+
+        if (!geoData || geoData.length === 0) {
+          throw new Error('No se pudo encontrar la dirección de destino.');
+        }
+
+        const destLat = parseFloat(geoData[0].lat);
+        const destLng = parseFloat(geoData[0].lon);
+
+        // OSRM Routing
+        const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${ORIGEN_LNG},${ORIGEN_LAT};${destLng},${destLat}?overview=full&geometries=geojson`);
+        const routeData = await routeResp.json();
+
+        if (!routeData.routes || routeData.routes.length === 0) {
+          throw new Error('No se pudo calcular la ruta terrestre.');
+        }
+
+        const route = routeData.routes[0];
+        const distKm = parseFloat((route.distance / 1000).toFixed(2));
+        const durMin = parseFloat((route.duration / 60).toFixed(1));
+
+        // Pricing Rules
+        const currentHour = new Date().getHours();
+        const esHoraPico = currentHour >= 20 && currentHour <= 23;
+        const tarifaDistancia = parseFloat((distKm * COSTO_POR_KM_DEFAULT).toFixed(2));
+        const subtotal = TARIFA_BASE_DEFAULT + tarifaDistancia;
+        const recargo = esHoraPico ? parseFloat((subtotal * 0.2).toFixed(2)) : 0;
+        const total = subtotal + recargo;
+
+        data = {
+          destino_coords: [destLat, destLng],
+          distancia_km: distKm,
+          duracion_minutos: durMin,
+          tarifa_base: TARIFA_BASE_DEFAULT,
+          tarifa_distancia: tarifaDistancia,
+          recargo_horario: recargo,
+          total: total,
+          route_geojson: route.geometry
+        };
+      }
+
+      // Update UI with calculated values
+      setEstimatedDistance(data.distancia_km);
+      setEstimatedDuration(data.duracion_minutos);
+      setDeliveryCost(data.total);
+      setCostBreakdown({
+        base: data.tarifa_base,
+        distance: data.tarifa_distancia,
+        surge: data.recargo_horario
+      });
+
+      // Update map markers and route geometry
+      if (mapRef.current && L) {
+        // Clear previous route layer & destination markers
+        if (routeLayerRef.current) {
+          mapRef.current.removeLayer(routeLayerRef.current);
+        }
+        markersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
+        markersRef.current = [];
+
+        const destCoords = data.destino_coords;
+
+        // Draw destination Marker (Red)
+        const destIcon = L.divIcon({
+          className: 'custom-dest-marker',
+          html: '<div style="background-color: #EF4444; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>',
+          iconSize: [14, 14]
+        });
+
+        const destMarker = L.marker(destCoords, { icon: destIcon })
+          .addTo(mapRef.current)
+          .bindPopup(`Destino: ${clientAddress}`);
+        
+        markersRef.current.push(destMarker);
+
+        // Draw route line (Polylines from GeoJSON coordinates)
+        const polylineCoords = data.route_geojson.coordinates.map((coord: any) => [coord[1], coord[0]]);
+        
+        routeLayerRef.current = L.polyline(polylineCoords, {
+          color: '#E8B800',
+          weight: 5,
+          opacity: 0.85,
+          lineJoin: 'round'
+        }).addTo(mapRef.current);
+
+        // Fit map bounds to fit both points
+        mapRef.current.fitBounds([
+          [ORIGEN_LAT, ORIGEN_LNG],
+          destCoords
+        ], { padding: [40, 40] });
+      }
+
+      toast.success('Ruta calculada y costo del delivery estimado.');
+    } catch (err: any) {
+      toast.error(err.message || 'No se pudo estimar la ruta del delivery.');
+    } finally {
+      setIsEstimating(false);
+    }
+  };
+
   // Filter products for the modal cart builder
   const filteredProducts = useMemo(() => {
     return productosMenu.filter(p => {
@@ -63,7 +290,6 @@ export default function DeliveryModule({
   // Filter delivery orders
   const deliveryOrders = useMemo(() => {
     return pedidos.filter(p => {
-      // It is a delivery order if its table number starts with "DELIVERY:" or if its origin is Rappi/PedidosYa
       const isDelivery = p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa';
       if (!isDelivery) return false;
 
@@ -165,9 +391,21 @@ export default function DeliveryModule({
       precio_unitario: item.product.precio_venta
     }));
 
+    // Add delivery cost item if estimated
+    if (deliveryCost > 0) {
+      items.push({
+        id_producto: 'prod_costo_envio_delivery',
+        nombre: `Envío Delivery (${estimatedDistance ? estimatedDistance + ' km' : 'Calculado'})`,
+        cantidad: 1,
+        categoria: 'Servicios',
+        precio_unitario: deliveryCost
+      });
+    }
+
     const observationString = [
       clientPhone ? `Tel: ${clientPhone}` : '',
       assignedCourier ? `Repartidor: ${assignedCourier}` : '',
+      estimatedDistance ? `Distancia: ${estimatedDistance} km` : ''
     ].filter(Boolean).join(' | ');
 
     const newOrder = {
@@ -198,7 +436,7 @@ export default function DeliveryModule({
     }
   };
 
-  // Calculate order total
+  // Calculate order items subtotal (excluding delivery service item)
   const getCartTotal = () => {
     return cart.reduce((sum, item) => sum + (item.product.precio_venta * item.quantity), 0);
   };
@@ -237,7 +475,7 @@ export default function DeliveryModule({
             Consola de Entregas & Delivery
           </h1>
           <p className="text-xs text-stone-500 mt-1">
-            Gestione y supervise pedidos propios y de aplicaciones de delivery en tiempo real.
+            Gestione y supervise pedidos propios y de aplicaciones de delivery en tiempo real con geolocalización.
           </p>
         </div>
         
@@ -470,7 +708,6 @@ export default function DeliveryModule({
                     {p.estado_comanda === 'entregado' && (
                       <button
                         onClick={() => {
-                          // Billing changes state to 'entregado_cobrado' and counts money
                           onFacturarMesa(p.id_pedido);
                         }}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
@@ -505,10 +742,10 @@ export default function DeliveryModule({
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowNewOrderModal(false)} />
           
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row h-[90vh] sm:h-[80vh] border border-stone-200">
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col lg:flex-row h-[95vh] sm:h-[90vh] border border-stone-200">
             
             {/* Form Fields & Cart summary (Left) */}
-            <div className="w-full md:w-[45%] p-5 border-r border-stone-100 flex flex-col justify-between overflow-y-auto">
+            <div className="w-full lg:w-[35%] p-5 border-r border-stone-100 flex flex-col justify-between overflow-y-auto">
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-black text-stone-900 flex items-center gap-1.5">
@@ -517,13 +754,13 @@ export default function DeliveryModule({
                   </h2>
                   <button 
                     onClick={() => setShowNewOrderModal(false)}
-                    className="md:hidden w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 cursor-pointer"
+                    className="lg:hidden w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                <form onSubmit={handleCreateOrder} className="space-y-3.5">
+                <form onSubmit={handleCreateOrder} className="space-y-3">
                   <div>
                     <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Nombre del Cliente</label>
                     <input
@@ -538,15 +775,51 @@ export default function DeliveryModule({
 
                   <div>
                     <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Dirección de Envío</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej: Av. Siempreviva 742"
-                      value={clientAddress}
-                      onChange={(e) => setClientAddress(e.target.value)}
-                      className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Calle y altura (ej: Av. Corrientes 1200)"
+                        value={clientAddress}
+                        onChange={(e) => setClientAddress(e.target.value)}
+                        className="flex-1 p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleEstimateRoute}
+                        disabled={isEstimating}
+                        className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 rounded-xl font-bold text-xs border border-transparent flex items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Calcular precio de envío y trazar en el mapa"
+                      >
+                        {isEstimating ? 'Estimando...' : <Compass className="w-4 h-4 animate-spin-slow" />}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Route estimation summary */}
+                  {estimatedDistance !== null && (
+                    <div className="bg-[#FFF8F0] border border-[#C8956A]/30 p-3 rounded-xl text-xs space-y-1.5 animate-fadeIn">
+                      <div className="flex justify-between items-center text-stone-700">
+                        <span className="flex items-center gap-1 font-semibold"><Compass className="w-3.5 h-3.5 text-[#E85D00]" /> Distancia:</span>
+                        <strong className="font-mono">{estimatedDistance} km</strong>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-700">
+                        <span className="flex items-center gap-1 font-semibold"><Clock className="w-3.5 h-3.5 text-[#E85D00]" /> Tiempo de viaje:</span>
+                        <strong className="font-mono">{estimatedDuration} min</strong>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-900 border-t border-[#C8956A]/20 pt-1.5">
+                        <span className="flex items-center gap-1 font-bold"><DollarSign className="w-3.5 h-3.5 text-[#E85D00]" /> Costo Envío:</span>
+                        <strong className="font-mono text-[#E85D00] text-sm">${deliveryCost}</strong>
+                      </div>
+                      {costBreakdown && (
+                        <div className="text-[9px] text-stone-500 pt-1 flex justify-between">
+                          <span>Base: ${costBreakdown.base}</span>
+                          <span>Km: ${costBreakdown.distance}</span>
+                          {costBreakdown.surge > 0 && <span className="text-red-500 font-bold">Pico: +${costBreakdown.surge}</span>}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -561,7 +834,7 @@ export default function DeliveryModule({
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Repartidor (Opcional)</label>
+                      <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Repartidor</label>
                       <input
                         type="text"
                         placeholder="Ej: Carlos"
@@ -594,12 +867,12 @@ export default function DeliveryModule({
                 </form>
 
                 {/* Cart summary */}
-                <div className="mt-5 pt-4 border-t border-stone-100">
+                <div className="mt-4 pt-3 border-t border-stone-100">
                   <h4 className="text-[10px] font-black uppercase text-stone-400 mb-2">Resumen de Comanda</h4>
                   {cart.length === 0 ? (
-                    <p className="text-[11px] text-stone-400 italic">No hay productos agregados en el carrito.</p>
+                    <p className="text-[11px] text-stone-400 italic">No hay productos agregados.</p>
                   ) : (
-                    <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1">
                       {cart.map(item => (
                         <div key={item.product.id_producto} className="flex justify-between items-center text-xs">
                           <span className="font-semibold text-stone-800">
@@ -625,9 +898,13 @@ export default function DeliveryModule({
 
               {/* Total & Submit */}
               <div className="pt-4 border-t border-stone-100 mt-4 bg-white">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-stone-500 uppercase">Envío</span>
+                  <span className="font-mono text-xs text-stone-800">${deliveryCost}</span>
+                </div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-stone-500 uppercase">Total Pedido</span>
-                  <strong className="text-xl font-black font-mono text-stone-900">${getCartTotal().toLocaleString('es-AR')}</strong>
+                  <span className="text-xs font-bold text-stone-500 uppercase">Total a Cobrar</span>
+                  <strong className="text-xl font-black font-mono text-stone-900">${(getCartTotal() + deliveryCost).toLocaleString('es-AR')}</strong>
                 </div>
                 
                 <button
@@ -640,32 +917,24 @@ export default function DeliveryModule({
               </div>
             </div>
 
-            {/* Menu Product Selector (Right) */}
-            <div className="w-full md:w-[55%] p-5 bg-stone-50 overflow-y-auto flex flex-col h-full">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-black text-stone-800 uppercase tracking-wide">Seleccionar Pizzas & Bebidas</h3>
-                <button 
-                  onClick={() => setShowNewOrderModal(false)}
-                  className="hidden md:flex w-8 h-8 rounded-full bg-white border border-stone-200 items-center justify-center text-stone-500 cursor-pointer shadow-xs hover:bg-stone-50"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            {/* Menu Product Selector (Middle) */}
+            <div className="w-full lg:w-[35%] p-5 bg-stone-50 overflow-y-auto flex flex-col h-full border-r border-stone-100">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-black text-stone-800 uppercase tracking-wide">Carta de la Pizzería</h3>
               </div>
 
-              {/* Product search */}
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Buscar pizzas, bebidas, combos..."
+                  placeholder="Buscar pizzas, bebidas..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none"
                 />
               </div>
 
-              {/* Category selector */}
-              <div className="flex gap-1.5 overflow-x-auto pb-3 scrollbar-none mb-3">
+              <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-3">
                 {categories.map(cat => (
                   <button
                     key={cat}
@@ -677,31 +946,21 @@ export default function DeliveryModule({
                 ))}
               </div>
 
-              {/* Products list grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto pr-1">
                 {filteredProducts.map(p => (
                   <div
                     key={p.id_producto}
                     onClick={() => addToCart(p)}
-                    className="bg-white p-3 rounded-2xl border border-stone-200 shadow-xs hover:border-brand-yellow cursor-pointer flex flex-col justify-between transition-all group hover:shadow-sm"
+                    className="bg-white p-2.5 rounded-2xl border border-stone-200 shadow-xs hover:border-brand-yellow cursor-pointer flex flex-col justify-between transition-all group hover:shadow-xs"
                   >
-                    {/* Pizza thumbnail */}
-                    {p.imagen ? (
-                      <img src={p.imagen} alt={p.nombre} className="w-full h-20 object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition-transform" />
-                    ) : (
-                      <div className="w-full h-20 bg-stone-100 rounded-xl mb-2 flex items-center justify-center text-stone-400">
-                        <ShoppingBag className="w-6 h-6 stroke-1" />
-                      </div>
-                    )}
-                    
                     <div>
-                      <h4 className="text-xs font-bold text-stone-900 leading-snug truncate">{p.nombre}</h4>
-                      <p className="text-[10px] text-stone-500 font-mono mt-1 font-black">${p.precio_venta.toLocaleString('es-AR')}</p>
+                      <h4 className="text-[11px] font-bold text-stone-950 leading-snug truncate">{p.nombre}</h4>
+                      <p className="text-[10px] text-stone-500 font-mono font-black mt-0.5">${p.precio_venta.toLocaleString('es-AR')}</p>
                     </div>
 
                     <button
                       type="button"
-                      className="w-full mt-2.5 py-1 bg-stone-50 hover:bg-brand-yellow group-hover:bg-brand-yellow text-stone-700 group-hover:text-brand-black rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-colors"
+                      className="w-full mt-2 py-1 bg-stone-50 hover:bg-brand-yellow group-hover:bg-brand-yellow text-stone-700 group-hover:text-brand-black rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-colors"
                     >
                       <Plus className="w-3 h-3 stroke-[3]" />
                       Agregar
@@ -709,6 +968,21 @@ export default function DeliveryModule({
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Map Viewer (Right) */}
+            <div className="w-full lg:w-[30%] bg-stone-100 flex flex-col h-full relative" id="map-panel">
+              {/* Map Title Header */}
+              <div className="p-3 bg-white border-b border-stone-200 flex justify-between items-center z-10">
+                <span className="text-xs font-black uppercase text-stone-700 flex items-center gap-1.5">
+                  <MapIcon className="w-4 h-4 text-brand-yellow" />
+                  Ruta del Repartidor
+                </span>
+                <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">Live (OSM/OSRM)</span>
+              </div>
+
+              {/* Map Container */}
+              <div id="delivery-route-map" className="flex-1 w-full h-full z-0" />
             </div>
 
           </div>
