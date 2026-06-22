@@ -535,8 +535,8 @@ export default function MozoTerminal({
                   <h4 className="font-extrabold text-stone-800 text-sm font-sans line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-brand-orange transition-colors">
                     {p.nombre}
                   </h4>
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex flex-col gap-2 mt-2">
+                    <div className="flex items-center justify-between gap-2 min-w-0">
                       {editingPriceProduct === p.id_producto ? (
                         <div className="flex items-center gap-1">
                           <input type="number" value={editingPriceValue} step={100}
@@ -551,7 +551,7 @@ export default function MozoTerminal({
                             <X className="w-3 h-3" /></button>
                         </div>
                       ) : (
-                        <span className="text-stone-900 font-mono text-sm font-black">
+                        <span className="text-stone-900 font-mono text-sm font-black truncate">
                           ${p.precio_venta.toLocaleString('es-AR')}
                         </span>
                       )}
@@ -570,7 +570,7 @@ export default function MozoTerminal({
                             setSelectedToppings([]);
                             setShowToppingsModal(true);
                           }}
-                          className="touch-target px-2 h-10 sm:h-11 rounded-lg bg-zinc-950 text-brand-yellow hover:bg-zinc-900 border border-zinc-800 active:scale-90 transition-all text-xs font-black cursor-pointer flex items-center justify-center gap-1 mr-1 shadow-sm"
+                          className="touch-target px-2 h-8 sm:h-9 rounded-lg bg-brand-yellow text-brand-black hover:bg-[#D4A700] border border-brand-yellow active:scale-90 transition-all text-[10px] font-black cursor-pointer flex items-center justify-center gap-1 mr-1 shadow-sm"
                           title="Adicionales de pizza"
                         >
                           🍕 +Extras
@@ -583,7 +583,7 @@ export default function MozoTerminal({
                             e.stopPropagation();
                             if (!isOutOfStock) handleAddToCart(p.id_producto, n);
                           }}
-                          className="touch-target w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-brand-yellow/10 text-brand-orange hover:bg-brand-yellow hover:text-brand-black active:scale-90 transition-all text-xs font-extrabold cursor-pointer flex items-center justify-center"
+                          className="touch-target w-10 h-8 sm:w-11 sm:h-9 rounded-lg bg-brand-yellow/10 text-brand-orange hover:bg-brand-yellow hover:text-brand-black active:scale-90 transition-all text-xs font-extrabold cursor-pointer flex items-center justify-center"
                           title={`Agregar ${n}`}
                         >
                           +{n}
