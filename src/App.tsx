@@ -175,6 +175,12 @@ export default function App() {
           const currentUrl = localStorage.getItem('SUPABASE_URL');
           const currentKey = localStorage.getItem('SUPABASE_ANON_KEY');
           if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
+            // Cambió el proyecto Supabase: limpiar cachés locales para forzar recarga fresca
+            localStorage.removeItem('el_patron_cache_menu');
+            localStorage.removeItem('el_patron_cache_categorias');
+            localStorage.removeItem('el_patron_cache_proveedores');
+            localStorage.removeItem('el_patron_cache_insumos');
+            localStorage.removeItem('el_patron_cache_recetas');
             localStorage.setItem('SUPABASE_URL', data.SUPABASE_URL);
             localStorage.setItem('SUPABASE_ANON_KEY', data.SUPABASE_ANON_KEY);
             resetSupabaseInstance(); // This triggers supabase-client-reset event
