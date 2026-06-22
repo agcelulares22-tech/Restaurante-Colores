@@ -4,8 +4,9 @@ import {
   DollarSign, CheckCircle2, AlertCircle, Trash2, 
   ShoppingBag, Clipboard, Send, Compass, User, Map as MapIcon, HelpCircle
 } from 'lucide-react';
-import { Pedido, ProductoMenu, PedidoItem } from '../types';
+import { Pedido, ProductoMenu, PedidoItem, ZonaEnvio, CalleEnvio } from '../types';
 import { useToast } from './ToastContainer';
+import { fetchZonasEnvio, fetchCallesEnvio, resolverZonaEnvio } from '../services/zonasEnvioService';
 
 interface DeliveryModuleProps {
   pedidos: Pedido[];
@@ -65,6 +66,11 @@ export default function DeliveryModule({
   const [productSearch, setProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('todo');
 
+  // Zonas y calles de envío desde Supabase
+  const [zonasEnvio, setZonasEnvio] = useState<ZonaEnvio[]>([]);
+  const [callesEnvio, setCallesEnvio] = useState<CalleEnvio[]>([]);
+  const [zonaResultado, setZonaResultado] = useState<ReturnType<typeof resolverZonaEnvio> | null>(null);
+
   // Geo / Route / Estimations state
   const [isEstimating, setIsEstimating] = useState(false);
   const [estimatedDistance, setEstimatedDistance] = useState<number | null>(null);
@@ -118,6 +124,38 @@ export default function DeliveryModule({
       setCostBreakdown(null);
     }
   }, [showNewOrderModal]);
+
+  // Cargar zonas y calles de envío desde Supabase al abrir el modal
+  useEffect(() => {
+    if (showNewOrderModal) {
+      let active = true;
+      const loadZonas = async () => {
+        const [zonas, calles] = await Promise.all([fetchZonasEnvio(), fetchCallesEnvio()]);
+        if (!active) return;
+        setZonasEnvio(zonas);
+        setCallesEnvio(calles);
+      };
+      loadZonas();
+      return () => {
+        active = false;
+      };
+    }
+  }, [showNewOrderModal]);
+
+  // Recalcular zona cada vez que cambia la dirección
+  useEffect(() => {
+    if (!clientAddress.trim() || callesEnvio.length === 0) {
+      setZonaResultado(null);
+      return;
+    }
+    const result = resolverZonaEnvio(clientAddress, zonasEnvio, callesEnvio);
+    setZonaResultado(result);
+    if (result.status === 'success' && result.costo_envio != null) {
+      setDeliveryCost(result.costo_envio);
+    } else {
+      setDeliveryCost(0);
+    }
+  }, [clientAddress, zonasEnvio, callesEnvio]);
 
   const initMap = () => {
     const L = (window as any).L;
@@ -868,34 +906,53 @@ export default function DeliveryModule({
                         onClick={handleEstimateRoute}
                         disabled={isEstimating}
                         className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 rounded-xl font-bold text-xs border border-transparent flex items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Calcular precio de envío y trazar en el mapa"
+                        title="Calcular ruta en el mapa"
                       >
                         {isEstimating ? 'Estimando...' : <Compass className="w-4 h-4 animate-spin-slow" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Route estimation summary */}
-                  {estimatedDistance !== null && (
-                    <div className="bg-[#FFF8F0] border border-[#C8956A]/30 p-3 rounded-xl text-xs space-y-1.5 animate-fadeIn">
-                      <div className="flex justify-between items-center text-stone-700">
-                        <span className="flex items-center gap-1 font-semibold"><Compass className="w-3.5 h-3.5 text-[#E85D00]" /> Distancia:</span>
-                        <strong className="font-mono">{estimatedDistance} km</strong>
+                  {/* Zona de envío según Supabase */}
+                  {zonaResultado && (
+                    <div
+                      className={`p-3 rounded-xl text-xs space-y-1.5 animate-fadeIn border ${
+                        zonaResultado.status === 'success'
+                          ? 'bg-stone-50 border-stone-200'
+                          : 'bg-red-50 border-red-200'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-black uppercase text-stone-500 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          Zona
+                        </span>
+                        <span
+                          className="font-black px-2 py-0.5 rounded-full text-[10px]"
+                          style={{
+                            backgroundColor: zonaResultado.status === 'success' ? zonaResultado.color || '#E8B800' : '#D42B2B',
+                            color: zonaResultado.status === 'success' ? '#1A1A1A' : '#FFFFFF'
+                          }}
+                        >
+                          {zonaResultado.status === 'success' ? zonaResultado.zona : 'Sin cobertura'}
+                        </span>
                       </div>
-                      <div className="flex justify-between items-center text-stone-700">
-                        <span className="flex items-center gap-1 font-semibold"><Clock className="w-3.5 h-3.5 text-[#E85D00]" /> Tiempo de viaje:</span>
-                        <strong className="font-mono">{estimatedDuration} min</strong>
-                      </div>
-                      <div className="flex justify-between items-center text-stone-900 border-t border-[#C8956A]/20 pt-1.5">
-                        <span className="flex items-center gap-1 font-bold"><DollarSign className="w-3.5 h-3.5 text-[#E85D00]" /> Costo Envío:</span>
-                        <strong className="font-mono text-[#E85D00] text-sm">${deliveryCost}</strong>
-                      </div>
-                      {costBreakdown && (
-                        <div className="text-[9px] text-stone-500 pt-1 flex justify-between">
-                          <span>Base: ${costBreakdown.base}</span>
-                          <span>Km: ${costBreakdown.distance}</span>
-                          {costBreakdown.surge > 0 && <span className="text-red-500 font-bold">Pico: +${costBreakdown.surge}</span>}
-                        </div>
+                      {zonaResultado.status === 'success' ? (
+                        <>
+                          <div className="flex justify-between items-center text-stone-700">
+                            <span className="font-semibold">Costo de envío:</span>
+                            <strong className="font-mono text-brand-orange">${zonaResultado.costo_envio?.toLocaleString('es-AR')}</strong>
+                          </div>
+                          {(zonaResultado.minimo_pedido || 0) > 0 && (
+                            <div className="flex justify-between items-center text-stone-700">
+                              <span className="font-semibold">Mínimo de pedido:</span>
+                              <strong className="font-mono">${zonaResultado.minimo_pedido?.toLocaleString('es-AR')}</strong>
+                            </div>
+                          )}
+                          <p className="text-[10px] text-stone-500">{zonaResultado.mensaje}</p>
+                        </>
+                      ) : (
+                        <p className="text-[10px] text-red-600 font-semibold">{zonaResultado.mensaje}</p>
                       )}
                     </div>
                   )}
@@ -978,17 +1035,26 @@ export default function DeliveryModule({
               {/* Total & Submit */}
               <div className="pt-4 border-t border-stone-100 mt-4 bg-white">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-stone-500 uppercase">Envío</span>
-                  <span className="font-mono text-xs text-stone-800">${deliveryCost}</span>
+                  <span className="text-xs font-bold text-stone-500 uppercase">Costo de Envío</span>
+                  <span className="font-mono text-xs text-stone-800">${deliveryCost.toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-stone-500 uppercase">Total a Cobrar</span>
                   <strong className="text-xl font-black font-mono text-stone-900">${(getCartTotal() + deliveryCost).toLocaleString('es-AR')}</strong>
                 </div>
+                {zonaResultado?.status === 'error' && (
+                  <p className="text-[10px] text-red-600 mb-2">{zonaResultado.mensaje}</p>
+                )}
+                {(zonaResultado?.minimo_pedido || 0) > 0 && getCartTotal() < (zonaResultado?.minimo_pedido || 0) && (
+                  <p className="text-[10px] text-amber-600 mb-2">
+                    El pedido no alcanza el mínimo de ${zonaResultado?.minimo_pedido?.toLocaleString('es-AR')} para esta zona.
+                  </p>
+                )}
                 
                 <button
                   onClick={handleCreateOrder}
-                  className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-[#D4A700] text-brand-black font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                  disabled={zonaResultado?.status !== 'success'}
+                  className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-[#D4A700] disabled:bg-stone-300 disabled:text-stone-500 text-brand-black font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   Enviar Pedido a Cocinar

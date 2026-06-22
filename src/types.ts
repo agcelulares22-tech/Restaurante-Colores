@@ -17,6 +17,26 @@ export interface Usuario {
     activo?: boolean;
 }
 
+export interface ZonaEnvio {
+  id: number;
+  nombre_zona: string;
+  color_hex: string;
+  descripcion?: string;
+  costo_envio: number;
+  minimo_pedido: number;
+  activo: boolean;
+}
+
+export interface CalleEnvio {
+  id: number;
+  nombre_calle: string;
+  zona_id: number;
+  altura_desde?: number;
+  altura_hasta?: number;
+  observaciones?: string;
+  activo: boolean;
+}
+
 export interface Mesa {
     id_mesa: number;
     numero_mesa: string;
