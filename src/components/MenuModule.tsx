@@ -5,6 +5,7 @@ import BulkPriceEditor from './BulkPriceEditor';
 import { CardSkeleton } from './Skeleton';
 import { ProductoMenu, EventoLog, RecetaEscandallo, Insumo } from '../types';
 import { menuService } from '../services/menuService';
+import { useCategories } from '../hooks/useCategories';
 import { menuItemSchema } from '../lib/validations';
 import { ToastContainer, useToast } from './ToastContainer';
 import { calculateRecipeCost, calculateMarginPct, getMarginLevel } from '../lib/recetas';
@@ -19,8 +20,7 @@ interface MenuModuleProps {
 
 type PendingAction = 'create' | `toggle_${string}` | `edit_${string}` | `duplicate_${string}`;
 
-const CATEGORIAS = ['Entradas', 'Pizzas Tradicionales', 'Pizzas Gourmet', 'Empanadas', 'Fainá', 'Postres', 'Bebidas', 'Bodega'] as const;
-const FILTER_CATEGORIAS = ['todos', ...CATEGORIAS] as const;
+
 
 const ALLERGENS_LIST = [
   { id: 'gluten', label: 'Gluten 🌾' },
@@ -53,6 +53,7 @@ const getFallbackImage = (categoria: string) => {
 };
 
 export default function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog }: MenuModuleProps) {
+  const { categories } = useCategories(true);
   const [items, setItems] = useState<ProductoMenu[]>(productosMenu);
   const { toast, toasts, removeToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +79,7 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [precio, setPrecio] = useState('');
-  const [categoria, setCategoria] = useState<string>('Entradas');
+  const [categoria, setCategoria] = useState<string>('Pizzas');
   const [imagenUrl, setImagenUrl] = useState('');
   const [tiempoPreparacion, setTiempoPreparacion] = useState('12');
   const [requiereCocina, setRequiereCocina] = useState(true);
@@ -94,6 +95,13 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
   const [editTiempoPreparacion, setEditTiempoPreparacion] = useState('12');
   const [editRequiereCocina, setEditRequiereCocina] = useState(true);
   const [editSelectedAllergens, setEditSelectedAllergens] = useState<string[]>([]);
+
+
+  const toSlug = (name: string) => name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const getCategorySlug = (catName: string) => {
+    const cat = categories.find(c => c.nombre.toLowerCase() === catName.toLowerCase());
+    return cat ? cat.slug : toSlug(catName);
+  };
 
   const isBusy = pendingAction !== null;
 
@@ -408,7 +416,7 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
 
   const filtered = useMemo(() => items.filter(item => {
     const matchesSearch = item.nombre.toLowerCase().includes(debouncedSearch.toLowerCase());
-    const matchesCat = selectedCategoria === 'todos' || item.categoria === selectedCategoria;
+    const matchesCat = selectedCategoria === 'todos' || getCategorySlug(item.categoria) === selectedCategoria;
     return matchesSearch && matchesCat;
   }), [items, debouncedSearch, selectedCategoria]);
 
@@ -495,7 +503,7 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
                 className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 cursor-pointer font-bold text-stone-700"
                 disabled={isBusy}
               >
-                {CATEGORIAS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                {categories.map(cat => <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>)}
               </select>
             </div>
             
@@ -619,17 +627,27 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
             </h3>
 
             <div className="flex flex-wrap gap-1">
-              {FILTER_CATEGORIAS.map(cat => (
+              <button
+                onClick={() => setSelectedCategoria('todos')}
+                className={`px-2.5 py-1.5 text-[10px] font-black rounded-lg uppercase tracking-wide cursor-pointer transition-all border ${
+                  selectedCategoria === 'todos'
+                    ? 'bg-[#624A3E] text-white border-[#5d3a2e]'
+                    : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Todos
+              </button>
+              {categories.map(cat => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategoria(cat)}
+                  key={cat.id}
+                  onClick={() => setSelectedCategoria(cat.slug)}
                   className={`px-2.5 py-1.5 text-[10px] font-black rounded-lg uppercase tracking-wide cursor-pointer transition-all border ${
-                    selectedCategoria === cat
+                    selectedCategoria === cat.slug
                       ? 'bg-[#624A3E] text-white border-[#5d3a2e]'
                       : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
                   }`}
                 >
-                  {cat === 'todos' ? 'Todos' : cat}
+                  {cat.nombre}
                 </button>
               ))}
             </div>
@@ -719,7 +737,7 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
                             <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)}
                               disabled={isBusy}
                               className="w-full text-xs p-1.5 border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]">
-                              {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                              {categories.map(cat => <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>)}
                             </select>
                             <input type="number" value={editTiempoPreparacion} onChange={e => setEditTiempoPreparacion(e.target.value)}
                               disabled={isBusy || !editRequiereCocina} placeholder="Minutos"

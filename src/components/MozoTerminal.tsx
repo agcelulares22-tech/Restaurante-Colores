@@ -29,6 +29,7 @@ import { useMenu, useSalon, useInventario, usePedidos } from '../context/AppCont
 import { useToast, ToastContainer } from './ToastContainer';
 import { useMozoTerminal } from '../features/salon/hooks/useMozoTerminal';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { useCategories } from '../hooks/useCategories';
 
 interface MozoTerminalProps {
   mesas: Mesa[];
@@ -45,6 +46,15 @@ interface MozoTerminalProps {
   addLog: (tipo: EventoLog['tipo'], mensaje: string) => void;
   permitirVentaSinStock?: boolean;
 }
+
+const renderCategoryIcon = (categoriaName: string, categories: any[]) => {
+  const cat = categories.find(c => c.nombre.toLowerCase() === categoriaName.toLowerCase());
+  const iconName = cat?.icono;
+  if (iconName === 'Wine') return <Wine className="w-3.5 h-3.5 text-brand-orange" />;
+  if (iconName === 'Coffee') return <Coffee className="w-3.5 h-3.5 text-brand-orange" />;
+  if (iconName === 'Pizza') return <Pizza className="w-3.5 h-3.5 text-brand-orange" />;
+  return <UtensilsCrossed className="w-3.5 h-3.5 text-brand-orange" />;
+};
 
 export default function MozoTerminal({
   mesas: propMesas,
@@ -80,6 +90,7 @@ export default function MozoTerminal({
   const onFacturarMesa = propOnFacturarMesa ?? ctxPedidos.handleFacturarMesa;
   const addLog = propAddLog ?? (() => {});
   const { toast, toasts, removeToast } = useToast();
+  const { categories } = useCategories();
 
   const isOnline = Boolean(tryGetActiveSupabaseClient());
 
@@ -153,7 +164,7 @@ export default function MozoTerminal({
   const [selectedToppings, setSelectedToppings] = React.useState<string[]>([]);
 
   const pizzaProducts = useMemo(() => {
-    return productosMenu.filter(p => p.activo && (p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pizzas Gourmet') && !p.id_producto.startsWith('half_') && !p.id_producto.includes('_with_'));
+    return productosMenu.filter(p => p.activo && p.categoria.toLowerCase().includes('pizza') && !p.id_producto.startsWith('half_') && !p.id_producto.includes('_with_'));
   }, [productosMenu]);
 
   return (
@@ -426,28 +437,14 @@ export default function MozoTerminal({
           <div className="flex gap-1.5 w-full overflow-x-auto py-1.5 scrollbar-thin scroll-smooth border-t border-stone-100 pt-3 pb-2">
             {[
               { id: 'todo', label: 'Todos' },
-              { id: 'Entradas', label: 'Entradas' },
-              { id: 'Pizzas Tradicionales', label: 'Tradicionales' },
-              { id: 'Pizzas Gourmet', label: 'Gourmet' },
-              { id: 'Empanadas', label: 'Empanadas' },
-              { id: 'Fainá', label: 'Fainá' },
-              { id: 'Postres', label: 'Postres' },
-              { id: 'Bebidas', label: 'Bebidas' },
-              { id: 'Bodega', label: 'Bodega' }
+              ...categories.map(c => ({ id: c.slug, label: c.nombre }))
             ].map(cat => {
               const count = cat.id === 'todo' 
                 ? productosMenu.filter(p => p.activo).length 
                 : productosMenu.filter(p => {
                     if (!p.activo) return false;
-                    if (cat.id === 'Pizzas Tradicionales') return p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pastas';
-                    if (cat.id === 'Pizzas Gourmet') return p.categoria === 'Pizzas Gourmet' || p.categoria === 'Carnes';
-                    if (cat.id === 'Empanadas') return p.categoria === 'Empanadas' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('empanada'));
-                    if (cat.id === 'Fainá') return p.categoria === 'Fainá' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('fainá'));
-                    if (cat.id === 'Entradas') {
-                      const isEmpanadaOrFaina = p.nombre.toLowerCase().includes('empanada') || p.nombre.toLowerCase().includes('fainá');
-                      return p.categoria === 'Entradas' && !isEmpanadaOrFaina;
-                    }
-                    return p.categoria === cat.id;
+                    const toSlug = (name: string) => name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                    return toSlug(p.categoria) === cat.id;
                   }).length;
               return (
                 <button
@@ -500,11 +497,7 @@ export default function MozoTerminal({
                   
                   {/* Category icon badge */}
                   <div className="absolute top-2 left-2 p-1.5 rounded-lg backdrop-blur-md bg-white/90 shadow-sm border border-stone-100">
-                    {p.categoria === 'bebidas' ? (
-                      <Wine className="w-3.5 h-3.5 text-brand-orange" />
-                    ) : (
-                      <UtensilsCrossed className="w-3.5 h-3.5 text-brand-orange" />
-                    )}
+                    {renderCategoryIcon(p.categoria, categories)}
                   </div>
  
                   {/* Stock Tag Alert */}
@@ -562,7 +555,7 @@ export default function MozoTerminal({
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {(p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pizzas Gourmet') && !p.id_producto.includes('_with_') && (
+                      {p.categoria.toLowerCase().includes('pizza') && !p.id_producto.includes('_with_') && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

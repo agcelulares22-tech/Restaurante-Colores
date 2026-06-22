@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================================
 -- 1. ELIMINAR CONSTRAINTS PREVIAS RESTRICTIVAS Y LIMPIAR TABLAS
 -- ============================================================
+DROP TABLE IF EXISTS public.categorias CASCADE;
 DROP TABLE IF EXISTS public.recetas_escandallo CASCADE;
 DROP TABLE IF EXISTS public.pedido_detalle CASCADE;
 DROP TABLE IF EXISTS public.pedidos_cabecera CASCADE;
@@ -33,6 +34,17 @@ DROP TABLE IF EXISTS public.backups CASCADE;
 -- ============================================================
 -- 2. CREACIÓN DE TABLAS MAESTRAS
 -- ============================================================
+
+-- Tabla de Categorías
+CREATE TABLE public.categorias (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nombre TEXT NOT NULL UNIQUE,
+    slug TEXT NOT NULL UNIQUE,
+    orden INT NOT NULL DEFAULT 0,
+    activa BOOLEAN NOT NULL DEFAULT true,
+    icono TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- Tabla de Usuarios
 CREATE TABLE public.usuarios (
@@ -218,6 +230,15 @@ CREATE TABLE public.clientes (
 -- 3. INSERTAR DATOS MAESTROS DE PRODUCCIÓN
 -- ============================================================
 
+-- Categorías iniciales
+INSERT INTO public.categorias (nombre, slug, orden, activa, icono) VALUES
+    ('Bebidas', 'bebidas', 1, true, 'Wine'),
+    ('Calzones y empanadas', 'calzones-y-empanadas', 2, true, 'UtensilsCrossed'),
+    ('Pizzas', 'pizzas', 3, true, 'Pizza'),
+    ('Postres', 'postres', 4, true, 'Coffee'),
+    ('Sandwiches', 'sandwiches', 5, true, 'UtensilsCrossed')
+ON CONFLICT (nombre) DO UPDATE SET slug = EXCLUDED.slug, orden = EXCLUDED.orden, activa = EXCLUDED.activa, icono = EXCLUDED.icono;
+
 -- Configuración del Restaurante
 INSERT INTO public.configuracion (clave, valor) VALUES
     ('nombre_comercial', 'Colores Pizza'),
@@ -387,12 +408,12 @@ ON CONFLICT (id_insumo) DO NOTHING;
 
 -- Productos del Menú y Recetas reales
 INSERT INTO public.productos_menu (id_producto, nombre, precio_venta, categoria, activo, imagen, descripcion, tipo, tiempo_preparacion_estimado, requiere_cocina, pasos_preparacion, alergenos, consejo_emplatado) VALUES
-    ('prod_calz_empa_saltena', 'Empa Salteña', 2300.0, 'Calzone y Empanadas', true, 'https:', 'Carne a cuchillo', 'plato', 15, true, ARRAY['Disponer Empa Salteña en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
-    ('prod_calz_empa_criolla', 'Empa Criolla', 2000.0, 'Calzone y Empanadas', true, 'https:', 'Carne picada', 'plato', 15, true, ARRAY['Disponer Empa Criolla en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
-    ('prod_calz_media_docena_de_saltenas', 'Media Docena De Salteñas', 12000.0, 'Calzone y Empanadas', true, 'https:', 'Salteñas', 'plato', 15, true, ARRAY['Disponer Media Docena De Salteñas en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
-    ('prod_calz_calzonne_napolitano', 'Calzonne Napolitano', 20000.0, 'Calzone y Empanadas', true, 'https:', 'Salsa Napo + muzarella + jamón cocido + provenzal + reggianito + cherrys', 'plato', 15, true, ARRAY['Disponer Calzonne Napolitano en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
-    ('prod_calz_calzonne_de_la_reina', 'Calzonne de la reina', 22000.0, 'Calzone y Empanadas', true, 'https:', 'Salsa de hongos', 'plato', 15, true, ARRAY['Disponer Calzonne de la reina en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
-    ('prod_calz_media_docena_de_criollas', 'Media Docena De Criollas', 10000.0, 'Calzone y Empanadas', true, 'https:', 'Criollas', 'plato', 15, true, ARRAY['Disponer Media Docena De Criollas en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_empa_saltena', 'Empa Salteña', 2300.0, 'Calzones y empanadas', true, 'https:', 'Carne a cuchillo', 'plato', 15, true, ARRAY['Disponer Empa Salteña en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_empa_criolla', 'Empa Criolla', 2000.0, 'Calzones y empanadas', true, 'https:', 'Carne picada', 'plato', 15, true, ARRAY['Disponer Empa Criolla en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_media_docena_de_saltenas', 'Media Docena De Salteñas', 12000.0, 'Calzones y empanadas', true, 'https:', 'Salteñas', 'plato', 15, true, ARRAY['Disponer Media Docena De Salteñas en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_calzonne_napolitano', 'Calzonne Napolitano', 20000.0, 'Calzones y empanadas', true, 'https:', 'Salsa Napo + muzarella + jamón cocido + provenzal + reggianito + cherrys', 'plato', 15, true, ARRAY['Disponer Calzonne Napolitano en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_calzonne_de_la_reina', 'Calzonne de la reina', 22000.0, 'Calzones y empanadas', true, 'https:', 'Salsa de hongos', 'plato', 15, true, ARRAY['Disponer Calzonne de la reina en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
+    ('prod_calz_media_docena_de_criollas', 'Media Docena De Criollas', 10000.0, 'Calzones y empanadas', true, 'https:', 'Criollas', 'plato', 15, true, ARRAY['Disponer Media Docena De Criollas en una bandeja para horno.', 'Hornear a leña a alta temperatura hasta que la masa quede inflada y dorada.', 'Retirar y dejar reposar 1 minuto antes de servir.'], ARRAY['Gluten'], 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
     ('prod_pizz_arma_tu_pizza_individual', 'Arma Tu Pizza Individual', 11000.0, 'Pizzas', true, 'https:', 'Elegi 4 Toppings', 'plato', 15, true, ARRAY['Preparar los ingredientes para Arma Tu Pizza Individual.', 'Cocinar siguiendo la receta tradicional de la casa.', 'Controlar la temperatura y calidad antes de servir.'], NULL, 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
     ('prod_pizz_arma_tu_pizza_grande', 'Arma Tu Pizza Grande', 22000.0, 'Pizzas', true, 'https:', 'Elegi 4 Toppings ', 'plato', 15, true, ARRAY['Preparar los ingredientes para Arma Tu Pizza Grande.', 'Cocinar siguiendo la receta tradicional de la casa.', 'Controlar la temperatura y calidad antes de servir.'], NULL, 'Presentar recién elaborado sobre vajilla/tabla rústica de la casa.'),
     ('prod_bebi_gius_blonde_runner_blonde_ale', 'GIUS Blonde runner (Blonde Ale) ', 3400.0, 'Bebidas', true, 'https:', 'Cuerpo ligero-medio', 'bebida', 3, false, NULL, NULL, NULL),
