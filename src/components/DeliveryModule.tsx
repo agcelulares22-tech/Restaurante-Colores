@@ -39,6 +39,21 @@ export default function DeliveryModule({
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [channelFilter, setChannelFilter] = useState<string>('todos');
   
+  // Configuración de tarifas (Dueño)
+  const [tarifaBase, setTarifaBase] = useState<number>(() => {
+    const saved = localStorage.getItem('deliv_tarifa_base');
+    return saved ? parseFloat(saved) : TARIFA_BASE_DEFAULT;
+  });
+  const [costoPorKm, setCostoPorKm] = useState<number>(() => {
+    const saved = localStorage.getItem('deliv_costo_por_km');
+    return saved ? parseFloat(saved) : COSTO_POR_KM_DEFAULT;
+  });
+  const [recargoHorarioPct, setRecargoHorarioPct] = useState<number>(() => {
+    const saved = localStorage.getItem('deliv_recargo_horario_pct');
+    return saved ? parseFloat(saved) : 20;
+  });
+  const [showSettings, setShowSettings] = useState(false);
+  
   // Modal state
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [clientName, setClientName] = useState('');
@@ -155,7 +170,12 @@ export default function DeliveryModule({
         const response = await fetch('http://localhost:8000/api/delivery/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: clientAddress })
+          body: JSON.stringify({ 
+            address: clientAddress,
+            tarifa_base: tarifaBase,
+            costo_por_km: costoPorKm,
+            recargo_porcentaje: recargoHorarioPct
+          })
         });
         
         if (response.ok) {
@@ -195,16 +215,16 @@ export default function DeliveryModule({
         // Pricing Rules
         const currentHour = new Date().getHours();
         const esHoraPico = currentHour >= 20 && currentHour <= 23;
-        const tarifaDistancia = parseFloat((distKm * COSTO_POR_KM_DEFAULT).toFixed(2));
-        const subtotal = TARIFA_BASE_DEFAULT + tarifaDistancia;
-        const recargo = esHoraPico ? parseFloat((subtotal * 0.2).toFixed(2)) : 0;
+        const tarifaDistancia = parseFloat((distKm * costoPorKm).toFixed(2));
+        const subtotal = tarifaBase + tarifaDistancia;
+        const recargo = esHoraPico ? parseFloat((subtotal * (recargoHorarioPct / 100)).toFixed(2)) : 0;
         const total = subtotal + recargo;
 
         data = {
           destino_coords: [destLat, destLng],
           distancia_km: distKm,
           duracion_minutos: durMin,
-          tarifa_base: TARIFA_BASE_DEFAULT,
+          tarifa_base: tarifaBase,
           tarifa_distancia: tarifaDistancia,
           recargo_horario: recargo,
           total: total,
@@ -479,14 +499,67 @@ export default function DeliveryModule({
           </p>
         </div>
         
-        <button
-          onClick={() => setShowNewOrderModal(true)}
-          className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-4 py-3 rounded-xl font-black text-xs tracking-wider uppercase shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          Nueva Entrega (Delivery)
-        </button>
+        <div className="flex gap-2 w-full sm:w-auto shrink-0 justify-end">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 px-4 py-3 rounded-xl font-bold text-xs tracking-wider uppercase shadow-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+          >
+            Ajustes Tarifas
+          </button>
+          <button
+            onClick={() => setShowNewOrderModal(true)}
+            className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-4 py-3 rounded-xl font-black text-xs tracking-wider uppercase shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Nueva Entrega (Delivery)
+          </button>
+        </div>
       </div>
+
+      {/* SETTINGS PANEL (COLLAPSIBLE) */}
+      {showSettings && (
+        <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Tarifa Base ($)</label>
+            <input
+              type="number"
+              value={tarifaBase}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setTarifaBase(val);
+                localStorage.setItem('deliv_tarifa_base', String(val));
+              }}
+              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Costo por Kilómetro ($/km)</label>
+            <input
+              type="number"
+              value={costoPorKm}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setCostoPorKm(val);
+                localStorage.setItem('deliv_costo_por_km', String(val));
+              }}
+              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Recargo Hora Pico (%)</label>
+            <input
+              type="number"
+              value={recargoHorarioPct}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                setRecargoHorarioPct(val);
+                localStorage.setItem('deliv_recargo_horario_pct', String(val));
+              }}
+              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+            />
+          </div>
+        </div>
+      )}
 
       {/* KPI ROW */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3">

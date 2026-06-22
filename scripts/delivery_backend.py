@@ -32,6 +32,9 @@ ORIGEN_DIRECCION = "Colores Pizzería (Centro)"
 
 class QuoteRequest(BaseModel):
     address: str
+    tarifa_base: float | None = None
+    costo_por_km: float | None = None
+    recargo_porcentaje: float | None = None
 
 class QuoteResponse(BaseModel):
     origen: str
@@ -50,6 +53,11 @@ class QuoteResponse(BaseModel):
 def get_delivery_quote(request: QuoteRequest):
     if not request.address.strip():
         raise HTTPException(status_code=400, detail="La dirección no puede estar vacía.")
+
+    # Usar valores del request o los por defecto
+    t_base = request.tarifa_base if request.tarifa_base is not None else TARIFA_BASE
+    c_km = request.costo_por_km if request.costo_por_km is not None else COSTO_POR_KM
+    r_pct = request.recargo_porcentaje if request.recargo_porcentaje is not None else 20.0
 
     # 1. Geocodificar dirección de destino usando OpenStreetMap Nominatim
     # Agregamos "Buenos Aires, Argentina" para acotar búsquedas locales si es necesario
@@ -104,12 +112,12 @@ def get_delivery_quote(request: QuoteRequest):
     current_hour = datetime.now().hour
     es_hora_pico = 20 <= current_hour <= 23
 
-    tarifa_distancia = round(distancia_km * COSTO_POR_KM, 2)
-    total_parcial = TARIFA_BASE + tarifa_distancia
+    tarifa_distancia = round(distancia_km * c_km, 2)
+    total_parcial = t_base + tarifa_distancia
     
     recargo = 0.0
     if es_hora_pico:
-        recargo = round(total_parcial * 0.2, 2) # 20% de recargo
+        recargo = round(total_parcial * (r_pct / 100.0), 2)
     
     total = round(total_parcial + recargo, 2)
 
@@ -120,7 +128,7 @@ def get_delivery_quote(request: QuoteRequest):
         destino_coords=[dest_lat, dest_lng],
         distancia_km=distancia_km,
         duracion_minutos=duracion_min,
-        tarifa_base=TARIFA_BASE,
+        tarifa_base=t_base,
         tarifa_distancia=tarifa_distancia,
         recargo_horario=recargo,
         total=total,
