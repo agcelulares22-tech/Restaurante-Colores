@@ -148,6 +148,12 @@ export default function DeliveryModule({
         .bindPopup('Pizzería Colores (Despacho Central)')
         .openPopup();
 
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 400);
+
     } catch (err) {
       console.error('Leaflet initialization error:', err);
     }
@@ -1055,7 +1061,7 @@ export default function DeliveryModule({
               </div>
 
               {/* Map Container */}
-              <div id="delivery-route-map" className="flex-1 w-full h-full z-0" />
+              <div id="delivery-route-map" className="flex-1 w-full h-full z-0" style={{ minHeight: '350px', height: '100%', width: '100%' }} />
             </div>
 
           </div>
