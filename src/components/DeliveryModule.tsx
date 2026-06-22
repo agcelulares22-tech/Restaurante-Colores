@@ -357,7 +357,7 @@ export default function DeliveryModule({
           const orderSum = p.items.reduce((itemSum, item) => {
             const pm = productosMenu.find(pr => pr.id_producto === item.id_producto);
             const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
-            return itemSum + (price * item.quantity);
+            return itemSum + (price * item.cantidad);
           }, 0);
           return sum + orderSum;
         }, 0)

@@ -44,11 +44,11 @@ export const getSupabaseConfig = (): SupabaseConfig => {
   let localKey = readLocalConfig('SUPABASE_ANON_KEY');
 
   // Credenciales por defecto para el proyecto Restaurante El Patrón
-  const defaultUrl = 'https://sqczmyaoqplrmrgyczjy.supabase.co';
-  const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxY3pteWFvcXBscm1yZ3ljemp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzQ5NzQsImV4cCI6MjA5Njg1MDk3NH0.R5bPwot9KCMJ9OXWcokL705ZD7_0ujH9fGY_GcqxjYY';
+  const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
+  const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
 
   // Si localUrl es un placeholder o no pertenece al proyecto actual, limpiamos localStorage
-  if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://sqczmyaoqplrmrgyczjy'))) {
+  if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://msmaksbtetcmoaiyywto'))) {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('SUPABASE_URL');
       window.localStorage.removeItem('SUPABASE_ANON_KEY');
