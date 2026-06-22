@@ -128,13 +128,24 @@ export default function SupabaseManager({
 
     // Initial load
     const config = getSupabaseConfig();
-    setUrl(config.url);
+    const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
+    const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
+    const effectiveUrl = config.url === 'https://sqczmyaoqplrmrgyczjy.supabase.co' ? defaultUrl : config.url;
+    const effectiveKey = config.key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxY3pteWFvcXBscm1yZ3ljemp5') ? defaultKey : config.key;
+    
+    if (effectiveUrl !== config.url || effectiveKey !== config.key) {
+      localStorage.setItem('SUPABASE_URL', effectiveUrl);
+      localStorage.setItem('SUPABASE_ANON_KEY', effectiveKey);
+      resetSupabaseInstance();
+    }
+    
+    setUrl(effectiveUrl);
     // Don't show fully truncated key in state literally
-    setAnonKey(config.key === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' ? '' : config.key);
+    setAnonKey(effectiveKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' ? '' : effectiveKey);
     
     // Auto-test if config looks fully valid
-    if (config.url && config.key && !config.key.includes('...')) {
-      testConnection(config.url, config.key);
+    if (effectiveUrl && effectiveKey && !effectiveKey.includes('...')) {
+      testConnection(effectiveUrl, effectiveKey);
     }
   }, []);
 
