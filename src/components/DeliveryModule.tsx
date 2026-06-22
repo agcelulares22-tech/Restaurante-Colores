@@ -17,9 +17,9 @@ interface DeliveryModuleProps {
   activeMozo: string;
 }
 
-// Default Central Pizzeria Location (Buenos Aires Obelisk Area)
-const ORIGEN_LAT = -34.6037;
-const ORIGEN_LNG = -58.3816;
+// Default Central Pizzeria Location: Colores Pizza, Alvear 1362, Río Cuarto, Córdoba
+const ORIGEN_LAT = -33.1263;
+const ORIGEN_LNG = -64.3498;
 const TARIFA_BASE_DEFAULT = 1000;
 const COSTO_POR_KM_DEFAULT = 500;
 
@@ -145,7 +145,7 @@ export default function DeliveryModule({
 
       L.marker([ORIGEN_LAT, ORIGEN_LNG], { icon: pizzeriaIcon })
         .addTo(mapRef.current)
-        .bindPopup('Pizzería Colores (Despacho Central)')
+        .bindPopup('Colores Pizza • Alvear 1362, Río Cuarto')
         .openPopup();
 
       setTimeout(() => {
@@ -193,7 +193,7 @@ export default function DeliveryModule({
         console.warn('FastAPI backend unreachable, falling back to client-side Nominatim/OSRM routing...');
         
         // Client-side Fallback using OSM Nominatim for Geocoding
-        const searchAddr = clientAddress.includes('argentina') ? clientAddress : `${clientAddress}, Buenos Aires, Argentina`;
+        const searchAddr = clientAddress.includes('argentina') ? clientAddress : `${clientAddress}, Río Cuarto, Córdoba, Argentina`;
         const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
           headers: { 'User-Agent': 'PizzeriaColoresClientCalculator/1.0' }
         });
@@ -996,61 +996,8 @@ export default function DeliveryModule({
               </div>
             </div>
 
-            {/* Menu Product Selector (Middle) */}
-            <div className="w-full lg:w-[35%] p-5 bg-stone-50 overflow-y-auto flex flex-col h-full border-r border-stone-100">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-black text-stone-800 uppercase tracking-wide">Carta de la Pizzería</h3>
-              </div>
-
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar pizzas, bebidas..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none"
-                />
-              </div>
-
-              <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-3">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setProductCategory(cat)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap cursor-pointer transition-all ${productCategory === cat ? 'bg-stone-900 text-brand-yellow' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/60'}`}
-                  >
-                    {cat === 'todo' ? 'Todos' : cat}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto pr-1">
-                {filteredProducts.map(p => (
-                  <div
-                    key={p.id_producto}
-                    onClick={() => addToCart(p)}
-                    className="bg-white p-2.5 rounded-2xl border border-stone-200 shadow-xs hover:border-brand-yellow cursor-pointer flex flex-col justify-between transition-all group hover:shadow-xs"
-                  >
-                    <div>
-                      <h4 className="text-[11px] font-bold text-stone-950 leading-snug truncate">{p.nombre}</h4>
-                      <p className="text-[10px] text-stone-500 font-mono font-black mt-0.5">${p.precio_venta.toLocaleString('es-AR')}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="w-full mt-2 py-1 bg-stone-50 hover:bg-brand-yellow group-hover:bg-brand-yellow text-stone-700 group-hover:text-brand-black rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Plus className="w-3 h-3 stroke-[3]" />
-                      Agregar
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Map Viewer (Right) */}
-            <div className="w-full lg:w-[30%] bg-stone-100 flex flex-col h-full relative" id="map-panel">
+            <div className="w-full lg:w-[65%] bg-stone-100 flex flex-col h-full relative" id="map-panel">
               {/* Map Title Header */}
               <div className="p-3 bg-white border-b border-stone-200 flex justify-between items-center z-10">
                 <span className="text-xs font-black uppercase text-stone-700 flex items-center gap-1.5">
