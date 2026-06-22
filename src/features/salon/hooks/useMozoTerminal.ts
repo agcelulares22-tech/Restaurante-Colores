@@ -226,7 +226,24 @@ export function useMozoTerminal({
   // Filter products by category and search
   const filteredProducts = useMemo(() => {
     return productosMenu.filter(p => {
-      const matchCat = selectedCategoria === 'todo' || p.categoria === selectedCategoria;
+      let matchCat = false;
+      if (selectedCategoria === 'todo') {
+        matchCat = true;
+      } else if (selectedCategoria === 'Pizzas Tradicionales') {
+        matchCat = p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pastas';
+      } else if (selectedCategoria === 'Pizzas Gourmet') {
+        matchCat = p.categoria === 'Pizzas Gourmet' || p.categoria === 'Carnes';
+      } else if (selectedCategoria === 'Empanadas') {
+        matchCat = p.categoria === 'Empanadas' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('empanada'));
+      } else if (selectedCategoria === 'Fainá') {
+        matchCat = p.categoria === 'Fainá' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('fainá'));
+      } else if (selectedCategoria === 'Entradas') {
+        const isEmpanadaOrFaina = p.nombre.toLowerCase().includes('empanada') || p.nombre.toLowerCase().includes('fainá');
+        matchCat = p.categoria === 'Entradas' && !isEmpanadaOrFaina;
+      } else {
+        matchCat = p.categoria === selectedCategoria;
+      }
+
       const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase());
       return p.activo && matchCat && matchSearch;
     });

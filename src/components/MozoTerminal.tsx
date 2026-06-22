@@ -435,7 +435,20 @@ export default function MozoTerminal({
               { id: 'Bebidas', label: 'Bebidas' },
               { id: 'Bodega', label: 'Bodega' }
             ].map(cat => {
-              const count = cat.id === 'todo' ? productosMenu.filter(p => p.activo).length : productosMenu.filter(p => p.activo && p.categoria === cat.id).length;
+              const count = cat.id === 'todo' 
+                ? productosMenu.filter(p => p.activo).length 
+                : productosMenu.filter(p => {
+                    if (!p.activo) return false;
+                    if (cat.id === 'Pizzas Tradicionales') return p.categoria === 'Pizzas Tradicionales' || p.categoria === 'Pastas';
+                    if (cat.id === 'Pizzas Gourmet') return p.categoria === 'Pizzas Gourmet' || p.categoria === 'Carnes';
+                    if (cat.id === 'Empanadas') return p.categoria === 'Empanadas' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('empanada'));
+                    if (cat.id === 'Fainá') return p.categoria === 'Fainá' || (p.categoria === 'Entradas' && p.nombre.toLowerCase().includes('fainá'));
+                    if (cat.id === 'Entradas') {
+                      const isEmpanadaOrFaina = p.nombre.toLowerCase().includes('empanada') || p.nombre.toLowerCase().includes('fainá');
+                      return p.categoria === 'Entradas' && !isEmpanadaOrFaina;
+                    }
+                    return p.categoria === cat.id;
+                  }).length;
               return (
                 <button
                   key={cat.id}
