@@ -104,14 +104,20 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
 
-    if (norm === 'calzone-y-empanadas' || norm === 'calzones-y-empanadas') {
+    if (norm.includes('calzone') || norm.includes('empanada')) {
       return 'calzones-y-empanadas';
     }
-    if (norm === 'pizzas-tradicionales' || norm === 'pizzas-gourmet' || norm === 'pizzas') {
+    if (norm.includes('pizza')) {
       return 'pizzas';
     }
-    if (norm === 'bebidas' || norm === 'bodega') {
+    if (norm.includes('bebida') || norm.includes('bodega') || norm.includes('vino') || norm.includes('cerveza') || norm.includes('gaseosa')) {
       return 'bebidas';
+    }
+    if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
+      return 'postres';
+    }
+    if (norm.includes('sandwich') || norm.includes('baguette') || norm.includes('lomo')) {
+      return 'sandwiches';
     }
     return norm;
   };
