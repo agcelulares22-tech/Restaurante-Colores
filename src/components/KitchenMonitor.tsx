@@ -343,7 +343,7 @@ export default function KitchenMonitor({
         )}
         {renderColumn(
           'listo',
-          'Listos (A Servir)',
+          'Delivery',
           <CheckCircle className="w-4 h-4 text-emerald-500" />,
           'border-emerald-500',
           ordersListo
