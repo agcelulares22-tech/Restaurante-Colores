@@ -1119,7 +1119,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'home', label: 'Inicio', icon: '🏠' },
             { id: 'panel', label: 'Panel', icon: '📊' },
             { id: 'mozo', label: 'Mozo', icon: '📱' },
-            { id: 'cocina', label: 'Cocina', icon: '🍳' },
+            { id: 'cocina', label: 'Horno', icon: '🍕' },
             { id: 'caja', label: 'Caja', icon: '💵' },
             { id: 'reportes', label: 'Reportes', icon: '📈' },
             { id: 'menu', label: 'Menú', icon: '📖' },

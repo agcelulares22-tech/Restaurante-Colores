@@ -11,7 +11,7 @@ interface BottomNavigationProps {
 const NAV_ITEMS: { id: AppView; label: string; icon: React.ElementType }[] = [
   { id: 'home', label: 'Inicio', icon: Home },
   { id: 'mozo', label: 'Mozo', icon: Smartphone },
-  { id: 'cocina', label: 'Cocina', icon: ChefHat },
+  { id: 'cocina', label: 'Horno', icon: ChefHat },
   { id: 'caja', label: 'Caja', icon: DollarSign },
   { id: 'facturacion', label: 'Factura', icon: Receipt },
   { id: 'panel', label: 'Panel', icon: Grid },
