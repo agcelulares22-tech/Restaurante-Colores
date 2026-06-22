@@ -879,18 +879,6 @@ export default function DeliveryModule({
 
                 <form onSubmit={handleCreateOrder} className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Nombre del Cliente</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej: Juan Pérez"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
                     <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Dirección de Envío</label>
                     <div className="flex gap-2">
                       <input
@@ -914,7 +902,7 @@ export default function DeliveryModule({
                   </div>
 
                   {/* Zona de envío según Supabase */}
-                  {zonaResultado && (
+                  {clientAddress.trim() && zonaResultado && (
                     <div
                       className={`p-3 rounded-xl text-xs space-y-1.5 animate-fadeIn border ${
                         zonaResultado.status === 'success'
@@ -1042,7 +1030,7 @@ export default function DeliveryModule({
                   <span className="text-xs font-bold text-stone-500 uppercase">Total a Cobrar</span>
                   <strong className="text-xl font-black font-mono text-stone-900">${(getCartTotal() + deliveryCost).toLocaleString('es-AR')}</strong>
                 </div>
-                {zonaResultado?.status === 'error' && (
+                {zonaResultado?.status === 'error' && clientAddress.trim() && (
                   <p className="text-[10px] text-red-600 mb-2">{zonaResultado.mensaje}</p>
                 )}
                 {(zonaResultado?.minimo_pedido || 0) > 0 && getCartTotal() < (zonaResultado?.minimo_pedido || 0) && (
@@ -1053,7 +1041,7 @@ export default function DeliveryModule({
                 
                 <button
                   onClick={handleCreateOrder}
-                  disabled={zonaResultado?.status !== 'success'}
+                  disabled={zonaResultado?.status !== 'success' || clientAddress.trim() === ''}
                   className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-[#D4A700] disabled:bg-stone-300 disabled:text-stone-500 text-brand-black font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
