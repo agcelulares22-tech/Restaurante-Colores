@@ -97,10 +97,28 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
   const [editSelectedAllergens, setEditSelectedAllergens] = useState<string[]>([]);
 
 
-  const toSlug = (name: string) => name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const normalizeCategorySlug = (categoria: string): string => {
+    const norm = categoria.toLowerCase().trim()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+
+    if (norm === 'calzone-y-empanadas' || norm === 'calzones-y-empanadas') {
+      return 'calzones-y-empanadas';
+    }
+    if (norm === 'pizzas-tradicionales' || norm === 'pizzas-gourmet' || norm === 'pizzas') {
+      return 'pizzas';
+    }
+    if (norm === 'bebidas' || norm === 'bodega') {
+      return 'bebidas';
+    }
+    return norm;
+  };
+
   const getCategorySlug = (catName: string) => {
     const cat = categories.find(c => c.nombre.toLowerCase() === catName.toLowerCase());
-    return cat ? cat.slug : toSlug(catName);
+    return cat ? cat.slug : normalizeCategorySlug(catName);
   };
 
   const isBusy = pendingAction !== null;
@@ -418,7 +436,7 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
     const matchesSearch = item.nombre.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesCat = selectedCategoria === 'todos' || getCategorySlug(item.categoria) === selectedCategoria;
     return matchesSearch && matchesCat;
-  }), [items, debouncedSearch, selectedCategoria]);
+  }), [items, debouncedSearch, selectedCategoria, categories]);
 
   const toggleAllergen = (allergenId: string, isEdit: boolean) => {
     if (isEdit) {
