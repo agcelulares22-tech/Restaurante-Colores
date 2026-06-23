@@ -284,7 +284,7 @@ export const pdfService = {
     }));
     const ticketHeight = Math.max(
       205,
-      118 + wrappedRows.reduce((sum, row) => sum + row.lines * 4.2 + 4, 0) + data.metodosPago.length * 5
+      125 + wrappedRows.reduce((sum, row) => sum + row.lines * 4.2 + 4, 0) + data.metodosPago.length * 5
     );
     const doc = new jsPDF('p', 'mm', [80, ticketHeight]);
     let y = 7;
@@ -292,8 +292,11 @@ export const pdfService = {
     const center = (text: string, size = 8, bold = false) => {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
       doc.setFontSize(size);
-      doc.text(text, 40, y, { align: 'center' });
-      y += size * 0.45 + 1.3;
+      const lines = String(text).split('\n');
+      lines.forEach(lineText => {
+        doc.text(lineText, 40, y, { align: 'center' });
+        y += size * 0.45 + 1.3;
+      });
     };
 
     const line = (offset = 0) => {
@@ -325,7 +328,8 @@ export const pdfService = {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.text(`Ticket: ${data.nroComprobante}`, 5, y);
-    doc.text(`Mesa: ${data.mesa}`, 75, y, { align: 'right' });
+    y += 4;
+    doc.text(`Mesa/Servicio: ${data.mesa}`, 5, y);
     y += 4;
     doc.text(`Fecha: ${data.fechaHora}`, 5, y);
     y += 4;
@@ -634,8 +638,11 @@ export const pdfService = {
     const center = (text: string, size = 8, bold = false) => {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
       doc.setFontSize(size);
-      doc.text(text, 40, y, { align: 'center' });
-      y += size * 0.45 + 1.3;
+      const lines = String(text).split('\n');
+      lines.forEach(lineText => {
+        doc.text(lineText, 40, y, { align: 'center' });
+        y += size * 0.45 + 1.3;
+      });
     };
 
     const line = (offset = 0) => {
