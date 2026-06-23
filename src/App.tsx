@@ -1225,7 +1225,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'reportes', label: 'Reportes', icon: '📈' },
             { id: 'menu', label: 'Menú', icon: '📖' },
             { id: 'recetas', label: 'Recetas', icon: '⚖️' },
-            { id: 'mesas', label: 'Delivery', icon: '🛵' },
+            { id: 'mesas', label: 'Mapa Mesas', icon: '🪑' },
+            { id: 'delivery', label: 'Delivery', icon: '🛵' },
             { id: 'inventario', label: 'Inventario', icon: '📦' },
             { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
             { id: 'promociones', label: 'Promociones', icon: '🏷️' },
@@ -1366,6 +1367,13 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               </RecetasErrorBoundary>
             )}
             {activeView === 'mesas' && (
+              <MesasModule 
+                mesas={mesas} 
+                onMesasChange={setMesas} 
+                addLog={addLog} 
+              />
+            )}
+            {activeView === 'delivery' && (
               <DeliveryModule 
                 pedidos={pedidos}
                 productosMenu={productosMenu}

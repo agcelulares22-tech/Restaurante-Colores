@@ -59,6 +59,46 @@ function getProcessedPedidoItems(pedido: Pedido, productosMenu: ProductoMenu[]):
   });
 }
 
+export function getShiftProductBreakdown(
+  pedidos: Pedido[],
+  idCierre: string,
+  fechaApertura: string,
+  fechaCierre: string | null
+) {
+  const openTime = new Date(fechaApertura.replace(' ', 'T')).getTime();
+  const closeTime = fechaCierre ? new Date(fechaCierre.replace(' ', 'T')).getTime() : Date.now();
+
+  const shiftPedidos = pedidos.filter(p => {
+    if (p.estado_comanda !== 'entregado_cobrado') return false;
+    const t = new Date(p.fecha_hora).getTime();
+    return t >= openTime && t <= closeTime;
+  });
+
+  const breakdown: { [name: string]: { nombre: string; cantidad: number; total: number } } = {};
+
+  shiftPedidos.forEach(p => {
+    p.items.forEach(it => {
+      const name = it.nombre || 'Artículo';
+      if (!breakdown[name]) {
+        breakdown[name] = { nombre: name, cantidad: 0, total: 0 };
+      }
+      breakdown[name].cantidad += it.cantidad;
+      breakdown[name].total += it.cantidad * (it.precio_unitario ?? 0);
+    });
+
+    if (p.costo_envio && p.costo_envio > 0) {
+      const delName = 'Envío Delivery';
+      if (!breakdown[delName]) {
+        breakdown[delName] = { nombre: delName, cantidad: 0, total: 0 };
+      }
+      breakdown[delName].cantidad += 1;
+      breakdown[delName].total += p.costo_envio;
+    }
+  });
+
+  return Object.values(breakdown).sort((a, b) => b.total - a.total);
+}
+
 export function useCaja({
   pedidos,
   productosMenu,
@@ -69,7 +109,7 @@ export function useCaja({
 }: UseCajaProps) {
   // Configurable Restaurant Details
   const [restaurante, setRestaurante] = useState(() => {
-    const saved = localStorage.getItem('deliv_restaurante_info');
+    const saved = localStorage.getItem('colores_pizzeria_restaurante_info');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -90,7 +130,7 @@ export function useCaja({
   });
 
   useEffect(() => {
-    localStorage.setItem('deliv_restaurante_info', JSON.stringify(restaurante));
+    localStorage.setItem('colores_pizzeria_restaurante_info', JSON.stringify(restaurante));
   }, [restaurante]);
 
   const [editRestauranteMode, setEditRestauranteMode] = useState(false);
@@ -127,7 +167,9 @@ export function useCaja({
   const [montoEntregadoEfectivo, setMontoEntregadoEfectivo] = useState<string>('');
 
   // Custom discounts & standard tips percentage selectors
+  const [tipoDescuento, setTipoDescuento] = useState<'porcentaje' | 'monto'>('porcentaje');
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState<number>(0);
+  const [descuentoMonto, setDescuentoMonto] = useState<number>(0);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState<number>(10); // Standard 10%
 
   // Splits for payment
@@ -444,7 +486,9 @@ export function useCaja({
       promoDeduction += 1500;
     }
 
-    let manualDeduction = subtotal * (descuentoPorcentaje / 100);
+    let manualDeduction = tipoDescuento === 'porcentaje'
+      ? subtotal * (descuentoPorcentaje / 100)
+      : descuentoMonto;
     let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction);
     let propinaValue = baseTotal * (propinaPorcentaje / 100);
     let ivaValue = baseTotal * 0.21;
@@ -460,7 +504,7 @@ export function useCaja({
       finalTotal,
       itemsCalculados: lineItems
     };
-  }, [selectedPedido, productosMenu, descuentoPorcentaje, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos]);
+  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos]);
 
   const mixedSum = useMemo(() => {
     return mixedPayments.reduce((sum, current) => sum + current.monto, 0);
@@ -553,7 +597,8 @@ export function useCaja({
     }
 
     try {
-      await pdfService.exportShiftClosePDF(finalShift);
+      const desglose = getShiftProductBreakdown(pedidos, finalShift.id_cierre, finalShift.fecha_apertura, finalShift.fecha_cierre);
+      await pdfService.exportShiftClosePDF({ ...finalShift, desglose_productos: desglose });
     } catch (err: any) {
       console.error('Error generating shift close PDF:', err);
       toast.warning('No se pudo descargar el comprobante en formato PDF: ' + err.message);
@@ -789,7 +834,9 @@ export function useCaja({
     setSelectedPedidoId(null);
     setMixedPayments([]);
     setMontoEntregadoEfectivo('');
+    setTipoDescuento('porcentaje');
     setDescuentoPorcentaje(0);
+    setDescuentoMonto(0);
     setPropinaPorcentaje(10);
     setSplitByProducts(false);
     setSelectedProductsForSplit([]);
@@ -960,8 +1007,12 @@ export function useCaja({
     setMixedMontoInput,
     montoEntregadoEfectivo,
     setMontoEntregadoEfectivo,
+    tipoDescuento,
+    setTipoDescuento,
     descuentoPorcentaje,
     setDescuentoPorcentaje,
+    descuentoMonto,
+    setDescuentoMonto,
     propinaPorcentaje,
     setPropinaPorcentaje,
     splitPayerCount,
@@ -1020,6 +1071,7 @@ export function useCaja({
     triggerManualPrint,
     triggerPDFDownloadOnly,
     downloadFacturaHistorialPdf,
-    loadCajaState
+    loadCajaState,
+    getShiftProductBreakdown
   };
 }

@@ -552,7 +552,7 @@ export function useMozoTerminal({
         mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.'
       };
       try {
-        const saved = localStorage.getItem('deliv_restaurante_info');
+        const saved = localStorage.getItem('colores_pizzeria_restaurante_info');
         if (saved) {
           const parsed = JSON.parse(saved);
           rInfo = { ...rInfo, ...parsed };

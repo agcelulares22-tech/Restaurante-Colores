@@ -114,8 +114,12 @@ function CajaModule({
     setMixedMontoInput,
     montoEntregadoEfectivo,
     setMontoEntregadoEfectivo,
+    tipoDescuento,
+    setTipoDescuento,
     descuentoPorcentaje,
     setDescuentoPorcentaje,
+    descuentoMonto,
+    setDescuentoMonto,
     propinaPorcentaje,
     setPropinaPorcentaje,
     splitPayerCount,
@@ -174,7 +178,8 @@ function CajaModule({
     triggerManualPrint,
     triggerPDFDownloadOnly,
     downloadFacturaHistorialPdf,
-    loadCajaState
+    loadCajaState,
+    getShiftProductBreakdown
   } = caja;
 
   const [showArchiveModal, setShowArchiveModal] = useState(false);
@@ -1142,25 +1147,81 @@ function CajaModule({
                   </div>
 
                   {/* Manual discounts & tip adjustments (Rule 3) */}
-                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2.5">
                     <h5 className="text-[10px] font-black text-stone-600 flex items-center gap-1 uppercase tracking-wider">
                       <Percent className="w-3.5 h-3.5 text-[#624A3E]" /> Bonificación & Propinas
                     </h5>
                     
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-bold text-stone-500 block uppercase">Tipo de Descuento</label>
+                      <div className="flex gap-1 p-0.5 bg-stone-100 rounded-lg w-full">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTipoDescuento('porcentaje');
+                            setDescuentoMonto(0);
+                          }}
+                          className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                            tipoDescuento === 'porcentaje'
+                              ? 'bg-white text-stone-900 shadow-xs'
+                              : 'text-stone-500 hover:text-stone-900'
+                          }`}
+                        >
+                          % Porcentaje
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTipoDescuento('monto');
+                            setDescuentoPorcentaje(0);
+                          }}
+                          className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                            tipoDescuento === 'monto'
+                              ? 'bg-white text-stone-900 shadow-xs'
+                              : 'text-stone-500 hover:text-stone-900'
+                          }`}
+                        >
+                          $ Monto Fijo
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[9px] font-bold text-stone-500 block mb-0.5">Manual Desc %</label>
-                        <select
-                          value={descuentoPorcentaje}
-                          onChange={e => setDescuentoPorcentaje(parseInt(e.target.value) || 0)}
-                          className="w-full min-h-11 text-sm p-2 border border-stone-200 rounded bg-white font-bold"
-                        >
-                          <option value="0">0%</option>
-                          <option value="5">5%</option>
-                          <option value="10">10%</option>
-                          <option value="15">15%</option>
-                          <option value="20">20%</option>
-                        </select>
+                        {tipoDescuento === 'porcentaje' ? (
+                          <>
+                            <label className="text-[9px] font-bold text-stone-500 block mb-0.5">Descuento (%)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={descuentoPorcentaje || ''}
+                              onChange={e => {
+                                const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                                setDescuentoPorcentaje(val);
+                              }}
+                              className="w-full min-h-11 text-sm p-2 border border-stone-200 rounded bg-white font-mono text-center font-bold text-stone-800"
+                              placeholder="Ej. 10"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <label className="text-[9px] font-bold text-stone-500 block mb-0.5">Descuento ($)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction)}
+                              value={descuentoMonto || ''}
+                              onChange={e => {
+                                const maxMonto = Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction);
+                                const val = Math.min(maxMonto, Math.max(0, parseFloat(e.target.value) || 0));
+                                setDescuentoMonto(val);
+                              }}
+                              className="w-full min-h-11 text-sm p-2 border border-stone-200 rounded bg-white font-mono text-center font-bold text-stone-800"
+                              placeholder="Monto $"
+                            />
+                          </>
+                        )}
                       </div>
 
                       <div>
@@ -1174,6 +1235,7 @@ function CajaModule({
                           <option value="5">5%</option>
                           <option value="10">10% (Rec.)</option>
                           <option value="15">15%</option>
+                          <option value="20">20%</option>
                         </select>
                       </div>
                     </div>
@@ -1825,9 +1887,11 @@ function CajaModule({
                       onClick={async () => {
                         try {
                           const movs = await cajaService.listMovimientosCajaChica(cs.id_cierre);
-                          pdfService.exportShiftClosePDF({ ...cs, movimientos_manuales: movs });
+                          const desglose = getShiftProductBreakdown(pedidos, cs.id_cierre, cs.fecha_apertura, cs.fecha_cierre);
+                          pdfService.exportShiftClosePDF({ ...cs, movimientos_manuales: movs, desglose_productos: desglose });
                         } catch {
-                          pdfService.exportShiftClosePDF(cs);
+                          const desglose = getShiftProductBreakdown(pedidos, cs.id_cierre, cs.fecha_apertura, cs.fecha_cierre);
+                          pdfService.exportShiftClosePDF({ ...cs, desglose_productos: desglose });
                         }
                       }}
                       className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-lg transition-colors flex items-center justify-center cursor-pointer active:scale-95 border border-stone-200"

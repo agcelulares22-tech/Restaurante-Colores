@@ -148,6 +148,60 @@ function KitchenMonitor({
     insumos
   });
 
+  // Alerta sonora para nuevos pedidos
+  const activeOrderIds = useMemo(() => {
+    const active = activeKitchenOrders.filter(p => p.estado_comanda === 'pendiente' || p.estado_comanda === 'en_cocina');
+    return new Set(active.map(p => String(p.id_pedido)));
+  }, [activeKitchenOrders]);
+
+  const [prevActiveIds, setPrevActiveIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (prevActiveIds.size > 0) {
+      let hasNewOrder = false;
+      for (const id of activeOrderIds) {
+        if (!prevActiveIds.has(id)) {
+          hasNewOrder = true;
+          break;
+        }
+      }
+      if (hasNewOrder) {
+        try {
+          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, now); // D5
+            gain1.gain.setValueAtTime(0.15, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880.00, now + 0.12); // A5
+            gain2.gain.setValueAtTime(0.15, now + 0.12);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            
+            osc1.start(now);
+            osc1.stop(now + 0.6);
+            osc2.start(now + 0.12);
+            osc2.stop(now + 0.8);
+          }
+        } catch (err) {
+          console.warn('Audio chime blocked or failed:', err);
+        }
+      }
+    }
+    setPrevActiveIds(activeOrderIds);
+  }, [activeOrderIds]);
+
   const ordersPendientes = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'pendiente'), [activeKitchenOrders]);
   const ordersEnCocina = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'en_cocina'), [activeKitchenOrders]);
   const ordersListo = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'listo'), [activeKitchenOrders]);

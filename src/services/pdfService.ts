@@ -412,7 +412,7 @@ export const pdfService = {
     let telefono = '+54 358 4123456';
     let email = 'contacto@pizzeriacolores.com.ar';
     try {
-      const saved = localStorage.getItem('deliv_restaurante_info');
+      const saved = localStorage.getItem('colores_pizzeria_restaurante_info');
       if (saved) {
         const parsed = JSON.parse(saved);
         nombreFantasia = parsed.nombreComercial || nombreFantasia;
@@ -581,6 +581,46 @@ export const pdfService = {
         }
         doc.text(m.label, margin + 4, y + 5);
         doc.text(money(val), margin + 178, y + 5, { align: 'right' });
+      });
+      y += 6;
+    }
+
+    // Resumen de Artículos / Comidas Vendidas
+    if (data.desglose_productos && data.desglose_productos.length > 0) {
+      if (y > 220) {
+        doc.addPage();
+        y = 14;
+      }
+      doc.setTextColor(...BRAND.dark);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Resumen de Artículos / Comidas Vendidas', margin, y);
+      y += 5;
+
+      doc.setFillColor(...BRAND.brown);
+      doc.rect(margin, y, 182, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.text('Artículo / Producto', margin + 4, y + 5);
+      doc.text('Cant.', margin + 130, y + 5, { align: 'right' });
+      doc.text('Total Acumulado ($)', margin + 178, y + 5, { align: 'right' });
+      y += 7;
+
+      doc.setTextColor(...BRAND.dark);
+      doc.setFont('helvetica', 'normal');
+      data.desglose_productos.forEach((item: any, idx: number) => {
+        const rowHeight = 7;
+        if (y > 270) {
+          doc.addPage();
+          y = 14;
+        }
+        if (idx % 2 === 1) {
+          doc.setFillColor(250, 248, 245);
+          doc.rect(margin, y, 182, rowHeight, 'F');
+        }
+        doc.text(String(item.nombre).slice(0, 50), margin + 4, y + 5);
+        doc.text(String(item.cantidad), margin + 130, y + 5, { align: 'right' });
+        doc.text(money(item.total), margin + 178, y + 5, { align: 'right' });
         y += rowHeight;
       });
       y += 6;
