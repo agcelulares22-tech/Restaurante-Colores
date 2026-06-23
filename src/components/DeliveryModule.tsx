@@ -53,6 +53,52 @@ export default function DeliveryModule({
     const saved = localStorage.getItem('deliv_recargo_horario_pct');
     return saved ? parseFloat(saved) : 20;
   });
+  const [origenDireccion, setOrigenDireccion] = useState<string>(() => {
+    return localStorage.getItem('deliv_origen_direccion') || 'Alvear 1362, Río Cuarto';
+  });
+  const [origenLat, setOrigenLat] = useState<number>(() => {
+    const saved = localStorage.getItem('deliv_origen_lat');
+    return saved ? parseFloat(saved) : ORIGEN_LAT;
+  });
+  const [origenLng, setOrigenLng] = useState<number>(() => {
+    const saved = localStorage.getItem('deliv_origen_lng');
+    return saved ? parseFloat(saved) : ORIGEN_LNG;
+  });
+  const [isUpdatingOrigen, setIsUpdatingOrigen] = useState(false);
+
+  const handleUpdateOrigenDireccion = async (direccion: string) => {
+    setOrigenDireccion(direccion);
+    localStorage.setItem('deliv_origen_direccion', direccion);
+    
+    if (direccion.trim().length < 4) return;
+    
+    setIsUpdatingOrigen(true);
+    try {
+      const searchAddr = (direccion.toLowerCase().includes('rio cuarto') || direccion.toLowerCase().includes('río cuarto'))
+        ? direccion
+        : `${direccion}, Río Cuarto, Córdoba, Argentina`;
+        
+      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'PizzeriaColoresAdmin/1.0' }
+      });
+      const geoData = await geoResp.json();
+      
+      if (geoData && geoData.length > 0) {
+        const lat = parseFloat(geoData[0].lat);
+        const lng = parseFloat(geoData[0].lon);
+        setOrigenLat(lat);
+        setOrigenLng(lng);
+        localStorage.setItem('deliv_origen_lat', String(lat));
+        localStorage.setItem('deliv_origen_lng', String(lng));
+        toast.success(`Ubicación de la pizzería actualizada: (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+      }
+    } catch (err) {
+      console.error('Error geocoding origin:', err);
+    } finally {
+      setIsUpdatingOrigen(false);
+    }
+  };
+
   const [showSettings, setShowSettings] = useState(false);
   
   // Modal state
@@ -166,7 +212,7 @@ export default function DeliveryModule({
       mapRef.current = L.map('delivery-route-map', {
         zoomControl: true,
         scrollWheelZoom: true
-      }).setView([ORIGEN_LAT, ORIGEN_LNG], 13);
+      }).setView([origenLat, origenLng], 13);
 
       // Add OpenStreetMap tiles (premium looking style)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -181,7 +227,7 @@ export default function DeliveryModule({
         iconSize: [12, 12]
       });
 
-      L.marker([ORIGEN_LAT, ORIGEN_LNG], { icon: pizzeriaIcon })
+      L.marker([origenLat, origenLng], { icon: pizzeriaIcon })
         .addTo(mapRef.current)
         .bindPopup('Colores Pizza • Alvear 1362, Río Cuarto')
         .openPopup();
@@ -245,7 +291,7 @@ export default function DeliveryModule({
         const destLng = parseFloat(geoData[0].lon);
 
         // OSRM Routing
-        const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${ORIGEN_LNG},${ORIGEN_LAT};${destLng},${destLat}?overview=full&geometries=geojson`);
+        const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destLng},${destLat}?overview=full&geometries=geojson`);
         const routeData = await routeResp.json();
 
         if (!routeData.routes || routeData.routes.length === 0) {
@@ -322,7 +368,7 @@ export default function DeliveryModule({
 
         // Fit map bounds to fit both points
         mapRef.current.fitBounds([
-          [ORIGEN_LAT, ORIGEN_LNG],
+          [origenLat, origenLng],
           destCoords
         ], { padding: [40, 40] });
       }
@@ -586,45 +632,63 @@ export default function DeliveryModule({
 
       {/* SETTINGS PANEL (COLLAPSIBLE) */}
       {showSettings && (
-        <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Tarifa Base ($)</label>
-            <input
-              type="number"
-              value={tarifaBase}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                setTarifaBase(val);
-                localStorage.setItem('deliv_tarifa_base', String(val));
-              }}
-              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
-            />
+        <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Tarifa Base ($)</label>
+              <input
+                type="number"
+                value={tarifaBase}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setTarifaBase(val);
+                  localStorage.setItem('deliv_tarifa_base', String(val));
+                }}
+                className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Costo por Kilómetro ($/km)</label>
+              <input
+                type="number"
+                value={costoPorKm}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setCostoPorKm(val);
+                  localStorage.setItem('deliv_costo_por_km', String(val));
+                }}
+                className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Recargo Hora Pico (%)</label>
+              <input
+                type="number"
+                value={recargoHorarioPct}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setRecargoHorarioPct(val);
+                  localStorage.setItem('deliv_recargo_horario_pct', String(val));
+                }}
+                className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Costo por Kilómetro ($/km)</label>
-            <input
-              type="number"
-              value={costoPorKm}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                setCostoPorKm(val);
-                localStorage.setItem('deliv_costo_por_km', String(val));
-              }}
-              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Recargo Hora Pico (%)</label>
-            <input
-              type="number"
-              value={recargoHorarioPct}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                setRecargoHorarioPct(val);
-                localStorage.setItem('deliv_recargo_horario_pct', String(val));
-              }}
-              className="w-full p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none font-mono"
-            />
+          
+          <div className="border-t border-stone-100 pt-3">
+            <label className="text-[10px] font-black uppercase text-stone-400 block mb-1">Dirección de Origen del Local (Pizzería)</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Ej: Alvear 1362, Río Cuarto"
+                value={origenDireccion}
+                onChange={(e) => handleUpdateOrigenDireccion(e.target.value)}
+                className="flex-1 p-2.5 border border-stone-200 rounded-xl text-xs focus:ring-1 focus:ring-brand-yellow focus:outline-none text-slate-800 bg-white font-medium"
+              />
+              <span className="text-[10px] font-mono text-slate-500 self-center bg-slate-50 px-2 py-1 rounded border">
+                {isUpdatingOrigen ? 'Buscando...' : `Coords: ${origenLat.toFixed(4)}, ${origenLng.toFixed(4)}`}
+              </span>
+            </div>
           </div>
         </div>
       )}

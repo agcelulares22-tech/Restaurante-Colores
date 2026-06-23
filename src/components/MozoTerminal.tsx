@@ -218,8 +218,10 @@ export default function MozoTerminal({
         if (geoData && geoData.length > 0) {
           const destLat = parseFloat(geoData[0].lat);
           const destLng = parseFloat(geoData[0].lon);
+          const originLat = parseFloat(localStorage.getItem('deliv_origen_lat') || '-33.1263');
+          const originLng = parseFloat(localStorage.getItem('deliv_origen_lng') || '-64.3498');
 
-          const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${-64.3498},${-33.1263};${destLng},${destLat}?overview=false`);
+          const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=false`);
           const routeData = await routeResp.json();
 
           if (routeData.routes && routeData.routes.length > 0) {
