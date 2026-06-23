@@ -528,6 +528,22 @@ export default function DeliveryModule({
     };
   };
 
+  const handleSendWhatsApp = (pedido: Pedido) => {
+    const clientNameVal = pedido.nombre_cliente || parseClientInfo(pedido.numero_mesa).name;
+    const clientAddressVal = pedido.direccion_cliente || parseClientInfo(pedido.numero_mesa).address;
+    const clientPhoneVal = pedido.telefono_cliente || pedido.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || '';
+    
+    const cleanPhone = clientPhoneVal.replace(/\D/g, '');
+    let formattedPhone = cleanPhone;
+    if (formattedPhone.length > 0 && !formattedPhone.startsWith('54')) {
+      formattedPhone = '54' + formattedPhone;
+    }
+    
+    const msg = `Hola *${clientNameVal}*! Tu pedido de *Colores Pizzería* está listo y el cadete ya salió hacia tu domicilio: *${clientAddressVal}*. ¡Gracias por elegirnos!`;
+    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="space-y-6" id="delivery-module-root">
       
@@ -701,7 +717,12 @@ export default function DeliveryModule({
           </div>
         ) : (
           deliveryOrders.map(p => {
-            const client = parseClientInfo(p.numero_mesa);
+            const clientParsed = parseClientInfo(p.numero_mesa);
+            const client = {
+              name: p.nombre_cliente || clientParsed.name,
+              address: p.direccion_cliente || clientParsed.address,
+              phone: p.telefono_cliente || p.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || ''
+            };
             const total = getOrderTotal(p);
             
             // Channel color accents
@@ -751,6 +772,14 @@ export default function DeliveryModule({
                     <span className="font-semibold leading-tight">{client.address}</span>
                   </div>
 
+                  {/* Phone */}
+                  {client.phone && (
+                    <div className="flex gap-2 items-center text-xs text-stone-600">
+                      <Phone className="w-4 h-4 text-brand-yellow shrink-0" />
+                      <span className="font-semibold">{client.phone}</span>
+                    </div>
+                  )}
+
                   {/* Obs (Phone / Courier) */}
                   {p.observaciones && (
                     <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/50 text-[11px] text-stone-500 flex gap-2">
@@ -776,18 +805,28 @@ export default function DeliveryModule({
                 </div>
 
                 {/* Footer & Actions */}
-                <div className="p-4 border-t border-stone-100 bg-stone-50/50 flex justify-between items-center">
+                <div className="p-4 border-t border-stone-100 bg-stone-50/50 flex justify-between items-center flex-wrap gap-2">
                   <div className="text-left">
                     <span className="text-[9px] uppercase font-bold text-stone-400 block">Total a Cobrar</span>
                     <strong className="text-base font-black font-mono text-stone-900">${total.toLocaleString('es-AR')}</strong>
                   </div>
 
                   {/* Actions buttons */}
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 items-center flex-wrap">
+                    {client.phone && (
+                      <button
+                        onClick={() => handleSendWhatsApp(p)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-sm border border-emerald-500"
+                        title="Enviar WhatsApp"
+                      >
+                        Notificar WA
+                      </button>
+                    )}
+
                     {p.estado_comanda === 'pendiente' && (
                       <button
                         onClick={() => onCambiarEstadoPedido(p.id_pedido, 'en_cocina')}
-                        className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all active:scale-95"
+                        className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95"
                       >
                         Enviar a Horno
                       </button>
@@ -795,7 +834,7 @@ export default function DeliveryModule({
                     {p.estado_comanda === 'en_cocina' && (
                       <button
                         onClick={() => onCambiarEstadoPedido(p.id_pedido, 'listo')}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all active:scale-95"
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95"
                       >
                         Completar Cocción
                       </button>
@@ -816,7 +855,7 @@ export default function DeliveryModule({
                           onCambiarEstadoPedido(p.id_pedido, 'entregado');
                           toast.success(`Pedido #${p.id_pedido} despachado con repartidor: ${courier}`);
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                       >
                         <Bike className="w-3.5 h-3.5 fill-current" />
                         Despachar
@@ -827,7 +866,7 @@ export default function DeliveryModule({
                         onClick={() => {
                           onFacturarMesa(p.id_pedido);
                         }}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Entregado & Cobrar
@@ -840,10 +879,10 @@ export default function DeliveryModule({
                             onCambiarEstadoPedido(p.id_pedido, 'cancelado');
                           }
                         }}
-                        className="border border-red-200 hover:bg-red-50 text-red-500 p-2 rounded-xl cursor-pointer transition-all"
+                        className="border border-red-200 hover:bg-red-50 text-red-500 p-1.5 rounded-xl cursor-pointer transition-all"
                         title="Cancelar Pedido"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>

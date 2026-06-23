@@ -53,7 +53,12 @@ export const hydratePedido = (
     stock_descontado: Boolean(header.stock_descontado),
     fecha_descuento_stock: header.fecha_descuento_stock
       ? new Date(header.fecha_descuento_stock)
-      : undefined
+      : undefined,
+    nombre_cliente: header.nombre_cliente ?? undefined,
+    telefono_cliente: header.telefono_cliente ?? undefined,
+    direccion_cliente: header.direccion_cliente ?? undefined,
+    costo_envio: header.costo_envio ?? undefined,
+    zona_envio_id: header.zona_envio_id ?? undefined
   };
 };
 
@@ -76,7 +81,12 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   fecha_descuento_stock: pedido.fecha_descuento_stock
     ? new Date(pedido.fecha_descuento_stock).toISOString()
     : null,
-  items: JSON.stringify(pedido.items)
+  items: JSON.stringify(pedido.items),
+  nombre_cliente: pedido.nombre_cliente ?? null,
+  telefono_cliente: pedido.telefono_cliente ?? null,
+  direccion_cliente: pedido.direccion_cliente ?? null,
+  costo_envio: pedido.costo_envio ?? null,
+  zona_envio_id: pedido.zona_envio_id ?? null
 });
 
 export const serializePedidoDetails = (pedido: Pedido) => pedido.items.map((item, index) => ({
@@ -156,6 +166,11 @@ export const pedidosService = {
         : null;
     }
     if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
+    if (fields.nombre_cliente !== undefined) headerFields.nombre_cliente = fields.nombre_cliente;
+    if (fields.telefono_cliente !== undefined) headerFields.telefono_cliente = fields.telefono_cliente;
+    if (fields.direccion_cliente !== undefined) headerFields.direccion_cliente = fields.direccion_cliente;
+    if (fields.costo_envio !== undefined) headerFields.costo_envio = fields.costo_envio;
+    if (fields.zona_envio_id !== undefined) headerFields.zona_envio_id = fields.zona_envio_id;
 
     try {
       if (Object.keys(headerFields).length > 0) {

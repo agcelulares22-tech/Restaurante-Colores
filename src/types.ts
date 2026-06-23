@@ -147,6 +147,11 @@ export interface Pedido {
     fecha_descuento_stock?: Date;
     fecha_inicio_cocina?: Date | string;
     fecha_listo?: Date | string;
+    nombre_cliente?: string;
+    telefono_cliente?: string;
+    direccion_cliente?: string;
+    costo_envio?: number;
+    zona_envio_id?: number;
 }
 
 export interface Merma {

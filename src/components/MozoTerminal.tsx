@@ -22,7 +22,11 @@ import {
   EyeOff,
   X,
   Printer,
-  Download
+  Download,
+  Bike,
+  Phone,
+  MapPin,
+  User
 } from 'lucide-react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog } from '../types';
 import { useMenu, useSalon, useInventario, usePedidos } from '../context/AppContext';
@@ -30,6 +34,7 @@ import { useToast, ToastContainer } from './ToastContainer';
 import { useMozoTerminal } from '../features/salon/hooks/useMozoTerminal';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { useCategories } from '../hooks/useCategories';
+import { fetchZonasEnvio, fetchCallesEnvio, resolverZonaEnvio } from '../services/zonasEnvioService';
 
 interface MozoTerminalProps {
   mesas: Mesa[];
@@ -137,7 +142,17 @@ export default function MozoTerminal({
     handleUpdatePrice,
     handleToggleAvailability,
     dynamicMesas,
-    isSameTable
+    isSameTable,
+    nombreCliente,
+    setNombreCliente,
+    telefonoCliente,
+    setTelefonoCliente,
+    direccionCliente,
+    setDireccionCliente,
+    costoEnvio,
+    setCostoEnvio,
+    zonaEnvioId,
+    setZonaEnvioId
   } = useMozoTerminal({
     mesas,
     insumos,
@@ -154,6 +169,42 @@ export default function MozoTerminal({
     permitirVentaSinStock,
     toast
   });
+
+  const [zonasEnvio, setZonasEnvio] = React.useState<any[]>([]);
+  const [callesEnvio, setCallesEnvio] = React.useState<any[]>([]);
+  const [zonaResultado, setZonaResultado] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    Promise.all([fetchZonasEnvio(), fetchCallesEnvio()]).then(([z, c]) => {
+      setZonasEnvio(z);
+      setCallesEnvio(c);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (selectedMesaId !== 999) {
+      setZonaResultado(null);
+      return;
+    }
+    if (!direccionCliente.trim() || callesEnvio.length === 0) {
+      setCostoEnvio(0);
+      setZonaEnvioId(null);
+      setZonaResultado(null);
+      return;
+    }
+    const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
+    setZonaResultado(result);
+    if (result.status === 'success' && result.costo_envio != null) {
+      setCostoEnvio(result.costo_envio);
+      const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
+      if (matchedZona) {
+        setZonaEnvioId(matchedZona.id);
+      }
+    } else {
+      setCostoEnvio(0);
+      setZonaEnvioId(null);
+    }
+  }, [direccionCliente, zonasEnvio, callesEnvio, selectedMesaId, setCostoEnvio, setZonaEnvioId]);
 
   const [showHalfHalfModal, setShowHalfHalfModal] = React.useState(false);
   const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
@@ -218,12 +269,24 @@ export default function MozoTerminal({
               Distribución de Mesas
             </h3>
             <span className="text-[11px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded">
-              {dynamicMesas.filter(m => m.estado === 'ocupada').length} Ocupadas
+              {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999).length} Ocupadas
             </span>
           </div>
 
+          <button
+            onClick={() => handleSelectMesa({ id_mesa: 999, numero_mesa: 'DELIVERY', estado: 'libre' })}
+            className={`w-full mb-4 min-h-[56px] p-3 sm:p-4 rounded-xl flex items-center justify-center gap-3 transition-all cursor-pointer border font-black text-sm uppercase tracking-wider ${
+              selectedMesaId === 999
+                ? 'bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.01] ring-4 ring-brand-yellow/20'
+                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+            }`}
+          >
+            <Bike className="w-5 h-5 text-brand-orange" />
+            Tomar Pedido Delivery
+          </button>
+
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-            {dynamicMesas.map(m => {
+            {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
               const isSelected = m.id_mesa === selectedMesaId;
               const isOcupada = m.estado === 'ocupada';
               const isInCuenta = m.estado === 'esperando_cuenta';
@@ -663,18 +726,75 @@ export default function MozoTerminal({
                 Marque una mesa disponible en el plano izquierdo para iniciar la comanda.
               </p>
             </div>
-          ) : Object.keys(cart).length === 0 ? (
-            <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-3">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-slate-700 text-sm">Comanda Vacía</h4>
-              <p className="text-slate-400 text-xs mt-1 max-w-[180px]">
-                Toque los platos de la carta central para cargarlos a la mesa de forma interactiva.
-              </p>
-            </div>
           ) : (
             <>
+              {selectedMesaId === 999 && (
+                <div className="p-3 border-b border-slate-100 bg-slate-50/50 space-y-2.5">
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider block">
+                    Datos del Cliente (Envío)
+                  </span>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">Nombre y Apellido</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Juan Pérez"
+                      value={nombreCliente}
+                      onChange={(e) => setNombreCliente(e.target.value)}
+                      className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-brand-orange text-slate-800"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Teléfono</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: 3584-123456"
+                        value={telefonoCliente}
+                        onChange={(e) => setTelefonoCliente(e.target.value)}
+                        className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-brand-orange text-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Dirección</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Alvear 1362"
+                        value={direccionCliente}
+                        onChange={(e) => setDireccionCliente(e.target.value)}
+                        className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-brand-orange text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {direccionCliente.trim() && zonaResultado && (
+                    <div className={`p-2 rounded-lg text-[10px] ${zonaResultado.status === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-250' : 'bg-rose-50 text-rose-800 border border-rose-250'}`}>
+                      {zonaResultado.status === 'success' ? (
+                        <div className="flex justify-between items-center">
+                          <span>{zonaResultado.zona}</span>
+                          <span className="font-mono font-bold">Envío: ${zonaResultado.costo_envio}</span>
+                        </div>
+                      ) : (
+                        <span>{zonaResultado.mensaje}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {Object.keys(cart).length === 0 ? (
+                <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-3">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-bold text-slate-700 text-sm">Comanda Vacía</h4>
+                  <p className="text-slate-400 text-xs mt-1 max-w-[180px]">
+                    Toque los platos de la carta central para cargarlos a la mesa de forma interactiva.
+                  </p>
+                </div>
+              ) : (
+                <>
               {/* CART ITEMS LIST */}
               <div className="flex-1 overflow-y-auto py-3 space-y-2 pr-1">
                 {Object.entries(cart).map(([prodId, qty]) => {
@@ -762,8 +882,10 @@ export default function MozoTerminal({
               </div>
             </>
           )}
-        </div>
-      </div>
+        </>
+      )}
+    </div>
+  </div>
 
       {/* BILL SPLITTING MODAL (MODO DIVISION DE CUENTAS) */}
       {splittingPedidoId !== null && (

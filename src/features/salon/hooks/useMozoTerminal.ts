@@ -63,6 +63,13 @@ export function useMozoTerminal({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('todo');
   
+  // Delivery customer states
+  const [nombreCliente, setNombreCliente] = useState('');
+  const [telefonoCliente, setTelefonoCliente] = useState('');
+  const [direccionCliente, setDireccionCliente] = useState('');
+  const [costoEnvio, setCostoEnvio] = useState<number>(0);
+  const [zonaEnvioId, setZonaEnvioId] = useState<number | null>(null);
+  
   // Current order cart
   const [cart, setCart] = useState<MozoCart>({});
   const [observaciones, setObservaciones] = useState('');
@@ -94,7 +101,7 @@ export function useMozoTerminal({
   }, []);
 
   const dynamicMesas = useMemo(() => {
-    return mesas.map(m => {
+    const mapped = mesas.map(m => {
       if (!m) return m;
       const activePedido = pedidos.find(p => 
         p && isSameTable(m, p) && 
@@ -112,6 +119,21 @@ export function useMozoTerminal({
         estado: m.estado === 'ocupada' ? 'libre' : m.estado
       };
     });
+
+    const activeDeliveryPedido = pedidos.find(p =>
+      p && p.id_mesa === 999 &&
+      ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
+    );
+
+    const virtualDeliveryMesa: Mesa = {
+      id_mesa: 999,
+      numero_mesa: 'DELIVERY',
+      estado: activeDeliveryPedido ? 'ocupada' : 'libre',
+      capacidad: 1,
+      zona: 'salon'
+    };
+
+    return [...mapped, virtualDeliveryMesa];
   }, [mesas, pedidos, isSameTable]);
 
   const selectedMesa = useMemo(() => {
@@ -389,6 +411,12 @@ export function useMozoTerminal({
     if (!selectedMesaId) return;
     if (Object.keys(cart).length === 0) return;
 
+    const isDelivery = selectedMesaId === 999;
+    if (isDelivery && (!nombreCliente.trim() || !telefonoCliente.trim() || !direccionCliente.trim())) {
+      toast.error('Completá todos los datos del cliente (nombre, teléfono y dirección) para el envío.');
+      return;
+    }
+
     // Double check stock at moment of checkout
     const requirements = calculateCartInsumoRequirements(cart);
     for (const [insumoId, reqAmount] of Object.entries(requirements)) {
@@ -416,6 +444,16 @@ export function useMozoTerminal({
       });
     }
 
+    if (isDelivery && costoEnvio > 0) {
+      items.push({
+        id_producto: 'prod_costo_envio_delivery',
+        nombre: `Envío Delivery`,
+        cantidad: 1,
+        categoria: 'Servicios',
+        precio_unitario: costoEnvio
+      });
+    }
+
     // Optimistic UI update: show feedback immediately
     checkoutInFlightRef.current = true;
     setCheckoutStatus('sending');
@@ -423,19 +461,37 @@ export function useMozoTerminal({
     const idempotencyKey = cartIdempotencyKey ?? createMozoCartIdempotencyKey(selectedMesaId);
     setCartIdempotencyKey(idempotencyKey);
 
+    const customObservaciones = isDelivery
+      ? `Tel: ${telefonoCliente} | Dir: ${direccionCliente}${observaciones.trim() ? ' | Obs: ' + observaciones.trim() : ''}`
+      : observaciones.trim();
+
+    const customNumeroMesa = isDelivery
+      ? `DELIVERY: ${nombreCliente.toUpperCase()} - ${direccionCliente.toUpperCase()}`
+      : (selectedMesa ? selectedMesa.numero_mesa : `Mesa ${selectedMesaId}`);
+
     try {
       await withCheckoutTimeout(Promise.resolve(onCrearPedido({
         idempotency_key: idempotencyKey,
         id_mesa: selectedMesaId,
-        numero_mesa: selectedMesa ? selectedMesa.numero_mesa : `Mesa ${selectedMesaId}`,
+        numero_mesa: customNumeroMesa,
         mozo: activeMozo,
         estado_comanda: 'pendiente',
         items,
-        observaciones: observaciones.trim() || undefined,
+        observaciones: customObservaciones || undefined,
+        nombre_cliente: isDelivery ? nombreCliente : undefined,
+        telefono_cliente: isDelivery ? telefonoCliente : undefined,
+        direccion_cliente: isDelivery ? direccionCliente : undefined,
+        costo_envio: isDelivery ? costoEnvio : undefined,
+        zona_envio_id: isDelivery ? (zonaEnvioId ?? undefined) : undefined
       })));
 
       setCart({});
       setObservaciones('');
+      setNombreCliente('');
+      setTelefonoCliente('');
+      setDireccionCliente('');
+      setCostoEnvio(0);
+      setZonaEnvioId(null);
       setCartIdempotencyKey(null);
       clearMozoCartDraft(selectedMesaId);
       setTimeout(() => {
@@ -445,7 +501,7 @@ export function useMozoTerminal({
           checkoutInFlightRef.current = false;
         }, 1500);
       }, 200);
-      addLog('pedido_creado', `Mozo ${activeMozo} envió pedido para ${selectedMesa?.numero_mesa} con ${items.length} platos.`);
+      addLog('pedido_creado', `Mozo ${activeMozo} envió pedido para ${customNumeroMesa} con ${items.length} platos.`);
     } catch (err: any) {
       console.error('[checkoutCart] Detailed error:', err);
       checkoutInFlightRef.current = false;
@@ -706,6 +762,16 @@ export function useMozoTerminal({
     handlePrintSplitTicket,
     handleUpdatePrice,
     handleToggleAvailability,
-    isSameTable
+    isSameTable,
+    nombreCliente,
+    setNombreCliente,
+    telefonoCliente,
+    setTelefonoCliente,
+    direccionCliente,
+    setDireccionCliente,
+    costoEnvio,
+    setCostoEnvio,
+    zonaEnvioId,
+    setZonaEnvioId
   };
 }
