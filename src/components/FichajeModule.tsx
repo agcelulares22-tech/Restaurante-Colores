@@ -59,34 +59,52 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoords({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        });
-        setLocationStatus('success');
-      },
-      (error) => {
-        console.error('Error obtaining GPS coordinates:', error);
+    const successCallback = (position: GeolocationPosition) => {
+      setCoords({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy
+      });
+      setLocationStatus('success');
+    };
+
+    const errorCallback = (error: GeolocationPositionError) => {
+      console.error('Error obtaining GPS coordinates (high accuracy):', error);
+      
+      // Si el error es denegación de permisos, no reintentamos (ya está denegado por el usuario)
+      if (error.code === error.PERMISSION_DENIED) {
         setLocationStatus('error');
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setGpsErrorMsg('Permiso de ubicación denegado por el usuario.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setGpsErrorMsg('Información de ubicación no disponible.');
-            break;
-          case error.TIMEOUT:
-            setGpsErrorMsg('Tiempo de espera agotado al obtener ubicación.');
-            break;
-          default:
-            setGpsErrorMsg('Error desconocido de geolocalización.');
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+        setGpsErrorMsg('Permiso de ubicación denegado por el usuario.');
+        return;
+      }
+
+      // Si es otro tipo de error (Timeout o Posición no disponible), intentamos con precisión baja (red móvil/wifi)
+      console.log('Reintentando geolocalización con baja precisión...');
+      navigator.geolocation.getCurrentPosition(
+        successCallback,
+        (fallbackError) => {
+          console.error('Error obtaining GPS coordinates (low accuracy):', fallbackError);
+          setLocationStatus('error');
+          switch (fallbackError.code) {
+            case fallbackError.POSITION_UNAVAILABLE:
+              setGpsErrorMsg('Información de ubicación no disponible (GPS desactivado o sin señal).');
+              break;
+            case fallbackError.TIMEOUT:
+              setGpsErrorMsg('Tiempo de espera agotado al obtener ubicación.');
+              break;
+            default:
+              setGpsErrorMsg('Error desconocido de geolocalización.');
+          }
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+      enableHighAccuracy: true,
+      timeout: 8000,
+      maximumAge: 0
+    });
   };
 
   // Fetch clock-in logs
@@ -397,13 +415,25 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 ) : locationStatus === 'requesting' ? (
                   <p className="text-xs text-slate-600 font-medium">Obteniendo coordenadas satelitales...</p>
                 ) : (
-                  <div className="text-xs text-rose-800">
+                  <div className="text-xs text-rose-800 space-y-2">
                     <p className="font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 shrink-0" /> Error de Geolocalización</p>
                     <p className="text-[10px] mt-0.5 opacity-90">{gpsErrorMsg}</p>
+                    
+                    {gpsErrorMsg.includes('denegado') && (
+                      <div className="mt-2 p-2.5 bg-rose-100/60 rounded-lg border border-rose-200/50 text-[10px] leading-normal text-rose-950 space-y-1">
+                        <p className="font-extrabold uppercase tracking-wider text-[8px] text-rose-800">💡 ¿Cómo activar el GPS en tu navegador?</p>
+                        <ol className="list-decimal list-inside space-y-1 text-stone-700">
+                          <li>Toca el candado 🔒 o ícono de ajustes a la izquierda de <strong>restaurante-colores.vercel.app</strong> en la barra superior.</li>
+                          <li>Busca la opción <strong>Ubicación</strong> (Location) y cámbiala a <strong>Permitir</strong> (Allow).</li>
+                          <li>Toca el botón <strong>"Reintentar conexión GPS"</strong> abajo o recarga el sitio.</li>
+                        </ol>
+                      </div>
+                    )}
+
                     <div className="flex flex-wrap gap-x-3 gap-y-1">
                       <button 
                         onClick={requestLocation}
-                        className="mt-2 text-[10px] font-bold text-rose-600 underline hover:text-rose-800 cursor-pointer bg-transparent border-0 p-0"
+                        className="mt-2 text-[10px] font-bold text-rose-600 underline hover:text-rose-850 cursor-pointer bg-transparent border-0 p-0"
                       >
                         Reintentar conexión GPS
                       </button>
@@ -417,7 +447,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           setLocationStatus('success');
                           toast.success('GPS simulado con éxito (Río Cuarto, Cba) 📍');
                         }}
-                        className="mt-2 text-[10px] font-bold text-amber-600 underline hover:text-amber-800 cursor-pointer bg-transparent border-0 p-0"
+                        className="mt-2 text-[10px] font-bold text-amber-600 underline hover:text-amber-850 cursor-pointer bg-transparent border-0 p-0"
                         title="Simular coordenadas de prueba para demostración"
                       >
                         Simular GPS (Demo)
