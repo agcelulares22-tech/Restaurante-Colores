@@ -224,9 +224,7 @@ function MozoTerminal({
         ? direccion
         : `${direccion}, Río Cuarto, Córdoba, Argentina`;
         
-      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
-        headers: { 'User-Agent': 'PizzeriaColoresMozo/1.0' }
-      });
+      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
       const geoData = await geoResp.json();
       
       if (geoData && geoData.length > 0) {
@@ -271,9 +269,7 @@ function MozoTerminal({
           ? direccionCliente
           : `${direccionCliente}, Río Cuarto, Córdoba, Argentina`;
           
-        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
-          headers: { 'User-Agent': 'PizzeriaColoresWaiterCalculator/1.0' }
-        });
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
         const geoData = await geoResp.json();
 
         if (geoData && geoData.length > 0) {
@@ -308,27 +304,42 @@ function MozoTerminal({
         }
         
         const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
-        setZonaResultado(result);
         if (result.status === 'success' && result.costo_envio != null) {
+          setZonaResultado(result);
           setCostoEnvio(result.costo_envio);
           const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
           if (matchedZona) {
             setZonaEnvioId(matchedZona.id);
           }
         } else {
-          setCostoEnvio(0);
+          setCostoEnvio(tarifaBaseLocal);
           setZonaEnvioId(null);
+          setZonaResultado({
+            status: 'success',
+            zona: 'Envío General (Río Cuarto)',
+            costo_envio: tarifaBaseLocal,
+            mensaje: 'Dirección fuera de cobertura de zonas fijas - Se aplica Tarifa Base.'
+          });
         }
       } catch (err) {
         console.warn('Error in automatic route calculation:', err);
         const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
-        setZonaResultado(result);
         if (result.status === 'success' && result.costo_envio != null) {
+          setZonaResultado(result);
           setCostoEnvio(result.costo_envio);
           const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
           if (matchedZona) {
             setZonaEnvioId(matchedZona.id);
           }
+        } else {
+          setCostoEnvio(tarifaBaseLocal);
+          setZonaEnvioId(null);
+          setZonaResultado({
+            status: 'success',
+            zona: 'Envío General (Río Cuarto)',
+            costo_envio: tarifaBaseLocal,
+            mensaje: 'Dirección fuera de cobertura de zonas fijas - Se aplica Tarifa Base.'
+          });
         }
       } finally {
         setIsCalculatingRoute(false);

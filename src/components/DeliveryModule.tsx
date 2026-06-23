@@ -86,9 +86,7 @@ function DeliveryModule({
         ? direccion
         : `${direccion}, Río Cuarto, Córdoba, Argentina`;
         
-      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
-        headers: { 'User-Agent': 'PizzeriaColoresAdmin/1.0' }
-      });
+      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
       const geoData = await geoResp.json();
       
       if (geoData && geoData.length > 0) {
@@ -203,13 +201,19 @@ function DeliveryModule({
       return;
     }
     const result = resolverZonaEnvio(clientAddress, zonasEnvio, callesEnvio);
-    setZonaResultado(result);
     if (result.status === 'success' && result.costo_envio != null) {
+      setZonaResultado(result);
       setDeliveryCost(result.costo_envio);
     } else {
-      setDeliveryCost(0);
+      setDeliveryCost(tarifaBase);
+      setZonaResultado({
+        status: 'success',
+        zona: 'Envío General (Río Cuarto)',
+        costo_envio: tarifaBase,
+        mensaje: 'Dirección fuera de cobertura de zonas fijas - Se aplica Tarifa Base.'
+      });
     }
-  }, [clientAddress, zonasEnvio, callesEnvio]);
+  }, [clientAddress, zonasEnvio, callesEnvio, tarifaBase]);
 
   const initMap = () => {
     const L = (window as any).L;
@@ -286,9 +290,7 @@ function DeliveryModule({
         
         // Client-side Fallback using OSM Nominatim for Geocoding
         const searchAddr = clientAddress.includes('argentina') ? clientAddress : `${clientAddress}, Río Cuarto, Córdoba, Argentina`;
-        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
-          headers: { 'User-Agent': 'PizzeriaColoresClientCalculator/1.0' }
-        });
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
         const geoData = await geoResp.json();
 
         if (!geoData || geoData.length === 0) {
