@@ -7,10 +7,11 @@ import {
   type ResultadoZonaEnvio
 } from '../services/zonasEnvioService';
 import type { Pedido, PedidoItem } from '../types';
+import { pedidosDeliveryRapidoService } from '../services/pedidosDeliveryRapidoService';
 
 interface QuickDeliveryFormProps {
   activeMozo?: string;
-  onCrearPedido: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos'> & { idempotency_key?: string }) => void;
+  onCrearPedido?: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos'> & { idempotency_key?: string }) => void;
 }
 
 export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedido }: QuickDeliveryFormProps) {
@@ -53,48 +54,19 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
 
     setSaving(true);
     try {
-      const nextId = Date.now() + Math.floor(Math.random() * 100);
-      const detailAddress = `DELIVERY: ${name.trim()} - ${address.trim()}`;
+      // Guardar en la tabla pedidos_delivery_rapido de Supabase
+      const newQuickOrder = await pedidosDeliveryRapidoService.create({
+        nombre_cliente: name.trim(),
+        pedido: order.trim(),
+        direccion: address.trim(),
+        telefono: phone.trim(),
+        estado: 'nuevo'
+      });
 
-      const items: PedidoItem[] = [];
-      if (order.trim()) {
-        items.push({
-          id_producto: `delivery_manual_${nextId}`,
-          nombre: order.trim(),
-          cantidad: 1,
-          categoria: 'Delivery',
-          precio_unitario: 0
-        });
+      if (!newQuickOrder) {
+        throw new Error('Error al guardar el pedido en Supabase.');
       }
 
-      if (zonaResultado?.status === 'success' && (zonaResultado.costo_envio ?? 0) > 0) {
-        items.push({
-          id_producto: 'prod_costo_envio_delivery',
-          nombre: `Envío Delivery (${zonaResultado.zona})`,
-          cantidad: 1,
-          categoria: 'Servicios',
-          precio_unitario: zonaResultado.costo_envio ?? 0
-        });
-      }
-
-      const observationParts = [
-        `Tel: ${phone.trim()}`,
-        address.trim() !== name.trim() ? `Dir: ${address.trim()}` : '',
-        zonaResultado?.status === 'success' ? `Zona: ${zonaResultado.zona}` : ''
-      ].filter(Boolean);
-
-      const newOrder = {
-        id_mesa: 900 + (nextId % 100),
-        numero_mesa: detailAddress,
-        mozo: activeMozo,
-        estado_comanda: 'pendiente' as const,
-        items,
-        observaciones: observationParts.join(' | ') || undefined,
-        origen: 'Mozo' as const,
-        idempotency_key: `quick_deliv_${nextId}`
-      };
-
-      await onCrearPedido(newOrder);
       setName('');
       setOrder('');
       setAddress('');

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   AlertTriangle,
   Flame,
@@ -20,6 +20,7 @@ import {
 import { Pedido, ProductoMenu, RecetaEscandallo, Insumo } from '../types';
 import { useKitchenMonitor } from '../features/cocina/hooks/useKitchenMonitor';
 import QuickDeliveryForm from './QuickDeliveryForm';
+import { pedidosDeliveryRapidoService, PedidoDeliveryRapido } from '../services/pedidosDeliveryRapidoService';
 
 interface KitchenMonitorProps {
   pedidos: Pedido[];
@@ -44,6 +45,85 @@ export default function KitchenMonitor({
   activeMozo = 'Sistema',
   onCrearPedido
 }: KitchenMonitorProps) {
+  const [quickOrders, setQuickOrders] = useState<PedidoDeliveryRapido[]>([]);
+
+  useEffect(() => {
+    // Cargar pedidos rápidos iniciales
+    pedidosDeliveryRapidoService.list().then(setQuickOrders);
+
+    // Suscribirse a cambios en tiempo real en la tabla pedidos_delivery_rapido
+    const channel = pedidosDeliveryRapidoService.subscribe((payload) => {
+      if (payload.eventType === 'INSERT') {
+        setQuickOrders(prev => {
+          if (prev.some(o => o.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
+      } else if (payload.eventType === 'UPDATE') {
+        setQuickOrders(prev => prev.map(o => o.id === payload.new.id ? payload.new : o));
+      } else if (payload.eventType === 'DELETE') {
+        setQuickOrders(prev => prev.filter(o => o.id !== payload.old.id));
+      }
+    });
+
+    return () => {
+      if (channel) {
+        channel.unsubscribe();
+      }
+    };
+  }, []);
+
+  const combinedPedidos = useMemo(() => {
+    const mapped = quickOrders
+      .filter(o => o.estado !== 'entregado')
+      .map(o => {
+        let estado_comanda: Pedido['estado_comanda'] = 'pendiente';
+        if (o.estado === 'horno') estado_comanda = 'en_cocina';
+        else if (o.estado === 'delivery') estado_comanda = 'listo';
+
+        const minutes = Math.max(0, Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000));
+
+        return {
+          id_pedido: o.id + 10000000,
+          idempotency_key: `quick_deliv_db_${o.id}`,
+          id_mesa: 999,
+          numero_mesa: `DELIVERY: ${o.nombre_cliente.toUpperCase()} - ${o.direccion.toUpperCase()}`,
+          mozo: 'Sistema',
+          estado_comanda,
+          items: [
+            {
+              id_producto: `delivery_manual_${o.id}`,
+              nombre: o.pedido,
+              cantidad: 1,
+              categoria: 'Delivery',
+              precio_unitario: 0
+            }
+          ],
+          observaciones: `Tel: ${o.telefono} | Dir: ${o.direccion}`,
+          fecha_hora: new Date(o.created_at),
+          minutos_transcurridos: minutes,
+          origen: 'Mozo' as const,
+          stock_descontado: false
+        };
+      });
+
+    return [...pedidos, ...mapped];
+  }, [pedidos, quickOrders]);
+
+  const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+    if (idPedido >= 10000000) {
+      const realId = idPedido - 10000000;
+      let dbEstado: 'nuevo' | 'horno' | 'delivery' | 'entregado' = 'nuevo';
+      if (nuevoEstado === 'en_cocina') dbEstado = 'horno';
+      else if (nuevoEstado === 'listo') dbEstado = 'delivery';
+      else if (nuevoEstado === 'entregado' || nuevoEstado === 'entregado_cobrado' || nuevoEstado === 'cancelado') dbEstado = 'entregado';
+
+      await pedidosDeliveryRapidoService.updateEstado(realId, dbEstado);
+      setQuickOrders(prev => prev.map(o => o.id === realId ? { ...o, estado: dbEstado } : o));
+    } else {
+      onCambiarEstadoPedido(idPedido, nuevoEstado);
+    }
+  }, [onCambiarEstadoPedido]);
+
   const {
     cancelRequest,
     setCancelRequest,
@@ -62,8 +142,8 @@ export default function KitchenMonitor({
     confirmCancel,
     isBarItem
   } = useKitchenMonitor({
-    pedidos,
-    onCambiarEstadoPedido,
+    pedidos: combinedPedidos,
+    onCambiarEstadoPedido: handleCambiarEstadoPedidoCustom,
     productosMenu,
     recetas,
     insumos
