@@ -83,6 +83,7 @@ export function useMozoTerminal({
   const isAdmin = activeUser?.rol === 'superadmin' || activeUser?.rol === 'administrador';
 
   const isSameTable = useCallback((m: Mesa, p: Pedido) => {
+    if (!m || !p) return false;
     if (m.id_mesa !== undefined && m.id_mesa !== null && p.id_mesa !== undefined && p.id_mesa !== null) {
       if (String(m.id_mesa) === String(p.id_mesa)) return true;
     }
@@ -93,8 +94,9 @@ export function useMozoTerminal({
 
   const dynamicMesas = useMemo(() => {
     return mesas.map(m => {
+      if (!m) return m;
       const activePedido = pedidos.find(p => 
-        isSameTable(m, p) && 
+        p && isSameTable(m, p) && 
         ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
       );
       if (activePedido) {
@@ -216,6 +218,7 @@ export function useMozoTerminal({
     }
 
     const tablePedidos = pedidos.filter(p => {
+      if (!p) return false;
       const matchMesaId = String(p.id_mesa) === String(selectedMesaId);
       const matchMesaNum = selectedMesa ? String(p.numero_mesa || '').toLowerCase().replace(/mesa\s+/gi, '').trim() === String(selectedMesa.numero_mesa || '').toLowerCase().replace(/mesa\s+/gi, '').trim() : false;
       return (matchMesaId || matchMesaNum) && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado';

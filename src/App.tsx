@@ -81,6 +81,7 @@ import { createClientPedidoId } from './lib/pedidoIds';
 import { cajaService } from './services/cajaService';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
+  if (!p1 || !p2) return false;
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
     if (String(p1.id_mesa) === String(p2.id_mesa)) return true;
   }
@@ -280,15 +281,17 @@ export default function App() {
           setRecetas(dbRecipes ?? []);
         }
         if ((dbPedidos ?? []).length > 0) {
-          setPedidos(dbPedidos ?? []);
+          const sanitizedDbPedidos = (dbPedidos ?? []).filter(p => p && p.id_pedido !== undefined);
+          setPedidos(sanitizedDbPedidos);
         } else {
           // Persistencia local: si Supabase no tiene pedidos, conservar los creados en sesión
           const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('el_patron_pedidos_local') : null;
           if (localPedidos) {
             try {
               const parsed = JSON.parse(localPedidos) as Pedido[];
-              if (parsed.length > 0) {
-                setPedidos(parsed.map(p => ({
+              const validParsed = (parsed || []).filter(p => p && p.id_pedido !== undefined);
+              if (validParsed.length > 0) {
+                setPedidos(validParsed.map(p => ({
                   ...p,
                   fecha_hora: new Date(p.fecha_hora),
                   fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
