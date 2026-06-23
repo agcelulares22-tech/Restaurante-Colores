@@ -27,6 +27,8 @@ interface KitchenMonitorProps {
   productosMenu: ProductoMenu[];
   recetas: RecetaEscandallo[];
   insumos: Insumo[];
+  activeMozo?: string;
+  onCrearPedido?: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo' | 'Rappi' | 'PedidosYa'; idempotency_key?: string }) => void;
 }
 
 export default function KitchenMonitor({
@@ -36,7 +38,9 @@ export default function KitchenMonitor({
   minutosGlobal,
   productosMenu,
   recetas,
-  insumos
+  insumos,
+  activeMozo = 'Sistema',
+  onCrearPedido
 }: KitchenMonitorProps) {
   const {
     cancelRequest,
@@ -264,7 +268,7 @@ export default function KitchenMonitor({
 
   return (
     <div className="space-y-5 bg-[#FAFAFA] p-4 rounded-[24px]" id="kitchen-monitor-container">
-      <QuickDeliveryForm />
+      <QuickDeliveryForm activeMozo={activeMozo} onCrearPedido={onCrearPedido || (() => {})} />
 
       <div className="bg-white rounded-[20px] p-5 border border-[#E8B800]/30 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-[#E8B800]/20">

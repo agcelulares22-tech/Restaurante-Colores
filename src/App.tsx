@@ -1237,6 +1237,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 productosMenu={productosMenu}
                 recetas={recetas}
                 insumos={insumos}
+                activeMozo={activeMozo}
+                onCrearPedido={handleCrearPedido}
               />
             )}
             {activeView === 'caja' && (

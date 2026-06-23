@@ -1,8 +1,20 @@
-import React, { useState } from 'react';
-import { Bike, Plus, Phone, MapPin, User, ClipboardList, X } from 'lucide-react';
-import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { Bike, Plus, Phone, MapPin, User, ClipboardList, X, Loader2 } from 'lucide-react';
+import { pedidosService } from '../services/pedidosService';
+import {
+  fetchZonasEnvio,
+  fetchCallesEnvio,
+  resolverZonaEnvio,
+  type ResultadoZonaEnvio
+} from '../services/zonasEnvioService';
+import type { Pedido, PedidoItem } from '../types';
 
-export default function QuickDeliveryForm() {
+interface QuickDeliveryFormProps {
+  activeMozo?: string;
+  onCrearPedido: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos'> & { idempotency_key?: string }) => void;
+}
+
+export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedido }: QuickDeliveryFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [order, setOrder] = useState('');
@@ -10,34 +22,75 @@ export default function QuickDeliveryForm() {
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const [zonas, setZonas] = useState<Awaited<ReturnType<typeof fetchZonasEnvio>>>([]);
+  const [calles, setCalles] = useState<Awaited<ReturnType<typeof fetchCallesEnvio>>>([]);
+  const [zonaResultado, setZonaResultado] = useState<ResultadoZonaEnvio | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([fetchZonasEnvio(), fetchCallesEnvio()]).then(([z, c]) => {
+      if (!active) return;
+      setZonas(z);
+      setCalles(c);
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!address.trim() || calles.length === 0) {
+      setZonaResultado(null);
+      return;
+    }
+    const result = resolverZonaEnvio(address, zonas, calles);
+    setZonaResultado(result);
+  }, [address, zonas, calles]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !order.trim() || !address.trim() || !phone.trim()) {
       alert('Completá todos los campos del pedido.');
       return;
     }
+
     setSaving(true);
     try {
-      const client = tryGetActiveSupabaseClient();
-      if (!client) throw new Error('No hay cliente Supabase activo.');
-      const { error } = await client.from('pedidos_delivery_rapido').insert({
-        nombre_cliente: name.trim(),
-        pedido: order.trim(),
-        direccion: address.trim(),
-        telefono: phone.trim(),
-        estado: 'nuevo',
-        created_at: new Date().toISOString()
-      });
-      if (error) throw error;
-      alert('Pedido de delivery guardado.');
+      const nextId = Date.now() + Math.floor(Math.random() * 100);
+      const detailAddress = `DELIVERY: ${name.trim()} - ${address.trim()}`;
+
+      const item: PedidoItem = {
+        id_producto: `delivery_manual_${nextId}`,
+        nombre: order.trim(),
+        cantidad: 1,
+        categoria: 'Delivery',
+        precio_unitario: 0
+      };
+
+      const observationParts = [
+        `Tel: ${phone.trim()}`,
+        address.trim() !== name.trim() ? `Dir: ${address.trim()}` : '',
+        zonaResultado?.status === 'success' ? `Zona: ${zonaResultado.zona} ($${zonaResultado.costo_envio?.toLocaleString('es-AR')})` : ''
+      ].filter(Boolean);
+
+      const newOrder = {
+        id_mesa: 900 + (nextId % 100),
+        numero_mesa: detailAddress,
+        mozo: activeMozo,
+        estado_comanda: 'pendiente' as const,
+        items: [item],
+        observaciones: observationParts.join(' | ') || undefined,
+        origen: 'Mozo' as const,
+        idempotency_key: `quick_deliv_${nextId}`
+      };
+
+      await onCrearPedido(newOrder);
       setName('');
       setOrder('');
       setAddress('');
       setPhone('');
       setIsOpen(false);
     } catch (err: any) {
-      console.error('Error guardando pedido rápido:', err);
-      alert(err.message || 'No se pudo guardar el pedido. Verificá que exista la tabla pedidos_delivery_rapido.');
+      console.error('Error creando pedido rápido:', err);
+      alert(err.message || 'No se pudo crear el pedido.');
     } finally {
       setSaving(false);
     }
@@ -102,6 +155,14 @@ export default function QuickDeliveryForm() {
               placeholder="Ej: Alvear 1362"
               className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
             />
+            {zonaResultado?.status === 'success' && (
+              <p className="mt-1 text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                {zonaResultado.zona} — Envío ${zonaResultado.costo_envio?.toLocaleString('es-AR')}
+              </p>
+            )}
+            {zonaResultado?.status === 'error' && address.trim() && (
+              <p className="mt-1 text-[10px] font-bold text-red-600">{zonaResultado.mensaje}</p>
+            )}
           </div>
           <div className="md:col-span-1">
             <label className="text-[10px] font-bold text-stone-500 block mb-1 flex items-center gap-1">
@@ -123,7 +184,7 @@ export default function QuickDeliveryForm() {
               disabled={saving}
               className="flex-1 py-2 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] font-extrabold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-60"
             >
-              <Bike className="w-3.5 h-3.5" />
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bike className="w-3.5 h-3.5" />}
               {saving ? 'Guardando...' : 'Guardar Pedido'}
             </button>
             <button
