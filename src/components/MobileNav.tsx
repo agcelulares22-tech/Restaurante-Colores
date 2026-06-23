@@ -40,6 +40,7 @@ const NAV_ITEMS: { id: AppView; label: string; icon: string }[] = [
   { id: 'usuarios', label: 'Usuarios', icon: '👥' },
   { id: 'sistema', label: 'Sistema', icon: '💻' },
   { id: 'backups', label: 'Backups', icon: '🗄️' },
+  { id: 'fichaje', label: 'Fichaje', icon: '🕒' },
 ];
 
 export default function MobileNav({

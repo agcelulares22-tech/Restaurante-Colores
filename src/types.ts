@@ -394,3 +394,15 @@ export interface Categoria {
     icono?: string | null;
     created_at?: string;
 }
+
+export interface RegistroAsistencia {
+    id?: string;
+    id_usuario: number;
+    nombre_empleado: string;
+    tipo: 'ingreso' | 'egreso';
+    fecha_hora: Date | string;
+    latitud?: number;
+    longitud?: number;
+    precision?: number;
+    dispositivo?: string;
+}

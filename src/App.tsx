@@ -57,6 +57,7 @@ const PromocionesModule = lazy(() => import('./components/PromocionesModule'));
 const ReservasModule = lazy(() => import('./components/ReservasModule'));
 const FacturacionModule = lazy(() => import('./components/FacturacionModule'));
 const BackupsModule = lazy(() => import('./components/BackupsModule'));
+const FichajeModule = lazy(() => import('./components/FichajeModule'));
 import { 
   getSupabaseClient,
   resetSupabaseInstance,
@@ -1139,6 +1140,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'usuarios', label: 'Usuarios', icon: '👥' },
             { id: 'sistema', label: 'Sistema', icon: '💻' },
             { id: 'backups', label: 'Backups', icon: '🗄️' },
+            { id: 'fichaje', label: 'Fichaje', icon: '🕒' },
           ].filter(item => (allowedViews || []).includes(item.id as AppView)).map((item) => {
             const isActive = activeView === item.id;
             return (
@@ -1305,6 +1307,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 onRestoreData={handleRestoreBackupData}
                 addLog={addLog}
               />
+            )}
+            {activeView === 'fichaje' && (
+              <FichajeModule activeMozo={activeMozo} usuarios={usuarios} />
             )}
           </Suspense>
         </RetryErrorWrapper>

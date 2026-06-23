@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS public.clientes CASCADE;
 DROP TABLE IF EXISTS public.configuracion CASCADE;
 DROP TABLE IF EXISTS public.auditoria_eventos CASCADE;
 DROP TABLE IF EXISTS public.backups CASCADE;
+DROP TABLE IF EXISTS public.registro_asistencia CASCADE;
 
 -- ============================================================
 -- 2. CREACIÓN DE TABLAS MAESTRAS
@@ -109,6 +110,19 @@ CREATE TABLE public.recetas_escandallo (
 CREATE TABLE public.configuracion (
     clave TEXT PRIMARY KEY,
     valor TEXT NOT NULL
+);
+
+-- Tabla de Registro de Asistencia (Fichajes)
+CREATE TABLE public.registro_asistencia (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id_usuario INT REFERENCES public.usuarios(id_usuario) ON DELETE CASCADE,
+    nombre_empleado TEXT NOT NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('ingreso', 'egreso')),
+    fecha_hora TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    latitud NUMERIC,
+    longitud NUMERIC,
+    precision NUMERIC,
+    dispositivo TEXT
 );
 
 -- Tabla de Pedidos / Comandas (Cabecera)
@@ -525,6 +539,7 @@ ALTER TABLE public.cierres_caja ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.movimientos_inventario ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.registro_asistencia ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE
@@ -533,7 +548,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'categorias', 'usuarios', 'mesas', 'insumos', 'productos_menu', 'recetas_escandallo', 
     'pedidos_cabecera', 'pedido_detalle', 'mermas', 'cierres_caja', 
-    'movimientos_inventario', 'clientes', 'configuracion'
+    'movimientos_inventario', 'clientes', 'configuracion', 'registro_asistencia'
   ]
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', 'permitir_todo_demo_' || t, t);

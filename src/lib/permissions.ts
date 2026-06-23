@@ -17,7 +17,8 @@ export type AppView =
   | 'reservas'
   | 'facturacion'
   | 'sistema'
-  | 'backups';
+  | 'backups'
+  | 'fichaje';
 
 export const ALL_APP_VIEWS: AppView[] = [
   'home',
@@ -36,7 +37,8 @@ export const ALL_APP_VIEWS: AppView[] = [
   'reservas',
   'facturacion',
   'sistema',
-  'backups'
+  'backups',
+  'fichaje'
 ];
 
 const MODULOS_SOLO_SUPERADMIN: AppView[] = ['sistema'];
@@ -63,11 +65,12 @@ const ROLE_PERMISSIONS: Record<Usuario['rol'], AppView[]> = {
     'reservas',
     'facturacion',
     'sistema',
-    'backups'
+    'backups',
+    'fichaje'
   ],
   administrador: ALL_SIN_RESTRINGIDOS,
-  mozo: ['home', 'panel', 'mozo', 'caja', 'reservas'] as AppView[],
-  cocina: ['home', 'panel', 'cocina']
+  mozo: ['home', 'panel', 'mozo', 'caja', 'reservas', 'fichaje'] as AppView[],
+  cocina: ['home', 'panel', 'cocina', 'fichaje']
 };
 
 export const getAllowedViews = (role: Usuario['rol']): AppView[] => (
