@@ -52,7 +52,7 @@ const getFallbackImage = (categoria: string) => {
   return 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80';
 };
 
-export default function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog }: MenuModuleProps) {
+function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog }: MenuModuleProps) {
   const { categories } = useCategories(true);
   const [items, setItems] = useState<ProductoMenu[]>(productosMenu);
   const { toast, toasts, removeToast } = useToast();
@@ -908,3 +908,5 @@ export default function MenuModule({ productosMenu, onProductosChange, recetas, 
     </div>
   );
 }
+
+export default React.memo(MenuModule);

@@ -83,7 +83,7 @@ const medioLabel = (medio: Factura['medio_pago']) => ({
   mixto: 'Mixto'
 }[medio]);
 
-export default function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModuleProps) {
+function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModuleProps) {
   const { toast, toasts, dismissToast } = useToast();
   const [facturas, setFacturas] = useState<FacturaExtendida[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>('archivo');
@@ -858,3 +858,5 @@ export default function FacturacionModule({ pedidos, productosMenu, addLog }: Fa
     </div>
   );
 }
+
+export default React.memo(FacturacionModule);

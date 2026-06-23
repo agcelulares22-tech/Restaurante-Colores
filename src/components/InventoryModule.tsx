@@ -34,7 +34,7 @@ interface InventoryModuleProps {
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
 }
 
-export default function InventoryModule({
+function InventoryModule({
   insumos,
   productosMenu,
   recetas,
@@ -1266,3 +1266,5 @@ export default function InventoryModule({
     </>
   );
 }
+
+export default React.memo(InventoryModule);

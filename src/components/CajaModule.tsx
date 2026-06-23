@@ -54,7 +54,7 @@ interface CajaModuleProps {
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
 }
 
-export default function CajaModule({
+function CajaModule({
   pedidos,
   productosMenu,
   onFacturarMesa,
@@ -1844,3 +1844,5 @@ export default function CajaModule({
     </div>
   );
 }
+
+export default React.memo(CajaModule);

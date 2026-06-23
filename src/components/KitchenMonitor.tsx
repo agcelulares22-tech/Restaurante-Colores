@@ -33,7 +33,7 @@ interface KitchenMonitorProps {
   onCrearPedido?: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo' | 'Rappi' | 'PedidosYa'; idempotency_key?: string }) => void;
 }
 
-export default function KitchenMonitor({
+function KitchenMonitor({
   pedidos,
   onCambiarEstadoPedido,
   onProducirPedidoConEscandallo,
@@ -657,3 +657,5 @@ export default function KitchenMonitor({
     </div>
   );
 }
+
+export default React.memo(KitchenMonitor);

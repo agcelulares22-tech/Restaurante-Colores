@@ -119,6 +119,32 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
 
+  // Dynamic Ref to avoid rendering callback updates
+  const stateRef = React.useRef({
+    pedidos,
+    insumos,
+    recetas,
+    mesas,
+    activeMozo,
+    permitirVentaSinStock,
+    mermas,
+    productosMenu,
+    usuarios
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      pedidos,
+      insumos,
+      recetas,
+      mesas,
+      activeMozo,
+      permitirVentaSinStock,
+      mermas,
+      productosMenu,
+      usuarios
+    };
+  }, [pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock, mermas, productosMenu, usuarios]);
 
   // Mapa O(1) de precio_venta para cálculos de ventas en toda la app
   const precioMap = useMemo(() => {
@@ -458,6 +484,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   // --- Handlers for Waiter View (Terminal Mozo) ---
   const handleCrearPedido = useCallback(async (newPedidoData: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; comensales?: number; idempotency_key?: string }) => {
+    const { pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock } = stateRef.current;
+
     const existingByKey = newPedidoData.idempotency_key
       ? pedidos.find(p => p.idempotency_key === newPedidoData.idempotency_key)
       : undefined;
@@ -616,7 +644,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         console.warn('Background save for insumos failed:', err);
       });
     }
-  }, [pedidos, insumos, recetas, addLog, mesas, permitirVentaSinStock, setMesas, setInsumos, setPedidos, activeMozo]);
+  }, [addLog]);
 
   const handleMozoChange = (mozo: string) => {
     const nextUser = usuarios.find(usuario => usuario.nombre === mozo && usuario.activo !== false);
@@ -668,7 +696,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   // --- Handlers for Kitchen View ---
-  const handleCambiarEstadoPedido = (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+  const handleCambiarEstadoPedido = useCallback((idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+    const { pedidos, insumos, recetas, permitirVentaSinStock, mesas } = stateRef.current;
     let updatedPedido: Pedido | null = null;
     let errorMsg = '';
 
@@ -694,7 +723,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             const matchingRecetas = recetas.filter(r => r.id_producto === item.id_producto);
 
             if (matchingRecetas.length === 0) {
-              addLog('sistema', `ADVERTENCIA RECETA: El producto '${item.nombre}' no tiene receta asociada.`);
+              addLog('sistema', `ADVERTENCIA RECETA: El product '${item.nombre}' no tiene receta asociada.`);
               continue;
             }
 
@@ -860,7 +889,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       }
       // Sincronizar localStorage con el estado actual de pedidos
       if (typeof window !== 'undefined') {
-        const current = pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
+        const current = stateRef.current.pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
         window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(current));
       }
     }, 50);
@@ -870,7 +899,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       setMesas(updatedMesas);
       dbUpsertMesas(updatedMesas);
     }
-  };
+  }, [addLog]);
 
   const handleProducirPedidoConEscandallo = (idPedido: number) => {
     handleCambiarEstadoPedido(idPedido, 'listo');
@@ -878,6 +907,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   // --- Handlers for Cashier View (Caja & Cierre) ---
   const handleFacturarMesa = useCallback((idPedido: number, alreadyUpdatedInCaja: boolean = false) => {
+    const { pedidos, mesas, productosMenu } = stateRef.current;
     const target = pedidos.find(p => p.id_pedido === idPedido);
     if (!target) return;
 
@@ -926,10 +956,11 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         console.error('Error updating sales in cajaService during direct billing:', err);
       });
     }
-  }, [pedidos, mesas, productosMenu, addLog]);
+  }, [addLog]);
 
   // --- Handlers for Inventory View ---
-  const handleRegistrarMerma = (idInsumo: string, cantidad: number, motivo: Merma['motivo']) => {
+  const handleRegistrarMerma = useCallback((idInsumo: string, cantidad: number, motivo: Merma['motivo']) => {
+    const { insumos, mermas } = stateRef.current;
     const insObj = insumos.find(i => i.id_insumo === idInsumo);
     if (!insObj) return;
 
@@ -962,9 +993,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       stock_anterior: insObj.stock_actual,
       stock_nuevo: Math.max(0, parseFloat((insObj.stock_actual - cantidad).toFixed(2)))
     }).catch(console.error);
-  };
+  }, [addLog]);
 
   const handleRestockInsumo = useCallback((idInsumo: string, cantidad: number) => {
+    const { insumos } = stateRef.current;
     const item = insumos.find(i => i.id_insumo === idInsumo);
     const updatedInsumos = insumos.map(i => i.id_insumo === idInsumo ? {
       ...i,
@@ -984,9 +1016,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         stock_nuevo: parseFloat((item.stock_actual + cantidad).toFixed(2))
       }).catch(console.error);
     }
-  }, [insumos, addLog]);
+  }, [addLog]);
 
-  const handleRestockTodo = () => {
+  const handleRestockTodo = useCallback(() => {
+    const { insumos } = stateRef.current;
     const updatedInsumos = insumos.map(i => {
       const restockAmt = i.unidad_medida === 'unidades' ? 10 : 3000;
       return {
@@ -998,10 +1031,11 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     addLog('sistema', `REPOSICIÓN GENERAL: Abastecimiento global automático de todos los insumos y materias primas.`);
 
     dbUpsertInsumos(updatedInsumos);
-  };
+  }, [addLog]);
 
   const handleReservaEstadoChange = useCallback((reserva: Reserva, estado: Reserva['estado']) => {
     if (!reserva.id_mesa) return;
+    const { pedidos, mesas } = stateRef.current;
 
     const hasActiveOrder = pedidos.some(pedido => (
       pedido.id_mesa === reserva.id_mesa
@@ -1026,7 +1060,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     setMesas(updatedMesas);
     dbUpsertMesas(updatedMesas);
     addLog('sistema', `RESERVA: Mesa ${reserva.id_mesa} cambio a estado '${estado}'.`);
-  }, [mesas, pedidos, addLog]);
+  }, [addLog]);
 
   // --- Handlers for Simulation Controls ---
   const handleAdvanceTime = (mins: number) => {

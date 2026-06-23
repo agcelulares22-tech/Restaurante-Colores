@@ -61,7 +61,7 @@ const renderCategoryIcon = (categoriaName: string, categories: any[]) => {
   return <UtensilsCrossed className="w-3.5 h-3.5 text-brand-orange" />;
 };
 
-export default function MozoTerminal({
+function MozoTerminal({
   mesas: propMesas,
   insumos: propInsumos,
   productosMenu: propProductosMenu,
@@ -1336,3 +1336,5 @@ export default function MozoTerminal({
     </>
   );
 }
+
+export default React.memo(MozoTerminal);

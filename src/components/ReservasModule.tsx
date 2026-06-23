@@ -78,7 +78,7 @@ function sortReservas(a: Reserva, b: Reserva): number {
   return (a.fecha || '').localeCompare(b.fecha || '') || parseTimeToMin(a.hora) - parseTimeToMin(b.hora);
 }
 
-export default function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasModuleProps) {
+function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasModuleProps) {
   const { toast, toasts, removeToast } = useToast();
 
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
@@ -960,3 +960,5 @@ export default function ReservasModule({ mesas, onEstadoChange, addLog = () => {
     </div>
   );
 }
+
+export default React.memo(ReservasModule);

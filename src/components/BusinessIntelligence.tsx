@@ -31,7 +31,7 @@ interface BusinessIntelligenceProps {
   mermas: Merma[];
 }
 
-export default function BusinessIntelligence({ 
+function BusinessIntelligence({ 
   productosMenu, 
   logs, 
   pedidos, 
@@ -1053,3 +1053,5 @@ export default function BusinessIntelligence({
     </div>
   );
 }
+
+export default React.memo(BusinessIntelligence);

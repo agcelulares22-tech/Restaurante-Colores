@@ -26,7 +26,7 @@ const ORIGEN_LNG = -64.3498;
 const TARIFA_BASE_DEFAULT = 1000;
 const COSTO_POR_KM_DEFAULT = 500;
 
-export default function DeliveryModule({
+function DeliveryModule({
   pedidos,
   productosMenu,
   onCrearPedido,
@@ -1337,3 +1337,5 @@ export default function DeliveryModule({
     </div>
   );
 }
+
+export default React.memo(DeliveryModule);

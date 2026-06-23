@@ -143,7 +143,7 @@ interface RecetasModuleProps {
     addLog: (tipo: EventoLog['tipo'], mensaje: string) => void;
 }
 
-export default function RecetasModule({
+function RecetasModule({
     recetas,
     productosMenu,
     insumos,
@@ -1018,3 +1018,5 @@ export default function RecetasModule({
         </div>
       );
 }
+
+export default React.memo(RecetasModule);
