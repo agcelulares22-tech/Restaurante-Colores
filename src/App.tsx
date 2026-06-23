@@ -119,33 +119,6 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
 
-  // Dynamic Ref to avoid rendering callback updates
-  const stateRef = React.useRef({
-    pedidos,
-    insumos,
-    recetas,
-    mesas,
-    activeMozo,
-    permitirVentaSinStock,
-    mermas,
-    productosMenu,
-    usuarios
-  });
-
-  useEffect(() => {
-    stateRef.current = {
-      pedidos,
-      insumos,
-      recetas,
-      mesas,
-      activeMozo,
-      permitirVentaSinStock,
-      mermas,
-      productosMenu,
-      usuarios
-    };
-  }, [pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock, mermas, productosMenu, usuarios]);
-
   // Mapa O(1) de precio_venta para cálculos de ventas en toda la app
   const precioMap = useMemo(() => {
     const m = new Map<string, number>();
@@ -433,6 +406,33 @@ export default function App() {
   const allowedViews = useMemo(() => {
     return getAllowedViews(activeUser.rol);
   }, [activeUser.rol]);
+
+  // Dynamic Ref to avoid rendering callback updates
+  const stateRef = React.useRef({
+    pedidos,
+    insumos,
+    recetas,
+    mesas,
+    activeMozo,
+    permitirVentaSinStock,
+    mermas,
+    productosMenu,
+    usuarios
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      pedidos,
+      insumos,
+      recetas,
+      mesas,
+      activeMozo,
+      permitirVentaSinStock,
+      mermas,
+      productosMenu,
+      usuarios
+    };
+  }, [pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock, mermas, productosMenu, usuarios]);
 
   const applyAuthenticatedSession = useCallback((session: {
     user?: { user_metadata?: Record<string, unknown> };
