@@ -18,13 +18,7 @@ import {
   FileCode,
   ArrowRight,
   Terminal,
-  RotateCcw,
-  Plus,
-  Phone,
-  MapPin,
-  User,
-  ClipboardList,
-  Bike
+  RotateCcw
 } from 'lucide-react';
 import { getSupabaseConfig, resetSupabaseClientCache, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { syncQueueService, SyncQueueItem } from '../services/syncQueueService';
@@ -39,14 +33,6 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
   const [customUrl, setCustomUrl] = useState('');
   const [customKey, setCustomKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-
-  // Quick delivery order mini-form
-  const [showQuickDelivery, setShowQuickDelivery] = useState(false);
-  const [qdName, setQdName] = useState('');
-  const [qdOrder, setQdOrder] = useState('');
-  const [qdAddress, setQdAddress] = useState('');
-  const [qdPhone, setQdPhone] = useState('');
-  const [qdSaving, setQdSaving] = useState(false);
 
   // Connection diagnostics states
   const [pingStatus, setPingStatus] = useState<'idle' | 'running' | 'success' | 'failed'>('idle');
@@ -248,39 +234,6 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
     }
   };
 
-  const handleQuickDeliverySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!qdName.trim() || !qdOrder.trim() || !qdAddress.trim() || !qdPhone.trim()) {
-      alert('Completá todos los campos del pedido.');
-      return;
-    }
-    setQdSaving(true);
-    try {
-      const client = tryGetActiveSupabaseClient();
-      if (!client) throw new Error('No hay cliente Supabase activo.');
-      const { error } = await client.from('pedidos_delivery_rapido').insert({
-        nombre_cliente: qdName.trim(),
-        pedido: qdOrder.trim(),
-        direccion: qdAddress.trim(),
-        telefono: qdPhone.trim(),
-        estado: 'nuevo',
-        created_at: new Date().toISOString()
-      });
-      if (error) throw error;
-      alert('Pedido de delivery guardado.');
-      setQdName('');
-      setQdOrder('');
-      setQdAddress('');
-      setQdPhone('');
-      setShowQuickDelivery(false);
-    } catch (err: any) {
-      console.error('Error guardando pedido rápido:', err);
-      alert(err.message || 'No se pudo guardar el pedido. Verificá que exista la tabla pedidos_delivery_rapido.');
-    } finally {
-      setQdSaving(false);
-    }
-  };
-
   const handleForceCacheBust = async () => {
     if (typeof window === 'undefined') return;
     if (confirm('Esto forzará la eliminación del cache del navegador, desregistrará los Service Workers PWA obsoletos y recargará la página. ¿Continuar?')) {
@@ -361,102 +314,6 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
             >
               <X className="w-4 h-4 text-stone-600" />
             </button>
-          )}
-        </div>
-
-        {/* Quick Action: New Delivery Order */}
-        <div className="bg-[#FFF9E6] rounded-2xl p-3 border border-[#E8B800]/40 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bike className="w-4 h-4 text-[#E8B800]" />
-              <span className="text-xs font-black uppercase text-[#4A2D1B] tracking-wider">Pedido de Delivery Rápido</span>
-            </div>
-            <button
-              onClick={() => setShowQuickDelivery(!showQuickDelivery)}
-              className="text-[10px] font-bold px-3 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] rounded-lg flex items-center gap-1 transition-all cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {showQuickDelivery ? 'Cancelar' : 'Agregar Pedido'}
-            </button>
-          </div>
-
-          {showQuickDelivery && (
-            <form onSubmit={handleQuickDeliverySubmit} className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs animate-fadeIn"
-            >
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-stone-500 block mb-1 flex items-center gap-1">
-                  <User className="w-3 h-3" />
-                  Nombre del Cliente
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={qdName}
-                  onChange={(e) => setQdName(e.target.value)}
-                  placeholder="Ej: Juan Pérez"
-                  className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-stone-500 block mb-1 flex items-center gap-1">
-                  <ClipboardList className="w-3 h-3" />
-                  Pedido
-                </label>
-                <textarea
-                  required
-                  value={qdOrder}
-                  onChange={(e) => setQdOrder(e.target.value)}
-                  placeholder="Ej: 1 Pizza Muzzarella grande, 1 Coca 1.5L"
-                  rows={2}
-                  className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800] resize-none"
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-stone-500 block mb-1 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  Dirección
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={qdAddress}
-                  onChange={(e) => setQdAddress(e.target.value)}
-                  placeholder="Ej: Alvear 1362"
-                  className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-stone-500 block mb-1 flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
-                  Teléfono
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={qdPhone}
-                  onChange={(e) => setQdPhone(e.target.value)}
-                  placeholder="Ej: 3584-123456"
-                  className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
-                />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <button
-                  type="submit"
-                  disabled={qdSaving}
-                  className="flex-1 py-2 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] font-extrabold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-60"
-                >
-                  <Bike className="w-3.5 h-3.5" />
-                  {qdSaving ? 'Guardando...' : 'Guardar Pedido'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowQuickDelivery(false)}
-                  className="px-4 py-2 bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 font-bold rounded-xl text-[10px] uppercase tracking-wider cursor-pointer"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </form>
           )}
         </div>
 
