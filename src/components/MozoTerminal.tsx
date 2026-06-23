@@ -186,7 +186,12 @@ function MozoTerminal({
 
   // Delivery Origin and Tariff local configuration state
   const [origenDireccion, setOrigenDireccionLocal] = React.useState<string>(() => {
-    return localStorage.getItem('deliv_origen_direccion') || 'Alvear 1362, Río Cuarto';
+    const saved = localStorage.getItem('deliv_origen_direccion');
+    if (!saved || saved === 'Alvear 1362, Río Cuarto') {
+      localStorage.setItem('deliv_origen_direccion', 'Alvear 1362, X5800 Río Cuarto, Córdoba');
+      return 'Alvear 1362, X5800 Río Cuarto, Córdoba';
+    }
+    return saved;
   });
   const [origenLat, setOrigenLatLocal] = React.useState<number>(() => {
     const saved = localStorage.getItem('deliv_origen_lat');
