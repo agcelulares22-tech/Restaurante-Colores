@@ -82,6 +82,16 @@ import { cajaService } from './services/cajaService';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
   if (!p1 || !p2) return false;
+  
+  const isP1Delivery = p1.id_mesa === 999 || String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  const isP2Delivery = p2.id_mesa === 999 || String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  
+  if (isP1Delivery || isP2Delivery) {
+    const norm1 = String(p1.numero_mesa || '').toLowerCase().trim();
+    const norm2 = String(p2.numero_mesa || '').toLowerCase().trim();
+    return norm1 !== '' && norm1 === norm2;
+  }
+
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
     if (String(p1.id_mesa) === String(p2.id_mesa)) return true;
   }

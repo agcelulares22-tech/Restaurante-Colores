@@ -276,7 +276,12 @@ export const pedidosService = {
         if (existingHeader) {
           isExisting = true;
           activeId = existingHeader.id_pedido;
-        } else if (ped.estado_comanda !== 'entregado_cobrado' && ped.estado_comanda !== 'cancelado') {
+        } else if (
+          ped.estado_comanda !== 'entregado_cobrado' &&
+          ped.estado_comanda !== 'cancelado' &&
+          ped.id_mesa !== 999 &&
+          !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY')
+        ) {
           // 2. Si no existe y es una comanda activa nueva, buscar si la mesa tiene otra activa
           const { data: activeHeaders, error: findError } = await supabase
             .from('pedidos_cabecera')
