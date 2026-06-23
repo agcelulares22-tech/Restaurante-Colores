@@ -575,11 +575,15 @@ export function useMozoTerminal({
 
   // Calculating totals
   const totalCartValue = useMemo(() => {
-    return Object.entries(cart).reduce((total, [prodId, qty]) => {
+    const baseTotal = Object.entries(cart).reduce((total, [prodId, qty]) => {
       const p = productosMenu.find(item => item.id_producto === prodId);
       return total + (p ? p.precio_venta * Number(qty) : 0);
     }, 0);
-  }, [cart, productosMenu]);
+    if (selectedMesaId === 999) {
+      return baseTotal + costoEnvio;
+    }
+    return baseTotal;
+  }, [cart, productosMenu, selectedMesaId, costoEnvio]);
 
   // Admin: optimistic price update
   const handleUpdatePrice = (id: string, newPrice: number) => {

@@ -26,6 +26,7 @@ import {
   Bike,
   Phone,
   MapPin,
+  Settings,
   User
 } from 'lucide-react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog } from '../types';
@@ -183,6 +184,61 @@ function MozoTerminal({
     });
   }, []);
 
+  // Delivery Origin and Tariff local configuration state
+  const [origenDireccion, setOrigenDireccionLocal] = React.useState<string>(() => {
+    return localStorage.getItem('deliv_origen_direccion') || 'Alvear 1362, Río Cuarto';
+  });
+  const [origenLat, setOrigenLatLocal] = React.useState<number>(() => {
+    const saved = localStorage.getItem('deliv_origen_lat');
+    return saved ? parseFloat(saved) : -33.1263;
+  });
+  const [origenLng, setOrigenLngLocal] = React.useState<number>(() => {
+    const saved = localStorage.getItem('deliv_origen_lng');
+    return saved ? parseFloat(saved) : -64.3498;
+  });
+  const [tarifaBaseLocal, setTarifaBaseLocal] = React.useState<number>(() => {
+    const saved = localStorage.getItem('deliv_tarifa_base');
+    return saved ? parseFloat(saved) : 1000;
+  });
+  const [costoPorKmLocal, setCostoPorKmLocal] = React.useState<number>(() => {
+    const saved = localStorage.getItem('deliv_costo_por_km');
+    return saved ? parseFloat(saved) : 500;
+  });
+  const [isUpdatingOrigenLocal, setIsUpdatingOrigenLocal] = React.useState(false);
+  const [showEnvioConfig, setShowEnvioConfig] = React.useState(false);
+
+  const handleUpdateOrigenDireccionLocal = async (direccion: string) => {
+    setOrigenDireccionLocal(direccion);
+    localStorage.setItem('deliv_origen_direccion', direccion);
+    
+    if (direccion.trim().length < 4) return;
+    
+    setIsUpdatingOrigenLocal(true);
+    try {
+      const searchAddr = (direccion.toLowerCase().includes('rio cuarto') || direccion.toLowerCase().includes('río cuarto'))
+        ? direccion
+        : `${direccion}, Río Cuarto, Córdoba, Argentina`;
+        
+      const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'PizzeriaColoresMozo/1.0' }
+      });
+      const geoData = await geoResp.json();
+      
+      if (geoData && geoData.length > 0) {
+        const lat = parseFloat(geoData[0].lat);
+        const lng = parseFloat(geoData[0].lon);
+        setOrigenLatLocal(lat);
+        setOrigenLngLocal(lng);
+        localStorage.setItem('deliv_origen_lat', String(lat));
+        localStorage.setItem('deliv_origen_lng', String(lng));
+      }
+    } catch (err) {
+      console.error('Error geocoding origin in MozoTerminal:', err);
+    } finally {
+      setIsUpdatingOrigenLocal(false);
+    }
+  };
+
   const [isCalculatingRoute, setIsCalculatingRoute] = React.useState(false);
 
   React.useEffect(() => {
@@ -203,8 +259,8 @@ function MozoTerminal({
     const delayDebounceFn = setTimeout(async () => {
       setIsCalculatingRoute(true);
       try {
-        const tarifaBase = parseFloat(localStorage.getItem('deliv_tarifa_base') || '1000');
-        const costoPorKm = parseFloat(localStorage.getItem('deliv_costo_por_km') || '500');
+        const tarifaBase = tarifaBaseLocal;
+        const costoPorKm = costoPorKmLocal;
 
         const searchAddr = (direccionCliente.toLowerCase().includes('rio cuarto') || direccionCliente.toLowerCase().includes('río cuarto'))
           ? direccionCliente
@@ -218,8 +274,8 @@ function MozoTerminal({
         if (geoData && geoData.length > 0) {
           const destLat = parseFloat(geoData[0].lat);
           const destLng = parseFloat(geoData[0].lon);
-          const originLat = parseFloat(localStorage.getItem('deliv_origen_lat') || '-33.1263');
-          const originLng = parseFloat(localStorage.getItem('deliv_origen_lng') || '-64.3498');
+          const originLat = origenLat;
+          const originLng = originLng;
 
           const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=false`);
           const routeData = await routeResp.json();
@@ -275,7 +331,7 @@ function MozoTerminal({
     }, 1200);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [direccionCliente, zonasEnvio, callesEnvio, selectedMesaId, setCostoEnvio, setZonaEnvioId, setDistanciaKm]);
+  }, [direccionCliente, zonasEnvio, callesEnvio, selectedMesaId, setCostoEnvio, setZonaEnvioId, setDistanciaKm, tarifaBaseLocal, costoPorKmLocal, origenLat, origenLng]);
 
   const [showHalfHalfModal, setShowHalfHalfModal] = React.useState(false);
   const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
@@ -472,7 +528,7 @@ function MozoTerminal({
                       <div key={idx} className="flex justify-between text-xs text-slate-600">
                         <span>{it.cantidad}x {it.nombre}</span>
                         <span className="font-mono text-slate-400 font-medium">
-                          ${(productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta || 0).toLocaleString('es-AR')}
+                          ${(it.precio_unitario ?? productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta ?? 0).toLocaleString('es-AR')}
                         </span>
                       </div>
                     ))}
@@ -481,7 +537,7 @@ function MozoTerminal({
                   <div className="flex items-center justify-between pt-2 border-t border-slate-200 mb-3">
                     <span className="text-xs font-bold text-slate-600">Total acumulado</span>
                     <span className="text-sm font-black font-mono text-slate-800">
-                      ${activePedidoDeMesa.items.reduce((sum, it) => sum + (it.cantidad * (productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta || 0)), 0).toLocaleString('es-AR')}
+                      ${activePedidoDeMesa.items.reduce((sum, it) => sum + (it.cantidad * (it.precio_unitario ?? productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta ?? 0)), 0).toLocaleString('es-AR')}
                     </span>
                   </div>
 
@@ -839,6 +895,64 @@ function MozoTerminal({
                     </div>
                   </div>
 
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowEnvioConfig(!showEnvioConfig)}
+                      className="text-[10px] text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Settings className="w-3 h-3 text-slate-400" />
+                      {showEnvioConfig ? 'Ocultar Configuración' : 'Configurar Origen/Tarifas'}
+                    </button>
+                  </div>
+
+                  {showEnvioConfig && (
+                    <div className="p-2.5 bg-slate-100/80 border border-slate-200/60 rounded-lg space-y-2 text-left">
+                      <div className="space-y-0.5">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase block">Dirección del Local</label>
+                        <input
+                          type="text"
+                          value={origenDireccion}
+                          placeholder="Ej: Alvear 1362, Río Cuarto"
+                          onChange={(e) => handleUpdateOrigenDireccionLocal(e.target.value)}
+                          className="w-full p-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-orange text-slate-800 font-medium"
+                        />
+                        <span className="text-[8px] font-mono text-slate-400 block">
+                          {isUpdatingOrigenLocal ? 'Buscando coordenadas...' : `Coordenadas: ${origenLat.toFixed(4)}, ${origenLng.toFixed(4)}`}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-0.5">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase block">Tarifa Base ($)</label>
+                          <input
+                            type="number"
+                            value={tarifaBaseLocal}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setTarifaBaseLocal(val);
+                              localStorage.setItem('deliv_tarifa_base', String(val));
+                            }}
+                            className="w-full p-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-orange text-slate-800 font-mono"
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase block">Costo por Km ($)</label>
+                          <input
+                            type="number"
+                            value={costoPorKmLocal}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setCostoPorKmLocal(val);
+                              localStorage.setItem('deliv_costo_por_km', String(val));
+                            }}
+                            className="w-full p-2 text-xs border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-brand-orange text-slate-800 font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {direccionCliente.trim() && (isCalculatingRoute || distanciaKm !== null || zonaResultado) && (
                     <div className={`p-2.5 rounded-xl text-[11px] font-medium border ${
                       isCalculatingRoute 
@@ -1016,7 +1130,7 @@ function MozoTerminal({
 
               const orderTotal = p.items.reduce((sum, item) => {
                 const prod = productosMenu.find(pr => pr.id_producto === item.id_producto);
-                return sum + (prod ? prod.precio_venta * item.cantidad : 0);
+                return sum + ((item.precio_unitario ?? prod?.precio_venta ?? 0) * item.cantidad);
               }, 0);
 
               // Expand items list by their quantity for itemized selection
@@ -1024,7 +1138,7 @@ function MozoTerminal({
               let curIdx = 0;
               p.items.forEach(it => {
                 const prod = productosMenu.find(pr => pr.id_producto === it.id_producto);
-                const sPrice = prod ? prod.precio_venta : 0;
+                const sPrice = it.precio_unitario ?? (prod ? prod.precio_venta : 0);
                 for (let i = 0; i < it.cantidad; i++) {
                   expandedItemsList.push({ item: it, index: curIdx++, singlePrice: sPrice });
                 }
