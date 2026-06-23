@@ -506,11 +506,19 @@ export default function DeliveryModule({
   };
 
   const getOrderTotal = (p: Pedido) => {
-    return p.items.reduce((sum, item) => {
+    const itemsTotal = p.items.reduce((sum, item) => {
       const pm = productosMenu.find(pr => pr.id_producto === item.id_producto);
       const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
       return sum + (price * item.cantidad);
     }, 0);
+    
+    // Si ya existe el item de costo de envío, el total ya lo incluye
+    const hasDeliveryItem = p.items.some(item => item.id_producto === 'prod_costo_envio_delivery');
+    if (hasDeliveryItem) {
+      return itemsTotal;
+    }
+    
+    return itemsTotal + (p.costo_envio || 0);
   };
 
   // Helper to parse names from DELIVERY: [Name] - [Address]
@@ -790,17 +798,37 @@ export default function DeliveryModule({
 
                   {/* Items List */}
                   <div className="space-y-1.5 pt-2 border-t border-stone-100">
-                    {p.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs text-stone-800">
-                        <span className="font-bold">
-                          <span className="text-[#E85D00] font-mono mr-1">{item.cantidad}x</span>
-                          {item.nombre}
-                        </span>
-                        <span className="font-mono text-stone-500 text-[11px]">
-                          ${((item.precio_unitario ?? 0) * item.cantidad).toLocaleString('es-AR')}
-                        </span>
-                      </div>
-                    ))}
+                    {p.items
+                      .filter(item => item.id_producto !== 'prod_costo_envio_delivery')
+                      .map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs text-stone-800">
+                          <span className="font-bold">
+                            <span className="text-[#E85D00] font-mono mr-1">{item.cantidad}x</span>
+                            {item.nombre}
+                          </span>
+                          <span className="font-mono text-stone-500 text-[11px]">
+                            ${((item.precio_unitario ?? 0) * item.cantidad).toLocaleString('es-AR')}
+                          </span>
+                        </div>
+                      ))}
+
+                    {/* Fila destacada para la Tarifa de Envío */}
+                    {(() => {
+                      const deliveryItem = p.items.find(item => item.id_producto === 'prod_costo_envio_delivery');
+                      const shippingFee = p.costo_envio || (deliveryItem ? (deliveryItem.precio_unitario ?? 0) : 0);
+                      if (shippingFee <= 0) return null;
+                      return (
+                        <div className="flex justify-between items-center text-xs text-[#E85D00] font-black pt-1.5 border-t border-dashed border-stone-200">
+                          <span className="flex items-center gap-1.5">
+                            <Bike className="w-3.5 h-3.5 fill-current shrink-0" />
+                            Costo de Envío
+                          </span>
+                          <span className="font-mono text-[11px]">
+                            ${shippingFee.toLocaleString('es-AR')}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
