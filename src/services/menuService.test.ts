@@ -26,12 +26,12 @@ test('menuService list recupera los datos desde localStorage si el cache existe'
     imagen: '/test.jpg'
   }];
 
-  localStorage.setItem('el_patron_cache_menu', JSON.stringify(dummyMenu));
+  localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(dummyMenu));
 
   const list = await menuService.list();
   assert.equal(list.length, 1);
   assert.equal(list[0].id_producto, 'prod_test_cache');
   assert.equal(list[0].nombre, 'Plato Caché');
 
-  localStorage.removeItem('el_patron_cache_menu');
+  localStorage.removeItem('colores_pizzeria_cache_menu');
 });

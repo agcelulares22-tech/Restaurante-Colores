@@ -8,7 +8,7 @@ interface ArcaCredentials {
   production?: boolean;
 }
 
-const STORAGE_KEY = 'el_patron_arca_creds';
+const STORAGE_KEY = 'colores_pizzeria_arca_creds';
 
 const API_URL = '/api/arca';
 

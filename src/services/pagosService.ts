@@ -21,7 +21,7 @@ export const pagosService = {
       }));
     } catch {
       // Local fallback for client-side storage
-      const raw = localStorage.getItem('el_patron_pagos');
+      const raw = localStorage.getItem('colores_pizzeria_pagos');
       const all: PagoDb[] = raw ? JSON.parse(raw) : [];
       if (idFactura) {
         return all.filter(p => p.id_factura === idFactura);
@@ -45,10 +45,10 @@ export const pagosService = {
     }
 
     // Always cache locally as backup
-    const raw = localStorage.getItem('el_patron_pagos');
+    const raw = localStorage.getItem('colores_pizzeria_pagos');
     const all: PagoDb[] = raw ? JSON.parse(raw) : [];
     all.push(pago);
-    localStorage.setItem('el_patron_pagos', JSON.stringify(all));
+    localStorage.setItem('colores_pizzeria_pagos', JSON.stringify(all));
 
     return pago;
   },
@@ -69,9 +69,9 @@ export const pagosService = {
     }
 
     // Always cache locally
-    const raw = localStorage.getItem('el_patron_pagos');
+    const raw = localStorage.getItem('colores_pizzeria_pagos');
     const all: PagoDb[] = raw ? JSON.parse(raw) : [];
     all.push(...pagos);
-    localStorage.setItem('el_patron_pagos', JSON.stringify(all));
+    localStorage.setItem('colores_pizzeria_pagos', JSON.stringify(all));
   }
 };

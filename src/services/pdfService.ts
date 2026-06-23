@@ -23,14 +23,14 @@ const loadLogoDataUrl = async () => {
 
   try {
     if (typeof window !== 'undefined') {
-      const customLogo = localStorage.getItem('el_potro_custom_logo');
+      const customLogo = localStorage.getItem('colores_pizzeria_custom_logo');
       if (customLogo) {
         logoDataUrlCache = customLogo;
         return logoDataUrlCache;
       }
     }
 
-    const response = await fetch('/logo-el-patron.jpeg');
+    const response = await fetch('/logo-colores-pizzeria.png');
     const blob = await response.blob();
     logoDataUrlCache = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();

@@ -11,7 +11,7 @@ export const DEFAULT_CATEGORIAS: Categoria[] = [
 
 export const categoriasService = {
   async list(): Promise<Categoria[]> {
-    const cached = localStorage.getItem('el_patron_cache_categorias');
+    const cached = localStorage.getItem('colores_pizzeria_cache_categorias');
     const client = tryGetActiveSupabaseClient();
 
     if (cached) {
@@ -25,7 +25,7 @@ export const categoriasService = {
               .eq('activa', true)
               .order('orden', { ascending: true });
             if (!error && data) {
-              localStorage.setItem('el_patron_cache_categorias', JSON.stringify(data));
+              localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(data));
             }
           } catch (e) {
             console.warn('Background categories cache refresh failed:', e);
@@ -46,7 +46,7 @@ export const categoriasService = {
     if (!client) {
       // Offline/Local Mode
       try {
-        localStorage.setItem('el_patron_cache_categorias', JSON.stringify(DEFAULT_CATEGORIAS));
+        localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(DEFAULT_CATEGORIAS));
       } catch (storageError) {
         console.warn('LocalStorage quota exceeded on offline categories seed:', storageError);
       }
@@ -66,7 +66,7 @@ export const categoriasService = {
       }
 
       const result = data && data.length > 0 ? data : DEFAULT_CATEGORIAS;
-      localStorage.setItem('el_patron_cache_categorias', JSON.stringify(result));
+      localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(result));
       return result;
     } catch (err) {
       console.warn('categoriasService list failed, returning default fallbacks:', err);

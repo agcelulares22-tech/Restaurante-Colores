@@ -54,7 +54,7 @@ export interface BackupSnapshotData {
   logs: EventoLog[];
 }
 
-const LOCAL_BACKUPS_KEY = 'el_patron_backups_locales';
+const LOCAL_BACKUPS_KEY = 'colores_pizzeria_backups_locales';
 const SNAPSHOT_KEYS: Array<keyof BackupSnapshotData> = [
   'usuarios',
   'mesas',

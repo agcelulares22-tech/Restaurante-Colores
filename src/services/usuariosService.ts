@@ -1,7 +1,7 @@
 import { getActiveSupabaseClient } from '../lib/supabaseClient';
 import { Usuario } from '../types';
 
-const LOCAL_USERS_KEY = 'el_patron_usuarios_locales';
+const LOCAL_USERS_KEY = 'colores_pizzeria_usuarios_locales';
 
 const readLocalUsers = (): Usuario[] => {
   if (typeof localStorage === 'undefined') return [];

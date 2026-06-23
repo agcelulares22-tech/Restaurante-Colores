@@ -1,7 +1,7 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { RegistroAsistencia } from '../types';
 
-const OFFLINE_STORAGE_KEY = 'el_patron_fichajes_offline';
+const OFFLINE_STORAGE_KEY = 'colores_pizzeria_fichajes_offline';
 
 export const asistenciaService = {
   /**

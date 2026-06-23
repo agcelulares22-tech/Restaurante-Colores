@@ -139,7 +139,7 @@ export default function SistemaModule({
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#4A2D1B] tracking-tight">Marca Institucional & Control del Sistema</h2>
-            <p className="text-xs text-stone-500 mt-0.5">El Patrón Restaurante • Sistema Operativo Sincronizado</p>
+            <p className="text-xs text-stone-500 mt-0.5">Pizzería Colores • Sistema Operativo Sincronizado</p>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-[#22C55E]/10 px-4 py-1.5 rounded-full border border-[#22C55E]/20">
@@ -556,7 +556,7 @@ export default function SistemaModule({
                 Identidad de Marca & Logotipo
               </h4>
               <p className="text-[10px] text-stone-500 font-medium">
-                Carga el isotipo o logotipo oficial de El Patrón para todo el sistema.
+                Carga el isotipo o logotipo oficial de la pizzería para todo el sistema.
               </p>
             </div>
           </div>
@@ -567,9 +567,9 @@ export default function SistemaModule({
             </div>
 
             <div className="text-center space-y-1">
-              <span className="text-[10px] font-bold text-stone-850 block">Subir Logotipo Real El Patrón</span>
+              <span className="text-[10px] font-bold text-stone-850 block">Subir Logotipo Real de la Pizzería</span>
               <p className="text-[9px] text-stone-500 max-w-[210px] leading-normal mx-auto font-medium">
-                Puedes seleccionar el archivo de imagen de caballo que prefieras. La pestaña y los banners se actualizarán de forma dinámica.
+                Puedes seleccionar el archivo de imagen de logotipo que prefieras. La pestaña y los banners se actualizarán de forma dinámica.
               </p>
             </div>
 
@@ -588,8 +588,8 @@ export default function SistemaModule({
                         const dataUrl = event.target?.result as string;
                         if (dataUrl) {
                           try {
-                            localStorage.setItem('el_potro_custom_logo', dataUrl);
-                            window.dispatchEvent(new Event('el_patron_logo_changed'));
+                            localStorage.setItem('colores_pizzeria_custom_logo', dataUrl);
+                            window.dispatchEvent(new Event('colores_logo_changed'));
                             addLog('sistema', `MARCA: Logotipo cargado correctamente en memoria local activa.`);
                           } catch (error) {
                             toast.error("La imagen es muy grande. Por favor selecciona una menor a 1.5MB.");
@@ -605,9 +605,8 @@ export default function SistemaModule({
               <button
                 type="button"
                 onClick={() => {
-                  localStorage.removeItem('el_potro_custom_logo');
-                  localStorage.removeItem('el_patron_custom_logo');
-                  window.dispatchEvent(new Event('el_patron_logo_changed'));
+                  localStorage.removeItem('colores_pizzeria_custom_logo');
+                  window.dispatchEvent(new Event('colores_logo_changed'));
                   addLog('sistema', `MARCA: Logotipo restablecido al isotipo de vector por defecto.`);
                 }}
                 className="px-3 py-1.5 border border-stone-200 hover:border-red-200 text-stone-550 hover:text-rose-600 rounded-lg text-[10px] font-extrabold bg-white hover:bg-stone-50 transition-all cursor-pointer shadow-xs"

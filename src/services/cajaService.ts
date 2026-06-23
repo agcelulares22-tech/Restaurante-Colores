@@ -11,7 +11,7 @@ const inferFechaApertura = (idCierre: string) => {
 
 export const cajaService = {
   getOpenSession(): CierreCaja | null {
-    const raw = localStorage.getItem('el_patron_caja_activa');
+    const raw = localStorage.getItem('colores_pizzeria_caja_activa');
     if (raw) {
       try {
         return JSON.parse(raw);
@@ -48,7 +48,7 @@ export const cajaService = {
       }));
     } catch {
       // Offline fallback lists historical records
-      const raw = localStorage.getItem('el_patron_historial_cierres');
+      const raw = localStorage.getItem('colores_pizzeria_historial_cierres');
       if (raw) {
         try {
           return JSON.parse(raw);
@@ -81,7 +81,7 @@ export const cajaService = {
           usuario_cajero: 'Mariano Closs'
         }
       ];
-      localStorage.setItem('el_patron_historial_cierres', JSON.stringify(defaults));
+      localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(defaults));
       return defaults;
     }
   },
@@ -129,7 +129,7 @@ export const cajaService = {
       }
     };
 
-    localStorage.setItem('el_patron_caja_activa', JSON.stringify(session));
+    localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(session));
 
     // Try Supabase push
     try {
@@ -187,7 +187,7 @@ export const cajaService = {
       };
     }
 
-    localStorage.setItem('el_patron_caja_activa', JSON.stringify(active));
+    localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(active));
 
     // Try live update if possible
     try {
@@ -209,7 +209,7 @@ export const cajaService = {
       active.movimientos_manuales = [];
     }
     active.movimientos_manuales.push(mov);
-    localStorage.setItem('el_patron_caja_activa', JSON.stringify(active));
+    localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(active));
 
     try {
       const supabase = getActiveSupabaseClient();
@@ -276,11 +276,11 @@ export const cajaService = {
     };
 
     // Remove active and add to history
-    localStorage.removeItem('el_patron_caja_activa');
+    localStorage.removeItem('colores_pizzeria_caja_activa');
 
     const history = await this.list();
     const updatedHistory = [closed, ...history.filter(h => h.id_cierre !== closed.id_cierre)];
-    localStorage.setItem('el_patron_historial_cierres', JSON.stringify(updatedHistory));
+    localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(updatedHistory));
 
     // Persist closed session in database
     try {

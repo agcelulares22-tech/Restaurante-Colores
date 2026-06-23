@@ -163,11 +163,11 @@ function InventoryModule({
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
-      doc.text("EL PATRON", 15, 22);
+      doc.text("PIZZERÍA COLORES", 15, 22);
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text("GESTOR GASTRONOMICO & BODEGA", 15, 28);
+      doc.text("GESTION DE COMPRAS Y RESTOCK DE INSUMOS", 15, 28);
 
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
@@ -237,9 +237,9 @@ function InventoryModule({
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(120, 113, 108);
-      doc.text("Este documento sirve como remito de solicitud de cotización interna de El Patrón.", 15, 280);
+      doc.text("Este documento sirve como remito de solicitud de cotización interna de Pizzería Colores.", 15, 280);
 
-      doc.save(`Orden_Compra_El_Patron_${ocId}.pdf`);
+      doc.save(`Orden_Compra_Pizzeria_Colores_${ocId}.pdf`);
       toast.success("Orden de Compra exportada a PDF correctamente.");
     } catch (e) {
       console.error(e);

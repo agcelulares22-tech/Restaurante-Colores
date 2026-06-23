@@ -276,7 +276,7 @@ function MozoTerminal({
           const destLat = parseFloat(geoData[0].lat);
           const destLng = parseFloat(geoData[0].lon);
           const originLat = origenLat;
-          const originLng = originLng;
+          const originLng = origenLng;
 
           const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=false`);
           const routeData = await routeResp.json();

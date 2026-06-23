@@ -29,7 +29,7 @@ test('mozo tiene acceso operativo limitado al salón', () => {
 });
 
 test('cocina no puede administrar caja ni usuarios', () => {
-  assert.deepEqual(getAllowedViews('cocina'), ['home', 'panel', 'cocina']);
+  assert.deepEqual(getAllowedViews('cocina'), ['home', 'panel', 'cocina', 'fichaje']);
   assert.equal(canAccessView('cocina', 'caja'), false);
   assert.equal(canAccessView('cocina', 'usuarios'), false);
 });

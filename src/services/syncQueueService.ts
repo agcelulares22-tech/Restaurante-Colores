@@ -10,7 +10,7 @@ export interface SyncQueueItem {
   attempts: number;
 }
 
-const QUEUE_KEY = 'el_patron_offline_sync_queue';
+const QUEUE_KEY = 'colores_pizzeria_offline_sync_queue';
 
 export const syncQueueService = {
   getQueue(): SyncQueueItem[] {

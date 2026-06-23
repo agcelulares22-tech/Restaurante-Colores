@@ -1,7 +1,7 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Cliente } from '../types';
 
-const LOCAL_STORAGE_KEY = 'el_patron_clientes';
+const LOCAL_STORAGE_KEY = 'colores_pizzeria_clientes';
 
 // Default seed data for offline/testing mode
 const DEFAULT_CLIENTES: Cliente[] = [
@@ -10,7 +10,7 @@ const DEFAULT_CLIENTES: Cliente[] = [
     dni_cuit: '20-35492817-9',
     nombre: 'Juan Carlos Perez',
     email: 'juan.perez@email.com',
-    telefono: '+54 11 5555-1234',
+    telefono: '+54 358 555-1234',
     puntos: 150,
     fecha_registro: new Date('2026-01-15T12:00:00.000Z')
   },
@@ -19,7 +19,7 @@ const DEFAULT_CLIENTES: Cliente[] = [
     dni_cuit: '27-40283948-4',
     nombre: 'Maria Laura Rodriguez',
     email: 'maria.rodriguez@email.com',
-    telefono: '+54 11 4444-5678',
+    telefono: '+54 358 444-5678',
     puntos: 320,
     fecha_registro: new Date('2026-02-10T14:30:00.000Z')
   },
@@ -28,7 +28,7 @@ const DEFAULT_CLIENTES: Cliente[] = [
     dni_cuit: '30-71649251-4',
     nombre: 'Pizzería Colores S.A.S.',
     email: 'administracion@pizzeriacolores.com.ar',
-    telefono: '+54 11 4802-1234',
+    telefono: '+54 358 412-3456',
     puntos: 1200,
     fecha_registro: new Date('2026-03-01T09:00:00.000Z')
   }

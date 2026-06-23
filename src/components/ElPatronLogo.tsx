@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-const DEFAULT_LOGO_SRC = '/logo-el-patron.png';
+const DEFAULT_LOGO_SRC = '/logo-colores-pizzeria.png';
 const LOGO_STORAGE_KEY = 'colores_pizzeria_custom_logo';
-const LEGACY_LOGO_STORAGE_KEY = 'el_potro_custom_logo';
 const LOGO_CHANGE_EVENT = 'colores_logo_changed';
 
 interface ElPatronLogoProps {
@@ -13,7 +12,6 @@ interface ElPatronLogoProps {
 
 const readStoredLogo = () => {
   try {
-    localStorage.removeItem(LEGACY_LOGO_STORAGE_KEY);
     return localStorage.getItem(LOGO_STORAGE_KEY);
   } catch {
     return null;

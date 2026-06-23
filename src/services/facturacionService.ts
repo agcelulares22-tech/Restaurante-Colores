@@ -35,7 +35,7 @@ const mapMetodoPagoFromDb = (medioPago?: string): Factura['medio_pago'] => {
   return 'efectivo';
 };
 
-const LOCAL_FACTURAS_KEY = 'el_patron_facturas_pendientes';
+const LOCAL_FACTURAS_KEY = 'colores_pizzeria_facturas_pendientes';
 
 const readLocalFacturas = (): Factura[] => {
   if (typeof localStorage === 'undefined') return [];

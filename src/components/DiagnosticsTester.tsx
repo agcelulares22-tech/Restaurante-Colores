@@ -223,7 +223,7 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
 
   const handleResetDefaults = () => {
     if (typeof window === 'undefined') return;
-    if (confirm('¿Restablecer credenciales al servidor institucional por defecto de El Patrón?')) {
+    if (confirm('¿Restablecer credenciales al servidor institucional por defecto de Pizzería Colores?')) {
       window.localStorage.removeItem('SUPABASE_URL');
       window.localStorage.removeItem('SUPABASE_ANON_KEY');
       setCustomUrl('');

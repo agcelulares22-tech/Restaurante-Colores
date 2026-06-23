@@ -104,7 +104,7 @@ export default function App() {
   const { toast, toasts, removeToast } = useToast();
   // --- Global Synced States ---
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
-    typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
+    typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
   ));
   const [permitirVentaSinStock, setPermitirVentaSinStock] = useState<boolean>(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(INITIAL_USUARIOS);
@@ -187,11 +187,11 @@ export default function App() {
           const currentKey = localStorage.getItem('SUPABASE_ANON_KEY');
           if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
             // Cambió el proyecto Supabase: limpiar cachés locales para forzar recarga fresca
-            localStorage.removeItem('el_patron_cache_menu');
-            localStorage.removeItem('el_patron_cache_categorias');
-            localStorage.removeItem('el_patron_cache_proveedores');
-            localStorage.removeItem('el_patron_cache_insumos');
-            localStorage.removeItem('el_patron_cache_recetas');
+            localStorage.removeItem('colores_pizzeria_cache_menu');
+            localStorage.removeItem('colores_pizzeria_cache_categorias');
+            localStorage.removeItem('colores_pizzeria_cache_proveedores');
+            localStorage.removeItem('colores_pizzeria_cache_insumos');
+            localStorage.removeItem('colores_pizzeria_cache_recetas');
             localStorage.setItem('SUPABASE_URL', data.SUPABASE_URL);
             localStorage.setItem('SUPABASE_ANON_KEY', data.SUPABASE_ANON_KEY);
             resetSupabaseInstance(); // This triggers supabase-client-reset event
@@ -294,7 +294,7 @@ export default function App() {
           setPedidos(sanitizedDbPedidos);
         } else {
           // Persistencia local: si Supabase no tiene pedidos, conservar los creados en sesión
-          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('el_patron_pedidos_local') : null;
+          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('colores_pizzeria_pedidos_local') : null;
           if (localPedidos) {
             try {
               const parsed = JSON.parse(localPedidos) as Pedido[];
@@ -609,7 +609,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     setTimeout(() => {
       const currentPedidos = [{ ...finalPedido, id_pedido: finalPedido.id_pedido }, ...(pedidos.filter(p => p.id_pedido !== finalPedido.id_pedido))];
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(currentPedidos));
+        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(currentPedidos));
       }
     }, 0);
 
@@ -670,7 +670,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   const handleLoginSuccess = (user: Usuario) => {
-    window.sessionStorage.setItem('el_patron_session', 'active');
+    window.sessionStorage.setItem('colores_pizzeria_session', 'active');
     setActiveMozo(user.nombre);
     setActiveView('home');
 
@@ -690,7 +690,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   const handleLogout = () => {
-    window.sessionStorage.removeItem('el_patron_session');
+    window.sessionStorage.removeItem('colores_pizzeria_session');
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
     setIsStreamlitLoggedIn(false);
   };
@@ -890,7 +890,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       // Sincronizar localStorage con el estado actual de pedidos
       if (typeof window !== 'undefined') {
         const current = stateRef.current.pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
-        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(current));
+        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(current));
       }
     }, 50);
 
@@ -923,7 +923,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     setPedidos(updatedPedidos);
 
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(updatedPedidos));
+      window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(updatedPedidos));
     }
 
     const updatedMesas = mesas.map(m => {

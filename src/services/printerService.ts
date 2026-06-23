@@ -2,7 +2,7 @@ import { TicketData, PrinterConfig } from '../types';
 
 export const printerService = {
   getDefaultConfig(): PrinterConfig {
-    const raw = localStorage.getItem('el_patron_printer_config');
+    const raw = localStorage.getItem('colores_pizzeria_printer_config');
     if (raw) {
       try {
         return JSON.parse(raw);
@@ -20,7 +20,7 @@ export const printerService = {
   },
 
   saveConfig(config: PrinterConfig): void {
-    localStorage.setItem('el_patron_printer_config', JSON.stringify(config));
+    localStorage.setItem('colores_pizzeria_printer_config', JSON.stringify(config));
   },
 
   /**
@@ -48,7 +48,7 @@ export const printerService = {
     
     esc += '[ESC/POS: ALIGN CENTER]\n';
     esc += `${data.nombreComercial.toUpperCase()}\n`;
-    esc += 'EL PATRÓN RESTAURANTE\n';
+    esc += 'PIZZERÍA COLORES\n';
     esc += `${doubleSeparator}\n`;
     esc += 'VIRTUAL FISCAL PRINTER DRIVER\n';
     esc += `CUIT: ${data.cuit}\n`;

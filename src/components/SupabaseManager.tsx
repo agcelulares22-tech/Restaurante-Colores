@@ -137,11 +137,11 @@ export default function SupabaseManager({
       if (typeof window !== 'undefined') {
         localStorage.setItem('SUPABASE_URL', effectiveUrl);
         localStorage.setItem('SUPABASE_ANON_KEY', effectiveKey);
-        localStorage.removeItem('el_patron_cache_menu');
-        localStorage.removeItem('el_patron_cache_categorias');
-        localStorage.removeItem('el_patron_cache_proveedores');
-        localStorage.removeItem('el_patron_cache_insumos');
-        localStorage.removeItem('el_patron_cache_recetas');
+        localStorage.removeItem('colores_pizzeria_cache_menu');
+        localStorage.removeItem('colores_pizzeria_cache_categorias');
+        localStorage.removeItem('colores_pizzeria_cache_proveedores');
+        localStorage.removeItem('colores_pizzeria_cache_insumos');
+        localStorage.removeItem('colores_pizzeria_cache_recetas');
       }
       resetSupabaseInstance();
     }

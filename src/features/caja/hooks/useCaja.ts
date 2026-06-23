@@ -175,7 +175,7 @@ export function useCaja({
             usuario_cajero: remote.usuario_cajero ?? active.usuario_cajero,
             observaciones: remote.observaciones ?? active.observaciones
           };
-          localStorage.setItem('el_patron_caja_activa', JSON.stringify(active));
+          localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(active));
         }
       } catch (err) {
         console.warn('Offline active session loading fallback');

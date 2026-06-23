@@ -995,7 +995,7 @@ function CajaModule({
                 {/* FIDELIZACION Y CLUB EL PATRON */}
                 <div className="bg-[#fcfaf7] border border-[#e8dfd8] p-3 rounded-xl space-y-2">
                   <h4 className="text-[10px] font-black text-[#624A3E] uppercase tracking-widest flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-[#624A3E]" /> Fidelización de Clientes (Club El Patrón)
+                    <Users className="w-3.5 h-3.5 text-[#624A3E]" /> Fidelización de Clientes (Club Pizzería Colores)
                   </h4>
                   
                   <div className="flex gap-2">
@@ -1504,7 +1504,7 @@ function CajaModule({
                 </div>
 
                 <div className="mt-3 text-[10px] text-stone-500 max-w-xs text-center font-bold">
-                  ✓ El Patrón POS emitirá este ticket y enviará el string compilado en bytes ESC/POS.
+                  ✓ Pizzería Colores POS emitirá este ticket y enviará el string compilado en bytes ESC/POS.
                 </div>
               </div>
 
@@ -1515,7 +1515,7 @@ function CajaModule({
                 <Receipt className="w-10 h-10" />
               </div>
               <h3 className="font-black text-[#624A3E] text-lg uppercase tracking-tight">
-                Terminal de Cobro El Patrón Pro
+                Terminal de Cobro Pizzería Colores Pro
               </h3>
               <p className="text-stone-500 text-xs mt-2 max-w-md leading-relaxed font-semibold">
                 Seleccione una mesa ocupada desde la lista lateral. Se iniciará el panel interactivo de check-out, permitiéndole coordinar pagos mixtos, aplicar deducciones manuales, configurar datos de CUIT, fraccionar saldos por comensales u artículos indivisos, y emitir comprobantes en PDF y thermal roll.

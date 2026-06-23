@@ -618,7 +618,7 @@ function DeliveryModule({
   const handlePrintDeliveryTicket = async (pedido: Pedido, copyName: string = 'COPIA REPARTIDOR') => {
     try {
       const printerConfig = printerService.getDefaultConfig();
-      const savedRestaurant = localStorage.getItem('el_patron_restaurante');
+      const savedRestaurant = localStorage.getItem('colores_pizzeria_restaurante');
       const restaurante = savedRestaurant ? JSON.parse(savedRestaurant) : {
         nombreComercial: 'Pizzería Colores',
         razonSocial: 'Pizzería Colores S.A.S.',

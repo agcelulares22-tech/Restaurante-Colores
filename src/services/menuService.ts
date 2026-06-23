@@ -34,7 +34,7 @@ const normalizeProductoMenu = (prod: DbProductoMenu): ProductoMenu => {
     categoria,
     subcategoria: readString(prod.subcategoria) || undefined,
     activo: prod.activo !== false,
-    imagen: readString(prod.imagen, '/logo-el-patron.jpeg'),
+    imagen: readString(prod.imagen, '/logo-colores-pizzeria.png'),
     tipo,
     tiempo_preparacion_estimado: readNumber(prod.tiempo_preparacion_estimado) || undefined,
     requiere_cocina: typeof prod.requiere_cocina === 'boolean'
@@ -53,7 +53,7 @@ const toDbProductoMenu = (prod: ProductoMenu | Partial<ProductoMenu>) => ({
 
 export const menuService = {
   async list(): Promise<ProductoMenu[]> {
-    const cached = localStorage.getItem('el_patron_cache_menu');
+    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
     const client = tryGetActiveSupabaseClient();
 
     if (cached) {
@@ -63,7 +63,7 @@ export const menuService = {
             const { data, error } = await client.from('productos_menu').select('*').order('id_producto', { ascending: true });
             if (!error && data) {
               try {
-                localStorage.setItem('el_patron_cache_menu', JSON.stringify(data));
+                localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data));
               } catch (storageError) {
                 console.warn('LocalStorage quota exceeded on background update:', storageError);
               }
@@ -87,7 +87,7 @@ export const menuService = {
     if (!client) {
       // Local/Offline Mode seed cache
       try {
-        localStorage.setItem('el_patron_cache_menu', JSON.stringify(INITIAL_PRODUCTOS_MENU));
+        localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(INITIAL_PRODUCTOS_MENU));
       } catch (storageError) {
         console.warn('LocalStorage quota exceeded on offline seed:', storageError);
       }
@@ -101,7 +101,7 @@ export const menuService = {
     }
     const normalized = (data || []).map(normalizeProductoMenu);
     try {
-      localStorage.setItem('el_patron_cache_menu', JSON.stringify(data || []));
+      localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data || []));
     } catch (storageError) {
       console.warn('LocalStorage quota exceeded on sync:', storageError);
     }
@@ -128,20 +128,20 @@ export const menuService = {
     const normalized = normalizeProductoMenu(data);
     
     // Update local cache
-    const cached = localStorage.getItem('el_patron_cache_menu');
+    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
           parsed.push(data);
           try {
-            localStorage.setItem('el_patron_cache_menu', JSON.stringify(parsed));
+            localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(parsed));
           } catch (storageError) {
             console.warn('LocalStorage quota exceeded on product create:', storageError);
           }
         }
       } catch (e) {
-        localStorage.removeItem('el_patron_cache_menu');
+        localStorage.removeItem('colores_pizzeria_cache_menu');
       }
     }
     
@@ -168,7 +168,7 @@ export const menuService = {
 
     // In case of fallback or direct local edit, reconstruct the updated object
     if (fallback || !updatedData) {
-      const cached = localStorage.getItem('el_patron_cache_menu');
+      const cached = localStorage.getItem('colores_pizzeria_cache_menu');
       let currentItem: any = null;
       if (cached) {
         try {
@@ -188,7 +188,7 @@ export const menuService = {
     const normalized = normalizeProductoMenu(updatedData);
 
     // Update local cache in-place
-    const cached = localStorage.getItem('el_patron_cache_menu');
+    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -197,13 +197,13 @@ export const menuService = {
             item.id_producto === id ? { ...item, ...toDbProductoMenu(prod) } : item
           );
           try {
-            localStorage.setItem('el_patron_cache_menu', JSON.stringify(updatedCache));
+            localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(updatedCache));
           } catch (storageError) {
             console.warn('LocalStorage quota exceeded, skipping local cache write:', storageError);
           }
         }
       } catch (e) {
-        localStorage.removeItem('el_patron_cache_menu');
+        localStorage.removeItem('colores_pizzeria_cache_menu');
       }
     } else {
       // Create new cache with seeded menu plus updated item if cache was empty
@@ -211,7 +211,7 @@ export const menuService = {
         item.id_producto === id ? { ...item, ...toDbProductoMenu(prod) } : item
       );
       try {
-        localStorage.setItem('el_patron_cache_menu', JSON.stringify(initialCache));
+        localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(initialCache));
       } catch (storageError) {
         console.warn('LocalStorage quota exceeded, skipping local cache write:', storageError);
       }
@@ -232,12 +232,12 @@ export const menuService = {
     // Update local cache
     if (data) {
       try {
-        localStorage.setItem('el_patron_cache_menu', JSON.stringify(data));
+        localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data));
       } catch (storageError) {
         console.warn('LocalStorage quota exceeded on upsert:', storageError);
       }
     } else {
-      localStorage.removeItem('el_patron_cache_menu');
+      localStorage.removeItem('colores_pizzeria_cache_menu');
     }
     
     return normalized;
@@ -252,20 +252,20 @@ export const menuService = {
     }
     
     // Update local cache
-    const cached = localStorage.getItem('el_patron_cache_menu');
+    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
           const updatedCache = parsed.filter((item: any) => item.id_producto !== id);
           try {
-            localStorage.setItem('el_patron_cache_menu', JSON.stringify(updatedCache));
+            localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(updatedCache));
           } catch (storageError) {
             console.warn('LocalStorage quota exceeded on product remove:', storageError);
           }
         }
       } catch (e) {
-        localStorage.removeItem('el_patron_cache_menu');
+        localStorage.removeItem('colores_pizzeria_cache_menu');
       }
     }
     
@@ -273,7 +273,7 @@ export const menuService = {
   },
 
   async bulkUpdatePrices(updates: { id: string; precio_venta: number }[]): Promise<boolean> {
-    localStorage.removeItem('el_patron_cache_menu');
+    localStorage.removeItem('colores_pizzeria_cache_menu');
     const supabase = getActiveSupabaseClient();
     const { error } = await supabase.from('productos_menu').upsert(
       updates.map(u => ({ id_producto: u.id, precio_venta: u.precio_venta })),
