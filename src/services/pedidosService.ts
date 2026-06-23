@@ -62,7 +62,7 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   idempotency_key: pedido.idempotency_key ?? null,
   id_mesa: pedido.id_mesa || null,
   numero_mesa: pedido.numero_mesa,
-  mozo: pedido.mozo,
+  mozo: pedido.mozo || 'Sistema',
   estado_comanda: pedido.estado_comanda,
   observaciones: pedido.observaciones || null,
   fecha_hora: pedido.fecha_hora instanceof Date

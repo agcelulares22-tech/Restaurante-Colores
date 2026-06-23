@@ -533,6 +533,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       finalPedido = {
         ...existingActivePedido,
         items: updatedItems,
+        mozo: existingActivePedido.mozo || newPedidoData.mozo || activeMozo || 'Sistema',
         observaciones: mergedObs || undefined,
         estado_comanda: 'pendiente',
         stock_descontado: existingActivePedido.stock_descontado || stockDescontado,
@@ -546,6 +547,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       finalPedido = {
         ...newPedidoData,
         id_pedido: newId,
+        mozo: newPedidoData.mozo || activeMozo || 'Sistema',
         fecha_hora: new Date(),
         minutos_transcurridos: 0,
         origen: newPedidoData.origen || 'Mozo',
