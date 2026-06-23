@@ -306,7 +306,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       return;
     }
 
-    const headers = ['ID Usuario', 'Empleado', 'Tipo', 'Fecha', 'Hora', 'Día', 'Latitud', 'Longitud', 'Precisión (m)', 'Dispositivo'];
+    const headers = ['ID Usuario', 'Empleado', 'Tipo', 'Fecha', 'Hora', 'Día', 'Dirección (GPS)', 'Precisión (m)', 'Dispositivo'];
     const csvRows = [headers.join(';')];
 
     filteredFichajes.forEach(f => {
@@ -322,8 +322,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
         fechaStr,
         horaStr,
         diaSemana,
-        f.latitud || '',
-        f.longitud || '',
+        `"${(f.direccion || 'Sin GPS').replace(/"/g, '""')}"`,
         f.precision || '',
         `"${(f.dispositivo || '').replace(/"/g, '""')}"`
       ];
