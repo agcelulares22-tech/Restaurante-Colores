@@ -115,7 +115,7 @@ CREATE TABLE public.configuracion (
 -- Tabla de Registro de Asistencia (Fichajes)
 CREATE TABLE public.registro_asistencia (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    id_usuario INT REFERENCES public.usuarios(id_usuario) ON DELETE CASCADE,
+    id_usuario INT,
     nombre_empleado TEXT NOT NULL,
     tipo TEXT NOT NULL CHECK (tipo IN ('ingreso', 'egreso')),
     fecha_hora TIMESTAMPTZ NOT NULL DEFAULT NOW(),
