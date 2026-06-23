@@ -65,6 +65,7 @@ function CajaModule({
 }: CajaModuleProps) {
   const { toast, toasts, removeToast } = useToast();
   const [activeSummaryTab, setActiveSummaryTab] = useState<'platos' | 'gastos'>('platos');
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
 
   const caja = useCaja({
     pedidos,
@@ -1019,14 +1020,27 @@ function CajaModule({
                       Buscar
                     </button>
                   </div>
-
                   {selectedCliente ? (
                     <div className="p-3 bg-emerald-50/60 border border-emerald-200/50 rounded-lg space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-xs font-bold text-emerald-900">{selectedCliente.nombre}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-bold text-emerald-900">{selectedCliente.nombre}</p>
+                            {(() => {
+                              const lvl = selectedCliente.puntos >= 500 ? { l: 'Oro', c: 'bg-yellow-100 text-yellow-800 border-yellow-300', s: '⭐' } :
+                                          selectedCliente.puntos >= 105 ? { l: 'Plata', c: 'bg-slate-100 text-slate-800 border-slate-300', s: '🥈' } :
+                                          { l: 'Bronce', c: 'bg-amber-100 text-amber-800 border-amber-300', s: '🥉' };
+                              return (
+                                <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${lvl.c}`} title={`Nivel ${lvl.l}`}>
+                                  {lvl.s} {lvl.l}
+                                </span>
+                              );
+                            })()}
+                          </div>
                           <p className="text-[10px] text-stone-500 font-mono">{selectedCliente.dni_cuit}</p>
-                          <p className="text-[10px] text-[#624A3E] font-bold">Puntos Disponibles: {selectedCliente.puntos} (ARS ${selectedCliente.puntos})</p>
+                          <p className="text-[10px] text-[#624A3E] font-bold mt-0.5">
+                            Puntos Disponibles: {selectedCliente.puntos} (ARS ${(selectedCliente.puntos * 10).toLocaleString('es-AR')} de descuento)
+                          </p>
                         </div>
                         <button
                           type="button"
@@ -1035,35 +1049,68 @@ function CajaModule({
                             setPuntosRedimidos(0);
                             setDniCuitBuscar('');
                           }}
-                          className="text-stone-400 hover:text-stone-700 text-xs font-bold"
+                          className="text-stone-400 hover:text-stone-700 text-[10px] font-bold"
                         >
                           Deseleccionar
                         </button>
                       </div>
 
-                      {selectedCliente.puntos > 0 && (
-                        <div className="flex items-center gap-2 pt-1 border-t border-emerald-100">
-                          <label className="text-[9px] font-bold text-stone-600 uppercase">Canjear Puntos:</label>
-                          <input 
-                            type="number"
-                            min="0"
-                            max={Math.min(selectedCliente.puntos, orderBreakdowns.finalTotal + puntosRedimidos)}
-                            value={puntosRedimidos || ''}
-                            onChange={e => {
-                              const pts = Math.max(0, parseInt(e.target.value) || 0);
-                              const limit = Math.min(selectedCliente.puntos, orderBreakdowns.finalTotal + puntosRedimidos);
-                              if (pts > limit) {
-                                setPuntosRedimidos(limit);
-                                toast.warning(`El límite de canje para esta cuenta es de ${limit} puntos.`);
+                      {/* Historial simulado */}
+                      <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 text-[9px] text-stone-600 space-y-1">
+                        <span className="font-bold uppercase text-[8px] text-stone-400 block">Historial de Fidelización</span>
+                        <div className="flex justify-between font-mono">
+                          <span>• Alta de Cliente</span>
+                          <span className="text-emerald-650 font-bold">+0 ptos</span>
+                        </div>
+                        {selectedCliente.puntos > 0 && (
+                          <div className="flex justify-between font-mono">
+                            <span>• Consumos Acumulados</span>
+                            <span className="text-emerald-650 font-bold">+{selectedCliente.puntos} ptos</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2 pt-1.5 border-t border-emerald-100">
+                        {selectedCliente.puntos > 0 && (
+                          <div className="flex items-center gap-2">
+                            <label className="text-[9px] font-bold text-stone-600 uppercase">Canjear Puntos:</label>
+                            <input 
+                              type="number"
+                              min="0"
+                              max={Math.min(selectedCliente.puntos, Math.floor((orderBreakdowns.finalTotal + (puntosRedimidos * 10)) / 10))}
+                              value={puntosRedimidos || ''}
+                              onChange={e => {
+                                const pts = Math.max(0, parseInt(e.target.value) || 0);
+                                const limit = Math.min(selectedCliente.puntos, Math.floor((orderBreakdowns.finalTotal + (puntosRedimidos * 10)) / 10));
+                                if (pts > limit) {
+                                  setPuntosRedimidos(limit);
+                                  toast.warning(`El límite de canje para esta cuenta es de ${limit} puntos.`);
+                                } else {
+                                  setPuntosRedimidos(pts);
+                                }
+                              }}
+                              className="w-16 p-1 border border-stone-300 rounded font-mono text-xs text-stone-850 text-center bg-white"
+                            />
+                            <span className="text-[9px] text-stone-450 font-bold">1 pt = $10 descuento</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (puntosRedimidos <= 0) {
+                                toast.warning('Debe canjear por lo menos 1 punto para generar un voucher de recompensa.');
                               } else {
-                                setPuntosRedimidos(pts);
+                                setShowVoucherModal(true);
                               }
                             }}
-                            className="w-20 p-1 border border-stone-300 rounded font-mono text-xs text-stone-800 text-center"
-                          />
-                          <span className="text-[10px] text-stone-500 font-medium">1 pt = ARS $1</span>
+                            className="flex-1 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] text-[9px] font-black uppercase rounded flex items-center justify-center gap-1 cursor-pointer transition-colors border-0"
+                          >
+                            <QrCode className="w-3.5 h-3.5" /> Generar Voucher QR
+                          </button>
                         </div>
-                      )}
+                      </div>
                     </div>
                   ) : dniCuitBuscar.trim() !== '' && (
                     <div className="p-3 bg-stone-50 border border-stone-200 rounded-lg space-y-2">
@@ -2107,7 +2154,145 @@ function CajaModule({
         </div>
       )}
 
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {/* VOUCHER MODAL */}
+      {showVoucherModal && selectedCliente && (
+        <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn font-sans">
+          <div className="bg-white rounded-2xl border border-stone-200 max-w-sm w-full p-6 space-y-4 shadow-xl relative flex flex-col text-center">
+            <button 
+              onClick={() => setShowVoucherModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-all cursor-pointer border-0 bg-transparent"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col items-center gap-2 pb-2 border-b border-stone-100">
+              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-[#E8B800]">
+                <QrCode className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Voucher de Recompensa</h3>
+                <p className="text-[11px] text-stone-500 font-medium font-bold text-amber-900">Club Pizzería Colores</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 py-2">
+              <div className="bg-[#F5F0E6] p-3 rounded-xl border border-[#3E3228]/10 text-stone-800 text-left">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-stone-500 font-semibold">Beneficiario:</span>
+                  <span className="font-extrabold text-stone-900">{selectedCliente.nombre}</span>
+                </div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-stone-500 font-semibold">Cédula/CUIT:</span>
+                  <span className="font-mono text-stone-900">{selectedCliente.dni_cuit}</span>
+                </div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-stone-500 font-semibold">Puntos Canjeados:</span>
+                  <span className="font-mono font-bold text-amber-700">{puntosRedimidos} ptos</span>
+                </div>
+                <div className="flex justify-between text-xs border-t border-[#3E3228]/10 pt-1.5 mt-1.5">
+                  <span className="text-stone-600 font-black">Valor Descuento:</span>
+                  <span className="font-mono font-black text-emerald-700 text-sm">ARS ${(puntosRedimidos * 10).toLocaleString('es-AR')}</span>
+                </div>
+              </div>
+
+              {/* MOCK QR CODE SVG */}
+              <div className="flex justify-center p-3 bg-white border border-stone-200 rounded-xl max-w-[160px] mx-auto">
+                <svg className="w-32 h-32 text-stone-900" viewBox="0 0 100 100" fill="currentColor">
+                  {/* Outer boundaries */}
+                  <rect x="0" y="0" width="20" height="20" />
+                  <rect x="2" y="2" width="16" height="16" fill="white" />
+                  <rect x="5" y="5" width="10" height="10" />
+
+                  <rect x="80" y="0" width="20" height="20" />
+                  <rect x="82" y="2" width="16" height="16" fill="white" />
+                  <rect x="85" y="5" width="10" height="10" />
+
+                  <rect x="0" y="80" width="20" height="20" />
+                  <rect x="2" y="82" width="16" height="16" fill="white" />
+                  <rect x="8" y="88" width="4" height="4" fill="white" />
+                  <rect x="5" y="85" width="10" height="10" />
+
+                  {/* QR details mock pixels */}
+                  <rect x="25" y="5" width="8" height="8" />
+                  <rect x="35" y="3" width="5" height="5" />
+                  <rect x="45" y="7" width="10" height="5" />
+                  <rect x="60" y="2" width="12" height="4" />
+                  
+                  <rect x="25" y="20" width="5" height="15" />
+                  <rect x="35" y="22" width="15" height="6" />
+                  <rect x="55" y="15" width="8" height="8" />
+                  <rect x="70" y="22" width="6" height="12" />
+                  
+                  <rect x="5" y="25" width="12" height="6" />
+                  <rect x="10" y="35" width="6" height="12" />
+                  <rect x="22" y="45" width="18" height="5" />
+                  <rect x="45" y="35" width="8" height="12" />
+                  
+                  <rect x="60" y="40" width="15" height="5" />
+                  <rect x="80" y="30" width="12" height="12" />
+                  <rect x="82" y="32" width="8" height="8" fill="white" />
+                  <rect x="84" y="34" width="4" height="4" />
+
+                  <rect x="5" y="55" width="15" height="5" />
+                  <rect x="25" y="55" width="8" height="8" />
+                  <rect x="40" y="52" width="14" height="6" />
+                  <rect x="60" y="50" width="6" height="18" />
+                  <rect x="72" y="55" width="18" height="5" />
+                  
+                  <rect x="12" y="65" width="15" height="5" />
+                  <rect x="32" y="68" width="20" height="4" />
+                  <rect x="55" y="72" width="5" height="15" />
+                  <rect x="65" y="68" width="12" height="6" />
+                  <rect x="82" y="65" width="15" height="12" />
+                  <rect x="85" y="68" width="9" height="6" fill="white" />
+                  
+                  <rect x="25" y="82" width="12" height="12" />
+                  <rect x="42" y="85" width="8" height="8" />
+                  <rect x="52" y="82" width="6" height="6" />
+                  <rect x="62" y="88" width="15" height="8" />
+                  
+                  {/* Brand logo block in center */}
+                  <rect x="42" y="42" width="16" height="16" fill="white" rx="2" />
+                  <circle cx="50" cy="50" r="6" fill="#E8B800" />
+                  <circle cx="50" cy="50" r="4" fill="#3E3228" />
+                </svg>
+              </div>
+
+              <div className="text-center">
+                <span className="text-[10px] text-stone-400 block font-bold uppercase tracking-wider">Código de Cupón</span>
+                <span className="font-mono text-base font-black text-stone-900 tracking-wider">
+                  V-{Date.now().toString().slice(-6)}-{selectedCliente.dni_cuit.slice(-4)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => {
+                  toast.success('Comprobante de cupón enviado a la cola de impresión.');
+                  window.print();
+                }}
+                className="flex-1 py-2 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0 flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-4 h-4" />
+                Imprimir Voucher
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVoucherModal(false)}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
+
     </div>
   );
 }

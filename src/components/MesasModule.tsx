@@ -79,6 +79,8 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
   const [editSector, setEditSector] = useState<NonNullable<Mesa['sector']>>('salon');
   const [editCapacidad, setEditCapacidad] = useState(4);
   const [editForma, setEditForma] = useState<NonNullable<Mesa['forma']>>('redonda');
+  const [editWidth, setEditWidth] = useState(12);
+  const [editHeight, setEditHeight] = useState(6);
 
   // Unión
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -91,6 +93,63 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleStartEditFromPlano = (m: Mesa) => {
+    setEditingMesaId(m.id_mesa);
+    setEditNumero(m.numero_mesa);
+    setEditSector(m.sector || 'salon');
+    setEditCapacidad(m.capacidad || 4);
+    setEditForma(m.forma || 'redonda');
+    setEditWidth(m.width || (m.forma === 'rectangular' ? 12 : 8));
+    setEditHeight(m.height || (m.forma === 'rectangular' ? 6 : 8));
+  };
+
+  const handleSaveEditFromSidebar = () => {
+    if (!editingMesaId || !editNumero.trim()) return;
+    const duplicate = localMesas.find(m => m.numero_mesa.toLowerCase() === editNumero.trim().toLowerCase() && m.id_mesa !== editingMesaId);
+    if (duplicate) {
+      toast.error('Ya existe otra mesa con ese nombre.');
+      return;
+    }
+    const next = localMesas.map(m => {
+      if (m.id_mesa === editingMesaId) {
+        const updated: Mesa = {
+          ...m,
+          numero_mesa: editNumero.trim(),
+          sector: editSector,
+          capacidad: editCapacidad,
+          forma: editForma,
+          width: editWidth,
+          height: editHeight
+        };
+        mesasService.update(editingMesaId, updated).catch(() => {});
+        addLog('sistema', `MESAS: Modificada mesa '${m.numero_mesa}' a '${editNumero.trim()}'`);
+        return updated;
+      }
+      return m;
+    });
+    persist(next);
+    setEditingMesaId(null);
+    toast.success('Mesa actualizada.');
+  };
+
+  const handleToggleEditMode = async () => {
+    if (isEditMode) {
+      try {
+        await mesasService.upsert(localMesas);
+        toast.success('Distribución del salón guardada en la base de datos.');
+      } catch (err) {
+        toast.error('Error al guardar la distribución en la base de datos.');
+      }
+      setIsEditMode(false);
+      setEditingMesaId(null);
+    } else {
+      setIsEditMode(true);
+      setUnionMode(false);
+      setSelectedIds([]);
+      setEditingMesaId(null);
+    }
+  };
 
   useEffect(() => {
     setLocalMesas(normalizedMesas);
@@ -380,72 +439,203 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
         {/* Left pane: form + filters */}
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-4 h-fit">
-          <h3 className="text-sm font-black text-stone-800 uppercase tracking-tight flex items-center gap-2">
-            <Plus className="w-4 h-4 text-[#624A3E]" />
-            Nueva Mesa
-          </h3>
-          <form onSubmit={handleCreateMesa} className="space-y-3">
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Nombre / Número</label>
-              <input
-                type="text"
-                value={numeroMesa}
-                onChange={e => setNumeroMesa(e.target.value)}
-                placeholder="Ej. Mesa 11, Barra 1"
-                className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Sector</label>
-                <select
-                  value={sector}
-                  onChange={e => setSector(e.target.value as NonNullable<Mesa['sector']>)}
-                  className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] cursor-pointer text-stone-700 font-semibold"
-                >
-                  <option value="comedor">Comedor</option>
-                  <option value="salon">Salón</option>
-                  <option value="terraza">Terraza</option>
-                  <option value="vip">VIP</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Capacidad (pax)</label>
-                <div className="relative">
-                  <Users className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          {isEditMode && editingMesaId ? (
+            <div className="space-y-3">
+              <h3 className="text-sm font-black text-stone-800 uppercase tracking-tight flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-[#624A3E]" />
+                Editar Mesa: {editNumero}
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Nombre / Número</label>
                   <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={capacidad}
-                    onChange={e => setCapacidad(parseInt(e.target.value) || 1)}
-                    className="w-full text-xs min-h-11 pl-8 pr-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
-                    required
+                    type="text"
+                    value={editNumero}
+                    onChange={e => setEditNumero(e.target.value)}
+                    className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Sector</label>
+                    <select
+                      value={editSector}
+                      onChange={e => setEditSector(e.target.value as any)}
+                      className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none text-stone-700 font-semibold"
+                    >
+                      <option value="comedor">Comedor</option>
+                      <option value="salon">Salón</option>
+                      <option value="terraza">Terraza</option>
+                      <option value="vip">VIP</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Capacidad (pax)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={editCapacidad}
+                      onChange={e => setEditCapacidad(parseInt(e.target.value) || 1)}
+                      className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Forma</label>
+                  <select
+                    value={editForma}
+                    onChange={e => setEditForma(e.target.value as any)}
+                    className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none text-stone-700 font-semibold"
+                  >
+                    <option value="redonda">Redonda</option>
+                    <option value="rectangular">Rectangular</option>
+                  </select>
+                </div>
+
+                {editForma === 'rectangular' ? (
+                  <div className="grid grid-cols-2 gap-2 bg-stone-50 p-2 rounded-xl border border-stone-100">
+                    <div>
+                      <label className="text-[9px] font-black text-stone-500 uppercase block mb-0.5">Ancho ({editWidth}%)</label>
+                      <input
+                        type="range"
+                        min={8}
+                        max={25}
+                        value={editWidth}
+                        onChange={e => setEditWidth(parseInt(e.target.value))}
+                        className="w-full accent-[#624A3E]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black text-stone-500 uppercase block mb-0.5">Alto ({editHeight}%)</label>
+                      <input
+                        type="range"
+                        min={4}
+                        max={15}
+                        value={editHeight}
+                        onChange={e => setEditHeight(parseInt(e.target.value))}
+                        className="w-full accent-[#624A3E]"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-stone-50 p-2 rounded-xl border border-stone-100">
+                    <label className="text-[9px] font-black text-stone-500 uppercase block mb-0.5">Diámetro ({editWidth}%)</label>
+                    <input
+                      type="range"
+                      min={6}
+                      max={18}
+                      value={editWidth}
+                      onChange={e => {
+                        setEditWidth(parseInt(e.target.value));
+                        setEditHeight(parseInt(e.target.value));
+                      }}
+                      className="w-full accent-[#624A3E]"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-1.5 pt-2">
+                  <button
+                    onClick={handleSaveEditFromSidebar}
+                    className="flex-1 min-h-10 text-xs font-extrabold bg-[#624A3E] text-white rounded-xl hover:bg-[#503C32] transition-colors cursor-pointer"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('¿Seguro que querés eliminar esta mesa?')) {
+                        handleDeleteMesa(editingMesaId);
+                        setEditingMesaId(null);
+                        toast.success('Mesa eliminada.');
+                      }
+                    }}
+                    className="p-2.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl transition-colors cursor-pointer"
+                    title="Eliminar Mesa"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setEditingMesaId(null)}
+                    className="p-2.5 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
+          ) : (
+            <>
+              <h3 className="text-sm font-black text-stone-800 uppercase tracking-tight flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#624A3E]" />
+                Nueva Mesa
+              </h3>
+              <form onSubmit={handleCreateMesa} className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Nombre / Número</label>
+                  <input
+                    type="text"
+                    value={numeroMesa}
+                    onChange={e => setNumeroMesa(e.target.value)}
+                    placeholder="Ej. Mesa 11, Barra 1"
+                    className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
+                    required
+                  />
+                </div>
 
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Forma en plano</label>
-              <select
-                value={forma}
-                onChange={e => setForma(e.target.value as NonNullable<Mesa['forma']>)}
-                className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] cursor-pointer text-stone-700 font-semibold"
-              >
-                <option value="redonda">Redonda</option>
-                <option value="rectangular">Rectangular</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="w-full min-h-11 py-2.5 bg-[#624A3E] hover:bg-[#503C32] text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer"
-            >
-              Agregar Mesa
-            </button>
-          </form>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Sector</label>
+                    <select
+                      value={sector}
+                      onChange={e => setSector(e.target.value as NonNullable<Mesa['sector']>)}
+                      className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] cursor-pointer text-stone-700 font-semibold"
+                    >
+                      <option value="comedor">Comedor</option>
+                      <option value="salon">Salón</option>
+                      <option value="terraza">Terraza</option>
+                      <option value="vip">VIP</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Capacidad (pax)</label>
+                    <div className="relative">
+                      <Users className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={capacidad}
+                        onChange={e => setCapacidad(parseInt(e.target.value) || 1)}
+                        className="w-full text-xs min-h-11 pl-8 pr-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Forma en plano</label>
+                  <select
+                    value={forma}
+                    onChange={e => setForma(e.target.value as NonNullable<Mesa['forma']>)}
+                    className="w-full text-xs min-h-11 px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] cursor-pointer text-stone-700 font-semibold"
+                  >
+                    <option value="redonda">Redonda</option>
+                    <option value="rectangular">Rectangular</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full min-h-11 py-2.5 bg-[#624A3E] hover:bg-[#503C32] text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                >
+                  Agregar Mesa
+                </button>
+              </form>
+            </>
+          )}
 
           <hr className="border-stone-100" />
 
@@ -510,8 +700,9 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
                 </button>
               </>
             )}
+
             <button
-              onClick={() => { setIsEditMode(v => !v); setUnionMode(false); setSelectedIds([]); }}
+              onClick={handleToggleEditMode}
               className={`w-full min-h-10 flex items-center justify-center gap-2 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
                 isEditMode ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200'
               }`}
@@ -520,7 +711,7 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
               {isEditMode ? 'Guardar Ubicaciones' : 'Editar Ubicaciones'}
             </button>
             {isEditMode && (
-              <p className="text-[10px] text-blue-600 font-bold text-center animate-pulse">Arrastrá las mesas para reubicarlas en el plano.</p>
+              <p className="text-[10px] text-blue-600 font-bold text-center animate-pulse">Arrastrá las mesas para reubicarlas en el plano o seleccionalas para editarlas.</p>
             )}
           </div>
         </div>
@@ -586,16 +777,26 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
                         else toast.error('No podés unir una mesa que ya pertenece a otra unión.');
                       } else if (!isEditMode) {
                         handleToggleEstadoMesa(m.id_mesa);
+                      } else {
+                        handleStartEditFromPlano(m);
                       }
                     }}
-                    style={{ left: `${m.x}%`, top: `${m.y}%` }}
+                    style={{
+                      left: `${m.x}%`,
+                      top: `${m.y}%`,
+                      width: m.width ? `${m.width}%` : (m.forma === 'rectangular' ? '12%' : '8.5%'),
+                      height: m.height ? `${m.height}%` : (m.forma === 'rectangular' ? '6%' : '8.5%'),
+                      aspectRatio: m.forma === 'redonda' ? '1/1' : undefined
+                    }}
                     className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center transition-all duration-200 select-none ${
                       isEditMode ? 'cursor-move' : 'cursor-pointer'
-                    } ${
-                      m.forma === 'rectangular' ? 'w-[4.5rem] h-[2.5rem] sm:w-[5.5rem] sm:h-[3.2rem] rounded-xl' : 'w-12 h-12 sm:w-14 sm:h-14 rounded-full'
+                    } rounded-xl ${
+                      m.forma === 'redonda' ? 'rounded-full' : ''
                     } ${estilo.bg} ${estilo.border} border-2 ${estilo.color} ${estilo.shadow} shadow-md hover:shadow-lg ${
                       isSelected ? `ring-2 ring-offset-2 ${estilo.ring} z-20 scale-110` : 'hover:scale-105 z-10'
-                    } ${isDragging ? 'opacity-80 scale-110 z-30' : ''}`}
+                    } ${isDragging ? 'opacity-80 scale-110 z-30' : ''} ${
+                      editingMesaId === m.id_mesa ? 'ring-2 ring-blue-500 ring-offset-2 scale-105 z-20' : ''
+                    }`}
                   >
                     {/* Sillas realistas alrededor de la mesa */}
                     {m.forma === 'redonda' ? (

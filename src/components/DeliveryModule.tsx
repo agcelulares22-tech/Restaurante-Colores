@@ -140,12 +140,28 @@ function DeliveryModule({
   const routeLayerRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
-  // Load Leaflet library dynamically when the modal opens
+  // Cadet Live Tracking simulation states
+  const [trackingPedido, setTrackingPedido] = useState<Pedido | null>(null);
+  const [trackingEta, setTrackingEta] = useState<number>(0);
+  const [trackingProgress, setTrackingProgress] = useState<number>(0);
+  const trackingMapRef = useRef<any>(null);
+  const trackingIntervalRef = useRef<any>(null);
+  const trackingBikeMarkerRef = useRef<any>(null);
+
   useEffect(() => {
-    if (showNewOrderModal) {
+    return () => {
+      if (trackingIntervalRef.current) {
+        clearInterval(trackingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Load Leaflet library dynamically when the modal or tracking opens
+  useEffect(() => {
+    if (showNewOrderModal || trackingPedido) {
       const loadLeaflet = () => {
         if ((window as any).L) {
-          initMap();
+          if (showNewOrderModal) initMap();
           return;
         }
 
@@ -159,7 +175,7 @@ function DeliveryModule({
         const script = document.createElement('script');
         script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
         script.onload = () => {
-          initMap();
+          if (showNewOrderModal) initMap();
         };
         document.head.appendChild(script);
       };
@@ -394,6 +410,162 @@ function DeliveryModule({
     } finally {
       setIsEstimating(false);
     }
+  };
+
+  // Cadet Live Tracking Simulation functions
+  const handleStartTracking = async (pedido: Pedido) => {
+    setTrackingPedido(pedido);
+    setTrackingProgress(0);
+    const clientAddressVal = pedido.direccion_cliente || parseClientInfo(pedido.numero_mesa).address;
+    
+    const L = (window as any).L;
+    if (!L) {
+      toast.warning('El mapa aún se está cargando. Intente en un instante.');
+      return;
+    }
+    
+    // Give it 300ms to mount the #live-tracking-map div inside the modal
+    setTimeout(async () => {
+      try {
+        if (trackingMapRef.current) {
+          trackingMapRef.current.remove();
+          trackingMapRef.current = null;
+        }
+
+        // Initialize tracking map
+        trackingMapRef.current = L.map('live-tracking-map', {
+          zoomControl: true,
+          scrollWheelZoom: true
+        }).setView([origenLat, origenLng], 14);
+
+        // Add tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          maxZoom: 20
+        }).addTo(trackingMapRef.current);
+
+        // Add Origin Pizzeria Marker (Blue dot)
+        const pizzeriaIcon = L.divIcon({
+          className: 'custom-pizzeria-marker',
+          html: '<div style="background-color: #3B82F6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
+          iconSize: [12, 12]
+        });
+        L.marker([origenLat, origenLng], { icon: pizzeriaIcon })
+          .addTo(trackingMapRef.current)
+          .bindPopup('Pizzería Colores (Origen)');
+
+        // Geocode Client Destination
+        const searchAddr = clientAddressVal.includes('argentina') ? clientAddressVal : `${clientAddressVal}, Río Cuarto, Córdoba, Argentina`;
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
+        const geoData = await geoResp.json();
+        
+        if (!geoData || geoData.length === 0) {
+          throw new Error('No se pudo encontrar la geolocalización de la dirección de entrega.');
+        }
+
+        const destLat = parseFloat(geoData[0].lat);
+        const destLng = parseFloat(geoData[0].lon);
+
+        // Add Destination Marker (Red dot)
+        const destIcon = L.divIcon({
+          className: 'custom-dest-marker',
+          html: '<div style="background-color: #EF4444; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>',
+          iconSize: [14, 14]
+        });
+        L.marker([destLat, destLng], { icon: destIcon })
+          .addTo(trackingMapRef.current)
+          .bindPopup(`Destino: ${clientAddressVal}`);
+
+        // OSRM Routing
+        const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destLng},${destLat}?overview=full&geometries=geojson`);
+        const routeData = await routeResp.json();
+        
+        if (!routeData.routes || routeData.routes.length === 0) {
+          throw new Error('No se pudo trazar la ruta terrestre para el tracking.');
+        }
+
+        const route = routeData.routes[0];
+        const routeCoords = route.geometry.coordinates.map((c: any) => [c[1], c[0]]); // [lat, lng]
+        const estimatedDur = route.duration / 60; // in minutes
+        setTrackingEta(Math.round(estimatedDur));
+
+        // Draw Route Line
+        L.polyline(routeCoords, {
+          color: '#E8B800',
+          weight: 5,
+          opacity: 0.8,
+          lineJoin: 'round'
+        }).addTo(trackingMapRef.current);
+
+        // Fit bounds
+        trackingMapRef.current.fitBounds([
+          [origenLat, origenLng],
+          [destLat, destLng]
+        ], { padding: [50, 50] });
+
+        // Add Moving Bike Courier Marker
+        const bikeIcon = L.divIcon({
+          className: 'custom-bike-marker',
+          html: '<div style="background-color: #3E3228; color: #E8B800; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #E8B800; box-shadow: 0 0 8px rgba(0,0,0,0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 5.5 3-3-3-3M8.5 17.5 12 11.5h4.5"/></svg></div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const bikeMarker = L.marker([origenLat, origenLng], { icon: bikeIcon }).addTo(trackingMapRef.current);
+        trackingBikeMarkerRef.current = bikeMarker;
+
+        // Animate Courier along routeCoords
+        let currentStep = 0;
+        const totalSteps = routeCoords.length;
+
+        if (trackingIntervalRef.current) {
+          clearInterval(trackingIntervalRef.current);
+        }
+
+        trackingIntervalRef.current = setInterval(() => {
+          if (currentStep >= totalSteps) {
+            clearInterval(trackingIntervalRef.current);
+            setTrackingProgress(100);
+            setTrackingEta(0);
+            toast.success('¡El repartidor llegó a destino!');
+            return;
+          }
+
+          const currentCoord = routeCoords[currentStep];
+          bikeMarker.setLatLng(currentCoord);
+          
+          // Pan map to follow bike marker
+          if (trackingMapRef.current) {
+            trackingMapRef.current.panTo(currentCoord);
+          }
+
+          const progressPercent = (currentStep / totalSteps) * 100;
+          setTrackingProgress(Math.round(progressPercent));
+          
+          const remainingMinutes = estimatedDur * (1 - currentStep / totalSteps);
+          setTrackingEta(Math.max(1, Math.round(remainingMinutes)));
+
+          currentStep++;
+        }, 400);
+
+      } catch (err: any) {
+        console.error('Error starting live tracking simulation:', err);
+        toast.error(err.message || 'Error al iniciar mapa de seguimiento.');
+      }
+    }, 300);
+  };
+
+  const handleCloseTracking = () => {
+    if (trackingIntervalRef.current) {
+      clearInterval(trackingIntervalRef.current);
+      trackingIntervalRef.current = null;
+    }
+    if (trackingMapRef.current) {
+      trackingMapRef.current.remove();
+      trackingMapRef.current = null;
+    }
+    trackingBikeMarkerRef.current = null;
+    setTrackingPedido(null);
   };
 
   // Filter products for the modal cart builder
@@ -640,7 +812,8 @@ function DeliveryModule({
       formattedPhone = '54' + formattedPhone;
     }
     
-    const msg = `Hola *${clientNameVal}*! Tu pedido de *Colores Pizzería* está listo y el cadete ya salió hacia tu domicilio: *${clientAddressVal}*. ¡Gracias por elegirnos!`;
+    const trackingLink = `https://colores.menu/track/${pedido.id_pedido}`;
+    const msg = `Hola *${clientNameVal}*! Tu pedido de *Colores Pizzería* está listo y el cadete ya salió hacia tu domicilio: *${clientAddressVal}*. Podés seguir el recorrido en tiempo real acá: ${trackingLink} ¡Gracias por elegirnos!`;
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   };
@@ -1115,25 +1288,38 @@ function DeliveryModule({
                           
                           // Auto print dual tickets
                           await handlePrintDualTickets(p);
+
+                          // Auto start tracking simulation
+                          handleStartTracking(p);
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
                       >
                         <Bike className="w-3.5 h-3.5 fill-current" />
                         Despachar
                       </button>
                     )}
                     {p.estado_comanda === 'entregado' && (
-                      <button
-                        onClick={async () => {
-                          onFacturarMesa(p.id_pedido);
-                          // Auto print dual tickets
-                          await handlePrintDualTickets(p);
-                        }}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Entregado & Cobrar
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleStartTracking(p)}
+                          className="bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
+                        >
+                          <Compass className="w-3.5 h-3.5 animate-spin-slow" />
+                          Seguimiento
+                        </button>
+                        <button
+                          onClick={async () => {
+                            onFacturarMesa(p.id_pedido);
+                            // Auto print dual tickets
+                            await handlePrintDualTickets(p);
+                          }}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Entregado
+                        </button>
+                      </div>
                     )}
                     {p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado' && (
                       <button
@@ -1536,6 +1722,123 @@ function DeliveryModule({
                   </div>
                 </div>
               )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* CADET LIVE TRACKING MODAL */}
+      {trackingPedido && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4 font-sans">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={handleCloseTracking} />
+          
+          <div className="relative bg-[#F5F0E6] rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-[#3E3228]/20 animate-fadeIn">
+            {/* Header */}
+            <div className="p-4 bg-white border-b border-[#3E3228]/10 flex justify-between items-center">
+              <div>
+                <span className="text-[9px] font-black uppercase text-stone-400 font-mono tracking-widest">Seguimiento en Tiempo Real</span>
+                <h3 className="text-sm font-black text-stone-900 flex items-center gap-1.5 mt-0.5">
+                  <Bike className="w-4 h-4 text-[#E8B800] fill-current" />
+                  Orden #{trackingPedido.id_pedido} • En Viaje
+                </h3>
+              </div>
+              <button 
+                onClick={handleCloseTracking}
+                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors flex items-center justify-center text-stone-500 cursor-pointer border-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Map Container */}
+            <div className="p-4 bg-white">
+              <div id="live-tracking-map" className="w-full h-[320px] rounded-2xl border border-stone-200 shadow-inner z-0" />
+            </div>
+
+            {/* Tracking Stats and Info */}
+            <div className="p-5 space-y-4">
+              {/* Progress and ETA Bar */}
+              <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-bold uppercase tracking-wider">Estado del Envío</span>
+                    <strong className="text-xs text-stone-800 uppercase flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping shrink-0" />
+                      Repartidor en camino
+                    </strong>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-stone-400 block font-bold uppercase tracking-wider">Tiempo Estimado</span>
+                    <span className="text-sm font-black text-emerald-700 font-mono flex items-center gap-1 justify-end animate-pulse">
+                      <Clock className="w-4 h-4" />
+                      {trackingEta > 0 ? `Llegada en ${trackingEta} min` : '¡Llegando ahora!'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated Progress Bar */}
+                <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden relative">
+                  <div 
+                    className="bg-gradient-to-r from-[#E8B800] to-emerald-500 h-full rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${trackingProgress}%` }}
+                  />
+                </div>
+                
+                <div className="flex justify-between text-[10px] text-stone-500 font-bold font-mono">
+                  <span>Pizzería (Origen)</span>
+                  <span>{trackingProgress}% completado</span>
+                  <span>Domicilio (Destino)</span>
+                </div>
+              </div>
+
+              {/* Courier and Client Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Courier Details */}
+                <div className="bg-[#3E3228] text-[#F5F0E6] p-3 rounded-xl border border-[#3E3228] flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center text-[#E8B800] shrink-0 border border-[#E8B800]/20">
+                    <User className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-stone-400 block">Repartidor Asignado</span>
+                    <strong className="text-xs text-white">
+                      {trackingPedido.observaciones?.match(/Repartidor:\s*([^|]+)/)?.[1]?.trim() || 'Cadete Colores'}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Client Destination */}
+                <div className="bg-white p-3 rounded-xl border border-stone-200 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 shrink-0">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[9px] uppercase font-bold text-stone-400 block">Entregar en</span>
+                    <strong className="text-xs text-stone-800 block truncate">
+                      {trackingPedido.direccion_cliente || parseClientInfo(trackingPedido.numero_mesa).address}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="p-4 bg-white border-t border-[#3E3228]/10 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => handleSendWhatsApp(trackingPedido)}
+                className="px-4 py-2 bg-emerald-650 hover:bg-emerald-700 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0 flex items-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Aviso WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseTracking}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+              >
+                Cerrar Seguimiento
+              </button>
             </div>
 
           </div>

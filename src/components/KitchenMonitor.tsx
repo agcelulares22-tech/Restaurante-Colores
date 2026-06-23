@@ -202,10 +202,165 @@ function KitchenMonitor({
     setPrevActiveIds(activeOrderIds);
   }, [activeOrderIds]);
 
+
+  const [nowTime, setNowTime] = useState(Date.now());
+  const playedAlarmsRef = React.useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getOrderPrepTime = useCallback((pedido: Pedido) => {
+    let maxTime = 12; // 12 minutes default
+    pedido.items.forEach(item => {
+      const prod = productosMenu.find(p => p.id_producto === item.id_producto);
+      if (prod?.tiempo_preparacion_estimado && prod.tiempo_preparacion_estimado > 0) {
+        if (prod.tiempo_preparacion_estimado > maxTime) {
+          maxTime = prod.tiempo_preparacion_estimado;
+        }
+      }
+    });
+    return maxTime;
+  }, [productosMenu]);
+
+  const playOvenAlarm = useCallback(() => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+
+      // Tone 1: G5 (783.99 Hz)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(783.99, now);
+      gain1.gain.setValueAtTime(0.15, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+
+      // Tone 2: C6 (1046.50 Hz) a bit delayed
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1046.50, now + 0.15);
+      gain2.gain.setValueAtTime(0.15, now + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+
+      osc1.start(now);
+      osc1.stop(now + 0.4);
+      osc2.start(now + 0.15);
+      osc2.stop(now + 0.6);
+    } catch (err) {
+      console.warn('Audio alarm blocked or failed:', err);
+    }
+  }, []);
+
   const ordersPendientes = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'pendiente'), [activeKitchenOrders]);
-  const ordersEnCocina = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'en_cocina'), [activeKitchenOrders]);
+  const ordersEnCocinaRaw = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'en_cocina'), [activeKitchenOrders]);
+
+  const ordersEnCocinaSorted = useMemo(() => {
+    return [...ordersEnCocinaRaw].sort((a, b) => {
+      const tA = a.fecha_inicio_cocina ? new Date(a.fecha_inicio_cocina).getTime() : new Date(a.fecha_hora).getTime();
+      const tB = b.fecha_inicio_cocina ? new Date(b.fecha_inicio_cocina).getTime() : new Date(b.fecha_hora).getTime();
+      return tA - tB;
+    });
+  }, [ordersEnCocinaRaw]);
+  const ovenActive = useMemo(() => ordersEnCocinaSorted.slice(0, 6), [ordersEnCocinaSorted]);
+  const ovenQueue = useMemo(() => ordersEnCocinaSorted.slice(6), [ordersEnCocinaSorted]);
   const ordersListo = useMemo(() => activeKitchenOrders.filter(p => p.estado_comanda === 'listo'), [activeKitchenOrders]);
-  const renderTicket = (p: Pedido, estado: Pedido['estado_comanda']) => {
+  const ordersEnCocina = ordersEnCocinaSorted;
+  // Alerta sonora cuando llega a cero
+  useEffect(() => {
+    ovenActive.forEach(p => {
+      const durationSeconds = getOrderPrepTime(p) * 60;
+      const startTime = p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina).getTime() : new Date(p.fecha_hora).getTime();
+      const elapsedSeconds = Math.floor((nowTime - startTime) / 1000);
+      const remainingSeconds = Math.max(0, durationSeconds - elapsedSeconds);
+
+      if (remainingSeconds === 0) {
+        if (!playedAlarmsRef.current.has(p.id_pedido)) {
+          playedAlarmsRef.current.add(p.id_pedido);
+          playOvenAlarm();
+        }
+      }
+    });
+  }, [nowTime, ovenActive, getOrderPrepTime, playOvenAlarm]);
+
+  // Limpiar alarmas sonadas de pedidos que ya salieron de la cola activa
+  useEffect(() => {
+    const activeIds = new Set(ovenActive.map(o => o.id_pedido));
+    const played = playedAlarmsRef.current;
+    played.forEach(id => {
+      if (!activeIds.has(id)) {
+        played.delete(id);
+      }
+    });
+  }, [ovenActive]);
+
+  const renderCircularTimer = (p: Pedido) => {
+    const durationMinutes = getOrderPrepTime(p);
+    const durationSeconds = durationMinutes * 60;
+    const startTime = p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina).getTime() : new Date(p.fecha_hora).getTime();
+    const elapsedSeconds = Math.floor((nowTime - startTime) / 1000);
+    const remainingSeconds = Math.max(0, durationSeconds - elapsedSeconds);
+
+    const min = Math.floor(remainingSeconds / 60);
+    const sec = remainingSeconds % 60;
+    const timeString = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+
+    // SVG Circular Progress
+    const radius = 16;
+    const strokeWidth = 3.5;
+    const circumference = 2 * Math.PI * radius; // ~100.5
+    const progressPercent = Math.min(1, remainingSeconds / durationSeconds);
+    const strokeDashoffset = progressPercent * circumference;
+
+    const isAlarm = remainingSeconds === 0;
+
+    return (
+      <div className="flex items-center gap-2.5 bg-[#FFF9E6] border border-[#E8B800]/30 p-2.5 rounded-xl mt-2">
+        <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
+          <svg className="w-full h-full -rotate-90">
+            <circle
+              cx="18"
+              cy="18"
+              r={radius}
+              className="stroke-[#E8B800]/15 fill-none"
+              strokeWidth={strokeWidth}
+            />
+            <circle
+              cx="18"
+              cy="18"
+              r={radius}
+              className={`${isAlarm ? 'stroke-red-500 animate-pulse' : 'stroke-[#E85D00]'} fill-none`}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className={`absolute text-[9px] font-mono font-black ${isAlarm ? 'text-red-600 animate-ping' : 'text-[#2D3436]'}`}>
+            {isAlarm ? '⏰' : timeString}
+          </span>
+        </div>
+        <div className="flex flex-col leading-none">
+          <span className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Cuenta Regresiva</span>
+          <span className={`text-[11px] font-black mt-0.5 ${isAlarm ? 'text-red-600 animate-pulse' : 'text-stone-700'}`}>
+            {isAlarm ? '¡RETIRAR DEL HORNO!' : `${min}m ${sec}s restantes`}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTicket = (p: Pedido, estado: Pedido['estado_comanda'], isActiveInOven?: boolean) => {
     const sem = estado === 'pendiente' || estado === 'en_cocina' ? getSemaforoInfo(p.minutos_transcurridos, p) : null;
     const cold = estado === 'listo' && isColdPlate(p);
     const holdMinutes = estado === 'listo' ? Math.floor((p.segundos_en_listo ?? 0) / 60) : 0;
@@ -345,6 +500,22 @@ function KitchenMonitor({
             </div>
           )}
 
+          {estado === 'en_cocina' && (
+            <div className="pt-2 border-t border-stone-100">
+              {isActiveInOven ? (
+                renderCircularTimer(p)
+              ) : (
+                <div className="flex items-center gap-2 bg-stone-100 border border-stone-200 px-3 py-2 rounded-xl text-stone-600">
+                  <Clock className="w-4.5 h-4.5 text-stone-400 animate-pulse" />
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[9px] font-black uppercase text-stone-400">Cola de Espera</span>
+                    <span className="text-xs font-bold text-stone-600">En fila (Horno lleno)...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {p.observaciones && (
             <div className="bg-[#F5F5F5] text-[#2D3436] text-xs p-3 rounded-xl border border-[#E8B800]/20 italic font-medium leading-relaxed">
               <strong className="text-[10px] uppercase font-black tracking-wider text-[#E85D00] block mb-0.5">
@@ -362,11 +533,13 @@ function KitchenMonitor({
               {optimisticUpdates.get(p.id_pedido)?.estado === 'en_cocina' && optimisticUpdates.get(p.id_pedido)?.updating ? (
                 <><RefreshCw className="w-4 h-4 animate-spin" /> Actualizando...</>
               ) : (
-                <><Flame className="w-4 h-4" /> Iniciar Horno</>
+                <>
+                  <Flame className="w-4 h-4" />
+                  {ordersEnCocinaRaw.length >= 6 ? 'Iniciar (Encolar en Horno)' : 'Iniciar Horno'}
+                </>
               )}
             </button>
           )}
-
           {estado === 'en_cocina' && (
             <button
               onClick={() => handleOptimisticStatus(p.id_pedido, 'listo')}
@@ -412,7 +585,6 @@ function KitchenMonitor({
       </div>
     );
   };
-
   const renderColumn = (estado: Pedido['estado_comanda'], title: string, icon: React.ReactNode, headerClass: string, orders: Pedido[]) => {
     const isEmpty = orders.length === 0;
     const emptyMessages = {
@@ -420,6 +592,51 @@ function KitchenMonitor({
       en_cocina: { text: 'Sin pizzas en el Horno', Icon: Flame },
       listo: { text: 'Sin pizzas listas para servir', Icon: Utensils }
     };
+
+    if (estado === 'en_cocina') {
+      const activeCount = ovenActive.length;
+      return (
+        <div className="space-y-4">
+          <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] bg-white text-[#1A1A1A] shadow-sm ${headerClass}`}>
+            <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-[#1A1A1A]">
+              {icon}
+              {title}
+            </h4>
+            <span className={`text-[11px] font-black font-mono px-3 py-1 rounded-full flex items-center justify-center shadow-sm border ${activeCount === 0 ? 'bg-[#F5F5F5] text-[#6B7280] border-[#E8B800]/30' : 'bg-[#E85D00] text-white border-[#E85D00]'}`}>
+              {activeCount}/6 Horno
+            </span>
+          </div>
+
+          <div className="space-y-5 max-h-[700px] overflow-y-auto pr-1">
+            {/* Activas en Horno */}
+            <div className="space-y-3">
+              <div className="text-[10px] font-black uppercase text-[#E85D00] tracking-widest flex items-center gap-1.5 px-1">
+                <Flame className="w-3.5 h-3.5 text-[#E85D00] animate-pulse" />
+                En Horno Activas ({activeCount})
+              </div>
+              {ovenActive.length === 0 ? (
+                <div className="h-24 border-2 border-dashed border-[#E8B800]/30 bg-white rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-sm">
+                  <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Horno Vacío</p>
+                </div>
+              ) : (
+                ovenActive.map(p => renderTicket(p, estado, true))
+              )}
+            </div>
+
+            {/* Cola de Espera */}
+            {ovenQueue.length > 0 && (
+              <div className="space-y-3 pt-3 border-t border-[#E85D00]/20">
+                <div className="text-[10px] font-black uppercase text-stone-500 tracking-widest flex items-center gap-1.5 px-1">
+                  <Clock className="w-3.5 h-3.5 text-stone-400" />
+                  Cola de Espera ({ovenQueue.length})
+                </div>
+                {ovenQueue.map(p => renderTicket(p, estado, false))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-4">
@@ -449,7 +666,6 @@ function KitchenMonitor({
       </div>
     );
   };
-
   return (
     <div className="space-y-5 bg-[#FAFAFA] p-4 rounded-[24px]" id="kitchen-monitor-container">
 

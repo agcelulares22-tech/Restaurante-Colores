@@ -569,8 +569,7 @@ export function useCaja({
     let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction);
     let propinaValue = baseTotal * (propinaPorcentaje / 100);
     let ivaValue = baseTotal * 0.21;
-    let finalTotal = Math.max(0, baseTotal + propinaValue - puntosRedimidos);
-
+    let finalTotal = Math.max(0, baseTotal + propinaValue - (puntosRedimidos * 10));
     return {
       subtotal,
       promoDeduction,
@@ -821,9 +820,8 @@ export function useCaja({
       clienteDniCuit: selectedCliente ? selectedCliente.dni_cuit : cuitCliente,
       puntosCanjeados: puntosRedimidos,
       puntosGanados: selectedCliente ? Math.round(orderBreakdowns.finalTotal * 0.05) : 0,
-      descuentoFidelidad: puntosRedimidos
+      descuentoFidelidad: puntosRedimidos * 10
     };
-
     const idFactura = `fac_${Date.now()}`;
     const mappedMedio = pays.map(p => p.metodo.toUpperCase()).join(' + ');
 

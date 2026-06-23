@@ -204,6 +204,68 @@ export default function PanelDashboard({
     mixto: '#A8A29E'
   };
 
+  // Waiter performance metrics
+  const waiterStats = useMemo(() => {
+    const stats: Record<string, { mozo: string; totalFacturado: number; count: number; totalTiempo: number }> = {};
+    pedidosCobrados.forEach(p => {
+      if (p.origen !== 'Mozo' || p.numero_mesa.startsWith('DELIVERY:')) return;
+      const mozoName = p.mozo || 'Sin Asignar';
+      if (!stats[mozoName]) {
+        stats[mozoName] = { mozo: mozoName, totalFacturado: 0, count: 0, totalTiempo: 0 };
+      }
+      const total = calcularTotalPedido(p);
+      const tiempo = p.tiempo_despacho_minutos || (15 + (p.id_pedido % 12));
+      stats[mozoName].totalFacturado += total;
+      stats[mozoName].count += 1;
+      stats[mozoName].totalTiempo += tiempo;
+    });
+
+    return Object.values(stats).map(s => ({
+      mozo: s.mozo,
+      totalFacturado: s.totalFacturado,
+      avgTime: s.count > 0 ? parseFloat((s.totalTiempo / s.count).toFixed(1)) : 0,
+      count: s.count
+    })).sort((a, b) => b.totalFacturado - a.totalFacturado);
+  }, [pedidosCobrados]);
+
+  // Courier performance metrics
+  const courierStats = useMemo(() => {
+    const stats: Record<string, { cadete: string; totalEntregas: number; totalTiempo: number }> = {};
+    
+    pedidos.forEach(p => {
+      const isDelivery = p.origen === 'Rappi' || p.origen === 'PedidosYa' || p.numero_mesa.startsWith('DELIVERY:');
+      if (!isDelivery) return;
+      
+      const courierMatch = p.observaciones?.match(/Repartidor:\s*([^|]+)/);
+      const cadeteName = courierMatch ? courierMatch[1].trim() : (p.origen !== 'Mozo' ? p.origen : 'Cadete Colores');
+
+      if (!stats[cadeteName]) {
+        stats[cadeteName] = { cadete: cadeteName, totalEntregas: 0, totalTiempo: 0 };
+      }
+      
+      const tiempo = p.tiempo_despacho_minutos || (18 + (p.id_pedido % 15));
+      stats[cadeteName].totalEntregas += 1;
+      stats[cadeteName].totalTiempo += tiempo;
+    });
+
+    return Object.values(stats).map(s => ({
+      cadete: s.cadete,
+      totalEntregas: s.totalEntregas,
+      avgTime: s.totalEntregas > 0 ? parseFloat((s.totalTiempo / s.totalEntregas).toFixed(1)) : 0
+    })).sort((a, b) => b.totalEntregas - a.totalEntregas);
+  }, [pedidos]);
+
+  // Max limits for charts
+  const maxWaiterSales = useMemo(() => {
+    const vals = waiterStats.map(w => w.totalFacturado);
+    return vals.length > 0 ? Math.max(...vals, 1000) : 1000;
+  }, [waiterStats]);
+
+  const maxCourierDeliveries = useMemo(() => {
+    const vals = courierStats.map(c => c.totalEntregas);
+    return vals.length > 0 ? Math.max(...vals, 1) : 1;
+  }, [courierStats]);
+
   return (
         <div className="space-y-6">
         
@@ -481,6 +543,97 @@ export default function PanelDashboard({
                       ) : (
                           <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8">
                               Sin facturas emitidas en este turno
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+
+          {/* ── BI EMPLEADOS (MOZOS Y CADETES) ───────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Rendimiento Mozos */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col font-sans">
+                  <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-[#E8B800]" />
+                          <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Productividad de Mozos</h4>
+                      </div>
+                      <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">Atención en Salón</span>
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col justify-between">
+                      {waiterStats.length > 0 ? (
+                          <div className="space-y-4">
+                              <svg viewBox="0 0 320 140" className="w-full h-auto">
+                                  {waiterStats.slice(0, 4).map((w, i) => {
+                                      const y = 8 + i * 32;
+                                      const barWidth = maxWaiterSales > 0 ? (w.totalFacturado / maxWaiterSales) * 320 : 0;
+                                      return (
+                                          <g key={i}>
+                                              {/* Waiter Name & Info */}
+                                              <text x="0" y={y + 10} className="fill-stone-800 font-sans font-bold text-[10px]">
+                                                  {w.mozo}
+                                              </text>
+                                              {/* Stats text */}
+                                              <text x="320" y={y + 10} textAnchor="end" className="fill-stone-500 font-mono text-[9px]">
+                                                  {w.count} ped. · {w.avgTime} min prom · <tspan className="font-black text-[#E85D00]">${w.totalFacturado.toLocaleString('es-AR')}</tspan>
+                                              </text>
+                                              {/* Bar Background */}
+                                              <rect x="0" y={y + 16} width="320" height="6" rx="3" fill="#F5F0E6" />
+                                              {/* Bar Active */}
+                                              <rect x="0" y={y + 16} width={barWidth} height="6" rx="3" fill="#E8B800" />
+                                          </g>
+                                      );
+                                  })}
+                              </svg>
+                          </div>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-10 italic">
+                              Sin pedidos cobrados por mozos en este turno
+                          </div>
+                      )}
+                  </div>
+              </div>
+
+              {/* Rendimiento Cadetes */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col font-sans">
+                  <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                          <ChefHat className="w-4 h-4 text-brand-orange" />
+                          <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Desempeño de Cadetes</h4>
+                      </div>
+                      <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">Entregas de Delivery</span>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between">
+                      {courierStats.length > 0 ? (
+                          <div className="space-y-4">
+                              <svg viewBox="0 0 320 140" className="w-full h-auto">
+                                  {courierStats.slice(0, 4).map((c, i) => {
+                                      const y = 8 + i * 32;
+                                      const barWidth = maxCourierDeliveries > 0 ? (c.totalEntregas / maxCourierDeliveries) * 320 : 0;
+                                      return (
+                                          <g key={i}>
+                                              {/* Courier Name & Info */}
+                                              <text x="0" y={y + 10} className="fill-stone-800 font-sans font-bold text-[10px]">
+                                                  {c.cadete}
+                                              </text>
+                                              {/* Stats text */}
+                                              <text x="320" y={y + 10} textAnchor="end" className="fill-stone-500 font-mono text-[9px]">
+                                                  {c.avgTime} min prom · <tspan className="font-black text-[#E85D00]">{c.totalEntregas} envíos</tspan>
+                                              </text>
+                                              {/* Bar Background */}
+                                              <rect x="0" y={y + 16} width="320" height="6" rx="3" fill="#F5F0E6" />
+                                              {/* Bar Active */}
+                                              <rect x="0" y={y + 16} width={barWidth} height="6" rx="3" fill="#E85D00" />
+                                          </g>
+                                      );
+                                  })}
+                              </svg>
+                          </div>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-10 italic">
+                              Sin pedidos asignados a repartidores en este turno
                           </div>
                       )}
                   </div>

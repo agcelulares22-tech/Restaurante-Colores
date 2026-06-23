@@ -51,6 +51,8 @@ export const mesasService = {
       comensales: m.comensales || null,
       capacidad: m.capacidad || 4,
       zona: m.zona || 'salon',
+      sector: m.sector || 'salon',
+      forma: m.forma || 'redonda',
       x: m.x ?? null,
       y: m.y ?? null,
       width: m.width ?? null,
