@@ -55,6 +55,7 @@ export function useMozoTerminal({
   toast
 }: UseMozoTerminalProps) {
   const checkoutInFlightRef = useRef(false);
+  const cartMesaIdRef = useRef<number | null>(null);
 
   // States
   const [selectedMesaId, setSelectedMesaId] = useState<number | null>(null);
@@ -132,6 +133,9 @@ export function useMozoTerminal({
   // Sync draft to storage on change
   useEffect(() => {
     if (!selectedMesaId) return;
+    // Evitar guardar estado viejo en la nueva mesa durante la transición de estados
+    if (selectedMesaId !== cartMesaIdRef.current) return;
+
     writeMozoCartDraft(selectedMesaId, {
       cart,
       observaciones,
@@ -153,6 +157,10 @@ export function useMozoTerminal({
 
     const draft = readMozoCartDraft(mesa.id_mesa);
     const validatedDraft = draft ? getValidCartFromDraft(draft.cart) : { cart: {}, removed: [] };
+    
+    // Sincronizar referencia de la mesa actual para el guardado de borradores
+    cartMesaIdRef.current = mesa.id_mesa;
+    
     setSelectedMesaId(mesa.id_mesa);
     setCart(validatedDraft.cart);
     setObservaciones(draft?.observaciones ?? '');
