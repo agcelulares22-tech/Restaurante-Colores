@@ -889,7 +889,12 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
     const orderIds = ordersToBill.map(o => o.id_pedido);
 
-    setPedidos(prev => prev.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' } : p));
+    const updatedPedidos = pedidos.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' as const } : p);
+    setPedidos(updatedPedidos);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(updatedPedidos));
+    }
 
     const updatedMesas = mesas.map(m => {
       const matchId = (m.id_mesa !== undefined && m.id_mesa !== null && target.id_mesa !== undefined && target.id_mesa !== null && String(m.id_mesa) === String(target.id_mesa));

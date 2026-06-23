@@ -4,9 +4,11 @@ import {
   DollarSign, CheckCircle2, AlertCircle, Trash2, 
   ShoppingBag, Clipboard, Send, Compass, User, Map as MapIcon, HelpCircle
 } from 'lucide-react';
-import { Pedido, ProductoMenu, PedidoItem, ZonaEnvio, CalleEnvio } from '../types';
+import { Pedido, ProductoMenu, PedidoItem, ZonaEnvio, CalleEnvio, TicketData } from '../types';
 import { useToast } from './ToastContainer';
 import { fetchZonasEnvio, fetchCallesEnvio, resolverZonaEnvio } from '../services/zonasEnvioService';
+import { printerService } from '../services/printerService';
+import { pdfService } from '../services/pdfService';
 
 interface DeliveryModuleProps {
   pedidos: Pedido[];
@@ -39,6 +41,7 @@ export default function DeliveryModule({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [channelFilter, setChannelFilter] = useState<string>('todos');
+  const [activeTab, setActiveTab] = useState<'activas' | 'historial'>('activas');
   
   // Configuración de tarifas (Dueño)
   const [tarifaBase, setTarifaBase] = useState<number>(() => {
@@ -403,6 +406,13 @@ export default function DeliveryModule({
       const isDelivery = p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa';
       if (!isDelivery) return false;
 
+      // Filter by active vs history tab
+      if (activeTab === 'activas') {
+        if (p.estado_comanda === 'entregado_cobrado' || p.estado_comanda === 'cancelado') return false;
+      } else {
+        if (p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado') return false;
+      }
+
       // Filter by state
       if (statusFilter !== 'todos') {
         if (statusFilter === 'pendiente' && p.estado_comanda !== 'pendiente') return false;
@@ -430,7 +440,7 @@ export default function DeliveryModule({
 
       return true;
     });
-  }, [pedidos, searchQuery, statusFilter, channelFilter]);
+  }, [pedidos, searchQuery, statusFilter, channelFilter, activeTab]);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -598,6 +608,87 @@ export default function DeliveryModule({
     window.open(url, '_blank');
   };
 
+  const handlePrintDeliveryTicket = async (pedido: Pedido, copyName: string = 'COPIA REPARTIDOR') => {
+    try {
+      const printerConfig = printerService.getDefaultConfig();
+      const savedRestaurant = localStorage.getItem('el_patron_restaurante');
+      const restaurante = savedRestaurant ? JSON.parse(savedRestaurant) : {
+        nombreComercial: 'Pizzería Colores',
+        razonSocial: 'Pizzería Colores S.A.S.',
+        cuit: '30-71649251-4',
+        direccion: 'Alvear 1362, Río Cuarto',
+        telefono: '+54 358 4123456',
+        email: 'contacto@pizzeriacolores.com.ar',
+        condicionIva: 'Responsable Inscripto',
+        mensajePie: '¡Gracias por elegir Pizzería Colores!'
+      };
+
+      const clientParsed = parseClientInfo(pedido.numero_mesa);
+      const client = {
+        name: pedido.nombre_cliente || clientParsed.name,
+        address: pedido.direccion_cliente || clientParsed.address,
+        phone: pedido.telefono_cliente || pedido.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || ''
+      };
+
+      const ticketItems = pedido.items.map(it => {
+        const prod = productosMenu.find(pm => pm.id_producto === it.id_producto);
+        const uni = it.precio_unitario ?? prod?.precio_venta ?? 0;
+        return {
+          cantidad: it.cantidad,
+          descripcion: it.nombre,
+          precio_unitario: uni,
+          subtotal: it.cantidad * uni
+        };
+      });
+
+      const subtotalVal = ticketItems.reduce((s, it) => s + it.subtotal, 0);
+      const deliveryItem = pedido.items.find(item => item.id_producto === 'prod_costo_envio_delivery');
+      const shippingFee = pedido.costo_envio || (deliveryItem ? (deliveryItem.precio_unitario ?? 0) : 0);
+      const totalVal = subtotalVal + (pedido.costo_envio ? 0 : shippingFee);
+
+      const dataTicket: TicketData = {
+        nombreComercial: restaurante.nombreComercial,
+        razonSocial: restaurante.razonSocial,
+        cuit: restaurante.cuit,
+        direccion: restaurante.direccion,
+        telefono: restaurante.telefono,
+        email: restaurante.email,
+        nroComprobante: `DEL-${pedido.id_pedido}-${Date.now().toString().slice(-4)}`,
+        idPedido: pedido.id_pedido,
+        mesa: `DELIVERY - ${copyName}`,
+        mozo: pedido.mozo || 'Consola',
+        cajero: activeMozo || 'Cajero',
+        fechaHora: new Date(pedido.fecha_hora).toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs',
+        items: ticketItems,
+        subtotal: subtotalVal,
+        descuento: 0,
+        propina: 0,
+        iva: subtotalVal * 0.21,
+        total: totalVal,
+        metodosPago: [{ metodo: 'Efectivo/Pendiente', monto: totalVal }],
+        vuelto: 0,
+        tipoComprobante: 'ticket_consumo',
+        mensajePie: `${restaurante.mensajePie}\nDirección: ${client.address}\nTel: ${client.phone}`
+      };
+
+      await printerService.sendToPrinter(dataTicket, printerConfig);
+      await pdfService.exportToPDF(dataTicket);
+    } catch (err: any) {
+      console.error('Error in print delivery ticket:', err);
+    }
+  };
+
+  const handlePrintDualTickets = async (pedido: Pedido) => {
+    toast.info('Imprimiendo copia para el Repartidor...');
+    await handlePrintDeliveryTicket(pedido, 'COPIA REPARTIDOR / CLIENTE');
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    toast.info('Imprimiendo copia para la Pizzería...');
+    await handlePrintDeliveryTicket(pedido, 'COPIA PIZZERIA (INTERNO)');
+    toast.success('Doble ticket enviado a la impresora.');
+  };
+
   return (
     <div className="space-y-6" id="delivery-module-root">
       
@@ -721,8 +812,32 @@ export default function DeliveryModule({
         </div>
       </div>
 
+      {/* TABS SELECTOR */}
+      <div className="flex border-b border-stone-200 bg-white p-1 rounded-t-xl">
+        <button
+          onClick={() => { setActiveTab('activas'); setStatusFilter('todos'); }}
+          className={`py-3 px-6 font-black text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer rounded-t-lg ${
+            activeTab === 'activas'
+              ? 'border-brand-yellow text-stone-900 bg-brand-yellow/5'
+              : 'border-transparent text-stone-450 hover:text-stone-700'
+          }`}
+        >
+          Entregas Activas ({pedidos.filter(p => (p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa') && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado').length})
+        </button>
+        <button
+          onClick={() => { setActiveTab('historial'); setStatusFilter('todos'); }}
+          className={`py-3 px-6 font-black text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer rounded-t-lg ${
+            activeTab === 'historial'
+              ? 'border-brand-yellow text-stone-900 bg-brand-yellow/5'
+              : 'border-transparent text-stone-450 hover:text-stone-700'
+          }`}
+        >
+          Historial de Pedidos ({pedidos.filter(p => (p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa') && (p.estado_comanda === 'entregado_cobrado' || p.estado_comanda === 'cancelado')).length})
+        </button>
+      </div>
+
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs flex flex-col md:flex-row gap-3 justify-between items-center">
+      <div className="bg-white p-4 rounded-b-xl rounded-tr-xl border-t-0 border border-stone-200/80 shadow-xs flex flex-col md:flex-row gap-3 justify-between items-center">
         
         {/* Search */}
         <div className="relative w-full md:w-80">
@@ -741,14 +856,20 @@ export default function DeliveryModule({
           
           {/* Status Filters */}
           <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
-            {[
-              { id: 'todos', label: 'Todos' },
-              { id: 'pendiente', label: 'Pendiente' },
-              { id: 'en_cocina', label: 'En Horno' },
-              { id: 'listo', label: 'Listos' },
-              { id: 'viaje', label: 'En Viaje' },
-              { id: 'entregado_cobrado', label: 'Cobrados' }
-            ].map(f => (
+            {(activeTab === 'activas'
+              ? [
+                  { id: 'todos', label: 'Todos' },
+                  { id: 'pendiente', label: 'Pendiente' },
+                  { id: 'en_cocina', label: 'En Horno' },
+                  { id: 'listo', label: 'Listos' },
+                  { id: 'viaje', label: 'En Viaje' }
+                ]
+              : [
+                  { id: 'todos', label: 'Todos' },
+                  { id: 'entregado_cobrado', label: 'Entregados' },
+                  { id: 'cancelado', label: 'Cancelados' }
+                ]
+            ).map(f => (
               <button
                 key={f.id}
                 onClick={() => setStatusFilter(f.id)}
@@ -915,6 +1036,14 @@ export default function DeliveryModule({
                       </button>
                     )}
 
+                    <button
+                      onClick={() => handlePrintDualTickets(p)}
+                      className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border border-stone-200"
+                      title="Imprimir Copia Repartidor y Local"
+                    >
+                      Imprimir
+                    </button>
+
                     {p.estado_comanda === 'pendiente' && (
                       <button
                         onClick={() => onCambiarEstadoPedido(p.id_pedido, 'en_cocina')}
@@ -933,7 +1062,7 @@ export default function DeliveryModule({
                     )}
                     {p.estado_comanda === 'listo' && (
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const courier = prompt("Nombre del Repartidor asignado:", "Repartidor 1");
                           if (courier === null) return;
                           
@@ -946,6 +1075,9 @@ export default function DeliveryModule({
                           p.observaciones = updatedObs;
                           onCambiarEstadoPedido(p.id_pedido, 'entregado');
                           toast.success(`Pedido #${p.id_pedido} despachado con repartidor: ${courier}`);
+                          
+                          // Auto print dual tickets
+                          await handlePrintDualTickets(p);
                         }}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                       >
@@ -955,8 +1087,10 @@ export default function DeliveryModule({
                     )}
                     {p.estado_comanda === 'entregado' && (
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           onFacturarMesa(p.id_pedido);
+                          // Auto print dual tickets
+                          await handlePrintDualTickets(p);
                         }}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                       >
