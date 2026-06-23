@@ -187,6 +187,16 @@ export const pdfService = {
       if (y > 245) {
         doc.addPage();
         y = 18;
+        doc.setFillColor(...BRAND.brown);
+        doc.rect(margin, y, 182, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.text('Cant.', margin + 3, y + 5.5);
+        doc.text('Producto', margin + 20, y + 5.5);
+        doc.text('Unitario', margin + 142, y + 5.5, { align: 'right' });
+        doc.text('Subtotal', margin + 178, y + 5.5, { align: 'right' });
+        y += 9;
+        doc.setTextColor(...BRAND.dark);
       }
       if (i % 2 === 1) {
         doc.setFillColor(250, 248, 245);
@@ -202,6 +212,10 @@ export const pdfService = {
     });
 
     y += 4;
+    if (y > 200) {
+      doc.addPage();
+      y = 18;
+    }
     doc.setDrawColor(...BRAND.line);
     doc.line(margin, y, margin + 182, y);
     y += 8;
@@ -237,16 +251,28 @@ export const pdfService = {
     doc.text(money(data.total), totalValueX, y + 1, { align: 'right' });
     y += 18;
 
+    if (y > 220) {
+      doc.addPage();
+      y = 18;
+    }
     doc.setTextColor(...BRAND.dark);
     doc.setFontSize(8.5);
     doc.text('Medios de pago', margin, y);
     y += 5;
     doc.setFont('helvetica', 'normal');
     data.metodosPago.forEach(mp => {
+      if (y > 245) {
+        doc.addPage();
+        y = 18;
+      }
       doc.text(`${mp.metodo.toUpperCase()}: ${money(mp.monto)}`, margin, y);
       y += 5;
     });
     if (data.vuelto > 0) {
+      if (y > 245) {
+        doc.addPage();
+        y = 18;
+      }
       doc.text(`Vuelto efectivo: ${money(data.vuelto)}`, margin, y);
       y += 5;
     }
@@ -532,6 +558,21 @@ export const pdfService = {
       doc.setFont('helvetica', 'normal');
       movimientos.forEach((m: any, idx: number) => {
         const rowHeight = 7;
+        if (y > 270) {
+          doc.addPage();
+          y = 14;
+          doc.setFillColor(...BRAND.brown);
+          doc.rect(margin, y, 182, 7, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.text('Fecha/Hora', margin + 4, y + 5);
+          doc.text('Concepto / Descripción', margin + 45, y + 5);
+          doc.text('Tipo', margin + 130, y + 5);
+          doc.text('Monto ($)', margin + 178, y + 5, { align: 'right' });
+          y += 7;
+          doc.setTextColor(...BRAND.dark);
+          doc.setFont('helvetica', 'normal');
+        }
         if (idx % 2 === 1) {
           doc.setFillColor(250, 248, 245);
           doc.rect(margin, y, 182, rowHeight, 'F');
@@ -575,12 +616,26 @@ export const pdfService = {
       medios.forEach((m, idx) => {
         const val = (data.registros_totales as any)[m.key] || 0;
         const rowHeight = 7;
+        if (y > 270) {
+          doc.addPage();
+          y = 14;
+          doc.setFillColor(...BRAND.brown);
+          doc.rect(margin, y, 182, 7, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.text('Medio de Pago', margin + 4, y + 5);
+          doc.text('Total Acumulado ($)', margin + 178, y + 5, { align: 'right' });
+          y += 7;
+          doc.setTextColor(...BRAND.dark);
+          doc.setFont('helvetica', 'normal');
+        }
         if (idx % 2 === 1) {
           doc.setFillColor(250, 248, 245);
           doc.rect(margin, y, 182, rowHeight, 'F');
         }
         doc.text(m.label, margin + 4, y + 5);
         doc.text(money(val), margin + 178, y + 5, { align: 'right' });
+        y += rowHeight;
       });
       y += 6;
     }
@@ -613,6 +668,16 @@ export const pdfService = {
         if (y > 270) {
           doc.addPage();
           y = 14;
+          doc.setFillColor(...BRAND.brown);
+          doc.rect(margin, y, 182, 7, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.text('Artículo / Producto', margin + 4, y + 5);
+          doc.text('Cant.', margin + 130, y + 5, { align: 'right' });
+          doc.text('Total Acumulado ($)', margin + 178, y + 5, { align: 'right' });
+          y += 7;
+          doc.setTextColor(...BRAND.dark);
+          doc.setFont('helvetica', 'normal');
         }
         if (idx % 2 === 1) {
           doc.setFillColor(250, 248, 245);
@@ -627,6 +692,10 @@ export const pdfService = {
     }
 
     // Observations
+    if (y > 220) {
+      doc.addPage();
+      y = 14;
+    }
     doc.setTextColor(...BRAND.dark);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
@@ -642,6 +711,10 @@ export const pdfService = {
     y += (splitObs.length * 4) + 18;
 
     // Signature Lines
+    if (y > 260) {
+      doc.addPage();
+      y = 30;
+    }
     doc.setDrawColor(...BRAND.line);
     doc.line(margin + 10, y, margin + 70, y);
     doc.line(margin + 110, y, margin + 170, y);
