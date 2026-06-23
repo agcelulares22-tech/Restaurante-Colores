@@ -57,10 +57,13 @@ export const getSupabaseConfig = (): SupabaseConfig => {
     localKey = '';
   }
 
-  return resolveSupabaseConfig(env, {
-    SUPABASE_URL: localUrl || defaultUrl,
-    SUPABASE_ANON_KEY: localKey || defaultKey,
-  });
+  const envUrl = readEnvString(env, 'VITE_SUPABASE_URL');
+  const envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') || readEnvString(env, 'VITE_SUPABASE_ANON_KEY');
+
+  const url = localUrl || envUrl || defaultUrl;
+  const key = localKey || envKey || defaultKey;
+
+  return { url: normalizeSupabaseUrl(url), key: key.trim() };
 };
 
 export const hasSupabaseConfig = (config = getSupabaseConfig()) => {
