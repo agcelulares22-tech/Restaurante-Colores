@@ -122,7 +122,8 @@ CREATE TABLE public.registro_asistencia (
     latitud NUMERIC,
     longitud NUMERIC,
     precision NUMERIC,
-    dispositivo TEXT
+    dispositivo TEXT,
+    direccion TEXT
 );
 
 -- Tabla de Pedidos / Comandas (Cabecera)

@@ -30,6 +30,39 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
   const [locationStatus, setLocationStatus] = useState<'requesting' | 'success' | 'error'>('requesting');
   const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
   const [gpsErrorMsg, setGpsErrorMsg] = useState('');
+  const [direccionResolvida, setDireccionResolvida] = useState<string>('');
+
+  // Helper function to convert lat/lng to street address using Nominatim (OpenStreetMap)
+  const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,
+        {
+          headers: {
+            'Accept-Language': 'es',
+            'User-Agent': 'ColoresPizzeriaAttendanceModule/1.0'
+          }
+        }
+      );
+      if (!response.ok) throw new Error('Network error');
+      const data = await response.json();
+      if (data && data.address) {
+        const road = data.address.road || data.address.pedestrian || data.address.suburb || '';
+        const houseNumber = data.address.house_number || '';
+        if (road && houseNumber) {
+          return `${road} ${houseNumber}`;
+        } else if (road) {
+          return `${road} (Sin altura)`;
+        } else if (data.display_name) {
+          return data.display_name.split(',')[0];
+        }
+      }
+      return 'Dirección no identificada';
+    } catch (e) {
+      console.error('Error reverse geocoding:', e);
+      return 'Error al obtener dirección';
+    }
+  };
 
   // Filtering states
   const [filterEmpleado, setFilterEmpleado] = useState<string>('todos');
@@ -59,13 +92,21 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       return;
     }
 
-    const successCallback = (position: GeolocationPosition) => {
+    const successCallback = async (position: GeolocationPosition) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
       setCoords({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
+        latitude: lat,
+        longitude: lon,
         accuracy: position.coords.accuracy
       });
       setLocationStatus('success');
+      try {
+        const address = await reverseGeocode(lat, lon);
+        setDireccionResolvida(address);
+      } catch (err) {
+        console.warn('Geocoding error:', err);
+      }
     };
 
     const errorCallback = (error: GeolocationPositionError) => {
@@ -149,7 +190,8 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       latitud: coords?.latitude,
       longitud: coords?.longitude,
       precision: coords?.accuracy,
-      dispositivo: navigator.userAgent
+      dispositivo: navigator.userAgent,
+      direccion: direccionResolvida || undefined
     };
 
     try {
@@ -406,10 +448,13 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               }`} />
               <div className="space-y-1 min-w-0">
                 <span className="text-[10px] uppercase font-black tracking-wider text-stone-400">Geolocalización GPS</span>
-                {locationStatus === 'success' && coords ? (
+                 {locationStatus === 'success' && coords ? (
                   <div className="text-xs text-slate-700 space-y-0.5">
                     <p className="font-semibold text-emerald-800">Ubicación capturada correctamente ✓</p>
-                    <p className="font-mono text-[10px] text-slate-500">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
+                    {direccionResolvida && (
+                      <p className="font-extrabold text-stone-850 text-sm py-0.5">📍 {direccionResolvida}</p>
+                    )}
+                    <p className="font-mono text-[9px] text-slate-400">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
                     <p className="text-[9px] text-slate-400">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
                   </div>
                 ) : locationStatus === 'requesting' ? (
@@ -444,8 +489,9 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                             longitude: -64.348981,
                             accuracy: 12
                           });
+                          setDireccionResolvida('Alvear 1362');
                           setLocationStatus('success');
-                          toast.success('GPS simulado con éxito (Río Cuarto, Cba) 📍');
+                          toast.success('GPS simulado con éxito (Alvear 1362, Cba) 📍');
                         }}
                         className="mt-2 text-[10px] font-bold text-amber-600 underline hover:text-amber-850 cursor-pointer bg-transparent border-0 p-0"
                         title="Simular coordenadas de prueba para demostración"
@@ -597,7 +643,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                         <th className="py-2.5 px-3">Día</th>
                         <th className="py-2.5 px-3">Fecha</th>
                         <th className="py-2.5 px-3">Hora</th>
-                        <th className="py-2.5 px-3">GPS Ubicación</th>
+                        <th className="py-2.5 px-3">Dirección (GPS)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -632,21 +678,21 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                             <td className="py-3 px-3 font-extrabold text-stone-850 font-mono">
                               {hora} hs
                             </td>
-                            <td className="py-3 px-3">
+                            <td className="py-3 px-3 max-w-[220px] truncate">
                               {googleMapsUrl ? (
                                 <a
                                   href={googleMapsUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-brand-orange font-bold flex items-center gap-1 hover:underline text-[10px] cursor-pointer"
-                                  title="Ver ubicación en Google Maps"
+                                  title={`Ver en mapa: ${f.latitud}, ${f.longitud}`}
                                 >
-                                  <MapPin className="w-3 h-3" />
-                                  Ver Mapa
-                                  <ExternalLink className="w-2.5 h-2.5" />
+                                  <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
+                                  <span className="truncate">{f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}</span>
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                                 </a>
                               ) : (
-                                <span className="text-slate-400 italic">No GPS</span>
+                                <span className="text-slate-400 italic">Sin GPS</span>
                               )}
                             </td>
                           </tr>
@@ -679,9 +725,12 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           </span>
                         </div>
 
-                        <div className="text-[10px] text-stone-500 space-y-0.5">
+                        <div className="text-[10px] text-stone-500 space-y-0.5 text-left">
                           <p>📅 <strong className="capitalize">{dia}</strong> - {fecha}</p>
                           <p>🕒 Hora: <strong className="text-stone-800">{hora} hs</strong></p>
+                          {f.direccion && (
+                            <p className="text-stone-750 font-semibold mt-1">📍 {f.direccion}</p>
+                          )}
                         </div>
 
                         <div className="pt-1.5 border-t border-stone-100 flex justify-between items-center">

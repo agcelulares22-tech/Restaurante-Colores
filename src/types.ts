@@ -405,4 +405,5 @@ export interface RegistroAsistencia {
     longitud?: number;
     precision?: number;
     dispositivo?: string;
+    direccion?: string;
 }
