@@ -197,13 +197,17 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
     try {
       const res = await asistenciaService.fichar(payload);
       if (res.success) {
-        toast.success(`Fichaje de ${tipo === 'ingreso' ? 'Ingreso 📥' : 'Egreso 📤'} registrado correctamente.`);
+        if (res.offline) {
+          toast.warning(`Fichaje guardado localmente (Offline). Se sincronizará al recuperar conexión.`);
+        } else {
+          toast.success(`Fichaje de ${tipo === 'ingreso' ? 'Ingreso 📥' : 'Egreso 📤'} registrado online correctamente en Supabase.`);
+        }
         fetchLogs();
       } else {
-        toast.error('Ocurrió un error al intentar registrar la asistencia.');
+        toast.error(`Error en Supabase: ${res.error || 'Falla de conexión/estructura'}`);
       }
-    } catch (e) {
-      toast.error('Error al fichar.');
+    } catch (e: any) {
+      toast.error(`Error al fichar: ${e.message || e}`);
     }
   };
 

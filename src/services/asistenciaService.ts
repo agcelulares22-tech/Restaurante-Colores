@@ -21,7 +21,7 @@ export const asistenciaService = {
    * Registra un fichaje de ingreso o egreso.
    * Si está online, lo manda a Supabase. Si está offline, lo encola localmente.
    */
-  async fichar(fichaje: Omit<RegistroAsistencia, 'id'>): Promise<{ success: boolean; data?: any; offline: boolean }> {
+  async fichar(fichaje: Omit<RegistroAsistencia, 'id'>): Promise<{ success: boolean; data?: any; offline: boolean; error?: string }> {
     const client = tryGetActiveSupabaseClient();
     const newFichaje: RegistroAsistencia = {
       ...fichaje,
@@ -51,16 +51,28 @@ export const asistenciaService = {
       }
 
       return { success: true, data: data?.[0], offline: false };
-    } catch (err) {
-      console.warn('[asistenciaService] Error al guardar en Supabase, reintentando guardar offline:', err);
-      const offlineList = this.getOfflineFichajes();
-      offlineList.push(newFichaje);
-      try {
-        localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(offlineList));
-      } catch (e) {
-        console.warn('LocalStorage falló:', e);
+    } catch (err: any) {
+      console.error('[asistenciaService] Error insertando en Supabase:', err);
+      
+      // Diferenciar error de red vs error de base de datos
+      const isNetworkError = !navigator.onLine || 
+        err.message?.includes('FetchError') || 
+        err.message?.includes('Failed to fetch') || 
+        err.status === 0;
+
+      if (isNetworkError) {
+        const offlineList = this.getOfflineFichajes();
+        offlineList.push(newFichaje);
+        try {
+          localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(offlineList));
+        } catch (e) {
+          console.warn('LocalStorage falló:', e);
+        }
+        return { success: true, offline: true };
       }
-      return { success: true, offline: true };
+
+      // Si es un error estructural de base de datos (ej. tabla no existe, permisos, etc.), fallar para poder diagnosticarlo
+      return { success: false, offline: false, error: err.message || JSON.stringify(err) };
     }
   },
 
