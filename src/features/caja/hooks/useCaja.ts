@@ -68,18 +68,30 @@ export function useCaja({
   toast
 }: UseCajaProps) {
   // Configurable Restaurant Details
-  const [restaurante, setRestaurante] = useState({
-    nombreComercial: 'Pizzería Colores',
-    razonSocial: 'Pizzería Colores S.A.S.',
-    cuit: '30-71649251-4',
-    direccion: 'Av. Corrientes 1234, CABA',
-    telefono: '+54 11 4802-1234',
-    email: 'contacto@pizzeriacolores.com.ar',
-    inicioActividades: '15/04/2022',
-    condicionIva: 'Responsable Inscripto',
-    mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.',
-    moneda: 'ARS'
+  const [restaurante, setRestaurante] = useState(() => {
+    const saved = localStorage.getItem('deliv_restaurante_info');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return {
+      nombreComercial: 'Pizzería Colores',
+      razonSocial: 'Pizzería Colores S.A.S.',
+      cuit: '30-71649251-4',
+      direccion: 'Alvear 1362, X5800 Río Cuarto, Córdoba',
+      telefono: '+54 358 4123456',
+      email: 'contacto@pizzeriacolores.com.ar',
+      inicioActividades: '15/04/2022',
+      condicionIva: 'Responsable Inscripto',
+      mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.',
+      moneda: 'ARS'
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem('deliv_restaurante_info', JSON.stringify(restaurante));
+  }, [restaurante]);
 
   const [editRestauranteMode, setEditRestauranteMode] = useState(false);
 
@@ -87,6 +99,7 @@ export function useCaja({
   const [cajaSession, setCajaSession] = useState<CierreCaja | null>(null);
   const [sessionInsumos, setSessionInsumos] = useState<CierreCaja[]>([]);
   const [lastFacturas, setLastFacturas] = useState<Factura[]>([]);
+  const [allFacturas, setAllFacturas] = useState<Factura[]>([]);
 
   // Shift opening/closing dialog states
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -173,6 +186,7 @@ export function useCaja({
       const history = await cajaService.list();
       setSessionInsumos(history);
       const facturas = await facturacionService.list();
+      setAllFacturas(facturas);
       setLastFacturas(facturas.slice(0, 6));
       if (active) {
         const movs = await cajaService.listMovimientosCajaChica(active.id_cierre);
@@ -915,6 +929,7 @@ export function useCaja({
     cajaSession,
     sessionInsumos,
     lastFacturas,
+    allFacturas,
     showOpenModal,
     setShowOpenModal,
     showCloseModal,

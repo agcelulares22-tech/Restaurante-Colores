@@ -25,8 +25,10 @@ import {
   ChevronRight,
   RefreshCw,
   Smartphone,
+  FolderOpen,
   X
 } from 'lucide-react';
+import { facturacionService } from '../services/facturacionService';
 import { 
   Pedido, 
   ProductoMenu, 
@@ -81,6 +83,7 @@ function CajaModule({
     cajaSession,
     sessionInsumos,
     lastFacturas,
+    allFacturas,
     showOpenModal,
     setShowOpenModal,
     showCloseModal,
@@ -174,6 +177,43 @@ function CajaModule({
     loadCajaState
   } = caja;
 
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [archiveSearchQuery, setArchiveSearchQuery] = useState('');
+  const [archiveMetodoFilter, setArchiveMetodoFilter] = useState('todos');
+  const [archiveEstadoFilter, setArchiveEstadoFilter] = useState('todos');
+
+  const filteredFacturas = useMemo(() => {
+    return allFacturas.filter(f => {
+      const matchesSearch = 
+        f.nro_ticket.toLowerCase().includes(archiveSearchQuery.toLowerCase()) ||
+        f.cliente.toLowerCase().includes(archiveSearchQuery.toLowerCase()) ||
+        f.cuit.includes(archiveSearchQuery);
+      
+      const matchesMetodo = 
+        archiveMetodoFilter === 'todos' || 
+        f.medio_pago === archiveMetodoFilter;
+
+      const matchesEstado = 
+        archiveEstadoFilter === 'todos' || 
+        f.estado === archiveEstadoFilter;
+
+      return matchesSearch && matchesMetodo && matchesEstado;
+    });
+  }, [allFacturas, archiveSearchQuery, archiveMetodoFilter, archiveEstadoFilter]);
+
+  const handleAnularFactura = async (idFactura: string) => {
+    if (!window.confirm('¿Está seguro de que desea anular este comprobante y registrar una Nota de Crédito en Supabase?')) {
+      return;
+    }
+    try {
+      await facturacionService.markNotaCredito(idFactura);
+      toast.success('Comprobante anulado correctamente.');
+      loadCajaState();
+    } catch (err: any) {
+      toast.error('Error al anular: ' + err.message);
+    }
+  };
+
   // Group items by menu categories (Rule 3)
   const groupedItemsByCategory = useMemo(() => {
     if (!selectedPedido) return {};
@@ -240,6 +280,14 @@ function CajaModule({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowArchiveModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#624A3E]/30 bg-[#F5F1E9] text-[10px] uppercase font-extrabold text-[#624A3E] hover:bg-[#ebdfd8] cursor-pointer transition-colors"
+          >
+            <FolderOpen className="w-3.5 h-3.5 text-[#624A3E]" />
+            Archivos
+          </button>
+
           <button
             onClick={() => setEditRestauranteMode(!editRestauranteMode)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-[10px] uppercase font-extrabold text-stone-600 hover:bg-stone-100 cursor-pointer transition-colors"
@@ -1836,6 +1884,150 @@ function CajaModule({
             >
               Cerrar y Continuar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ARCHIVE DIALOG MODAL */}
+      {showArchiveModal && (
+        <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn font-sans">
+          <div className="bg-white rounded-2xl border border-stone-200 max-w-4xl w-full p-6 space-y-4 shadow-xl relative flex flex-col max-h-[85vh]">
+            <button 
+              onClick={() => setShowArchiveModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-all cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 pb-2 border-b border-stone-100">
+              <FolderOpen className="w-6 h-6 text-[#624A3E]" />
+              <div>
+                <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Archivo Histórico de Comprobantes</h3>
+                <p className="text-[11px] text-stone-500 font-medium">Búsqueda y descarga de facturas y pagos archivados en Supabase</p>
+              </div>
+            </div>
+
+            {/* SEARCH AND FILTERS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200/50">
+              <div>
+                <label className="text-[10px] font-bold text-stone-500 block mb-1">Buscar por ticket, cliente o CUIT</label>
+                <input 
+                  type="text"
+                  value={archiveSearchQuery}
+                  onChange={e => setArchiveSearchQuery(e.target.value)}
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-800"
+                  placeholder="Ej. T-0001 o Consumidor Final"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-stone-500 block mb-1">Filtrar Medio de Pago</label>
+                <select
+                  value={archiveMetodoFilter}
+                  onChange={e => setArchiveMetodoFilter(e.target.value)}
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-800 font-semibold"
+                >
+                  <option value="todos">Todos los medios</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="debito">Débito</option>
+                  <option value="tarjeta">Tarjeta de Crédito</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="mp_qr">MercadoPago QR</option>
+                  <option value="mixto">Mixto</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-stone-500 block mb-1">Filtrar Estado</label>
+                <select
+                  value={archiveEstadoFilter}
+                  onChange={e => setArchiveEstadoFilter(e.target.value)}
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-800 font-semibold"
+                >
+                  <option value="todos">Todos los estados</option>
+                  <option value="emitido">Emitido</option>
+                  <option value="nota_credito">Anulado (Nota de Crédito)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* RESULTS LIST */}
+            <div className="flex-1 overflow-y-auto min-h-[300px] border border-stone-100 rounded-xl divide-y divide-stone-100 pr-1">
+              {filteredFacturas.length === 0 ? (
+                <div className="text-center py-12 text-stone-400 text-xs italic">
+                  No se encontraron comprobantes en el archivo que coincidan con los filtros.
+                </div>
+              ) : (
+                filteredFacturas.map((f) => (
+                  <div key={f.id_factura} className="p-3 hover:bg-stone-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-extrabold text-stone-900">{f.nro_ticket}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${
+                          f.estado === 'nota_credito' 
+                            ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        }`}>
+                          {f.estado === 'nota_credito' ? 'Anulado (NC)' : 'Emitido'}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-medium font-mono">{f.fecha}</span>
+                      </div>
+                      <p className="text-[10px] text-stone-600 font-semibold">
+                        Cliente: <span className="text-stone-900">{f.cliente}</span> • CUIT: <span className="font-mono text-stone-900">{f.cuit}</span>
+                      </p>
+                      {f.afip_cae && (
+                        <p className="text-[9px] text-[#624A3E] font-bold font-mono">
+                          CAE: {f.afip_cae} | Vto: {f.afip_vto}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                      <div className="text-right">
+                        <span className="text-[9px] text-stone-400 block font-black uppercase font-sans">Total</span>
+                        <span className="font-mono font-black text-stone-950 text-sm">${f.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+
+                      <div className="bg-stone-100 px-2.5 py-1.5 rounded-lg border border-stone-200 font-mono text-[9px] font-black uppercase text-stone-600">
+                        {f.medio_pago.toUpperCase()}
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => downloadFacturaHistorialPdf(f)}
+                          className="px-2.5 py-1.5 bg-[#624A3E] hover:bg-[#523A2E] text-white rounded-lg text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer"
+                          title="Descargar Comprobante PDF"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          PDF
+                        </button>
+
+                        {f.estado === 'emitido' && (
+                          <button
+                            type="button"
+                            onClick={() => handleAnularFactura(f.id_factura)}
+                            className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer"
+                          >
+                            Anular (NC)
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setShowArchiveModal(false)}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-black uppercase rounded-xl transition-all cursor-pointer"
+              >
+                Cerrar Archivos
+              </button>
+            </div>
           </div>
         </div>
       )}

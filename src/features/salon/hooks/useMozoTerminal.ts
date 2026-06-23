@@ -542,6 +542,23 @@ export function useMozoTerminal({
       const neto = Number((total / 1.21).toFixed(2));
       const iva = Number((total - neto).toFixed(2));
 
+      let rInfo = {
+        nombreComercial: 'Pizzería Colores',
+        razonSocial: 'Pizzería Colores S.A.S.',
+        cuit: '30-71649251-4',
+        direccion: 'Alvear 1362, X5800 Río Cuarto, Córdoba',
+        telefono: '+54 358 4123456',
+        email: 'contacto@pizzeriacolores.com.ar',
+        mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.'
+      };
+      try {
+        const saved = localStorage.getItem('deliv_restaurante_info');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          rInfo = { ...rInfo, ...parsed };
+        }
+      } catch (e) {}
+
       const ticketData: TicketData = {
         idPedido: pedido.id_pedido,
         nroComprobante: `PRE-${String(pedido.id_pedido).padStart(8, '0')}`,
@@ -550,12 +567,12 @@ export function useMozoTerminal({
         mesa: pedido.numero_mesa,
         mozo: pedido.mozo,
         cajero: 'Mozo',
-        nombreComercial: 'Pizzería Colores',
-        razonSocial: 'Pizzería Colores S.A.S.',
-        cuit: '30-71649251-4',
-        direccion: 'Av. Corrientes 1234, CABA',
-        telefono: '+54 11 4802-1234',
-        email: 'contacto@pizzeriacolores.com.ar',
+        nombreComercial: rInfo.nombreComercial,
+        razonSocial: rInfo.razonSocial,
+        cuit: rInfo.cuit,
+        direccion: rInfo.direccion,
+        telefono: rInfo.telefono,
+        email: rInfo.email,
         items: ticketItems,
         subtotal: neto,
         descuento: 0,
@@ -564,7 +581,7 @@ export function useMozoTerminal({
         total: total,
         metodosPago: [],
         vuelto: 0,
-        mensajePie: 'Gracias por elegir Pizzería Colores! Pre-comprobante generado por Terminal Mozo.'
+        mensajePie: rInfo.mensajePie || 'Gracias por elegir Pizzería Colores! Pre-comprobante generado por Terminal Mozo.'
       };
 
       await pdfService.exportToPDF(ticketData);

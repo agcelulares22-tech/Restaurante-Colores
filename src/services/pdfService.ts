@@ -407,6 +407,21 @@ export const pdfService = {
 
     const isReporteX = !data.fecha_cierre || data.fecha_cierre.toLowerCase().includes('curso');
 
+    let nombreFantasia = 'Pizzería Colores';
+    let direccion = 'Alvear 1362, X5800 Río Cuarto, Córdoba';
+    let telefono = '+54 358 4123456';
+    let email = 'contacto@pizzeriacolores.com.ar';
+    try {
+      const saved = localStorage.getItem('deliv_restaurante_info');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        nombreFantasia = parsed.nombreComercial || nombreFantasia;
+        direccion = parsed.direccion || direccion;
+        telefono = parsed.telefono || telefono;
+        email = parsed.email || email;
+      }
+    } catch (e) {}
+
     // Header Box with Vintage Color
     doc.setFillColor(...BRAND.brown);
     doc.rect(margin, y, 182, 30, 'F');
@@ -416,12 +431,13 @@ export const pdfService = {
 
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text(isReporteX ? 'EL PATRÓN - REPORTE PARCIAL (REPORTE X)' : 'EL PATRÓN - CIERRE DE CAJA (REPORTE Z)', margin + 34, y + 13);
+    doc.setFontSize(15);
+    doc.text(isReporteX ? `${nombreFantasia.toUpperCase()} - REPORTE PARCIAL (REPORTE X)` : `${nombreFantasia.toUpperCase()} - CIERRE DE CAJA (REPORTE Z)`, margin + 34, y + 12);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.text(isReporteX ? 'ARQUEO PARCIAL DE CONTROL EN TURNO' : 'REPORTE CONTROL DE JORNADA FISCAL GASTRO', margin + 34, y + 20);
-    doc.text(`Generado: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}`, margin + 34, y + 25);
+    doc.setFontSize(8);
+    doc.text(isReporteX ? 'ARQUEO PARCIAL DE CONTROL EN TURNO' : 'REPORTE CONTROL DE JORNADA FISCAL GASTRO', margin + 34, y + 18);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}`, margin + 34, y + 23);
+    doc.text(`${direccion} | Tel: ${telefono}`, margin + 34, y + 27);
 
     y += 40;
 

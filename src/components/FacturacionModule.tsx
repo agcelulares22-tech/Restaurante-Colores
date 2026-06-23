@@ -378,6 +378,23 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         subtotal: neto
       }];
 
+    let rInfo = {
+      nombreComercial: 'Pizzería Colores',
+      razonSocial: 'Pizzería Colores S.A.S.',
+      cuit: '30-71649251-4',
+      direccion: 'Alvear 1362, X5800 Río Cuarto, Córdoba',
+      telefono: '+54 358 4123456',
+      email: 'contacto@pizzeriacolores.com.ar',
+      mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.'
+    };
+    try {
+      const saved = localStorage.getItem('deliv_restaurante_info');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        rInfo = { ...rInfo, ...parsed };
+      }
+    } catch (e) {}
+
     const ticketData: TicketData = {
       idPedido: factura.id_pedido || pedido?.id_pedido || 0,
       nroComprobante: factura.nro_ticket,
@@ -386,12 +403,12 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       mesa: pedido?.numero_mesa || 'Venta manual',
       mozo: pedido?.mozo || 'Caja',
       cajero: 'Caja',
-      nombreComercial: 'El Patron Restaurante',
-      razonSocial: 'Gastronomia El Patron S.A.S.',
-      cuit: '30-71649251-4',
-      direccion: 'Av. Pres. Figueroa Alcorta 3420, CABA',
-      telefono: '+54 11 4802-9988',
-      email: 'facturas@elpatronrestaurante.com.ar',
+      nombreComercial: rInfo.nombreComercial,
+      razonSocial: rInfo.razonSocial,
+      cuit: rInfo.cuit,
+      direccion: rInfo.direccion,
+      telefono: rInfo.telefono,
+      email: rInfo.email,
       items: ticketItems,
       subtotal: neto,
       descuento: 0,
@@ -400,7 +417,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       total: factura.total,
       metodosPago: [{ metodo: medioLabel(factura.medio_pago), monto: factura.total }],
       vuelto: 0,
-      mensajePie: 'Gracias por su visita. Comprobante generado por El Patron Gestion Gastronomica Pro.',
+      mensajePie: rInfo.mensajePie || 'Gracias por su visita. Comprobante generado por Pizzería Colores.',
       clienteNombre: factura.cliente,
       clienteCuit: factura.cuit,
       cae: factura.arcaCae,
