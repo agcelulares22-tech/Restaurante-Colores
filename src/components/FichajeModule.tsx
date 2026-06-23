@@ -115,8 +115,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
     }
 
     if (locationStatus === 'error') {
-      toast.error(`Error de GPS: ${gpsErrorMsg}. Por favor, habilita el GPS para fichar.`);
-      return;
+      toast.warning('Se registrará el fichaje sin geolocalización (GPS desactivado o sin permisos).');
     }
 
     const payload: Omit<RegistroAsistencia, 'id'> = {
@@ -294,12 +293,29 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                   <div className="text-xs text-rose-800">
                     <p className="font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 shrink-0" /> Error de Geolocalización</p>
                     <p className="text-[10px] mt-0.5 opacity-90">{gpsErrorMsg}</p>
-                    <button 
-                      onClick={requestLocation}
-                      className="mt-2 text-[10px] font-bold text-rose-600 underline hover:text-rose-800"
-                    >
-                      Reintentar conexión GPS
-                    </button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={requestLocation}
+                        className="mt-2 text-[10px] font-bold text-rose-600 underline hover:text-rose-800 cursor-pointer"
+                      >
+                        Reintentar conexión GPS
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setCoords({
+                            latitude: -33.122394,
+                            longitude: -64.348981,
+                            accuracy: 12
+                          });
+                          setLocationStatus('success');
+                          toast.success('GPS simulado con éxito (Río Cuarto, Cba) 📍');
+                        }}
+                        className="mt-2 text-[10px] font-bold text-amber-600 underline hover:text-amber-800 cursor-pointer"
+                        title="Simular coordenadas de prueba para demostración"
+                      >
+                        Simular GPS (Demo)
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -309,7 +325,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 onClick={() => handleFichar('ingreso')}
-                disabled={locationStatus !== 'success'}
+                disabled={locationStatus === 'requesting'}
                 className="py-4 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-emerald-700/10 cursor-pointer active:scale-95 transition-all"
               >
                 <span className="text-2xl">📥</span>
@@ -318,7 +334,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
               <button
                 onClick={() => handleFichar('egreso')}
-                disabled={locationStatus !== 'success'}
+                disabled={locationStatus === 'requesting'}
                 className="py-4 px-3 bg-rose-600 hover:bg-rose-700 disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-rose-700/10 cursor-pointer active:scale-95 transition-all"
               >
                 <span className="text-2xl">📤</span>
