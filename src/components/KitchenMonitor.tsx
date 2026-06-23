@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Pedido, ProductoMenu, RecetaEscandallo, Insumo } from '../types';
 import { useKitchenMonitor } from '../features/cocina/hooks/useKitchenMonitor';
+import QuickDeliveryForm from './QuickDeliveryForm';
 
 interface KitchenMonitorProps {
   pedidos: Pedido[];
@@ -263,6 +264,8 @@ export default function KitchenMonitor({
 
   return (
     <div className="space-y-5 bg-[#FAFAFA] p-4 rounded-[24px]" id="kitchen-monitor-container">
+      <QuickDeliveryForm />
+
       <div className="bg-white rounded-[20px] p-5 border border-[#E8B800]/30 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-[#E8B800]/20">
           <div className="flex items-center gap-4">
