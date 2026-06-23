@@ -19,6 +19,7 @@ import { facturacionService, Factura } from '../../../services/facturacionServic
 import { auditoriaService } from '../../../services/auditoriaService';
 import { clientesService } from '../../../services/clientesService';
 import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE } from '../../../services/arcaService';
+import { promocionesService, Promocion } from '../../../services/promocionesService';
 
 interface UseCajaProps {
   pedidos: Pedido[];
@@ -140,6 +141,7 @@ export function useCaja({
   const [sessionInsumos, setSessionInsumos] = useState<CierreCaja[]>([]);
   const [lastFacturas, setLastFacturas] = useState<Factura[]>([]);
   const [allFacturas, setAllFacturas] = useState<Factura[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
 
   // Shift opening/closing dialog states
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -230,6 +232,12 @@ export function useCaja({
       const facturas = await facturacionService.list();
       setAllFacturas(facturas);
       setLastFacturas(facturas.slice(0, 6));
+      try {
+        const promosData = await promocionesService.list();
+        setPromociones(promosData || []);
+      } catch (err) {
+        console.error('Error loading promotions in loadCajaState:', err);
+      }
       if (active) {
         const movs = await cajaService.listMovimientosCajaChica(active.id_cierre);
         setMovimientosCajaChica(movs);
@@ -465,26 +473,95 @@ export function useCaja({
     }
 
     let promoDeduction = 0;
-    
-    const hasOjoBife = selectedPedido.items.some(it => it.id_producto === 'prod_car_ojo_bife' || it.id_producto === 'prod_bife');
-    const hasVino = selectedPedido.items.some(it => it.id_producto === 'prod_vino_malbec' || it.id_producto === 'prod_vino_rutini_botella');
-    const hasBurger = selectedPedido.items.some(it => it.id_producto === 'prod_cri_hamburguesa' || it.id_producto === 'prod_hamburguesa');
-    const hasGaseosa = selectedPedido.items.some(it => it.id_insumo === 'ins_beb_gaseosa' || it.nombre.toLowerCase().includes('gaseosa') || it.id_producto === 'prod_gaseosa');
+    const appliedPromosList: string[] = [];
 
-    const qualifiesForBifeVino = hasOjoBife && hasVino && (!splitByProducts || (selectedProductsForSplit.includes('prod_car_ojo_bife') && (selectedProductsForSplit.includes('prod_vino_malbec') || selectedProductsForSplit.includes('prod_vino_rutini_botella'))));
-    const qualifiesForBurgerGaseosa = hasBurger && hasGaseosa && (!splitByProducts || (selectedProductsForSplit.includes('prod_cri_hamburguesa') && (selectedProductsForSplit.includes('ins_beb_gaseosa') || selectedProductsForSplit.includes('prod_gaseosa'))));
+    // Filter active database promotions
+    const activePromos = promociones.filter(p => p.activo);
 
-    if (qualifiesForBifeVino) {
-      const vinoItem = selectedPedido.items.find(it => it.id_producto === 'prod_vino_malbec' || it.id_producto === 'prod_vino_rutini_botella');
-      const prodVino = productosMenu.find(pr => pr.id_producto === vinoItem?.id_producto);
-      if (prodVino && vinoItem) {
-        promoDeduction += (prodVino.precio_venta * 0.15) * vinoItem.cantidad;
+    activePromos.forEach(promo => {
+      if (promo.tipo === 'happy_hour') {
+        const drinkItems = selectedPedido.items.filter(item => {
+          const cat = (item.categoria || '').toLowerCase();
+          return cat.includes('bebida') || cat.includes('cerveza') || cat.includes('gaseosa') || cat.includes('vino');
+        });
+        if (drinkItems.length > 0) {
+          let discount = 0;
+          drinkItems.forEach(item => {
+            if (splitByProducts && !selectedProductsForSplit.includes(item.id_producto)) return;
+            const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+            const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
+            discount += price * item.cantidad * (promo.descuento_porcentaje / 100);
+          });
+          if (discount > 0) {
+            promoDeduction += discount;
+            appliedPromosList.push(promo.nombre);
+          }
+        }
+      } 
+      else if (promo.tipo === 'combo') {
+        const pizzaItems = selectedPedido.items.filter(item => (item.categoria || '').toLowerCase().includes('pizza'));
+        const drinkItems = selectedPedido.items.filter(item => {
+          const cat = (item.categoria || '').toLowerCase();
+          return cat.includes('bebida') || cat.includes('cerveza') || cat.includes('gaseosa') || cat.includes('vino');
+        });
+
+        let totalPizzas = pizzaItems.reduce((s, it) => {
+          if (splitByProducts && !selectedProductsForSplit.includes(it.id_producto)) return s;
+          return s + it.cantidad;
+        }, 0);
+        let totalDrinks = drinkItems.reduce((s, it) => {
+          if (splitByProducts && !selectedProductsForSplit.includes(it.id_producto)) return s;
+          return s + it.cantidad;
+        }, 0);
+
+        const combosCount = Math.min(totalPizzas, totalDrinks);
+        if (combosCount > 0) {
+          const pizzaPrices: number[] = [];
+          pizzaItems.forEach(item => {
+            if (splitByProducts && !selectedProductsForSplit.includes(item.id_producto)) return;
+            const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+            const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
+            for (let k = 0; k < item.cantidad; k++) {
+              pizzaPrices.push(price);
+            }
+          });
+          const drinkPrices: number[] = [];
+          drinkItems.forEach(item => {
+            if (splitByProducts && !selectedProductsForSplit.includes(item.id_producto)) return;
+            const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+            const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
+            for (let k = 0; k < item.cantidad; k++) {
+              drinkPrices.push(price);
+            }
+          });
+
+          pizzaPrices.sort((a, b) => a - b);
+          drinkPrices.sort((a, b) => a - b);
+
+          let comboDiscount = 0;
+          for (let k = 0; k < combosCount; k++) {
+            const pizzaPrice = pizzaPrices[k] || 0;
+            const drinkPrice = drinkPrices[k] || 0;
+            comboDiscount += (pizzaPrice + drinkPrice) * (promo.descuento_porcentaje / 100);
+          }
+
+          if (comboDiscount > 0) {
+            promoDeduction += comboDiscount;
+            appliedPromosList.push(`${promo.nombre} (${combosCount}x)`);
+          }
+        }
+      } 
+      else if (promo.tipo === 'descuento_directo') {
+        const isCashDiscount = promo.nombre.toLowerCase().includes('efectivo') || promo.descripcion.toLowerCase().includes('efectivo');
+        if (!isCashDiscount || (isCashDiscount && metodoPago === 'efectivo')) {
+          const discount = subtotal * (promo.descuento_porcentaje / 100);
+          if (discount > 0) {
+            promoDeduction += discount;
+            appliedPromosList.push(promo.nombre);
+          }
+        }
       }
-    }
-
-    if (qualifiesForBurgerGaseosa) {
-      promoDeduction += 1500;
-    }
+    });
 
     let manualDeduction = tipoDescuento === 'porcentaje'
       ? subtotal * (descuentoPorcentaje / 100)
@@ -502,9 +579,10 @@ export function useCaja({
       propinaValue,
       ivaValue,
       finalTotal,
-      itemsCalculados: lineItems
+      itemsCalculados: lineItems,
+      appliedPromosList
     };
-  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos]);
+  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos, promociones, metodoPago]);
 
   const mixedSum = useMemo(() => {
     return mixedPayments.reduce((sum, current) => sum + current.monto, 0);

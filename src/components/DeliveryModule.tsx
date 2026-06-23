@@ -18,6 +18,8 @@ interface DeliveryModuleProps {
   onFacturarMesa: (idPedido: number, alreadyUpdatedInCaja?: boolean) => void;
   addLog: (tipo: any, mensaje: string) => void;
   activeMozo: string;
+  recetas?: any[];
+  insumos?: any[];
 }
 
 // Default Central Pizzeria Location: Colores Pizza, Alvear 1362, Río Cuarto, Córdoba
@@ -33,7 +35,9 @@ function DeliveryModule({
   onCambiarEstadoPedido,
   onFacturarMesa,
   addLog,
-  activeMozo
+  activeMozo,
+  recetas = [],
+  insumos = []
 }: DeliveryModuleProps) {
   const { toast } = useToast();
   
@@ -117,6 +121,7 @@ function DeliveryModule({
   const [cart, setCart] = useState<{ product: ProductoMenu; quantity: number }[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('todo');
+  const [rightPanelTab, setRightPanelTab] = useState<'mapa' | 'productos'>('mapa');
 
   // Zonas y calles de envío desde Supabase
   const [zonasEnvio, setZonasEnvio] = useState<ZonaEnvio[]>([]);
@@ -400,6 +405,31 @@ function DeliveryModule({
       return matchCat && matchSearch;
     });
   }, [productosMenu, productCategory, productSearch]);
+
+  const getSimulatedStockRemaining = (prod: ProductoMenu) => {
+    const productRecipes = recetas.filter(r => r.id_producto === prod.id_producto);
+    if (productRecipes.length === 0) return 999;
+    let maxPlatesSimulated = Infinity;
+    productRecipes.forEach(rec => {
+      const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
+      if (insumo) {
+        const remainingForThis = Math.floor(insumo.stock_actual / rec.cantidad_a_descontar);
+        if (remainingForThis < maxPlatesSimulated) {
+          maxPlatesSimulated = remainingForThis;
+        }
+      }
+    });
+    return maxPlatesSimulated === Infinity ? 999 : maxPlatesSimulated;
+  };
+
+  const isProductStockCritical = (prodId: string): boolean => {
+    const productRecipes = recetas.filter(r => r.id_producto === prodId);
+    if (productRecipes.length === 0) return false;
+    return productRecipes.some(rec => {
+      const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
+      return insumo ? insumo.stock_actual <= insumo.stock_minimo : false;
+    });
+  };
 
   // Categories list
   const categories = useMemo(() => {
@@ -1322,19 +1352,190 @@ function DeliveryModule({
               </div>
             </div>
 
-            {/* Map Viewer (Right) */}
-            <div className="w-full lg:w-[65%] bg-stone-100 flex flex-col h-full relative" id="map-panel">
-              {/* Map Title Header */}
-              <div className="p-3 bg-white border-b border-stone-200 flex justify-between items-center z-10">
-                <span className="text-xs font-black uppercase text-stone-700 flex items-center gap-1.5">
-                  <MapIcon className="w-4 h-4 text-brand-yellow" />
-                  Ruta del Repartidor
+            {/* Map & Products Tab Viewer (Right) */}
+            <div className="w-full lg:w-[65%] bg-stone-100 flex flex-col h-full relative font-sans" id="map-panel">
+              {/* Header with Switcher */}
+              <div className="p-3 bg-white border-b border-stone-200 flex justify-between items-center z-10 shrink-0">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRightPanelTab('mapa');
+                      setTimeout(() => {
+                        if (mapRef.current) {
+                          mapRef.current.invalidateSize();
+                        }
+                      }, 200);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all border ${
+                      rightPanelTab === 'mapa'
+                        ? 'bg-stone-900 border-stone-900 text-brand-yellow shadow-xs'
+                        : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                    }`}
+                  >
+                    <MapIcon className="w-3.5 h-3.5" />
+                    Ruta del Repartidor
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelTab('productos')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all border ${
+                      rightPanelTab === 'productos'
+                        ? 'bg-stone-900 border-stone-900 text-brand-yellow shadow-xs'
+                        : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    Seleccionar Productos
+                  </button>
+                </div>
+                <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">
+                  {rightPanelTab === 'mapa' ? 'Live (OSM/OSRM)' : 'Menú Digital'}
                 </span>
-                <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">Live (OSM/OSRM)</span>
               </div>
 
-              {/* Map Container */}
-              <div id="delivery-route-map" className="flex-1 w-full h-full z-0" style={{ minHeight: '350px', height: '100%', width: '100%' }} />
+              {/* Tab Content */}
+              {rightPanelTab === 'mapa' ? (
+                /* Map Container */
+                <div id="delivery-route-map" className="flex-1 w-full h-full z-0" style={{ minHeight: '350px', height: '100%', width: '100%' }} />
+              ) : (
+                /* Product Catalog Selector */
+                <div className="flex-1 flex flex-col overflow-hidden bg-stone-50 p-4">
+                  {/* Search and Category filters */}
+                  <div className="flex flex-col sm:flex-row gap-2.5 mb-3 shrink-0">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-yellow"
+                      />
+                    </div>
+                    <div className="flex gap-1.5 overflow-x-auto max-w-full py-0.5 scrollbar-thin">
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setProductCategory(cat)}
+                          className={`py-1 px-2.5 text-[10px] font-black rounded-lg whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                            productCategory === cat
+                              ? 'bg-brand-yellow text-brand-black shadow-xs'
+                              : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
+                          }`}
+                        >
+                          {cat === 'todo' ? 'Todos' : cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Product Cards Grid */}
+                  <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+                    {filteredProducts.map(p => {
+                      const stockRemaining = getSimulatedStockRemaining(p);
+                      const isOutOfStock = stockRemaining <= 0;
+                      const isLowStock = stockRemaining > 0 && stockRemaining <= 3;
+                      const isCritical = isProductStockCritical(p.id_producto);
+                      const cartItem = cart.find(item => item.product.id_producto === p.id_producto);
+                      const currentInCart = cartItem?.quantity || 0;
+
+                      return (
+                        <div
+                          key={p.id_producto}
+                          onClick={() => !isOutOfStock && addToCart(p)}
+                          className={`group cursor-pointer rounded-2xl bg-white border overflow-hidden shadow-xs hover:shadow-sm transition-all duration-200 relative flex flex-col ${
+                            isOutOfStock
+                              ? 'opacity-60 border-rose-100 pointer-events-none bg-stone-50'
+                              : currentInCart > 0
+                                ? 'border-brand-yellow bg-zinc-50/50 ring-1 ring-brand-yellow/20'
+                                : 'border-stone-200/80 hover:-translate-y-0.5'
+                          }`}
+                        >
+                          {/* Image & Tags */}
+                          <div className="h-20 w-full bg-stone-50 relative overflow-hidden shrink-0">
+                            <img
+                              src={p.imagen}
+                              alt={p.nombre}
+                              loading="lazy"
+                              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                            />
+                            {isCritical && !isOutOfStock && (
+                              <div className="absolute top-1.5 right-1.5 animate-pulse z-10">
+                                <span className="bg-red-600 border border-red-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+                                  ⚠️ Insumo Crítico
+                                </span>
+                              </div>
+                            )}
+                            {isOutOfStock ? (
+                              <div className="absolute inset-0 bg-red-950/60 flex items-center justify-center text-center p-1.5">
+                                <span className="bg-red-600 text-white text-[8px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded-md shadow-xs">
+                                  Sin Stock
+                                </span>
+                              </div>
+                            ) : isLowStock ? (
+                              <div className="absolute bottom-1.5 left-1.5">
+                                <span className="bg-orange-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+                                  Bajo stock: {stockRemaining}u
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="absolute bottom-1.5 left-1.5">
+                                <span className="bg-green-600 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+                                  Disp: {stockRemaining}u
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Details */}
+                          <div className="p-2.5 flex-1 flex flex-col justify-between">
+                            <div>
+                              <h5 className="font-extrabold text-stone-850 text-xs line-clamp-1 leading-snug">
+                                {p.nombre}
+                              </h5>
+                              <p className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">{p.descripcion}</p>
+                            </div>
+                            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-stone-100 shrink-0">
+                              <span className="text-stone-900 font-mono text-xs font-black">
+                                ${p.precio_venta.toLocaleString('es-AR')}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                {currentInCart > 0 && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeFromCart(p.id_producto);
+                                      }}
+                                      className="w-5 h-5 rounded bg-white hover:bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-600 text-xs font-black"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="font-mono text-[10px] font-bold w-3 text-center">{currentInCart}</span>
+                                  </>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!isOutOfStock) addToCart(p);
+                                  }}
+                                  className="w-5 h-5 rounded bg-brand-yellow hover:bg-[#D4A700] text-brand-black flex items-center justify-center text-xs font-black"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>

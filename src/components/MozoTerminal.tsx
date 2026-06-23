@@ -101,6 +101,7 @@ function MozoTerminal({
   const isOnline = Boolean(tryGetActiveSupabaseClient());
 
   const {
+    isProductStockCritical,
     AVAILABLE_TOPPINGS,
     handleCreateHalfHalfPizza,
     handleCreatePizzaWithToppings,
@@ -360,6 +361,12 @@ function MozoTerminal({
   const pizzaProducts = useMemo(() => {
     return productosMenu.filter(p => p.activo && p.categoria.toLowerCase().includes('pizza') && !p.id_producto.startsWith('half_') && !p.id_producto.includes('_with_'));
   }, [productosMenu]);
+
+  const criticalCartItems = useMemo(() => {
+    return Object.keys(cart)
+      .map(prodId => productosMenu.find(p => p.id_producto === prodId))
+      .filter((p): p is ProductoMenu => !!p && isProductStockCritical(p.id_producto));
+  }, [cart, productosMenu, isProductStockCritical]);
 
   return (
     <>
@@ -728,6 +735,14 @@ function MozoTerminal({
                   <div className="absolute top-2 left-2 p-1.5 rounded-lg backdrop-blur-md bg-white/90 shadow-sm border border-stone-100">
                     {renderCategoryIcon(p.categoria, categories)}
                   </div>
+
+                  {isProductStockCritical(p.id_producto) && !isOutOfStock && (
+                    <div className="absolute top-2 right-2 animate-pulse z-10">
+                      <span className="bg-red-600 border border-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded shadow flex items-center gap-1">
+                        ⚠️ Insumo Crítico
+                      </span>
+                    </div>
+                  )}
  
                   {/* Stock Tag Alert */}
                   {isOutOfStock ? (
@@ -1023,6 +1038,25 @@ function MozoTerminal({
                 </div>
               ) : (
                 <>
+                  {criticalCartItems.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-2 animate-pulse mx-1 mt-1">
+                      <div className="flex gap-2 text-red-800 text-xs font-bold items-start">
+                        <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-extrabold text-red-950">⚠️ Insumo Crítico</p>
+                          <p className="text-[10px] text-red-700 mt-0.5 leading-tight">
+                            Este pedido contiene platos con ingredientes bajo stock mínimo:
+                          </p>
+                          <ul className="list-disc list-inside text-[9px] text-red-800 mt-1 font-semibold">
+                            {criticalCartItems.map(item => (
+                              <li key={item.id_producto}>{item.nombre}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
               {/* CART ITEMS LIST */}
               <div className="flex-1 overflow-y-auto py-3 space-y-2 pr-1">
                 {Object.entries(cart).map(([prodId, qty]) => {

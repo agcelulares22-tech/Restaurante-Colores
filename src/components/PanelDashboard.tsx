@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     DollarSign,
     Users,
@@ -11,9 +11,12 @@ import {
     ArrowRight,
     Utensils,
     Package,
+    PieChart,
+    BarChart3
 } from 'lucide-react';
 import { Mesa, Pedido, Insumo, EventoLog, ProductoMenu } from '../types';
 import { AppView } from '../lib/permissions';
+import { facturacionService, Factura } from '../services/facturacionService';
 
 interface PanelDashboardProps {
     mesas: Mesa[];
@@ -37,6 +40,9 @@ export default function PanelDashboard({
     getSimulatedTimeStr
 }: PanelDashboardProps) {
 
+  // State to hold facturas
+  const [facturas, setFacturas] = useState<Factura[]>([]);
+
   // Mapa de precio_venta por id_producto para lookups O(1)
   const precioMap = useMemo(() => {
         const map = new Map<string, number>();
@@ -47,9 +53,9 @@ export default function PanelDashboard({
   // Calcula el subtotal de un pedido usando precios reales del menu
   const calcularTotalPedido = (pedido: Pedido): number => {
         return pedido.items.reduce((sum, item) => {
-                // Prioridad: precio snapshot en el item → precio actual del menu → 0
+                 // Prioridad: precio snapshot en el item → precio actual del menu → 0
                                          const precio = item.precio_unitario ?? precioMap.get(item.id_producto) ?? 0;
-                return sum + precio * item.cantidad;
+                 return sum + precio * item.cantidad;
         }, 0);
   };
 
@@ -62,6 +68,13 @@ export default function PanelDashboard({
           () => pedidosCobrados.reduce((acc, p) => acc + calcularTotalPedido(p), 0),
           [pedidosCobrados, precioMap]
         );
+
+  // Load invoices on mount and when pedidos change (indicating possible checkout)
+  useEffect(() => {
+    facturacionService.list()
+      .then(data => setFacturas(data || []))
+      .catch(err => console.error('Error loading invoices in PanelDashboard:', err));
+  }, [pedidosCobrados]);
 
   // KPI: ticket promedio
   const ticketPromedio = pedidosCobrados.length > 0
@@ -88,6 +101,108 @@ export default function PanelDashboard({
     const tiempoPromedio = pedidosConTiempo.length > 0
       ? (pedidosConTiempo.reduce((s, p) => s + (p.tiempo_despacho_minutos ?? 0), 0) / pedidosConTiempo.length).toFixed(1)
           : null;
+
+  // Graph Data 1: Daily sales trend (last 7 days)
+  const dailyTrend = useMemo(() => {
+    const trend: { label: string; total: number }[] = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
+      
+      const daySales = pedidosCobrados.reduce((acc, p) => {
+        const pDateStr = new Date(p.fecha_hora).toISOString().split('T')[0];
+        if (pDateStr === dateStr) {
+          return acc + calcularTotalPedido(p);
+        }
+        return acc;
+      }, 0);
+      
+      trend.push({ label, total: daySales });
+    }
+    return trend;
+  }, [pedidosCobrados]);
+
+  // Graph Data 2: Top 5 products sold (by quantities)
+  const topProducts = useMemo(() => {
+    const counts = new Map<string, { nombre: string; cantidad: number }>();
+    pedidosCobrados.forEach(p => {
+      p.items.forEach(item => {
+        if (item.id_producto === 'prod_costo_envio_delivery') return;
+        const prev = counts.get(item.id_producto) ?? { nombre: item.nombre, cantidad: 0 };
+        counts.set(item.id_producto, {
+          nombre: item.nombre,
+          cantidad: prev.cantidad + item.cantidad
+        });
+      });
+    });
+    return Array.from(counts.values())
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+  }, [pedidosCobrados]);
+
+  // Graph Data 3: Payment method preferences (pie/donut data from facturas)
+  const paymentMethodsData = useMemo(() => {
+    const methods: Record<string, number> = {
+      efectivo: 0,
+      debito: 0,
+      tarjeta: 0,
+      transferencia: 0,
+      mp_qr: 0,
+      mixto: 0
+    };
+    let totalVal = 0;
+    facturas.forEach(f => {
+      if (f.estado === 'emitido') {
+        methods[f.medio_pago] = (methods[f.medio_pago] || 0) + f.total;
+        totalVal += f.total;
+      }
+    });
+    const labelMap: Record<string, string> = {
+      efectivo: 'Efectivo',
+      debito: 'Débito',
+      tarjeta: 'Crédito',
+      transferencia: 'Transf.',
+      mp_qr: 'QR MercadoPago',
+      mixto: 'Mixto'
+    };
+    return Object.entries(methods)
+      .map(([key, value]) => ({
+        key,
+        name: labelMap[key] || key,
+        value,
+        percentage: totalVal > 0 ? (value / totalVal) * 100 : 0
+      }))
+      .filter(d => d.value > 0)
+      .sort((a, b) => b.value - a.value);
+  }, [facturas]);
+
+  const totalFacturado = useMemo(() => {
+    return facturas
+      .filter(f => f.estado === 'emitido')
+      .reduce((sum, f) => sum + f.total, 0);
+  }, [facturas]);
+
+  const maxSales = useMemo(() => {
+    const vals = dailyTrend.map(d => d.total);
+    return vals.length > 0 ? Math.max(...vals, 1000) : 1000;
+  }, [dailyTrend]);
+
+  const maxQty = useMemo(() => {
+    const vals = topProducts.map(p => p.cantidad);
+    return vals.length > 0 ? Math.max(...vals, 1) : 1;
+  }, [topProducts]);
+
+  const colorsMap: Record<string, string> = {
+    efectivo: '#E8B800',
+    debito: '#E85D00',
+    tarjeta: '#D42B2B',
+    transferencia: '#8C6239',
+    mp_qr: '#3E3228',
+    mixto: '#A8A29E'
+  };
 
   return (
         <div className="space-y-6">
@@ -190,6 +305,187 @@ export default function PanelDashboard({
                                 </div>
                       </div>
               </div>
+
+          {/* ── GRÁFICOS DE RENDIMIENTO Y VENTAS ──────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Daily Sales Bar Chart */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                      <TrendingUp className="w-4 h-4 text-brand-orange" />
+                      <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Tendencia de Ventas Diarias (7d)</h4>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center">
+                      <svg viewBox="0 0 320 140" className="w-full h-auto">
+                          {/* Grid Lines */}
+                          <line x1="20" y1="20" x2="300" y2="20" stroke="#F5F0E6" strokeWidth="1" strokeDasharray="4 4" />
+                          <line x1="20" y1="60" x2="300" y2="60" stroke="#F5F0E6" strokeWidth="1" strokeDasharray="4 4" />
+                          <line x1="20" y1="100" x2="300" y2="100" stroke="#E8E0D0" strokeWidth="1" />
+                          
+                          {dailyTrend.map((d, i) => {
+                              const barWidth = 24;
+                              const spacing = 40;
+                              const x = 20 + i * spacing + (spacing - barWidth) / 2;
+                              const barHeight = maxSales > 0 ? (d.total / maxSales) * 80 : 0;
+                              const y = 100 - barHeight;
+                              
+                              return (
+                                  <g key={i} className="group cursor-pointer">
+                                      {/* Tooltip on hover */}
+                                      <title>{`${d.label}: $${d.total.toLocaleString('es-AR')}`}</title>
+                                      {/* Bar */}
+                                      <rect
+                                          x={x}
+                                          y={y}
+                                          width={barWidth}
+                                          height={barHeight}
+                                          rx="4"
+                                          fill={i === 6 ? '#E85D00' : '#E8B800'}
+                                          className="transition-all duration-300 hover:opacity-85"
+                                      />
+                                      {/* Value label on top of bar */}
+                                      {d.total > 0 && (
+                                          <text
+                                              x={x + barWidth / 2}
+                                              y={y - 6}
+                                              textAnchor="middle"
+                                              className="fill-stone-700 font-mono font-bold text-[8px]"
+                                          >
+                                              {d.total >= 1005 ? `$${Math.round(d.total / 1000)}k` : `$${d.total}`}
+                                          </text>
+                                      )}
+                                      {/* X Axis Label */}
+                                      <text
+                                          x={x + barWidth / 2}
+                                          y="118"
+                                          textAnchor="middle"
+                                          className="fill-stone-400 font-sans font-semibold text-[8px] uppercase"
+                                      >
+                                          {d.label.split(' ')[0]}
+                                      </text>
+                                      <text
+                                          x={x + barWidth / 2}
+                                          y="128"
+                                          textAnchor="middle"
+                                          className="fill-stone-500 font-mono text-[7px]"
+                                      >
+                                          {d.label.split(' ')[1] || ''}
+                                      </text>
+                                  </g>
+                              );
+                          })}
+                      </svg>
+                  </div>
+              </div>
+
+              {/* Top 5 Products Horizontal Progress Bars */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                      <BarChart3 className="w-4 h-4 text-brand-yellow" />
+                      <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Top 5 Productos Vendidos</h4>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between">
+                      {topProducts.length > 0 ? (
+                          <svg viewBox="0 0 320 140" className="w-full h-auto">
+                              {topProducts.map((p, i) => {
+                                  const y = 8 + i * 26;
+                                  const barWidth = maxQty > 0 ? (p.cantidad / maxQty) * 320 : 0;
+                                  return (
+                                      <g key={i}>
+                                          {/* Product Name */}
+                                          <text x="0" y={y + 10} className="fill-stone-800 font-sans font-bold text-[10px]">
+                                              {p.nombre}
+                                          </text>
+                                          {/* Quantity */}
+                                          <text x="320" y={y + 10} textAnchor="end" className="fill-stone-500 font-mono font-bold text-[9px]">
+                                              {p.cantidad} u.
+                                          </text>
+                                          {/* Background Bar */}
+                                          <rect x="0" y={y + 15} width="320" height="6" rx="3" fill="#F5F0E6" />
+                                          {/* Active Bar */}
+                                          <rect x="0" y={y + 15} width={barWidth} height="6" rx="3" fill="#E85D00" />
+                                      </g>
+                                  );
+                              })}
+                          </svg>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8">
+                              Sin datos de ventas en este turno
+                          </div>
+                      )}
+                  </div>
+              </div>
+
+              {/* Payment Methods Donut Chart */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                      <PieChart className="w-4 h-4 text-stone-700" />
+                      <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Medios de Pago Utilizados</h4>
+                  </div>
+                  <div className="flex-1 flex flex-row items-center gap-4">
+                      {paymentMethodsData.length > 0 ? (
+                          <>
+                              {/* Donut SVG */}
+                              <div className="w-24 h-24 flex-shrink-0">
+                                  <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
+                                      {/* Background Circle */}
+                                      <circle cx="60" cy="60" r="40" fill="transparent" stroke="#FAF7F0" strokeWidth="14" />
+                                      {(() => {
+                                          let currentRotation = 0;
+                                          return paymentMethodsData.map((d, i) => {
+                                              const radius = 40;
+                                              const circumference = 2 * Math.PI * radius; // ~251.3
+                                              const strokeDasharray = circumference;
+                                              const strokeDashoffset = circumference - (d.percentage / 100) * circumference;
+                                              const rotation = currentRotation;
+                                              currentRotation += (d.percentage / 100) * 360;
+                                              
+                                              return (
+                                                  <circle
+                                                      key={d.key}
+                                                      cx="60"
+                                                      cy="60"
+                                                      r={radius}
+                                                      fill="transparent"
+                                                      stroke={colorsMap[d.key] || '#A8A29E'}
+                                                      strokeWidth="14"
+                                                      strokeDasharray={strokeDasharray}
+                                                      strokeDashoffset={strokeDashoffset}
+                                                      transform={`rotate(${rotation} 60 60)`}
+                                                      className="transition-all duration-300 hover:stroke-[16px]"
+                                                  >
+                                                      <title>{`${d.name}: $${d.value.toLocaleString('es-AR')} (${d.percentage.toFixed(1)}%)`}</title>
+                                                  </circle>
+                                              );
+                                          });
+                                      })()}
+                                  </svg>
+                              </div>
+                              {/* Legend */}
+                              <div className="flex-1 flex flex-col justify-center space-y-1.5 max-h-[110px] overflow-y-auto pr-1">
+                                  {paymentMethodsData.slice(0, 5).map((d) => (
+                                      <div key={d.key} className="flex items-center justify-between text-[9px]">
+                                          <div className="flex items-center gap-1.5 truncate mr-1">
+                                              <span
+                                                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                                  style={{ backgroundColor: colorsMap[d.key] || '#A8A29E' }}
+                                              />
+                                              <span className="font-bold text-stone-700 truncate">{d.name}</span>
+                                          </div>
+                                          <span className="font-mono text-stone-500 flex-shrink-0">
+                                              {d.percentage.toFixed(0)}%
+                                          </span>
+                                      </div>
+                                  ))}
+                              </div>
+                          </>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8">
+                              Sin facturas emitidas en este turno
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
         
           {/* ── SEGUNDA FILA ─────────────────────────────────────────────── */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

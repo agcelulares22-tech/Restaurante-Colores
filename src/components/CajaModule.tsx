@@ -1521,10 +1521,21 @@ function CajaModule({
                     </div>
 
                     {(orderBreakdowns.promoDeduction > 0 || orderBreakdowns.manualDeduction > 0) && (
-                      <div className="flex justify-between text-emerald-700 font-bold">
-                        <span>Descuentos:</span>
-                        <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction).toLocaleString('es-AR')}</span>
-                      </div>
+                      <>
+                        <div className="flex justify-between text-emerald-700 font-bold">
+                          <span>Descuentos:</span>
+                          <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction).toLocaleString('es-AR')}</span>
+                        </div>
+                        {orderBreakdowns.appliedPromosList && (orderBreakdowns.appliedPromosList as string[]).length > 0 && (
+                          <div className="pl-3.5 space-y-0.5">
+                            {(orderBreakdowns.appliedPromosList as string[]).map((promoName, i) => (
+                              <div key={i} className="flex justify-between text-[9px] text-emerald-600 font-semibold italic">
+                                <span>• {promoName}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {orderBreakdowns.propinaValue > 0 && (

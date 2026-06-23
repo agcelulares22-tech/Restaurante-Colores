@@ -748,7 +748,17 @@ export function useMozoTerminal({
     setProductosMenu(prev => prev.map(p => p.id_producto === id ? { ...p, activo: !p.activo } : p));
   };
 
+  const isProductStockCritical = useCallback((prodId: string): boolean => {
+    const productRecipes = recetas.filter(r => r.id_producto === prodId);
+    if (productRecipes.length === 0) return false;
+    return productRecipes.some(rec => {
+      const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
+      return insumo ? insumo.stock_actual <= insumo.stock_minimo : false;
+    });
+  }, [insumos, recetas]);
+
   return {
+    isProductStockCritical,
     AVAILABLE_TOPPINGS,
     handleCreateHalfHalfPizza,
     handleCreatePizzaWithToppings,

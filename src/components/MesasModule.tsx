@@ -18,6 +18,7 @@ const ESTADOS: { key: Mesa['estado']; label: string; color: string; bg: string; 
   { key: 'ocupada', label: 'Ocupada', color: 'text-[#4A2D1B]', bg: 'bg-[#FFF8F0]', border: 'border-[#C8956A]', shadow: 'shadow-[#C8956A]/25', ring: 'ring-[#C8956A]', dot: 'bg-[#624A3E]' },
   { key: 'esperando_cuenta', label: 'Espera cuenta', color: 'text-emerald-900', bg: 'bg-emerald-100', border: 'border-emerald-400', shadow: 'shadow-emerald-200', ring: 'ring-emerald-400', dot: 'bg-emerald-600' },
   { key: 'reservada', label: 'Reservada', color: 'text-amber-900', bg: 'bg-amber-50', border: 'border-amber-300', shadow: 'shadow-amber-100', ring: 'ring-amber-300', dot: 'bg-amber-500' },
+  { key: 'sucia', label: 'Sucia', color: 'text-red-950', bg: 'bg-red-50', border: 'border-red-200', shadow: 'shadow-red-50', ring: 'ring-red-300', dot: 'bg-red-500' },
   { key: 'limpiando', label: 'Limpieza', color: 'text-blue-900', bg: 'bg-blue-50', border: 'border-blue-300', shadow: 'shadow-blue-100', ring: 'ring-blue-300', dot: 'bg-blue-500' },
 ];
 
@@ -187,9 +188,9 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
         toast.error('No se puede editar una mesa que está unida a otra. Sepárela primero.');
         return prev;
       }
-      const order: Mesa['estado'][] = ['libre', 'ocupada', 'esperando_cuenta', 'reservada', 'limpiando'];
+      const order: Mesa['estado'][] = ['libre', 'reservada', 'ocupada', 'esperando_cuenta', 'sucia', 'limpiando'];
       const currentIdx = order.indexOf(m.estado);
-      const nextEstado = order[(currentIdx + 1) % order.length];
+      const nextEstado = order[currentIdx === -1 ? 0 : (currentIdx + 1) % order.length];
       const updated: Mesa = {
         ...m,
         estado: nextEstado,
@@ -644,10 +645,17 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
 
                     {/* Contenido mesa */}
                     <span className="text-[9px] sm:text-[10px] font-black leading-tight z-10">{m.numero_mesa}</span>
-                    <div className="flex items-center gap-0.5 mt-0.5 z-10">
-                      <Users className="w-2 h-2 sm:w-2.5 sm:h-2.5 opacity-70" />
-                      <span className="text-[8px] sm:text-[9px] font-bold opacity-90 leading-none">{m.capacidad}</span>
-                    </div>
+                    {m.estado === 'reservada' && m.reserva_cliente ? (
+                      <div className="flex flex-col items-center leading-none mt-0.5 z-10 max-w-[90%] truncate">
+                        <span className="text-[7px] font-black text-amber-800 tracking-tight">{m.reserva_hora}</span>
+                        <span className="text-[6.5px] font-bold text-amber-900 truncate max-w-full">{m.reserva_cliente}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-0.5 mt-0.5 z-10">
+                        <Users className="w-2 h-2 sm:w-2.5 sm:h-2.5 opacity-70" />
+                        <span className="text-[8px] sm:text-[9px] font-bold opacity-90 leading-none">{m.capacidad}</span>
+                      </div>
+                    )}
                     <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${estilo.dot} shadow-sm z-20`} />
                     {isParent && (
                       <span className="absolute -bottom-1.5 -right-1.5 min-w-[1.1rem] h-4.5 px-0.5 bg-[#624A3E] text-white rounded-full text-[8px] font-black flex items-center justify-center shadow-md border border-white z-20">
