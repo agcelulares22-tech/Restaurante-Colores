@@ -69,6 +69,7 @@ export function useMozoTerminal({
   const [direccionCliente, setDireccionCliente] = useState('');
   const [costoEnvio, setCostoEnvio] = useState<number>(0);
   const [zonaEnvioId, setZonaEnvioId] = useState<number | null>(null);
+  const [distanciaKm, setDistanciaKm] = useState<number | null>(null);
   
   // Current order cart
   const [cart, setCart] = useState<MozoCart>({});
@@ -462,7 +463,7 @@ export function useMozoTerminal({
     setCartIdempotencyKey(idempotencyKey);
 
     const customObservaciones = isDelivery
-      ? `Tel: ${telefonoCliente} | Dir: ${direccionCliente}${observaciones.trim() ? ' | Obs: ' + observaciones.trim() : ''}`
+      ? `Tel: ${telefonoCliente} | Dir: ${direccionCliente}${distanciaKm ? ' | Distancia: ' + distanciaKm + ' km' : ''}${observaciones.trim() ? ' | Obs: ' + observaciones.trim() : ''}`
       : observaciones.trim();
 
     const customNumeroMesa = isDelivery
@@ -492,6 +493,7 @@ export function useMozoTerminal({
       setDireccionCliente('');
       setCostoEnvio(0);
       setZonaEnvioId(null);
+      setDistanciaKm(null);
       setCartIdempotencyKey(null);
       clearMozoCartDraft(selectedMesaId);
       setTimeout(() => {
@@ -772,6 +774,8 @@ export function useMozoTerminal({
     costoEnvio,
     setCostoEnvio,
     zonaEnvioId,
-    setZonaEnvioId
+    setZonaEnvioId,
+    distanciaKm,
+    setDistanciaKm
   };
 }

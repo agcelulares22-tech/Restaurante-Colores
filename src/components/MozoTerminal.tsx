@@ -152,7 +152,9 @@ export default function MozoTerminal({
     costoEnvio,
     setCostoEnvio,
     zonaEnvioId,
-    setZonaEnvioId
+    setZonaEnvioId,
+    distanciaKm,
+    setDistanciaKm
   } = useMozoTerminal({
     mesas,
     insumos,
@@ -181,30 +183,97 @@ export default function MozoTerminal({
     });
   }, []);
 
+  const [isCalculatingRoute, setIsCalculatingRoute] = React.useState(false);
+
   React.useEffect(() => {
     if (selectedMesaId !== 999) {
       setZonaResultado(null);
+      setDistanciaKm(null);
       return;
     }
-    if (!direccionCliente.trim() || callesEnvio.length === 0) {
+
+    if (!direccionCliente.trim() || direccionCliente.trim().length < 4) {
       setCostoEnvio(0);
       setZonaEnvioId(null);
       setZonaResultado(null);
+      setDistanciaKm(null);
       return;
     }
-    const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
-    setZonaResultado(result);
-    if (result.status === 'success' && result.costo_envio != null) {
-      setCostoEnvio(result.costo_envio);
-      const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
-      if (matchedZona) {
-        setZonaEnvioId(matchedZona.id);
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsCalculatingRoute(true);
+      try {
+        const tarifaBase = parseFloat(localStorage.getItem('deliv_tarifa_base') || '1000');
+        const costoPorKm = parseFloat(localStorage.getItem('deliv_costo_por_km') || '500');
+
+        const searchAddr = (direccionCliente.toLowerCase().includes('rio cuarto') || direccionCliente.toLowerCase().includes('río cuarto'))
+          ? direccionCliente
+          : `${direccionCliente}, Río Cuarto, Córdoba, Argentina`;
+          
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`, {
+          headers: { 'User-Agent': 'PizzeriaColoresWaiterCalculator/1.0' }
+        });
+        const geoData = await geoResp.json();
+
+        if (geoData && geoData.length > 0) {
+          const destLat = parseFloat(geoData[0].lat);
+          const destLng = parseFloat(geoData[0].lon);
+
+          const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${-64.3498},${-33.1263};${destLng},${destLat}?overview=false`);
+          const routeData = await routeResp.json();
+
+          if (routeData.routes && routeData.routes.length > 0) {
+            const route = routeData.routes[0];
+            const distKm = parseFloat((route.distance / 1000).toFixed(2));
+            const costoCalculado = Math.round(tarifaBase + (distKm * costoPorKm));
+            
+            setDistanciaKm(distKm);
+            setCostoEnvio(costoCalculado);
+
+            const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
+            if (result.status === 'success') {
+              setZonaResultado(result);
+              const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
+              if (matchedZona) {
+                setZonaEnvioId(matchedZona.id);
+              }
+            } else {
+              setZonaResultado({ status: 'success', zona: 'Distancia Terrestre', costo_envio: costoCalculado });
+            }
+            return;
+          }
+        }
+        
+        const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
+        setZonaResultado(result);
+        if (result.status === 'success' && result.costo_envio != null) {
+          setCostoEnvio(result.costo_envio);
+          const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
+          if (matchedZona) {
+            setZonaEnvioId(matchedZona.id);
+          }
+        } else {
+          setCostoEnvio(0);
+          setZonaEnvioId(null);
+        }
+      } catch (err) {
+        console.warn('Error in automatic route calculation:', err);
+        const result = resolverZonaEnvio(direccionCliente, zonasEnvio, callesEnvio);
+        setZonaResultado(result);
+        if (result.status === 'success' && result.costo_envio != null) {
+          setCostoEnvio(result.costo_envio);
+          const matchedZona = zonasEnvio.find(z => z.nombre_zona === result.zona);
+          if (matchedZona) {
+            setZonaEnvioId(matchedZona.id);
+          }
+        }
+      } finally {
+        setIsCalculatingRoute(false);
       }
-    } else {
-      setCostoEnvio(0);
-      setZonaEnvioId(null);
-    }
-  }, [direccionCliente, zonasEnvio, callesEnvio, selectedMesaId, setCostoEnvio, setZonaEnvioId]);
+    }, 1200);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [direccionCliente, zonasEnvio, callesEnvio, selectedMesaId, setCostoEnvio, setZonaEnvioId, setDistanciaKm]);
 
   const [showHalfHalfModal, setShowHalfHalfModal] = React.useState(false);
   const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
@@ -768,15 +837,42 @@ export default function MozoTerminal({
                     </div>
                   </div>
 
-                  {direccionCliente.trim() && zonaResultado && (
-                    <div className={`p-2 rounded-lg text-[10px] ${zonaResultado.status === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-250' : 'bg-rose-50 text-rose-800 border border-rose-250'}`}>
-                      {zonaResultado.status === 'success' ? (
-                        <div className="flex justify-between items-center">
-                          <span>{zonaResultado.zona}</span>
-                          <span className="font-mono font-bold">Envío: ${zonaResultado.costo_envio}</span>
+                  {direccionCliente.trim() && (isCalculatingRoute || distanciaKm !== null || zonaResultado) && (
+                    <div className={`p-2.5 rounded-xl text-[11px] font-medium border ${
+                      isCalculatingRoute 
+                        ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse' 
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200/50'
+                    }`}>
+                      {isCalculatingRoute ? (
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <RefreshCw className="w-3 h-3.5 animate-spin text-amber-600" />
+                          <span>Calculando distancia en Río Cuarto...</span>
                         </div>
                       ) : (
-                        <span>{zonaResultado.mensaje}</span>
+                        <div className="space-y-1.5">
+                          {distanciaKm !== null ? (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-600 font-bold flex items-center gap-1">
+                                  <Bike className="w-3.5 h-3.5 text-brand-orange" />
+                                  Distancia estimada:
+                                </span>
+                                <span className="font-mono font-black text-slate-800">{distanciaKm} km</span>
+                              </div>
+                              <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                <span className="text-slate-600 font-bold">Costo de Envío:</span>
+                                <span className="font-mono font-black text-emerald-700 text-xs">${costoEnvio}</span>
+                              </div>
+                            </>
+                          ) : zonaResultado?.status === 'success' ? (
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 font-bold">{zonaResultado.zona}</span>
+                              <span className="font-mono font-bold text-emerald-700">Envío: ${zonaResultado.costo_envio}</span>
+                            </div>
+                          ) : (
+                            <span className="text-rose-700">{zonaResultado?.mensaje || 'No se pudo estimar la ruta'}</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
