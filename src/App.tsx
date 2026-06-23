@@ -316,9 +316,12 @@ export default function App() {
     loadData();
 
     if (client) {
-      channel = client
-        .channel('realtime_pedidos_app')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, async () => {
+      let pedidosTimeout: any = null;
+      let mesasTimeout: any = null;
+
+      const triggerRefreshedPedidos = () => {
+        if (pedidosTimeout) clearTimeout(pedidosTimeout);
+        pedidosTimeout = setTimeout(async () => {
           try {
             const refreshed = await dbFetchPedidos();
             if (refreshed && active) {
@@ -327,18 +330,12 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for pedidos failed:', err);
           }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, async () => {
-          try {
-            const refreshed = await dbFetchPedidos();
-            if (refreshed && active) {
-              setPedidos(refreshed);
-            }
-          } catch (err) {
-            console.warn('Realtime fetch for pedido_detalle failed:', err);
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, async () => {
+        }, 250); // 250ms debounce
+      };
+
+      const triggerRefreshedMesas = () => {
+        if (mesasTimeout) clearTimeout(mesasTimeout);
+        mesasTimeout = setTimeout(async () => {
           try {
             const refreshed = await dbFetchMesas();
             if (refreshed && active) {
@@ -347,15 +344,26 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for mesas failed:', err);
           }
-        })
+        }, 250); // 250ms debounce
+      };
+
+      channel = client
+        .channel('realtime_pedidos_app')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, triggerRefreshedPedidos)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, triggerRefreshedPedidos)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, triggerRefreshedMesas)
         .subscribe();
+
+      return () => {
+        active = false;
+        client.removeChannel(channel);
+        if (pedidosTimeout) clearTimeout(pedidosTimeout);
+        if (mesasTimeout) clearTimeout(mesasTimeout);
+      };
     }
 
     return () => {
       active = false;
-      if (client && channel) {
-        client.removeChannel(channel);
-      }
     };
   }, [supabaseTrigger, addLog]);
 
