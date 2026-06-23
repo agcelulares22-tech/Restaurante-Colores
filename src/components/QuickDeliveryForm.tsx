@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bike, Plus, Phone, MapPin, User, ClipboardList, X, Loader2 } from 'lucide-react';
-import { pedidosService } from '../services/pedidosService';
+import { Bike, Plus, Phone, MapPin, User, ClipboardList, Loader2 } from 'lucide-react';
 import {
   fetchZonasEnvio,
   fetchCallesEnvio,
@@ -57,18 +56,31 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
       const nextId = Date.now() + Math.floor(Math.random() * 100);
       const detailAddress = `DELIVERY: ${name.trim()} - ${address.trim()}`;
 
-      const item: PedidoItem = {
-        id_producto: `delivery_manual_${nextId}`,
-        nombre: order.trim(),
-        cantidad: 1,
-        categoria: 'Delivery',
-        precio_unitario: 0
-      };
+      const items: PedidoItem[] = [];
+      if (order.trim()) {
+        items.push({
+          id_producto: `delivery_manual_${nextId}`,
+          nombre: order.trim(),
+          cantidad: 1,
+          categoria: 'Delivery',
+          precio_unitario: 0
+        });
+      }
+
+      if (zonaResultado?.status === 'success' && (zonaResultado.costo_envio ?? 0) > 0) {
+        items.push({
+          id_producto: 'prod_costo_envio_delivery',
+          nombre: `Envío Delivery (${zonaResultado.zona})`,
+          cantidad: 1,
+          categoria: 'Servicios',
+          precio_unitario: zonaResultado.costo_envio ?? 0
+        });
+      }
 
       const observationParts = [
         `Tel: ${phone.trim()}`,
         address.trim() !== name.trim() ? `Dir: ${address.trim()}` : '',
-        zonaResultado?.status === 'success' ? `Zona: ${zonaResultado.zona} ($${zonaResultado.costo_envio?.toLocaleString('es-AR')})` : ''
+        zonaResultado?.status === 'success' ? `Zona: ${zonaResultado.zona}` : ''
       ].filter(Boolean);
 
       const newOrder = {
@@ -76,7 +88,7 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
         numero_mesa: detailAddress,
         mozo: activeMozo,
         estado_comanda: 'pendiente' as const,
-        items: [item],
+        items,
         observaciones: observationParts.join(' | ') || undefined,
         origen: 'Mozo' as const,
         idempotency_key: `quick_deliv_${nextId}`
