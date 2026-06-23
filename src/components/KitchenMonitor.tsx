@@ -177,10 +177,15 @@ export default function KitchenMonitor({
     const costoDelivery = (deliveryItem?.precio_unitario ?? 0) * (deliveryItem?.cantidad ?? 1);
     const totalPedido = subtotalPlatos + costoDelivery;
 
+    const createdAgeMs = Date.now() - new Date(p.fecha_hora).getTime();
+    const isRecentlyCreated = createdAgeMs > 0 && createdAgeMs < 20000;
+
     return (
       <div
         key={p.id_pedido}
-        className={`rounded-[20px] border border-[#E8B800]/30 bg-white shadow-md overflow-hidden relative ${sem?.border || ''} border-l-4`}
+        className={`rounded-[20px] border border-[#E8B800]/30 bg-white shadow-md overflow-hidden relative ${sem?.border || ''} border-l-4 transition-all duration-500 ${
+          isRecentlyCreated ? 'ring-2 ring-amber-400 animate-pulse shadow-amber-100 shadow-lg' : ''
+        }`}
       >
         {cold && (
           <div className="bg-[#D42B2B] text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow">
