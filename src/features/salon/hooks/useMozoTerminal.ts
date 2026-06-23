@@ -515,9 +515,21 @@ export function useMozoTerminal({
 
   const handleDownloadPreTicket = async (pedido: Pedido) => {
     try {
-      const ticketItems = pedido.items.map(item => {
+      let itemsToProcess = [...pedido.items];
+      const hasDeliveryItem = itemsToProcess.some(it => it.id_producto === 'prod_costo_envio_delivery');
+      if (!hasDeliveryItem && pedido.costo_envio && pedido.costo_envio > 0) {
+        itemsToProcess.push({
+          id_producto: 'prod_costo_envio_delivery',
+          nombre: 'Envío Delivery',
+          cantidad: 1,
+          categoria: 'Servicios',
+          precio_unitario: pedido.costo_envio
+        });
+      }
+
+      const ticketItems = itemsToProcess.map(item => {
         const prod = productosMenu.find(p => p.id_producto === item.id_producto);
-        const unit = prod ? prod.precio_venta : 0;
+        const unit = item.precio_unitario ?? prod?.precio_venta ?? 0;
         return {
           cantidad: item.cantidad,
           descripcion: item.nombre,

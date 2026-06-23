@@ -34,6 +34,31 @@ interface UseCajaProps {
   };
 }
 
+function getProcessedPedidoItems(pedido: Pedido, productosMenu: ProductoMenu[]): TicketItem[] {
+  let itemsToProcess = [...pedido.items];
+  const hasDeliveryItem = itemsToProcess.some(it => it.id_producto === 'prod_costo_envio_delivery');
+  if (!hasDeliveryItem && pedido.costo_envio && pedido.costo_envio > 0) {
+    itemsToProcess.push({
+      id_producto: 'prod_costo_envio_delivery',
+      nombre: 'Envío Delivery',
+      cantidad: 1,
+      categoria: 'Servicios',
+      precio_unitario: pedido.costo_envio
+    });
+  }
+
+  return itemsToProcess.map(item => {
+    const prod = productosMenu.find(p => p.id_producto === item.id_producto);
+    const unit = item.precio_unitario ?? prod?.precio_venta ?? 0;
+    return {
+      cantidad: item.cantidad,
+      descripcion: item.nombre,
+      precio_unitario: unit,
+      subtotal: item.cantidad * unit
+    };
+  });
+}
+
 export function useCaja({
   pedidos,
   productosMenu,
@@ -358,24 +383,26 @@ export function useCaja({
   const orderBreakdowns = useMemo(() => {
     if (!selectedPedido) return { subtotal: 0, promoDeduction: 0, manualDeduction: 0, baseTotal: 0, propinaValue: 0, ivaValue: 0, finalTotal: 0, itemsCalculados: [] };
     
-    const lineItems: TicketItem[] = selectedPedido.items.map(item => {
-      const prod = productosMenu.find(p => p.id_producto === item.id_producto);
-      const unit = prod ? prod.precio_venta : 0;
-      return {
-        cantidad: item.cantidad,
-        descripcion: item.nombre,
-        precio_unitario: unit,
-        subtotal: item.cantidad * unit
-      };
-    });
+    const lineItems = getProcessedPedidoItems(selectedPedido, productosMenu);
 
     let subtotal = lineItems.reduce((acc, current) => acc + current.subtotal, 0);
 
     if (splitByProducts && selectedProductsForSplit.length > 0) {
-      subtotal = selectedPedido.items.reduce((acc, item) => {
+      let itemsToProcess = [...selectedPedido.items];
+      const hasDeliveryItem = itemsToProcess.some(it => it.id_producto === 'prod_costo_envio_delivery');
+      if (!hasDeliveryItem && selectedPedido.costo_envio && selectedPedido.costo_envio > 0) {
+        itemsToProcess.push({
+          id_producto: 'prod_costo_envio_delivery',
+          nombre: 'Envío Delivery',
+          cantidad: 1,
+          categoria: 'Servicios',
+          precio_unitario: selectedPedido.costo_envio
+        });
+      }
+      subtotal = itemsToProcess.reduce((acc, item) => {
         if (selectedProductsForSplit.includes(item.id_producto)) {
           const prod = productosMenu.find(p => p.id_producto === item.id_producto);
-          return acc + ((prod ? prod.precio_venta : 0) * item.cantidad);
+          return acc + ((item.precio_unitario ?? prod?.precio_venta ?? 0) * item.cantidad);
         }
         return acc;
       }, 0);
@@ -639,16 +666,7 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + 'hs',
-      items: selectedPedido.items.map(it => {
-        const prod = productosMenu.find(pm => pm.id_producto === it.id_producto);
-        const uni = it.precio_unitario ?? prod?.precio_venta ?? 0;
-        return {
-          cantidad: it.cantidad,
-          descripcion: it.nombre,
-          precio_unitario: uni,
-          subtotal: it.cantidad * uni
-        };
-      }),
+      items: getProcessedPedidoItems(selectedPedido, productosMenu),
       subtotal: orderBreakdowns.subtotal,
       descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
       propina: orderBreakdowns.propinaValue,
@@ -793,16 +811,7 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      items: selectedPedido.items.map(it => {
-        const prod = productosMenu.find(pm => pm.id_producto === it.id_producto);
-        const uni = prod ? prod.precio_venta : 0;
-        return {
-          cantidad: it.cantidad,
-          descripcion: it.nombre,
-          precio_unitario: uni,
-          subtotal: it.cantidad * uni
-        };
-      }),
+      items: getProcessedPedidoItems(selectedPedido, productosMenu),
       subtotal: orderBreakdowns.subtotal,
       descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
       propina: orderBreakdowns.propinaValue,
@@ -847,16 +856,7 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      items: selectedPedido.items.map(it => {
-        const prod = productosMenu.find(pm => pm.id_producto === it.id_producto);
-        const uni = prod ? prod.precio_venta : 0;
-        return {
-          cantidad: it.cantidad,
-          descripcion: it.nombre,
-          precio_unitario: uni,
-          subtotal: it.cantidad * uni
-        };
-      }),
+      items: getProcessedPedidoItems(selectedPedido, productosMenu),
       subtotal: orderBreakdowns.subtotal,
       descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
       propina: orderBreakdowns.propinaValue,
