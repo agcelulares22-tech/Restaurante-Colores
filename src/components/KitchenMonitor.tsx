@@ -13,7 +13,9 @@ import {
   RefreshCw,
   Pencil,
   CircleDot,
-  BookOpen
+  BookOpen,
+  Bike,
+  DollarSign
 } from 'lucide-react';
 import { Pedido, ProductoMenu, RecetaEscandallo, Insumo } from '../types';
 import { useKitchenMonitor } from '../features/cocina/hooks/useKitchenMonitor';
@@ -87,6 +89,14 @@ export default function KitchenMonitor({
       listo: 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500'
     }[estado];
 
+    const isDelivery = (p.numero_mesa || '').toUpperCase().startsWith('DELIVERY:');
+    const subtotalPlatos = p.items
+      .filter(it => it.id_producto !== 'prod_costo_envio_delivery')
+      .reduce((sum, it) => sum + (it.precio_unitario ?? 0) * it.cantidad, 0);
+    const deliveryItem = p.items.find(it => it.id_producto === 'prod_costo_envio_delivery');
+    const costoDelivery = (deliveryItem?.precio_unitario ?? 0) * (deliveryItem?.cantidad ?? 1);
+    const totalPedido = subtotalPlatos + costoDelivery;
+
     return (
       <div
         key={p.id_pedido}
@@ -117,9 +127,16 @@ export default function KitchenMonitor({
           </div>
 
           <div className="text-right flex flex-col items-end shrink-0 gap-1">
-            <span className="text-[9px] font-black uppercase text-[#2D3436] bg-[#E8B800]/15 px-2 py-0.5 rounded-full border border-[#E8B800]/30">
-              {p.origen || 'MOZO'}
-            </span>
+            {isDelivery ? (
+              <span className="text-[9px] font-black uppercase text-white bg-[#E85D00] px-2 py-0.5 rounded-full border border-[#E85D00] flex items-center gap-1">
+                <Bike className="w-3 h-3" />
+                Delivery
+              </span>
+            ) : (
+              <span className="text-[9px] font-black uppercase text-[#2D3436] bg-[#E8B800]/15 px-2 py-0.5 rounded-full border border-[#E8B800]/30">
+                {p.origen || 'MOZO'}
+              </span>
+            )}
             <div className="flex items-center gap-1.5 text-xs font-mono bg-[#F5F5F5] border border-[#E8B800]/20 px-2 py-0.5 rounded-full">
               <Clock className="w-3 h-3 text-[#E8B800]" />
               <span className={`text-sm font-black ${sem?.timeText || 'text-[#1A1A1A]'}`}>{p.minutos_transcurridos}m</span>
@@ -141,6 +158,11 @@ export default function KitchenMonitor({
                 <span className="flex-1 font-bold text-[#2D3436] text-sm leading-snug truncate">
                   {it.nombre}
                 </span>
+                {(it.precio_unitario ?? 0) > 0 && (
+                  <span className="text-xs font-mono font-black text-[#1A1A1A] bg-[#F5F5F5] px-2 py-0.5 rounded-md border border-[#E8B800]/20 shrink-0">
+                    ${(it.precio_unitario! * it.cantidad).toLocaleString('es-AR')}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -160,6 +182,30 @@ export default function KitchenMonitor({
               </div>
             ))}
           </div>
+
+          {(subtotalPlatos > 0 || costoDelivery > 0) && (
+            <div className="bg-[#FFF9E6] border border-[#E8B800]/30 rounded-xl p-3 space-y-1.5">
+              {subtotalPlatos > 0 && (
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#6B7280] font-semibold">Subtotal platos</span>
+                  <span className="font-mono font-black text-[#1A1A1A]">${subtotalPlatos.toLocaleString('es-AR')}</span>
+                </div>
+              )}
+              {costoDelivery > 0 && (
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#6B7280] font-semibold flex items-center gap-1">
+                    <Bike className="w-3 h-3 text-[#E85D00]" />
+                    Delivery
+                  </span>
+                  <span className="font-mono font-black text-[#E85D00]">${costoDelivery.toLocaleString('es-AR')}</span>
+                </div>
+              )}
+              <div className="border-t border-[#E8B800]/30 pt-1.5 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#1A1A1A]">Total</span>
+                <span className="text-sm font-black font-mono text-[#1A1A1A]">${totalPedido.toLocaleString('es-AR')}</span>
+              </div>
+            </div>
+          )}
 
           {p.observaciones && (
             <div className="bg-[#F5F5F5] text-[#2D3436] text-xs p-3 rounded-xl border border-[#E8B800]/20 italic font-medium leading-relaxed">
