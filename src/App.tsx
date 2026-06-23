@@ -281,6 +281,25 @@ export default function App() {
         }
         if ((dbPedidos ?? []).length > 0) {
           setPedidos(dbPedidos ?? []);
+        } else {
+          // Persistencia local: si Supabase no tiene pedidos, conservar los creados en sesión
+          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('el_patron_pedidos_local') : null;
+          if (localPedidos) {
+            try {
+              const parsed = JSON.parse(localPedidos) as Pedido[];
+              if (parsed.length > 0) {
+                setPedidos(parsed.map(p => ({
+                  ...p,
+                  fecha_hora: new Date(p.fecha_hora),
+                  fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
+                  fecha_inicio_cocina: p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina) : undefined,
+                  fecha_listo: p.fecha_listo ? new Date(p.fecha_listo) : undefined
+                })));
+              }
+            } catch (err) {
+              console.warn('Error parsing local pedidos:', err);
+            }
+          }
         }
         if ((dbMermas ?? []).length > 0) {
           setMermas(dbMermas ?? []);
@@ -534,6 +553,14 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
     const updatedMesas = mesas.map(m => String(m.id_mesa) === String(newPedidoData.id_mesa) ? { ...m, estado: 'ocupada' as const, comensales: newPedidoData.comensales || 2 } : m);
     setMesas(updatedMesas);
+
+    // Persistir pedidos en localStorage para que sobrevivan al refresh si Supabase falla
+    setTimeout(() => {
+      const currentPedidos = [{ ...finalPedido, id_pedido: finalPedido.id_pedido }, ...(pedidos.filter(p => p.id_pedido !== finalPedido.id_pedido))];
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(currentPedidos));
+      }
+    }, 0);
 
     if (itemsDescontados.length > 0) {
       setInsumos(updatedInsumos);
@@ -807,6 +834,11 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         dbSavePedidoComplex(updatedPedido);
       } else if (pObj) {
         dbSavePedidoComplex({ ...pObj, estado_comanda: nuevoEstado });
+      }
+      // Sincronizar localStorage con el estado actual de pedidos
+      if (typeof window !== 'undefined') {
+        const current = pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
+        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(current));
       }
     }, 50);
 
