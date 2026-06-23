@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Pedido, PedidoItem, ProductoMenu, RecetaEscandallo, Insumo } from '../../../types';
 import { useDebounce } from '../../../hooks/useDebounce';
 
@@ -45,6 +45,23 @@ export function useKitchenMonitor({
   const [showOnlyKitchen, setShowOnlyKitchen] = useState(false);
   const [optimisticUpdates, setOptimisticUpdates] = useState<Map<number, { estado: Pedido['estado_comanda']; updating: boolean }>>(new Map());
   const [selectedRecipeProduct, setSelectedRecipeProduct] = useState<ProductoMenu | null>(null);
+
+  // Clear optimistic updates as soon as they are confirmed by the real pedidos list from the DB
+  useEffect(() => {
+    if (optimisticUpdates.size === 0) return;
+    setOptimisticUpdates(prev => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const [id, opt] of next.entries()) {
+        const realPedido = pedidos.find(p => p.id_pedido === id);
+        if (realPedido && realPedido.estado_comanda === opt.estado) {
+          next.delete(id);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [pedidos, optimisticUpdates]);
 
   const activeKitchenOrders = useMemo(() => {
     let filtered = pedidos.map(p => {
@@ -143,10 +160,13 @@ export function useKitchenMonitor({
     setTimeout(() => {
       setOptimisticUpdates(prev => {
         const next = new Map(prev);
-        next.delete(idPedido);
-        return next;
+        if (next.has(idPedido) && next.get(idPedido)?.estado === nuevoEstado) {
+          next.delete(idPedido);
+          return next;
+        }
+        return prev;
       });
-    }, 1500);
+    }, 10000); // 10 seconds fallback timeout
   }, [onCambiarEstadoPedido]);
 
   const getEffectiveStatus = useCallback((pedido: Pedido): Pedido['estado_comanda'] => {
