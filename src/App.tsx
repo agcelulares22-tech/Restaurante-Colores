@@ -659,49 +659,25 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       return;
     }
 
-    // 1) Preparar campos a actualizar en Supabase
-    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado };
+    // 1) Validaciones básicas
     if (nuevoEstado === 'en_cocina') {
       if (!pObj.items || pObj.items.length === 0) {
         toast.error("Error: No se puede enviar a cocina un pedido vacío (sin productos).");
         addLog('sistema', `RECHAZADO: Intento de enviar a cocina el pedido vacío #${idPedido}`);
         return;
       }
-      if (!pObj.stock_descontado) {
-        updateFields.stock_descontado = true;
-        updateFields.fecha_descuento_stock = new Date();
-      }
-      updateFields.fecha_inicio_cocina = new Date();
-    }
-    if (nuevoEstado === 'listo') {
-      updateFields.segundos_en_listo = 0;
-      updateFields.fecha_listo = new Date();
-      if (pObj.fecha_inicio_cocina) {
-        const diffMs = new Date().getTime() - new Date(pObj.fecha_inicio_cocina).getTime();
-        updateFields.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
-      }
-    }
-    if (nuevoEstado === 'cancelado') {
-      updateFields.stock_descontado = false;
-      updateFields.fecha_descuento_stock = undefined;
     }
 
-    // 2) Persistir el cambio directamente en Supabase ANTES de mutar estado local
-    try {
-      await pedidosService.update(idPedido, updateFields);
-      console.log(`[handleCambiarEstadoPedido] pedidosService.update OK id=${idPedido}`);
-    } catch (err: any) {
-      console.error(`[handleCambiarEstadoPedido] pedidosService.update FAIL id=${idPedido}:`, err);
-      toast.error(`No se pudo guardar el estado en Supabase: ${err?.message || err}`);
-      return;
-    }
+    // 2) Lógica de stock/escandallo (Chequeo y Deducción de Stock)
+    let itemsDescontados: string[] = [];
+    let alarmasBajoStock: string[] = [];
+    let updatedInsumos: Insumo[] = [];
+    let stockDescontadoResult = pObj.stock_descontado;
+    let fechaDescuentoStockResult = pObj.fecha_descuento_stock;
 
-    // 3) Lógica de stock/escandallo
     if (nuevoEstado === 'en_cocina' && !pObj.stock_descontado) {
       let canDeduct = true;
       let errorMsg = '';
-      let itemsDescontados: string[] = [];
-      let alarmasBajoStock: string[] = [];
 
       if (!permitirVentaSinStock) {
         for (const item of pObj.items) {
@@ -729,7 +705,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         return;
       }
 
-      let updatedInsumos: Insumo[] = [];
+      // Descontar stock
+      stockDescontadoResult = true;
+      fechaDescuentoStockResult = new Date();
+
       setInsumos(prevInsumos => {
         const copy = prevInsumos.map(ins => ({ ...ins }));
         pObj.items.forEach(item => {
@@ -762,20 +741,14 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         updatedInsumos = copy;
         return copy;
       });
-
-      if (itemsDescontados.length > 0) {
-        addLog('descuento_stock', `ESCANDALLO: Pedido #${idPedido} cambió a EN_COCINA. Descuento automático de: ${itemsDescontados.join(', ')}`);
-      }
-      alarmasBajoStock.forEach(alertStr => {
-        addLog('alerta_stock', `CRÍTICO REPOSICIÓN: El insumo '${alertStr}' cayó por debajo del stock mínimo estipulado.`);
-      });
-      dbUpsertInsumos(updatedInsumos);
     }
 
+    // Revertir stock si se cancela
     if (nuevoEstado === 'cancelado' && pObj.stock_descontado) {
-      let itemsReversados: string[] = [];
-      let updatedInsumos: Insumo[] = [];
+      stockDescontadoResult = false;
+      fechaDescuentoStockResult = undefined;
 
+      let itemsReversados: string[] = [];
       setInsumos(prevInsumos => {
         const copy = prevInsumos.map(ins => ({ ...ins }));
         pObj.items.forEach(pItem => {
@@ -807,10 +780,54 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       if (itemsReversados.length > 0) {
         addLog('descuento_stock', `REVERSO ESCANDALLO: Pedido #${idPedido} CANCELADO. Reintegro automático de: ${itemsReversados.join(', ')}`);
       }
+    }
+
+    // 3) Preparar campos a actualizar en Supabase
+    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado };
+    if (nuevoEstado === 'en_cocina') {
+      updateFields.stock_descontado = stockDescontadoResult;
+      updateFields.fecha_descuento_stock = fechaDescuentoStockResult;
+      updateFields.fecha_inicio_cocina = new Date();
+    }
+    if (nuevoEstado === 'listo') {
+      updateFields.segundos_en_listo = 0;
+      updateFields.fecha_listo = new Date();
+      if (pObj.fecha_inicio_cocina) {
+        const diffMs = new Date().getTime() - new Date(pObj.fecha_inicio_cocina).getTime();
+        updateFields.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
+      }
+    }
+    if (nuevoEstado === 'cancelado') {
+      updateFields.stock_descontado = false;
+      updateFields.fecha_descuento_stock = undefined;
+    }
+
+    // 4) Persistir el cambio directamente en Supabase
+    try {
+      await pedidosService.update(idPedido, updateFields);
+      console.log(`[handleCambiarEstadoPedido] pedidosService.update OK id=${idPedido}`);
+    } catch (err: any) {
+      console.error(`[handleCambiarEstadoPedido] pedidosService.update FAIL id=${idPedido}:`, err);
+      toast.error(`No se pudo guardar el estado en Supabase: ${err?.message || err}`);
+      // Si falla, retornamos y no modificamos el estado local (así se revierte al valor correcto)
+      return;
+    }
+
+    // 5) Aplicar cambios de stock en DB si correspondía
+    if (nuevoEstado === 'en_cocina' && !pObj.stock_descontado) {
+      if (itemsDescontados.length > 0) {
+        addLog('descuento_stock', `ESCANDALLO: Pedido #${idPedido} cambió a EN_COCINA. Descuento automático de: ${itemsDescontados.join(', ')}`);
+      }
+      alarmasBajoStock.forEach(alertStr => {
+        addLog('alerta_stock', `CRÍTICO REPOSICIÓN: El insumo '${alertStr}' cayó por debajo del stock mínimo estipulado.`);
+      });
+      dbUpsertInsumos(updatedInsumos);
+    }
+    if (nuevoEstado === 'cancelado' && pObj.stock_descontado) {
       dbUpsertInsumos(updatedInsumos);
     }
 
-    // 4) Mutar estado local y localStorage SOLO después del éxito
+    // 6) Mutar estado local y localStorage después del éxito
     setPedidos(prev => {
       const next = prev.map(p => (p.id_pedido === idPedido ? { ...p, ...updateFields } : p));
       if (typeof window !== 'undefined') {
