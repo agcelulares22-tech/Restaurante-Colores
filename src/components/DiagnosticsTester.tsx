@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseConfig, resetSupabaseClientCache, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { syncQueueService, SyncQueueItem } from '../services/syncQueueService';
+import { isArcaConfigured, testArcaConnection } from '../services/arcaService';
 
 interface DiagnosticsTesterProps {
   onClose?: () => void;
@@ -43,6 +44,8 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
   const [writeDetails, setWriteDetails] = useState('');
   const [realtimeStatus, setRealtimeStatus] = useState<'idle' | 'running' | 'success' | 'failed'>('idle');
   const [realtimeDetails, setRealtimeDetails] = useState('');
+  const [arcaStatus, setArcaStatus] = useState<'idle' | 'running' | 'success' | 'failed' | 'not_configured'>('idle');
+  const [arcaDetails, setArcaDetails] = useState('');
 
   // Queue and generic states
   const [queue, setQueue] = useState<SyncQueueItem[]>([]);
@@ -184,6 +187,28 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
       console.error('Realtime subscription test failed:', err);
       setRealtimeStatus('failed');
       setRealtimeDetails(err.message || 'Fallo de WebSocket.');
+    }
+
+    // 5. Run ARCA / AFIP Connection Test
+    if (!isArcaConfigured()) {
+      setArcaStatus('not_configured');
+      setArcaDetails('No hay credenciales configuradas de ARCA (ex-AFIP).');
+    } else {
+      setArcaStatus('running');
+      setArcaDetails('Autenticando contra WSAA y probando canal de facturación...');
+      try {
+        const isOk = await testArcaConnection();
+        if (isOk) {
+          setArcaStatus('success');
+          setArcaDetails('Autenticación WSAA exitosa. Conexión ARCA homologada activa.');
+        } else {
+          setArcaStatus('failed');
+          setArcaDetails('Fallo al obtener ticket de acceso de WSAA o error del servidor.');
+        }
+      } catch (err: any) {
+        setArcaStatus('failed');
+        setArcaDetails(err.message || 'Error de conexión con la API.');
+      }
     }
   };
 
@@ -473,6 +498,40 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
               {realtimeDetails && (
                 <span className="text-[10px] font-mono mt-1 text-stone-600 border-t border-stone-200 pt-1">
                   {realtimeDetails}
+                </span>
+              )}
+            </div>
+
+            {/* ARCA (AFIP) Test */}
+            <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col justify-between md:col-span-2">
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <span className="font-bold text-stone-800 block">5. Conexión de Invocación Fiscal (ARCA)</span>
+                  <span className="text-[10px] text-stone-500">Prueba firma de ticket, autenticación WSAA y validación WSFE</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {arcaStatus === 'idle' && <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />}
+                  {arcaStatus === 'running' && <RefreshCw className="w-4 h-4 animate-spin text-amber-500" />}
+                  {arcaStatus === 'not_configured' && (
+                    <span className="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-lg text-[10px] border border-amber-200">
+                      Sin configurar
+                    </span>
+                  )}
+                  {arcaStatus === 'success' && (
+                    <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg text-[10px] border border-green-200">
+                      ARCA OK
+                    </span>
+                  )}
+                  {arcaStatus === 'failed' && (
+                    <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-lg text-[10px] border border-red-200 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Error
+                    </span>
+                  )}
+                </div>
+              </div>
+              {arcaDetails && (
+                <span className="text-[10px] font-mono mt-1 text-stone-600 border-t border-stone-200 pt-1">
+                  {arcaDetails}
                 </span>
               )}
             </div>
