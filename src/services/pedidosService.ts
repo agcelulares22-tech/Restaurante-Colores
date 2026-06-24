@@ -81,6 +81,12 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   fecha_descuento_stock: pedido.fecha_descuento_stock
     ? new Date(pedido.fecha_descuento_stock).toISOString()
     : null,
+  fecha_inicio_cocina: pedido.fecha_inicio_cocina
+    ? new Date(pedido.fecha_inicio_cocina).toISOString()
+    : null,
+  fecha_listo: pedido.fecha_listo
+    ? new Date(pedido.fecha_listo).toISOString()
+    : null,
   items: JSON.stringify(pedido.items),
   nombre_cliente: pedido.nombre_cliente ?? null,
   telefono_cliente: pedido.telefono_cliente ?? null,
