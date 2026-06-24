@@ -157,15 +157,24 @@ export const pedidosService = {
     if (fields.minutos_transcurridos !== undefined) headerFields.minutos_transcurridos = fields.minutos_transcurridos;
     if (fields.tiempo_despacho_minutos !== undefined) headerFields.tiempo_despacho_minutos = fields.tiempo_despacho_minutos;
     if (fields.segundos_en_listo !== undefined) headerFields.segundos_en_listo = fields.segundos_en_listo;
-    if (fields.id_mesa !== undefined) headerFields.id_mesa = fields.id_mesa;
-    if (fields.numero_mesa !== undefined) headerFields.numero_mesa = fields.numero_mesa;
+    // NUNCA actualizar id_mesa/numero_mesa desde un update parcial para evitar mover/combinar comandas por error
+    if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
+    if (fields.fecha_inicio_cocina !== undefined) {
+      headerFields.fecha_inicio_cocina = fields.fecha_inicio_cocina
+        ? new Date(fields.fecha_inicio_cocina).toISOString()
+        : null;
+    }
+    if (fields.fecha_listo !== undefined) {
+      headerFields.fecha_listo = fields.fecha_listo
+        ? new Date(fields.fecha_listo).toISOString()
+        : null;
+    }
     if (fields.stock_descontado !== undefined) headerFields.stock_descontado = fields.stock_descontado;
     if (fields.fecha_descuento_stock !== undefined) {
       headerFields.fecha_descuento_stock = fields.fecha_descuento_stock
         ? new Date(fields.fecha_descuento_stock).toISOString()
         : null;
     }
-    if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
     if (fields.nombre_cliente !== undefined) headerFields.nombre_cliente = fields.nombre_cliente;
     if (fields.telefono_cliente !== undefined) headerFields.telefono_cliente = fields.telefono_cliente;
     if (fields.direccion_cliente !== undefined) headerFields.direccion_cliente = fields.direccion_cliente;
@@ -315,9 +324,8 @@ export const pedidosService = {
 
           // A. Ya existe una comanda activa -> Se actualiza la cabecera completa y se sincronizan los detalles
           const cabeceraUpdate = serializePedidoHeader(ped);
-          delete (cabeceraUpdate as any).id_pedido;
+          // Importante: no borrar id_mesa ni id_pedido para que Supabase pueda filtrar/relacionar correctamente
           delete (cabeceraUpdate as any).idempotency_key;
-          delete (cabeceraUpdate as any).id_mesa;
 
           const { error: hError } = await supabase
             .from('pedidos_cabecera')

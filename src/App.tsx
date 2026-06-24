@@ -799,49 +799,52 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       }
     }
 
-    setPedidos(prev => prev.map(p => {
-      if (p.id_pedido === idPedido) {
-        const updated: Pedido = { ...p, estado_comanda: nuevoEstado };
-        if (nuevoEstado === 'en_cocina') {
-          updated.fecha_inicio_cocina = new Date();
-          if (!p.stock_descontado) {
-            updated.stock_descontado = true;
-            updated.fecha_descuento_stock = new Date();
+    setPedidos(prev => {
+      const next = prev.map(p => {
+        if (p.id_pedido === idPedido) {
+          const updated: Pedido = { ...p, estado_comanda: nuevoEstado };
+          if (nuevoEstado === 'en_cocina') {
+            updated.fecha_inicio_cocina = new Date();
+            if (!p.stock_descontado) {
+              updated.stock_descontado = true;
+              updated.fecha_descuento_stock = new Date();
+            }
           }
-        }
-        if (nuevoEstado === 'listo') {
-          updated.segundos_en_listo = 0;
-          updated.fecha_listo = new Date();
-          if (p.fecha_inicio_cocina) {
-            const diffMs = new Date(updated.fecha_listo).getTime() - new Date(p.fecha_inicio_cocina).getTime();
-            updated.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
+          if (nuevoEstado === 'listo') {
+            updated.segundos_en_listo = 0;
+            updated.fecha_listo = new Date();
+            if (p.fecha_inicio_cocina) {
+              const diffMs = new Date(updated.fecha_listo).getTime() - new Date(p.fecha_inicio_cocina).getTime();
+              updated.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
+            }
           }
+          if (nuevoEstado === 'cancelado') {
+            updated.stock_descontado = false;
+            updated.fecha_descuento_stock = undefined;
+          }
+          updatedPedido = updated;
+          return updated;
         }
-        if (nuevoEstado === 'cancelado') {
-          updated.stock_descontado = false;
-          updated.fecha_descuento_stock = undefined;
+        return p;
+      });
+
+      // Sincronizar localStorage y Supabase con el estado actualizado
+      setTimeout(() => {
+        if (updatedPedido) {
+          dbSavePedidoComplex(updatedPedido);
+        } else if (pObj) {
+          dbSavePedidoComplex({ ...pObj, estado_comanda: nuevoEstado });
         }
-        updatedPedido = updated;
-        return updated;
-      }
-      return p;
-    }));
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(next));
+        }
+      }, 50);
+
+      return next;
+    });
 
     const mStr = pObj ? ` para ${pObj.numero_mesa}` : '';
     addLog('comanda_estado', `COMANDA #${idPedido}${mStr}: Estado cambiado a ${nuevoEstado.toUpperCase()}`);
-
-    setTimeout(() => {
-      if (updatedPedido) {
-        dbSavePedidoComplex(updatedPedido);
-      } else if (pObj) {
-        dbSavePedidoComplex({ ...pObj, estado_comanda: nuevoEstado });
-      }
-      // Sincronizar localStorage con el estado actual de pedidos
-      if (typeof window !== 'undefined') {
-        const current = pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
-        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(current));
-      }
-    }, 50);
 
     if ((nuevoEstado === 'entregado_cobrado' || nuevoEstado === 'cancelado') && pObj) {
       const updatedMesas = mesas.map(m => m.id_mesa === pObj.id_mesa ? { ...m, estado: 'libre' as const, comensales: undefined } : m);
