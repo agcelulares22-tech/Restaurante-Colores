@@ -752,13 +752,7 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
           {viewMode === 'plano' ? (
             <div
               ref={containerRef}
-              className="relative w-full aspect-[682/1000] rounded-3xl border-2 border-stone-200 overflow-hidden shadow-inner bg-[#FAF8F3] select-none"
-              style={{
-                backgroundImage: 'url(/plano_original.png)',
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
+              className="relative w-full aspect-[682/1000] rounded-3xl border-2 border-stone-200 overflow-hidden shadow-inner bg-white select-none"
             >
               {/* Mesas posicionadas */}
               {mesasVisiblesEnPlano.map(m => {
