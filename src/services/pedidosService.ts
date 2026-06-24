@@ -20,7 +20,8 @@ export const hydratePedido = (
   header: PedidoHeaderRow,
   details: PedidoDetailRow[] = []
 ): Pedido => {
-  const headerItems = parseHeaderItems(header.items);
+  // ✅ CAMBIO: header.items → header.elementos
+  const headerItems = parseHeaderItems(header.elementos);
   const relatedItems: PedidoItem[] = details
     .filter(detail => detail.id_pedido === header.id_pedido)
     .sort((a, b) => String(a.id_detalle || '').localeCompare(String(b.id_detalle || '')))
@@ -87,7 +88,8 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   fecha_listo: pedido.fecha_listo
     ? new Date(pedido.fecha_listo).toISOString()
     : null,
-  items: JSON.stringify(pedido.items),
+  // ✅ CAMBIO: items → elementos
+  elementos: JSON.stringify(pedido.items),
   nombre_cliente: pedido.nombre_cliente ?? null,
   telefono_cliente: pedido.telefono_cliente ?? null,
   direccion_cliente: pedido.direccion_cliente ?? null,
@@ -164,7 +166,8 @@ export const pedidosService = {
     if (fields.tiempo_despacho_minutos !== undefined) headerFields.tiempo_despacho_minutos = fields.tiempo_despacho_minutos;
     if (fields.segundos_en_listo !== undefined) headerFields.segundos_en_listo = fields.segundos_en_listo;
     // NUNCA actualizar id_mesa/numero_mesa desde un update parcial para evitar mover/combinar comandas por error
-    if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
+    // ✅ CAMBIO: items → elementos
+    if (fields.items !== undefined) headerFields.elementos = JSON.stringify(fields.items);
     if (fields.fecha_inicio_cocina !== undefined) {
       headerFields.fecha_inicio_cocina = fields.fecha_inicio_cocina
         ? new Date(fields.fecha_inicio_cocina).toISOString()
@@ -472,9 +475,10 @@ export const pedidosService = {
       precio_unitario: d.precio_unitario ?? undefined
     }));
 
+    // ✅ CAMBIO: items → elementos
     const { error: updateError } = await supabase
       .from('pedidos_cabecera')
-      .update({ items: JSON.stringify(updatedItems) })
+      .update({ elementos: JSON.stringify(updatedItems) })
       .eq('id_pedido', idPedido);
 
     if (updateError) {
