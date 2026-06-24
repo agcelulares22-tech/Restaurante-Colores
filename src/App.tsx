@@ -1183,7 +1183,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#0A0B0D] flex font-sans text-zinc-100 antialiased selection:bg-brand-yellow selection:text-brand-black">
+    <div className="h-screen overflow-hidden bg-vintage-beige flex font-sans text-zinc-800 antialiased selection:bg-brand-yellow selection:text-brand-black">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
@@ -1305,7 +1305,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-[#0F0F11] ${
+      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-vintage-beige ${
         isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
       }`}>
         <ToastContainer toasts={toasts} removeToast={removeToast} />

@@ -9,9 +9,9 @@
   --color-brand-red: #D42B2B;
   --color-brand-black: #000000;
   --color-brand-white: #FFFFFF;
-  --color-vintage-beige: #0F0F11; /* Cambiado a fondo oscuro premium para glassmorphism */
-  --color-vintage-beige-light: #16161A;
-  --color-vintage-beige-dark: #1E1E24;
+  --color-vintage-beige: #F5F4F0; /* Soft warm light cream background */
+  --color-vintage-beige-light: #FFFFFF; /* Pure white cards */
+  --color-vintage-beige-dark: #E6E4DD; /* Softer warm gray for borders and backgrounds */
 }
 
 /* Scrollbar personalizado súper delgado estilo premium */
@@ -45,8 +45,8 @@ body,
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
-  background-color: #0F0F11;
-  color: #f4f4f5;
+  background-color: #F5F4F0;
+  color: #27272a;
 }
 
 * {
@@ -62,27 +62,27 @@ canvas {
 
 /* --- CLASES DE UTILIDAD PREMIUM (GLASSMORPHISM & MICRO-INTERACTIONS) --- */
 
-/* Glassmorphism Oscuro Profundo */
+/* Glassmorphism Claro y Cálido */
 .glass-card {
-  background: rgba(22, 22, 26, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(232, 184, 0, 0.2);
+  border-color: rgba(232, 184, 0, 0.3);
 }
 
 /* Glassmorphism Claro/Blanco Translúcido (para modales o contrastes) */
 .glass-card-light {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* Botones Premium con transiciones fluidas y click elástico */
@@ -149,4 +149,146 @@ canvas {
     min-height: 48px;
     min-width: 48px;
   }
+}
+
+/* --- OVERRIDES GLOBALES PARA DISEÑO CLARO CÁLIDO (EVITA CANSANCIO OCULAR) --- */
+
+/* Forzar que contenedores oscuros de Tailwind se rendericen claros/blancos */
+.bg-zinc-950, 
+.bg-[#0F0F11], 
+.bg-[#0A0B0D],
+.bg-zinc-950\/45,
+.bg-zinc-950\/40,
+.bg-zinc-950\/60,
+.bg-zinc-900\/60,
+.bg-zinc-900\/80,
+.bg-[#0A0B0D]\/50,
+.bg-black\/60,
+.bg-zinc-900 {
+  background-color: #FFFFFF !important;
+}
+
+/* Forzar el fondo principal a ser crema cálido */
+body, 
+html, 
+#root, 
+main.bg-\[\#0F0F11\],
+.bg-vintage-beige {
+  background-color: #F5F4F0 !important;
+}
+
+/* Sidebar en tono crema más oscuro/neutro para contraste suave */
+aside#sidebar-left-panel,
+aside.bg-zinc-950\/80 {
+  background-color: #EBEAE4 !important;
+  border-right: 1px solid #DFDDD5 !important;
+}
+
+/* Ajustes de texto para alto contraste pero suave (charcoal en lugar de blanco) */
+.text-zinc-100, 
+.text-zinc-200, 
+.text-zinc-300, 
+.text-zinc-400, 
+.text-zinc-105,
+.text-zinc-150,
+.text-white,
+.text-zinc-350 {
+  color: #27272a !important; /* Charcoal oscuro */
+}
+
+.text-zinc-400, 
+.text-zinc-500,
+.text-zinc-555,
+.text-zinc-550 {
+  color: #5b5b66 !important; /* Gris medio */
+}
+
+/* Títulos y textos destacados */
+h1, h2, h3, h4, h5, h6, 
+.font-bold, 
+.font-black,
+.font-extrabold {
+  color: #18181b !important;
+}
+
+/* Enlaces y botones de navegación inactivos */
+aside button.text-zinc-400 {
+  color: #4a4a52 !important;
+}
+aside button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #18181b !important;
+}
+
+/* Inputs, Selects y Textareas claros y legibles */
+input, 
+select, 
+textarea,
+input.bg-zinc-950,
+select.bg-zinc-950,
+textarea.bg-zinc-950 {
+  background-color: #FFFFFF !important;
+  border: 1px solid #D4D4D8 !important;
+  color: #18181b !important;
+}
+
+input:focus, 
+select:focus, 
+textarea:focus {
+  border-color: #E8B800 !important;
+  outline: none;
+}
+
+input::placeholder, 
+textarea::placeholder {
+  color: #A1A1AA !important;
+}
+
+/* Bordes en general */
+.border-white\/5, 
+.border-white\/10, 
+.border-white\/20, 
+.border-zinc-800, 
+.border-zinc-700,
+.border-stone-200 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Mantener el Ticket de Epson simulado con papel blanco y letras negras */
+.simulador-ticket,
+.bg-white.text-zinc-950 {
+  background-color: #FFFFFF !important;
+  color: #09090b !important;
+}
+
+/* Mantener colores de estados (éxitos, alertas, errores) en modo legible */
+.text-emerald-400, 
+.text-emerald-450 {
+  color: #15803D !important; /* Verde oscuro */
+}
+.bg-emerald-500\/10 {
+  background-color: rgba(21, 128, 61, 0.08) !important;
+}
+
+.text-rose-450, 
+.text-rose-455, 
+.text-rose-400 {
+  color: #B91C1C !important; /* Rojo oscuro */
+}
+.bg-rose-500\/10 {
+  background-color: rgba(185, 28, 28, 0.08) !important;
+}
+
+.text-[#E8B800], 
+.text-brand-yellow {
+  color: #B28600 !important; /* Amarillo oscuro / dorado para que sea legible en fondo claro */
+}
+
+/* Estilo para el botón de Enviar a Cocina y otros botones primarios oscuros */
+.bg-[#624A3E] {
+  background-color: #8C6D58 !important; /* Softer warm brown */
+  color: #FFFFFF !important;
+}
+.bg-[#624A3E] * {
+  color: #FFFFFF !important;
 }
