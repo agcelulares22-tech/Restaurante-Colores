@@ -214,7 +214,7 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
       return;
     }
 
-    const nextId = Date.now() + Math.floor(Math.random() * 100);
+    const nextId = localMesas.length > 0 ? Math.max(...localMesas.map(m => m.id_mesa)) + 1 : 1;
     const newMesa: Mesa = {
       id_mesa: nextId,
       numero_mesa: formattedName,
