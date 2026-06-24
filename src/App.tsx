@@ -648,7 +648,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   // --- Handlers for Kitchen View ---
-  const handleCambiarEstadoPedido = async (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+  const handleCambiarEstadoPedido = async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
     console.log(`[handleCambiarEstadoPedido] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
 
     const pObj = pedidos.find(p => p.id_pedido === idPedido);
@@ -845,12 +845,12 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     }
   };
 
-  const handleProducirPedidoConEscandallo = (idPedido: number) => {
+  const handleProducirPedidoConEscandallo = (idPedido: string) => {
     handleCambiarEstadoPedido(idPedido, 'listo');
   };
 
   // --- Handlers for Cashier View (Caja & Cierre) ---
-  const handleFacturarMesa = useCallback((idPedido: number, alreadyUpdatedInCaja: boolean = false) => {
+  const handleFacturarMesa = useCallback((idPedido: string, alreadyUpdatedInCaja: boolean = false) => {
     const target = pedidos.find(p => p.id_pedido === idPedido);
     if (!target) return;
 

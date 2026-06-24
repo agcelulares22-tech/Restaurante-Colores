@@ -27,7 +27,7 @@ interface UseMozoTerminalProps {
   onMozoChange: (mozo: string) => void;
   onCrearPedido: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; idempotency_key?: string }) => void | Promise<void>;
   pedidos: Pedido[];
-  onFacturarMesa: (idPedido: number) => void;
+  onFacturarMesa: (idPedido: string) => void;
   addLog: (tipo: EventoLog['tipo'], mensaje: string) => void;
   permitirVentaSinStock?: boolean;
   toast: {
@@ -84,7 +84,7 @@ export function useMozoTerminal({
   const [editingPriceValue, setEditingPriceValue] = useState<number>(0);
 
   // Bill splitting state
-  const [splittingPedidoId, setSplittingPedidoId] = useState<number | null>(null);
+  const [splittingPedidoId, setSplittingPedidoId] = useState<string | null>(null);
   const [splitCount, setSplitCount] = useState<number>(2);
   const [splitItemsChecked, setSplitItemsChecked] = useState<{ [itemIdx: number]: boolean }>({});
 

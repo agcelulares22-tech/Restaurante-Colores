@@ -23,8 +23,8 @@ import { pedidosDeliveryRapidoService, PedidoDeliveryRapido } from '../services/
 
 interface KitchenMonitorProps {
   pedidos: Pedido[];
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
-  onProducirPedidoConEscandallo: (idPedido: number) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
+  onProducirPedidoConEscandallo: (idPedido: string) => void;
   minutosGlobal: number;
   productosMenu: ProductoMenu[];
   recetas: RecetaEscandallo[];
@@ -82,7 +82,7 @@ function KitchenMonitor({
         const minutes = Math.max(0, Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000));
 
         return {
-          id_pedido: o.id + 10000000,
+          id_pedido: String(o.id + 10000000),
           idempotency_key: `quick_deliv_db_${o.id}`,
           id_mesa: 999,
           numero_mesa: `DELIVERY: ${o.nombre_cliente.toUpperCase()} - ${o.direccion.toUpperCase()}`,
@@ -108,9 +108,10 @@ function KitchenMonitor({
     return [...pedidos, ...mapped];
   }, [pedidos, quickOrders]);
 
-  const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
-    if (idPedido >= 10000000) {
-      const realId = idPedido - 10000000;
+  const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
+    const numericId = Number(idPedido);
+    if (!isNaN(numericId) && numericId >= 10000000) {
+      const realId = numericId - 10000000;
       let dbEstado: 'nuevo' | 'horno' | 'delivery' | 'entregado' = 'nuevo';
       if (nuevoEstado === 'en_cocina') dbEstado = 'horno';
       else if (nuevoEstado === 'listo') dbEstado = 'delivery';
@@ -204,7 +205,7 @@ function KitchenMonitor({
 
 
   const [nowTime, setNowTime] = useState(Date.now());
-  const playedAlarmsRef = React.useRef<Set<number>>(new Set());
+  const playedAlarmsRef = React.useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const timer = setInterval(() => {

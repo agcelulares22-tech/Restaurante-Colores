@@ -22,7 +22,7 @@ export const hydratePedido = (
 ): Pedido => {
   const headerItems = parseHeaderItems(header.items);
   const relatedItems: PedidoItem[] = details
-    .filter(detail => detail.id_pedido === header.id_pedido)
+    .filter(detail => String(detail.id_pedido) === String(header.id_pedido))
     .sort((a, b) => String(a.id_detalle || '').localeCompare(String(b.id_detalle || '')))
     .map(detail => {
       const matchingHeaderItem = headerItems.find(hi => hi.id_producto === detail.id_producto);
@@ -40,7 +40,7 @@ export const hydratePedido = (
   const idMesa = isDelivery ? 999 : header.id_mesa;
 
   return {
-    id_pedido: header.id_pedido,
+    id_pedido: String(header.id_pedido),
     idempotency_key: header.idempotency_key ?? undefined,
     id_mesa: idMesa,
     numero_mesa: header.numero_mesa,
@@ -141,9 +141,9 @@ export const pedidosService = {
     return headers.map(header => hydratePedido(header, details || []));
   },
 
-  async getById(id: number): Promise<Pedido | null> {
+  async getById(id: string): Promise<Pedido | null> {
     const list = await this.list();
-    return list.find(p => p.id_pedido === id) || null;
+    return list.find(p => String(p.id_pedido) === String(id)) || null;
   },
 
   async create(pedido: Pedido): Promise<Pedido> {
@@ -155,7 +155,7 @@ export const pedidosService = {
     return pedido;
   },
 
-  async update(id: number, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
+  async update(id: string, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (!fromSyncQueue) {
@@ -207,7 +207,7 @@ export const pedidosService = {
         let { error, data } = await supabase
           .from('pedidos_cabecera')
           .update(headerFields)
-          .eq('id_pedido', id)
+          .eq('id_pedido', id.toString())
           .select();
         
         console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data });
@@ -217,7 +217,7 @@ export const pedidosService = {
           console.warn('idempotency_key column missing in update, retrying without it...');
           const fallbackFields = { ...headerFields };
           delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id).select();
+          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id.toString()).select();
           error = res.error;
           console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${id}:`, { error: res.error, data: res.data });
         }
@@ -304,7 +304,7 @@ export const pedidosService = {
     for (const ped of pedidos) {
       try {
         console.log(`[pedidosService.upsert] Procesando pedido id=${ped.id_pedido}, estado=${ped.estado_comanda}, mesa=${ped.numero_mesa}`);
-        let activeId: number | null = null;
+        let activeId: string | null = null;
         let isExisting = false;
 
         // 1. Verificar si esta comanda específica ya existe en la base de datos por ID
@@ -458,7 +458,7 @@ export const pedidosService = {
     }
   },
 
-  async agregarItemsAComandaExistente(idPedido: number, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
+  async agregarItemsAComandaExistente(idPedido: string, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (!fromSyncQueue) {
@@ -526,12 +526,12 @@ export const pedidosService = {
     }
   },
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: string): Promise<boolean> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) return false;
     
     try {
-      const { error } = await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id);
+      const { error } = await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
       if (error) {
         console.error('Error deleting order:', error);
         return false;

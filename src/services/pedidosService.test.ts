@@ -4,7 +4,7 @@ import { hydratePedido, serializePedidoHeader } from './pedidosService';
 import type { Pedido } from '../types';
 
 const pedido: Pedido = {
-  id_pedido: 1201,
+  id_pedido: '1201',
   idempotency_key: 'mozo-4-123-test',
   id_mesa: 4,
   numero_mesa: 'Mesa 4',
@@ -36,7 +36,7 @@ test('prioriza el snapshot JSON para no perder el precio historico', () => {
   const header = serializePedidoHeader(pedido);
   const hydrated = hydratePedido(header, [{
     id_detalle: '1201_0000',
-    id_pedido: 1201,
+    id_pedido: '1201',
     id_producto: 'prod_bife',
     nombre: 'Bife',
     cantidad: 2,

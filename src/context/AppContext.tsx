@@ -279,8 +279,8 @@ interface PedidosContextValue {
     handleCrearPedido: (
           data: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; idempotency_key?: string }
         ) => void | Promise<void>;
-    handleCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
-    handleFacturarMesa: (idPedido: number) => void;
+    handleCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
+    handleFacturarMesa: (idPedido: string) => void;
 }
 
 const PedidosContext = createContext<PedidosContextValue | null>(null);
@@ -357,7 +357,7 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
         );
   
     const handleCambiarEstadoPedido = useCallback(
-          (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+          (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
                   let updatedPedido: Pedido | null = null;
                   setPedidos(prev => {
                             const next = prev.map(p => {
@@ -391,7 +391,7 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
         );
   
     const handleFacturarMesa = useCallback(
-          (idPedido: number) => {
+          (idPedido: string) => {
                   const pedido = pedidos.find(p => p.id_pedido === idPedido);
                   if (!pedido) return;
              

@@ -51,8 +51,8 @@ import ElPatronLogo from './ElPatronLogo';
 interface CajaModuleProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
-  onFacturarMesa: (idPedido: number) => void;
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
+  onFacturarMesa: (idPedido: string) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
 }
 

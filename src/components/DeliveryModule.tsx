@@ -14,8 +14,8 @@ interface DeliveryModuleProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
   onCrearPedido: (pedido: any) => Promise<void>;
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
-  onFacturarMesa: (idPedido: number, alreadyUpdatedInCaja?: boolean) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
+  onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean) => void;
   addLog: (tipo: any, mensaje: string) => void;
   activeMozo: string;
   recetas?: any[];

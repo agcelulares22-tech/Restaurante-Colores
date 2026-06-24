@@ -24,8 +24,8 @@ import { promocionesService, Promocion } from '../../../services/promocionesServ
 interface UseCajaProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
-  onFacturarMesa: (idPedido: number) => void;
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
+  onFacturarMesa: (idPedido: string) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
   toast: {
     success: (msg: string) => void;
@@ -152,7 +152,7 @@ export function useCaja({
   const [closingObservationsInput, setClosingObservationsInput] = useState<string>('Facturación normal del turno');
 
   // Interactive cashier selection
-  const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null);
+  const [selectedPedidoId, setSelectedPedidoId] = useState<string | null>(null);
   
   // Checkout options
   const [tipoComprobante, setTipoComprobante] = useState<TipoComprobante>('factura_b');
@@ -1011,7 +1011,7 @@ export function useCaja({
   const downloadFacturaHistorialPdf = async (factura: Factura) => {
     const neto = Number((factura.total / 1.21).toFixed(2));
     await pdfService.exportToPDF({
-      idPedido: factura.id_pedido || 0,
+      idPedido: factura.id_pedido || "0",
       nroComprobante: factura.nro_ticket,
       tipoComprobante: 'ticket_consumo',
       fechaHora: factura.fecha,

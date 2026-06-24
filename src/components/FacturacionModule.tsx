@@ -28,7 +28,7 @@ interface FacturacionModuleProps {
 
 type FacturaExtendida = Factura & {
   tipo?: 'ticket' | 'A' | 'B' | 'X';
-  id_pedido?: number | null;
+  id_pedido?: string | null;
   observaciones?: string;
   arcaCae?: string;
   arcaVto?: string;
@@ -99,7 +99,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   const [manualMedio, setManualMedio] = useState<Factura['medio_pago']>('efectivo');
   const [manualIva, setManualIva] = useState(true);
   const [manualObs, setManualObs] = useState('');
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<number | null>(null);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<string | null>(null);
   const [pagoTipo, setPagoTipo] = useState<'ticket' | 'A' | 'B' | 'X'>('ticket');
   const [pagoCliente, setPagoCliente] = useState('Consumidor Final');
   const [pagoCuit, setPagoCuit] = useState('99-99999999-9');
@@ -128,7 +128,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   const pedidosFacturados = new Set(
     facturas
       .map(f => f.id_pedido)
-      .filter((id): id is number => typeof id === 'number')
+      .filter((id): id is string => typeof id === 'string')
   );
 
   const pagosPendientes = useMemo(() => pedidos
@@ -396,7 +396,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     } catch (e) {}
 
     const ticketData: TicketData = {
-      idPedido: factura.id_pedido || pedido?.id_pedido || 0,
+      idPedido: factura.id_pedido || pedido?.id_pedido || "0",
       nroComprobante: factura.nro_ticket,
       tipoComprobante: tipoToComprobante(tipo),
       fechaHora: factura.fecha,
@@ -641,7 +641,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
           {selectedPending ? (
             <>
-              <select value={selectedPending.pedido.id_pedido} onChange={e => setPedidoSeleccionado(Number(e.target.value))} className="w-full p-3 rounded-xl border border-stone-200 text-xs font-bold">
+              <select value={selectedPending.pedido.id_pedido} onChange={e => setPedidoSeleccionado(e.target.value)} className="w-full p-3 rounded-xl border border-stone-200 text-xs font-bold">
                 {pagosPendientes.map(({ pedido, total }) => (
                   <option key={pedido.id_pedido} value={pedido.id_pedido}>
                     Pedido #{pedido.id_pedido} - {pedido.numero_mesa} - {pedido.mozo} - {money(total)}

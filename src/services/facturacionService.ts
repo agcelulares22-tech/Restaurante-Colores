@@ -2,7 +2,7 @@ import { getActiveSupabaseClient } from '../lib/supabaseClient';
 
 export interface Factura {
   id_factura: string;
-  id_pedido?: number;
+  id_pedido?: string;
   nro_ticket: string;
   cliente: string;
   cuit: string;
