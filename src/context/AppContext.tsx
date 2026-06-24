@@ -358,17 +358,33 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
   
     const handleCambiarEstadoPedido = useCallback(
           (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
-                  setPedidos(prev =>
-                            prev.map(p =>
-                                        p.id_pedido === idPedido
-                                          ? {
-                                                            ...p,
-                                                            estado_comanda: nuevoEstado,
-                                                            segundos_en_listo: nuevoEstado === 'listo' ? 0 : p.segundos_en_listo,
-                                          }
-                                          : p
-                                      )
-                          );
+                  let updatedPedido: Pedido | null = null;
+                  setPedidos(prev => {
+                            const next = prev.map(p => {
+                                         if (p.id_pedido === idPedido) {
+                                                   const updated = {
+                                                                     ...p,
+                                                                     estado_comanda: nuevoEstado,
+                                                                     segundos_en_listo: nuevoEstado === 'listo' ? 0 : p.segundos_en_listo,
+                                                   };
+                                                   updatedPedido = updated;
+                                                   return updated;
+                                         }
+                                         return p;
+                                       });
+
+                            setTimeout(() => {
+                                      if (updatedPedido) {
+                                                import('../supabase').then(({ dbSavePedidoComplex }) => {
+                                                          dbSavePedidoComplex(updatedPedido).catch(err => {
+                                                                    console.warn('Background save from context failed:', err);
+                                                          });
+                                                });
+                                      }
+                            }, 50);
+
+                            return next;
+                  });
                   addLog('comanda_estado', `Pedido #${idPedido} → ${nuevoEstado}`);
           },
           [addLog]
@@ -379,18 +395,29 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
                   const pedido = pedidos.find(p => p.id_pedido === idPedido);
                   if (!pedido) return;
              
+                  let updatedMesas: Mesa[] = [];
                   setPedidos(prev =>
                             prev.map(p =>
-                                        (p.id_mesa === pedido.id_mesa && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado')
-                                           ? { ...p, estado_comanda: 'entregado_cobrado' }
-                                           : p
-                                      )
+                                         (p.id_mesa === pedido.id_mesa && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado')
+                                            ? { ...p, estado_comanda: 'entregado_cobrado' }
+                                            : p
+                                       )
                           );
-                  setMesas(prev =>
-                            prev.map(m =>
-                                        m.id_mesa === pedido.id_mesa ? { ...m, estado: 'libre', comensales: undefined } : m
-                                      )
-                          );
+                  setMesas(prev => {
+                            const next = prev.map(m =>
+                                         m.id_mesa === pedido.id_mesa ? { ...m, estado: 'libre' as const, comensales: undefined } : m
+                                       );
+                            updatedMesas = next;
+                            return next;
+                  });
+
+                  setTimeout(() => {
+                            import('../supabase').then(({ dbSavePedidoComplex, dbUpsertMesas }) => {
+                                      dbSavePedidoComplex({ ...pedido, estado_comanda: 'entregado_cobrado' }).catch(console.error);
+                                      dbUpsertMesas(updatedMesas).catch(console.error);
+                            });
+                  }, 50);
+
                   addLog('sistema', `Mesa ${pedido.numero_mesa} facturada y liberada (pedido #${idPedido} y comandas asociadas)`);
           },
           [pedidos, addLog, setMesas]
