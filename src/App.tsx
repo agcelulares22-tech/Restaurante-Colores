@@ -274,8 +274,7 @@ export default function App() {
 
         if ((dbMesas ?? []).length > 0) {
           setMesas((dbMesas ?? []).map(m => ({
-            id_mesa: m.id_mesa,
-            numero_mesa: m.numero_mesa,
+            ...m,
             estado: m.estado || 'libre',
             comensales: m.comensales || undefined
           })));
