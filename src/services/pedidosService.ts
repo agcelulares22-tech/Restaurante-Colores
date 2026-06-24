@@ -20,7 +20,7 @@ export const hydratePedido = (
   header: PedidoHeaderRow,
   details: PedidoDetailRow[] = []
 ): Pedido => {
-  const headerItems = parseHeaderItems(header.elementos);
+  const headerItems = parseHeaderItems(header.items);
   const relatedItems: PedidoItem[] = details
     .filter(detail => detail.id_pedido === header.id_pedido)
     .sort((a, b) => String(a.id_detalle || '').localeCompare(String(b.id_detalle || '')))
@@ -36,10 +36,13 @@ export const hydratePedido = (
       };
     });
 
+  const isDelivery = header.id_mesa === null && String(header.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  const idMesa = isDelivery ? 999 : header.id_mesa;
+
   return {
     id_pedido: header.id_pedido,
     idempotency_key: header.idempotency_key ?? undefined,
-    id_mesa: header.id_mesa,
+    id_mesa: idMesa,
     numero_mesa: header.numero_mesa,
     mozo: header.mozo,
     estado_comanda: header.estado_comanda,
@@ -65,7 +68,7 @@ export const hydratePedido = (
 export const serializePedidoHeader = (pedido: Pedido) => ({
   id_pedido: pedido.id_pedido,
   idempotency_key: pedido.idempotency_key ?? null,
-  id_mesa: pedido.id_mesa || null,
+  id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
   numero_mesa: pedido.numero_mesa,
   mozo: pedido.mozo || 'Sistema',
   estado_comanda: pedido.estado_comanda,
@@ -87,7 +90,7 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   fecha_listo: pedido.fecha_listo
     ? new Date(pedido.fecha_listo).toISOString()
     : null,
-  elementos: JSON.stringify(pedido.items),
+  items: JSON.stringify(pedido.items),
   nombre_cliente: pedido.nombre_cliente ?? null,
   telefono_cliente: pedido.telefono_cliente ?? null,
   direccion_cliente: pedido.direccion_cliente ?? null,
@@ -164,7 +167,7 @@ export const pedidosService = {
     if (fields.tiempo_despacho_minutos !== undefined) headerFields.tiempo_despacho_minutos = fields.tiempo_despacho_minutos;
     if (fields.segundos_en_listo !== undefined) headerFields.segundos_en_listo = fields.segundos_en_listo;
     // NUNCA actualizar id_mesa/numero_mesa desde un update parcial para evitar mover/combinar comandas por error
-    if (fields.items !== undefined) headerFields.elementos = JSON.stringify(fields.items);
+    if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
     if (fields.fecha_inicio_cocina !== undefined) {
       headerFields.fecha_inicio_cocina = fields.fecha_inicio_cocina
         ? new Date(fields.fecha_inicio_cocina).toISOString()
@@ -474,7 +477,7 @@ export const pedidosService = {
 
     const { error: updateError } = await supabase
       .from('pedidos_cabecera')
-      .update({ elementos: JSON.stringify(updatedItems) })
+      .update({ items: JSON.stringify(updatedItems) })
       .eq('id_pedido', idPedido);
 
     if (updateError) {

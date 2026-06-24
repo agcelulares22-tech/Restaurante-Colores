@@ -156,32 +156,34 @@ function DeliveryModule({
     };
   }, []);
 
-  // Load Leaflet library dynamically when the modal or tracking opens
+  // 1. Load Leaflet library dynamically once when the component mounts
   useEffect(() => {
-    if (showNewOrderModal || trackingPedido) {
-      const loadLeaflet = () => {
+    if ((window as any).L) return;
+
+    // Stylesheet
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.id = 'leaflet-stylesheet';
+    document.head.appendChild(link);
+
+    // Script
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    document.head.appendChild(script);
+  }, []);
+
+  // 2. Initialize and destroy map instance for the order creator modal
+  useEffect(() => {
+    if (showNewOrderModal) {
+      const checkAndInit = () => {
         if ((window as any).L) {
-          if (showNewOrderModal) initMap();
-          return;
+          initMap();
+        } else {
+          setTimeout(checkAndInit, 100);
         }
-
-        // Stylesheet
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        document.head.appendChild(link);
-
-        // Script
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.onload = () => {
-          if (showNewOrderModal) initMap();
-        };
-        document.head.appendChild(script);
       };
-
-      // Delay slightly to ensure modal is fully rendered
-      setTimeout(loadLeaflet, 200);
+      setTimeout(checkAndInit, 200);
     } else {
       // Destroy map instance when modal closes
       if (mapRef.current) {
@@ -418,141 +420,194 @@ function DeliveryModule({
     setTrackingProgress(0);
     const clientAddressVal = pedido.direccion_cliente || parseClientInfo(pedido.numero_mesa).address;
     
-    const L = (window as any).L;
-    if (!L) {
-      toast.warning('El mapa aún se está cargando. Intente en un instante.');
-      return;
-    }
-    
-    // Give it 300ms to mount the #live-tracking-map div inside the modal
-    setTimeout(async () => {
-      try {
-        if (trackingMapRef.current) {
-          trackingMapRef.current.remove();
-          trackingMapRef.current = null;
-        }
-
-        // Initialize tracking map
-        trackingMapRef.current = L.map('live-tracking-map', {
-          zoomControl: true,
-          scrollWheelZoom: true
-        }).setView([origenLat, origenLng], 14);
-
-        // Add tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
-          maxZoom: 20
-        }).addTo(trackingMapRef.current);
-
-        // Add Origin Pizzeria Marker (Blue dot)
-        const pizzeriaIcon = L.divIcon({
-          className: 'custom-pizzeria-marker',
-          html: '<div style="background-color: #3B82F6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
-          iconSize: [12, 12]
-        });
-        L.marker([origenLat, origenLng], { icon: pizzeriaIcon })
-          .addTo(trackingMapRef.current)
-          .bindPopup('Pizzería Colores (Origen)');
-
-        // Geocode Client Destination
-        const searchAddr = clientAddressVal.includes('argentina') ? clientAddressVal : `${clientAddressVal}, Río Cuarto, Córdoba, Argentina`;
-        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
-        const geoData = await geoResp.json();
-        
-        if (!geoData || geoData.length === 0) {
-          throw new Error('No se pudo encontrar la geolocalización de la dirección de entrega.');
-        }
-
-        const destLat = parseFloat(geoData[0].lat);
-        const destLng = parseFloat(geoData[0].lon);
-
-        // Add Destination Marker (Red dot)
-        const destIcon = L.divIcon({
-          className: 'custom-dest-marker',
-          html: '<div style="background-color: #EF4444; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>',
-          iconSize: [14, 14]
-        });
-        L.marker([destLat, destLng], { icon: destIcon })
-          .addTo(trackingMapRef.current)
-          .bindPopup(`Destino: ${clientAddressVal}`);
-
-        // OSRM Routing
-        const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destLng},${destLat}?overview=full&geometries=geojson`);
-        const routeData = await routeResp.json();
-        
-        if (!routeData.routes || routeData.routes.length === 0) {
-          throw new Error('No se pudo trazar la ruta terrestre para el tracking.');
-        }
-
-        const route = routeData.routes[0];
-        const routeCoords = route.geometry.coordinates.map((c: any) => [c[1], c[0]]); // [lat, lng]
-        const estimatedDur = route.duration / 60; // in minutes
-        setTrackingEta(Math.round(estimatedDur));
-
-        // Draw Route Line
-        L.polyline(routeCoords, {
-          color: '#E8B800',
-          weight: 5,
-          opacity: 0.8,
-          lineJoin: 'round'
-        }).addTo(trackingMapRef.current);
-
-        // Fit bounds
-        trackingMapRef.current.fitBounds([
-          [origenLat, origenLng],
-          [destLat, destLng]
-        ], { padding: [50, 50] });
-
-        // Add Moving Bike Courier Marker
-        const bikeIcon = L.divIcon({
-          className: 'custom-bike-marker',
-          html: '<div style="background-color: #3E3228; color: #E8B800; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #E8B800; box-shadow: 0 0 8px rgba(0,0,0,0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 5.5 3-3-3-3M8.5 17.5 12 11.5h4.5"/></svg></div>',
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-
-        const bikeMarker = L.marker([origenLat, origenLng], { icon: bikeIcon }).addTo(trackingMapRef.current);
-        trackingBikeMarkerRef.current = bikeMarker;
-
-        // Animate Courier along routeCoords
-        let currentStep = 0;
-        const totalSteps = routeCoords.length;
-
-        if (trackingIntervalRef.current) {
-          clearInterval(trackingIntervalRef.current);
-        }
-
-        trackingIntervalRef.current = setInterval(() => {
-          if (currentStep >= totalSteps) {
-            clearInterval(trackingIntervalRef.current);
-            setTrackingProgress(100);
-            setTrackingEta(0);
-            toast.success('¡El repartidor llegó a destino!');
-            return;
-          }
-
-          const currentCoord = routeCoords[currentStep];
-          bikeMarker.setLatLng(currentCoord);
-          
-          // Pan map to follow bike marker
-          if (trackingMapRef.current) {
-            trackingMapRef.current.panTo(currentCoord);
-          }
-
-          const progressPercent = (currentStep / totalSteps) * 100;
-          setTrackingProgress(Math.round(progressPercent));
-          
-          const remainingMinutes = estimatedDur * (1 - currentStep / totalSteps);
-          setTrackingEta(Math.max(1, Math.round(remainingMinutes)));
-
-          currentStep++;
-        }, 400);
-
-      } catch (err: any) {
-        console.error('Error starting live tracking simulation:', err);
-        toast.error(err.message || 'Error al iniciar mapa de seguimiento.');
+    const checkAndInitTracking = () => {
+      const L = (window as any).L;
+      if (!L) {
+        setTimeout(checkAndInitTracking, 100);
+        return;
       }
-    }, 300);
+      
+      // Give it 300ms to mount the #live-tracking-map div inside the modal
+      setTimeout(async () => {
+        try {
+          if (trackingMapRef.current) {
+            trackingMapRef.current.remove();
+            trackingMapRef.current = null;
+          }
+
+          // Initialize tracking map
+          trackingMapRef.current = L.map('live-tracking-map', {
+            zoomControl: true,
+            scrollWheelZoom: true
+          }).setView([origenLat, origenLng], 14);
+
+          // Add tiles
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 20
+          }).addTo(trackingMapRef.current);
+
+          // Double invalidation to solve container size calculation lags
+          setTimeout(() => {
+            if (trackingMapRef.current) trackingMapRef.current.invalidateSize();
+          }, 100);
+          setTimeout(() => {
+            if (trackingMapRef.current) trackingMapRef.current.invalidateSize();
+          }, 450);
+
+          // Add Origin Pizzeria Marker (Blue dot)
+          const pizzeriaIcon = L.divIcon({
+            className: 'custom-pizzeria-marker',
+            html: '<div style="background-color: #3B82F6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);"></div>',
+            iconSize: [12, 12]
+          });
+          L.marker([origenLat, origenLng], { icon: pizzeriaIcon })
+            .addTo(trackingMapRef.current)
+            .bindPopup('Pizzería Colores (Origen)');
+
+          let destLat = origenLat;
+          let destLng = origenLng;
+          let usingMock = false;
+
+          try {
+            // Geocode Client Destination
+            const searchAddr = clientAddressVal.includes('argentina') ? clientAddressVal : `${clientAddressVal}, Río Cuarto, Córdoba, Argentina`;
+            const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchAddr)}&format=json&limit=1`);
+            const geoData = await geoResp.json();
+            
+            if (geoData && geoData.length > 0) {
+              destLat = parseFloat(geoData[0].lat);
+              destLng = parseFloat(geoData[0].lon);
+            } else {
+              throw new Error('Geocoding returned empty');
+            }
+          } catch (e) {
+            console.warn('Geocoding failed, falling back to mock destination coordinates', e);
+            // Fallback: small random offset from pizzeria within Río Cuarto (~1.5 km)
+            destLat = origenLat + (Math.random() - 0.5) * 0.015;
+            destLng = origenLng + (Math.random() - 0.5) * 0.015;
+            usingMock = true;
+          }
+
+          // Add Destination Marker (Red dot)
+          const destIcon = L.divIcon({
+            className: 'custom-dest-marker',
+            html: '<div style="background-color: #EF4444; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>',
+            iconSize: [14, 14]
+          });
+          L.marker([destLat, destLng], { icon: destIcon })
+            .addTo(trackingMapRef.current)
+            .bindPopup(`Destino: ${clientAddressVal}`);
+
+          let routeCoords: [number, number][] = [];
+          let estimatedDur = 10; // Default estimate in minutes
+
+          if (!usingMock) {
+            try {
+              // OSRM Routing
+              const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destLng},${destLat}?overview=full&geometries=geojson`);
+              const routeData = await routeResp.json();
+              
+              if (routeData.routes && routeData.routes.length > 0) {
+                const route = routeData.routes[0];
+                routeCoords = route.geometry.coordinates.map((c: any) => [c[1], c[0]]);
+                estimatedDur = route.duration / 60;
+              } else {
+                throw new Error('OSRM routing returned empty');
+              }
+            } catch (e) {
+              console.warn('OSRM routing failed, falling back to mock curved path', e);
+              usingMock = true;
+            }
+          }
+
+          if (usingMock || routeCoords.length === 0) {
+            // Generate mock route coordinates (15 points with curved sine wave deviations)
+            const steps = 15;
+            for (let i = 0; i <= steps; i++) {
+              const ratio = i / steps;
+              const lat = origenLat + (destLat - origenLat) * ratio;
+              const lng = origenLng + (destLng - origenLng) * ratio;
+              if (i > 0 && i < steps) {
+                const offsetLat = Math.sin(ratio * Math.PI) * (destLng - origenLng) * 0.2 + (Math.random() - 0.5) * 0.001;
+                const offsetLng = Math.sin(ratio * Math.PI) * (destLat - origenLat) * 0.2 + (Math.random() - 0.5) * 0.001;
+                routeCoords.push([lat + offsetLat, lng + offsetLng]);
+              } else {
+                routeCoords.push([lat, lng]);
+              }
+            }
+            estimatedDur = 8;
+          }
+
+          setTrackingEta(Math.round(estimatedDur));
+
+          // Draw Route Line
+          L.polyline(routeCoords, {
+            color: '#E8B800',
+            weight: 5,
+            opacity: 0.8,
+            lineJoin: 'round'
+          }).addTo(trackingMapRef.current);
+
+          // Fit bounds
+          trackingMapRef.current.fitBounds([
+            [origenLat, origenLng],
+            [destLat, destLng]
+          ], { padding: [50, 50] });
+
+          // Add Moving Bike Courier Marker
+          const bikeIcon = L.divIcon({
+            className: 'custom-bike-marker',
+            html: '<div style="background-color: #3E3228; color: #E8B800; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #E8B800; box-shadow: 0 0 8px rgba(0,0,0,0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 5.5 3-3-3-3M8.5 17.5 12 11.5h4.5"/></svg></div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+          });
+
+          const bikeMarker = L.marker([origenLat, origenLng], { icon: bikeIcon }).addTo(trackingMapRef.current);
+          trackingBikeMarkerRef.current = bikeMarker;
+
+          // Animate Courier along routeCoords
+          let currentStep = 0;
+          const totalSteps = routeCoords.length;
+
+          if (trackingIntervalRef.current) {
+            clearInterval(trackingIntervalRef.current);
+          }
+
+          trackingIntervalRef.current = setInterval(() => {
+            if (currentStep >= totalSteps) {
+              clearInterval(trackingIntervalRef.current);
+              setTrackingProgress(100);
+              setTrackingEta(0);
+              toast.success('¡El repartidor llegó a destino!');
+              return;
+            }
+
+            const currentCoord = routeCoords[currentStep];
+            bikeMarker.setLatLng(currentCoord);
+            
+            // Pan map to follow bike marker
+            if (trackingMapRef.current) {
+              trackingMapRef.current.panTo(currentCoord);
+            }
+
+            const progressPercent = (currentStep / totalSteps) * 100;
+            setTrackingProgress(Math.round(progressPercent));
+            
+            const remainingMinutes = estimatedDur * (1 - currentStep / totalSteps);
+            setTrackingEta(Math.max(1, Math.round(remainingMinutes)));
+
+            currentStep++;
+          }, 400);
+
+        } catch (err: any) {
+          console.error('Error starting live tracking simulation:', err);
+          toast.error(err.message || 'Error al iniciar mapa de seguimiento.');
+        }
+      }, 300);
+    };
+
+    checkAndInitTracking();
   };
 
   const handleCloseTracking = () => {

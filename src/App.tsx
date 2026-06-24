@@ -448,7 +448,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     }
 
     console.log('[DEBUG] handleCrearPedido called with:', newPedidoData);
-    const existingActivePedido = pedidos.find(p => {
+    const isDelivery = newPedidoData.id_mesa === 999 || String(newPedidoData.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+    const existingActivePedido = isDelivery ? undefined : pedidos.find(p => {
       const match = isSameTable(p, newPedidoData) && 
         p.estado_comanda !== 'entregado_cobrado' && 
         p.estado_comanda !== 'cancelado';

@@ -296,8 +296,9 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
           (data: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; comensales?: number; idempotency_key?: string }) => {
                   if (data.idempotency_key && pedidos.some(p => p.idempotency_key === data.idempotency_key)) return;
 
+                  const isDelivery = data.id_mesa === 999 || String(data.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
                   // CONTROL DE SESIÓN POR MESA: buscar si existe un pedido activo para esa mesa
-                  const activePedido = pedidos.find(p => p.id_mesa === data.id_mesa && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado');
+                  const activePedido = isDelivery ? undefined : pedidos.find(p => p.id_mesa === data.id_mesa && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado');
 
                   if (activePedido) {
                       setPedidos(prev =>
