@@ -99,7 +99,7 @@ export const facturacionService = {
     }
   },
 
-  async create(factura: Factura): Promise<Factura> {
+  async create(factura: Factura, fromSyncQueue: boolean = false): Promise<Factura> {
     cacheFactura(factura);
     const supabase = getActiveSupabaseClient();
     const dbPayload = {
@@ -129,13 +129,15 @@ export const facturacionService = {
       };
     } catch (err) {
       console.warn('facturacionService.create failed remote push, enqueued for sync:', err);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('upsert_factura', factura);
-      return factura;
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('upsert_factura', factura);
+      }
+      throw err;
     }
   },
 
-  async upsert(facturas: Factura[]): Promise<void> {
+  async upsert(facturas: Factura[], fromSyncQueue: boolean = false): Promise<void> {
     writeLocalFacturas(mergeFacturas([], [...facturas, ...readLocalFacturas()]));
     const supabase = getActiveSupabaseClient();
     const dbPayloads = facturas.map(f => {
@@ -163,8 +165,11 @@ export const facturacionService = {
       }
     } catch (err) {
       console.warn('facturacionService.upsert failed remote push, enqueued for sync:', err);
-      const { syncQueueService } = await import('./syncQueueService');
-      facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
+      }
+      throw err;
     }
   },
 

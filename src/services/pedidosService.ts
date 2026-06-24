@@ -155,12 +155,16 @@ export const pedidosService = {
     return pedido;
   },
 
-  async update(id: number, fields: Partial<Pedido>): Promise<void> {
+  async update(id: number, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
-      console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      if (!fromSyncQueue) {
+        console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      } else {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       return;
     }
     
@@ -279,14 +283,20 @@ export const pedidosService = {
       }
     } catch (error) {
       console.warn(`Error in remote update for pedido ${id}. Enqueueing action to SyncQueue.`, error);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      }
+      throw error;
     }
   },
 
-  async upsert(pedidos: Pedido[]): Promise<void> {
+  async upsert(pedidos: Pedido[], fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
+      if (fromSyncQueue) {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       console.warn('Supabase is not configured or offline. Skipping database upsert.');
       return;
     }
@@ -439,21 +449,28 @@ export const pedidosService = {
         }
       } catch (err) {
         console.warn(`Error in remote upsert for order ${ped.id_pedido}. Enqueueing to SyncQueue.`, err);
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('upsert_pedido', ped);
+        if (!fromSyncQueue) {
+          const { syncQueueService } = await import('./syncQueueService');
+          syncQueueService.enqueue('upsert_pedido', ped);
+        }
+        throw err;
       }
     }
   },
 
-  async agregarItemsAComandaExistente(idPedido: number, nuevosItems: PedidoItem[]): Promise<void> {
+  async agregarItemsAComandaExistente(idPedido: number, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('upsert_pedido', {
-        id_pedido: idPedido,
-        items: nuevosItems,
-        is_accumulation: true
-      });
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('upsert_pedido', {
+          id_pedido: idPedido,
+          items: nuevosItems,
+          is_accumulation: true
+        });
+      } else {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       return;
     }
 
