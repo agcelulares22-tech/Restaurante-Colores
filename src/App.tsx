@@ -35,6 +35,7 @@ import RecetasErrorBoundary from './components/RecetasErrorBoundary';
 import Skeleton from './components/Skeleton';
 import { tryGetActiveSupabaseClient } from './lib/supabaseClient';
 import DiagnosticsTester from './components/DiagnosticsTester';
+import { ThemeToggle } from './components/ThemeToggle';
 
 
 import type { BackupSnapshotData } from './services/backupsService';
@@ -81,17 +82,6 @@ import { createClientPedidoId } from './lib/pedidoIds';
 import { cajaService } from './services/cajaService';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
-  if (!p1 || !p2) return false;
-  
-  const isP1Delivery = p1.id_mesa === 999 || String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-  const isP2Delivery = p2.id_mesa === 999 || String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-  
-  if (isP1Delivery || isP2Delivery) {
-    const norm1 = String(p1.numero_mesa || '').toLowerCase().trim();
-    const norm2 = String(p2.numero_mesa || '').toLowerCase().trim();
-    return norm1 !== '' && norm1 === norm2;
-  }
-
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
     if (String(p1.id_mesa) === String(p2.id_mesa)) return true;
   }
@@ -104,7 +94,7 @@ export default function App() {
   const { toast, toasts, removeToast } = useToast();
   // --- Global Synced States ---
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
-    typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
+    typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
   ));
   const [permitirVentaSinStock, setPermitirVentaSinStock] = useState<boolean>(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(INITIAL_USUARIOS);
@@ -118,6 +108,7 @@ export default function App() {
   const [postLoginLoading, setPostLoginLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
+
 
   // Mapa O(1) de precio_venta para cálculos de ventas en toda la app
   const precioMap = useMemo(() => {
@@ -187,11 +178,11 @@ export default function App() {
           const currentKey = localStorage.getItem('SUPABASE_ANON_KEY');
           if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
             // Cambió el proyecto Supabase: limpiar cachés locales para forzar recarga fresca
-            localStorage.removeItem('colores_pizzeria_cache_menu');
-            localStorage.removeItem('colores_pizzeria_cache_categorias');
-            localStorage.removeItem('colores_pizzeria_cache_proveedores');
-            localStorage.removeItem('colores_pizzeria_cache_insumos');
-            localStorage.removeItem('colores_pizzeria_cache_recetas');
+            localStorage.removeItem('el_patron_cache_menu');
+            localStorage.removeItem('el_patron_cache_categorias');
+            localStorage.removeItem('el_patron_cache_proveedores');
+            localStorage.removeItem('el_patron_cache_insumos');
+            localStorage.removeItem('el_patron_cache_recetas');
             localStorage.setItem('SUPABASE_URL', data.SUPABASE_URL);
             localStorage.setItem('SUPABASE_ANON_KEY', data.SUPABASE_ANON_KEY);
             resetSupabaseInstance(); // This triggers supabase-client-reset event
@@ -274,7 +265,8 @@ export default function App() {
 
         if ((dbMesas ?? []).length > 0) {
           setMesas((dbMesas ?? []).map(m => ({
-            ...m,
+            id_mesa: m.id_mesa,
+            numero_mesa: m.numero_mesa,
             estado: m.estado || 'libre',
             comensales: m.comensales || undefined
           })));
@@ -289,17 +281,15 @@ export default function App() {
           setRecetas(dbRecipes ?? []);
         }
         if ((dbPedidos ?? []).length > 0) {
-          const sanitizedDbPedidos = (dbPedidos ?? []).filter(p => p && p.id_pedido !== undefined);
-          setPedidos(sanitizedDbPedidos);
+          setPedidos(dbPedidos ?? []);
         } else {
           // Persistencia local: si Supabase no tiene pedidos, conservar los creados en sesión
-          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('colores_pizzeria_pedidos_local') : null;
+          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('el_patron_pedidos_local') : null;
           if (localPedidos) {
             try {
               const parsed = JSON.parse(localPedidos) as Pedido[];
-              const validParsed = (parsed || []).filter(p => p && p.id_pedido !== undefined);
-              if (validParsed.length > 0) {
-                setPedidos(validParsed.map(p => ({
+              if (parsed.length > 0) {
+                setPedidos(parsed.map(p => ({
                   ...p,
                   fecha_hora: new Date(p.fecha_hora),
                   fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
@@ -324,12 +314,9 @@ export default function App() {
     loadData();
 
     if (client) {
-      let pedidosTimeout: any = null;
-      let mesasTimeout: any = null;
-
-      const triggerRefreshedPedidos = () => {
-        if (pedidosTimeout) clearTimeout(pedidosTimeout);
-        pedidosTimeout = setTimeout(async () => {
+      channel = client
+        .channel('realtime_pedidos_app')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, async () => {
           try {
             const refreshed = await dbFetchPedidos();
             if (refreshed && active) {
@@ -338,12 +325,18 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for pedidos failed:', err);
           }
-        }, 250); // 250ms debounce
-      };
-
-      const triggerRefreshedMesas = () => {
-        if (mesasTimeout) clearTimeout(mesasTimeout);
-        mesasTimeout = setTimeout(async () => {
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, async () => {
+          try {
+            const refreshed = await dbFetchPedidos();
+            if (refreshed && active) {
+              setPedidos(refreshed);
+            }
+          } catch (err) {
+            console.warn('Realtime fetch for pedido_detalle failed:', err);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, async () => {
           try {
             const refreshed = await dbFetchMesas();
             if (refreshed && active) {
@@ -352,26 +345,15 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for mesas failed:', err);
           }
-        }, 250); // 250ms debounce
-      };
-
-      channel = client
-        .channel('realtime_pedidos_app')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, triggerRefreshedPedidos)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, triggerRefreshedPedidos)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, triggerRefreshedMesas)
+        })
         .subscribe();
-
-      return () => {
-        active = false;
-        client.removeChannel(channel);
-        if (pedidosTimeout) clearTimeout(pedidosTimeout);
-        if (mesasTimeout) clearTimeout(mesasTimeout);
-      };
     }
 
     return () => {
       active = false;
+      if (client && channel) {
+        client.removeChannel(channel);
+      }
     };
   }, [supabaseTrigger, addLog]);
 
@@ -405,33 +387,6 @@ export default function App() {
   const allowedViews = useMemo(() => {
     return getAllowedViews(activeUser.rol);
   }, [activeUser.rol]);
-
-  // Dynamic Ref to avoid rendering callback updates
-  const stateRef = React.useRef({
-    pedidos,
-    insumos,
-    recetas,
-    mesas,
-    activeMozo,
-    permitirVentaSinStock,
-    mermas,
-    productosMenu,
-    usuarios
-  });
-
-  useEffect(() => {
-    stateRef.current = {
-      pedidos,
-      insumos,
-      recetas,
-      mesas,
-      activeMozo,
-      permitirVentaSinStock,
-      mermas,
-      productosMenu,
-      usuarios
-    };
-  }, [pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock, mermas, productosMenu, usuarios]);
 
   const applyAuthenticatedSession = useCallback((session: {
     user?: { user_metadata?: Record<string, unknown> };
@@ -483,8 +438,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   // --- Handlers for Waiter View (Terminal Mozo) ---
   const handleCrearPedido = useCallback(async (newPedidoData: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; comensales?: number; idempotency_key?: string }) => {
-    const { pedidos, insumos, recetas, mesas, activeMozo, permitirVentaSinStock } = stateRef.current;
-
     const existingByKey = newPedidoData.idempotency_key
       ? pedidos.find(p => p.idempotency_key === newPedidoData.idempotency_key)
       : undefined;
@@ -570,7 +523,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       finalPedido = {
         ...existingActivePedido,
         items: updatedItems,
-        mozo: existingActivePedido.mozo || newPedidoData.mozo || activeMozo || 'Sistema',
         observaciones: mergedObs || undefined,
         estado_comanda: 'pendiente',
         stock_descontado: existingActivePedido.stock_descontado || stockDescontado,
@@ -584,7 +536,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       finalPedido = {
         ...newPedidoData,
         id_pedido: newId,
-        mozo: newPedidoData.mozo || activeMozo || 'Sistema',
         fecha_hora: new Date(),
         minutos_transcurridos: 0,
         origen: newPedidoData.origen || 'Mozo',
@@ -608,7 +559,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     setTimeout(() => {
       const currentPedidos = [{ ...finalPedido, id_pedido: finalPedido.id_pedido }, ...(pedidos.filter(p => p.id_pedido !== finalPedido.id_pedido))];
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(currentPedidos));
+        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(currentPedidos));
       }
     }, 0);
 
@@ -643,7 +594,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         console.warn('Background save for insumos failed:', err);
       });
     }
-  }, [addLog]);
+  }, [pedidos, insumos, recetas, addLog, mesas, permitirVentaSinStock, setMesas, setInsumos, setPedidos, activeMozo]);
 
   const handleMozoChange = (mozo: string) => {
     const nextUser = usuarios.find(usuario => usuario.nombre === mozo && usuario.activo !== false);
@@ -669,7 +620,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   const handleLoginSuccess = (user: Usuario) => {
-    window.sessionStorage.setItem('colores_pizzeria_session', 'active');
+    window.sessionStorage.setItem('el_patron_session', 'active');
     setActiveMozo(user.nombre);
     setActiveView('home');
 
@@ -689,14 +640,13 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   const handleLogout = () => {
-    window.sessionStorage.removeItem('colores_pizzeria_session');
+    window.sessionStorage.removeItem('el_patron_session');
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
     setIsStreamlitLoggedIn(false);
   };
 
   // --- Handlers for Kitchen View ---
-  const handleCambiarEstadoPedido = useCallback((idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
-    const { pedidos, insumos, recetas, permitirVentaSinStock, mesas } = stateRef.current;
+  const handleCambiarEstadoPedido = (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
     let updatedPedido: Pedido | null = null;
     let errorMsg = '';
 
@@ -722,7 +672,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             const matchingRecetas = recetas.filter(r => r.id_producto === item.id_producto);
 
             if (matchingRecetas.length === 0) {
-              addLog('sistema', `ADVERTENCIA RECETA: El product '${item.nombre}' no tiene receta asociada.`);
+              addLog('sistema', `ADVERTENCIA RECETA: El producto '${item.nombre}' no tiene receta asociada.`);
               continue;
             }
 
@@ -888,8 +838,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       }
       // Sincronizar localStorage con el estado actual de pedidos
       if (typeof window !== 'undefined') {
-        const current = stateRef.current.pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
-        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(current));
+        const current = pedidos.map(p => p.id_pedido === idPedido ? { ...p, estado_comanda: nuevoEstado } : p);
+        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(current));
       }
     }, 50);
 
@@ -898,7 +848,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       setMesas(updatedMesas);
       dbUpsertMesas(updatedMesas);
     }
-  }, [addLog]);
+  };
 
   const handleProducirPedidoConEscandallo = (idPedido: number) => {
     handleCambiarEstadoPedido(idPedido, 'listo');
@@ -906,7 +856,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   // --- Handlers for Cashier View (Caja & Cierre) ---
   const handleFacturarMesa = useCallback((idPedido: number, alreadyUpdatedInCaja: boolean = false) => {
-    const { pedidos, mesas, productosMenu } = stateRef.current;
     const target = pedidos.find(p => p.id_pedido === idPedido);
     if (!target) return;
 
@@ -918,12 +867,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
     const orderIds = ordersToBill.map(o => o.id_pedido);
 
-    const updatedPedidos = pedidos.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' as const } : p);
-    setPedidos(updatedPedidos);
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(updatedPedidos));
-    }
+    setPedidos(prev => prev.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' } : p));
 
     const updatedMesas = mesas.map(m => {
       const matchId = (m.id_mesa !== undefined && m.id_mesa !== null && target.id_mesa !== undefined && target.id_mesa !== null && String(m.id_mesa) === String(target.id_mesa));
@@ -955,11 +899,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         console.error('Error updating sales in cajaService during direct billing:', err);
       });
     }
-  }, [addLog]);
+  }, [pedidos, mesas, productosMenu, addLog]);
 
   // --- Handlers for Inventory View ---
-  const handleRegistrarMerma = useCallback((idInsumo: string, cantidad: number, motivo: Merma['motivo']) => {
-    const { insumos, mermas } = stateRef.current;
+  const handleRegistrarMerma = (idInsumo: string, cantidad: number, motivo: Merma['motivo']) => {
     const insObj = insumos.find(i => i.id_insumo === idInsumo);
     if (!insObj) return;
 
@@ -992,10 +935,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       stock_anterior: insObj.stock_actual,
       stock_nuevo: Math.max(0, parseFloat((insObj.stock_actual - cantidad).toFixed(2)))
     }).catch(console.error);
-  }, [addLog]);
+  };
 
   const handleRestockInsumo = useCallback((idInsumo: string, cantidad: number) => {
-    const { insumos } = stateRef.current;
     const item = insumos.find(i => i.id_insumo === idInsumo);
     const updatedInsumos = insumos.map(i => i.id_insumo === idInsumo ? {
       ...i,
@@ -1015,10 +957,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         stock_nuevo: parseFloat((item.stock_actual + cantidad).toFixed(2))
       }).catch(console.error);
     }
-  }, [addLog]);
+  }, [insumos, addLog]);
 
-  const handleRestockTodo = useCallback(() => {
-    const { insumos } = stateRef.current;
+  const handleRestockTodo = () => {
     const updatedInsumos = insumos.map(i => {
       const restockAmt = i.unidad_medida === 'unidades' ? 10 : 3000;
       return {
@@ -1030,11 +971,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     addLog('sistema', `REPOSICIÓN GENERAL: Abastecimiento global automático de todos los insumos y materias primas.`);
 
     dbUpsertInsumos(updatedInsumos);
-  }, [addLog]);
+  };
 
   const handleReservaEstadoChange = useCallback((reserva: Reserva, estado: Reserva['estado']) => {
     if (!reserva.id_mesa) return;
-    const { pedidos, mesas } = stateRef.current;
 
     const hasActiveOrder = pedidos.some(pedido => (
       pedido.id_mesa === reserva.id_mesa
@@ -1045,31 +985,13 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     const updatedMesas = mesas.map(mesa => {
       if (mesa.id_mesa !== reserva.id_mesa) return mesa;
       if (estado === 'confirmada') {
-        return { 
-          ...mesa, 
-          estado: 'reservada' as const, 
-          comensales: reserva.pax,
-          reserva_cliente: reserva.nombre_cliente,
-          reserva_hora: reserva.hora
-        };
+        return { ...mesa, estado: 'reservada' as const, comensales: reserva.pax };
       }
       if (estado === 'sentada') {
-        return { 
-          ...mesa, 
-          estado: 'ocupada' as const, 
-          comensales: reserva.pax,
-          reserva_cliente: undefined,
-          reserva_hora: undefined
-        };
+        return { ...mesa, estado: 'ocupada' as const, comensales: reserva.pax };
       }
       if (!hasActiveOrder && (estado === 'cancelada' || estado === 'completada' || estado === 'pendiente')) {
-        return { 
-          ...mesa, 
-          estado: 'libre' as const, 
-          comensales: undefined,
-          reserva_cliente: undefined,
-          reserva_hora: undefined
-        };
+        return { ...mesa, estado: 'libre' as const, comensales: undefined };
       }
       return mesa;
     });
@@ -1077,7 +999,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     setMesas(updatedMesas);
     dbUpsertMesas(updatedMesas);
     addLog('sistema', `RESERVA: Mesa ${reserva.id_mesa} cambio a estado '${estado}'.`);
-  }, [addLog]);
+  }, [mesas, pedidos, addLog]);
 
   // --- Handlers for Simulation Controls ---
   const handleAdvanceTime = (mins: number) => {
@@ -1183,7 +1105,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-vintage-beige flex font-sans text-zinc-800 antialiased selection:bg-brand-yellow selection:text-brand-black">
+    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
@@ -1203,7 +1125,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950/80 backdrop-blur-lg text-zinc-400 border-r border-white/5 shadow-2xl transition-all duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
         id="sidebar-left-panel"
@@ -1211,10 +1133,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         {/* Logo */}
         <div 
           onClick={() => setShowDiagnostics(true)}
-          className={`flex items-center border-b border-white/5 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
+          className={`flex items-center border-b border-zinc-900 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
           title="Ver estado de conexión"
         >
-          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-white/10 p-0.5 overflow-hidden shrink-0 relative">
+          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
             <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
             <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
               tryGetActiveSupabaseClient() !== null ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
@@ -1242,8 +1164,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'reportes', label: 'Reportes', icon: '📈' },
             { id: 'menu', label: 'Menú', icon: '📖' },
             { id: 'recetas', label: 'Recetas', icon: '⚖️' },
-            { id: 'mesas', label: 'Mapa Mesas', icon: '🪑' },
-            { id: 'delivery', label: 'Delivery', icon: '🛵' },
+            { id: 'mesas', label: 'Delivery', icon: '🛵' },
             { id: 'inventario', label: 'Inventario', icon: '📦' },
             { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
             { id: 'promociones', label: 'Promociones', icon: '🏷️' },
@@ -1261,12 +1182,12 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 id={`tab-${item.id}`}
                 title={isSidebarCollapsed ? item.label : ''}
                 onClick={() => handleNavigate(item.id as AppView)}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-3 py-3 transition-colors cursor-pointer ${
                   isSidebarCollapsed ? 'justify-center' : 'justify-start'
                 } ${
                   isActive
-                    ? 'bg-brand-yellow/10 text-brand-yellow font-black border-l-4 border-brand-yellow glow-yellow'
-                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
+                    ? 'bg-brand-yellow text-brand-black font-black'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
                 }`}
               >
                 <span className="text-base shrink-0 leading-none">{item.icon}</span>
@@ -1274,7 +1195,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   <span className="text-sm whitespace-nowrap truncate">{item.label}</span>
                 )}
                 {!isSidebarCollapsed && isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-yellow shrink-0 animate-pulse" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-black shrink-0" />
                 )}
               </button>
             );
@@ -1282,7 +1203,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-white/5 p-3">
+        <div className="border-t border-zinc-900 p-3">
+          <div className="flex items-center justify-center mb-2">
+            <ThemeToggle />
+          </div>
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? 'Cerrar sesión' : ''}
@@ -1297,7 +1221,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
           <button
             onClick={() => setIsSidebarCollapsed(c => !c)}
             title={isSidebarCollapsed ? 'Expandir' : 'Colapsar'}
-            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-white/5 text-zinc-500 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 transition-colors cursor-pointer"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -1305,7 +1229,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-vintage-beige ${
+      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-vintage-beige dark:bg-slate-900 ${
         isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
       }`}>
         <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -1384,13 +1308,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               </RecetasErrorBoundary>
             )}
             {activeView === 'mesas' && (
-              <MesasModule 
-                mesas={mesas} 
-                onMesasChange={setMesas} 
-                addLog={addLog} 
-              />
-            )}
-            {activeView === 'delivery' && (
               <DeliveryModule 
                 pedidos={pedidos}
                 productosMenu={productosMenu}
@@ -1399,8 +1316,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 onFacturarMesa={handleFacturarMesa}
                 addLog={addLog}
                 activeMozo={activeMozo}
-                recetas={recetas}
-                insumos={insumos}
               />
             )}
             {activeView === 'proveedores' && <ProveedoresModule addLog={addLog} />}
