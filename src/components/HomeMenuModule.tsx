@@ -348,14 +348,14 @@ export default function HomeMenuModule({
     <div className="space-y-8 animate-fadeIn bg-zinc-950/20 backdrop-blur-md rounded-3xl p-4 sm:p-6" id="home-operational-menu">
       
       {/* 1. Impact Brand Header Block */}
-      <div className="bg-gradient-to-br from-zinc-900 via-zinc-950 to-black rounded-3xl p-8 md:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-white/10 border-b-4 border-b-brand-yellow glow-yellow">
+      <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent rounded-3xl p-8 md:p-10 text-zinc-100 shadow-md relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-zinc-700 border-b-4 border-b-brand-yellow glow-yellow">
         {/* Subtle decorative logo outline in the background of the banner */}
         <div className="absolute right-[-25px] bottom-[-25px] opacity-10 rotate-12 scale-110 pointer-events-none">
           <ElPatronLogo className="w-64 h-64" variant="icon" color="#E8B800" />
         </div>
         
         {/* Prominent circular badge logo on the banner with object-contain */}
-        <div className="w-24 h-24 md:w-28 md:h-28 bg-[#1C1A17] rounded-full flex items-center justify-center p-1.5 shadow-lg border border-white/10 shrink-0 relative z-10">
+        <div className="w-24 h-24 md:w-28 md:h-28 bg-zinc-950 rounded-full flex items-center justify-center p-1.5 shadow-md border border-zinc-700 shrink-0 relative z-10">
           <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#E8B800" />
         </div>
  
@@ -363,31 +363,31 @@ export default function HomeMenuModule({
           {/* Shift info badge */}
           <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border shadow-xs ${
             shiftInfo.color.includes('bg-amber-155') || shiftInfo.color.includes('bg-amber-100')
-              ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+              ? 'bg-amber-500/15 text-brand-orange border-amber-500/20'
               : shiftInfo.color.includes('brand-yellow')
-                ? 'bg-brand-yellow/10 text-brand-yellow border-brand-yellow/20 glow-yellow'
-                : 'bg-zinc-800 text-zinc-300 border-white/5'
+                ? 'bg-brand-yellow/15 text-brand-yellow border-brand-yellow/20 glow-yellow'
+                : 'bg-zinc-950 text-zinc-300 border-zinc-700'
           }`}>
             {shiftInfo.label}
           </span>
-          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
+          <span className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             Servicio Activo
           </span>
         </div>
  
         <div className="flex-1 space-y-2.5 relative z-10 text-center md:text-left">
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-white font-display uppercase tracking-wider">
+          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-50 font-display uppercase tracking-wider">
             Bienvenido a Pizzería Colores
           </h2>
           <p className="text-base md:text-lg text-zinc-300 font-medium leading-relaxed max-w-xl">
             Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja, facturación e inventario.
           </p>
           <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
-            <span className="bg-zinc-900/80 text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-white/5 font-mono shadow-[0_0_10px_rgba(232,184,0,0.1)]">
+            <span className="bg-zinc-950 text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-700 font-mono shadow-xs">
               Estación Principal Terminal POS
             </span>
-            <span className="bg-zinc-900/80 text-zinc-400 text-[11px] px-3 py-1 rounded-full font-bold border border-white/5 font-sans">
+            <span className="bg-zinc-950 text-zinc-300 text-[11px] px-3 py-1 rounded-full font-bold border border-zinc-700 font-sans">
               Mesa de Enlace Local
             </span>
           </div>
@@ -513,40 +513,40 @@ export default function HomeMenuModule({
       </div>
  
       {/* Quick Shortcuts Panel */}
-      <div className="bg-zinc-900/30 border border-white/5 rounded-3xl p-5 max-w-7xl mx-auto space-y-4 shadow-lg backdrop-blur-md">
+      <div className="bg-zinc-900/30 border border-zinc-700 rounded-3xl p-5 max-w-7xl mx-auto space-y-4 shadow-lg">
         <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-sans pl-1">
           Acciones y Consultas Rápidas
         </h4>
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => onNavigate('caja')}
-            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-zinc-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
+            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-700 text-zinc-200 hover:text-zinc-100 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
           >
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
             Registrar Pago en Caja
           </button>
           
           <button
             onClick={() => onNavigate('inventario')}
-            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-zinc-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
+            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-700 text-zinc-200 hover:text-zinc-100 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
             Insumos Críticos
           </button>
  
           <button
             onClick={() => onNavigate('recetas')}
-            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-zinc-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
+            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-700 text-zinc-200 hover:text-zinc-100 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
           >
-            <ChefHat className="w-3.5 h-3.5 text-orange-400" />
+            <ChefHat className="w-3.5 h-3.5 text-brand-orange" />
             Recetas y Emplatados
           </button>
  
           <button
             onClick={() => onNavigate('sistema')}
-            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-zinc-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
+            className="flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-700 text-zinc-200 hover:text-zinc-100 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-98"
           >
-            <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+            <ExternalLink className="w-3.5 h-3.5 text-indigo-700" />
             Diagnóstico de Servidores
           </button>
         </div>

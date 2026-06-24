@@ -12,7 +12,21 @@
   --color-vintage-beige: #F5F4F0; /* Soft warm light cream background */
   --color-vintage-beige-light: #FFFFFF; /* Pure white cards */
   --color-vintage-beige-dark: #E6E4DD; /* Softer warm gray for borders and backgrounds */
+  
+  /* Inverted zinc palette (darkest to lightest) */
+  --color-zinc-50: #09090b;   /* Near black text */
+  --color-zinc-100: #18181b;  /* Dark charcoal text */
+  --color-zinc-200: #27272a;  /* Charcoal text */
+  --color-zinc-300: #3f3f46;  /* Dark gray text */
+  --color-zinc-400: #52525b;  /* Medium dark gray text */
+  --color-zinc-500: #71717a;  /* Medium gray text */
+  --color-zinc-600: #d4d4d8;  /* Light gray borders */
+  --color-zinc-700: #e4e4e7;  /* Very light gray borders */
+  --color-zinc-800: #f4f4f5;  /* Off-white secondary card background */
+  --color-zinc-900: #fafafa;  /* Off-white background */
+  --color-zinc-950: #ffffff;  /* Pure white card background */
 }
+
 
 /* Scrollbar personalizado súper delgado estilo premium */
 * {
@@ -151,9 +165,9 @@ canvas {
   }
 }
 
-/* --- OVERRIDES GLOBALES PARA DISEÑO CLARO CÁLIDO (EVITA CANSANCIO OCULAR) --- */
+/* --- OVERRIDES GLOBALES PARA DISEÑO CLARO CÁLIDO PREMIUM --- */
 
-/* Forzar que contenedores oscuros de Tailwind se rendericen claros/blancos */
+/* Forzar que contenedores oscuros de Tailwind se rendericen como tarjetas claras premium */
 .bg-zinc-950, 
 .bg-[#0F0F11], 
 .bg-[#0A0B0D],
@@ -164,59 +178,48 @@ canvas {
 .bg-zinc-900\/80,
 .bg-[#0A0B0D]\/50,
 .bg-black\/60,
-.bg-zinc-900 {
+.bg-zinc-900,
+.glass-card,
+.glass-card-light {
   background-color: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E6E4DD !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 8px -1px rgba(0, 0, 0, 0.02) !important;
 }
 
-/* Forzar el fondo principal a ser crema cálido */
+/* Contenedores de tarjetas translúcidas sucias (reemplazar por tarjetas blancas elegantes) */
+.bg-zinc-900\/30,
+.bg-zinc-900\/40,
+.bg-zinc-950\/20,
+.bg-zinc-900\/35 {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E6E4DD !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Forzar el fondo principal a ser crema cálido y suave */
 body, 
 html, 
 #root, 
+main,
 main.bg-\[\#0F0F11\],
 .bg-vintage-beige {
   background-color: #F5F4F0 !important;
 }
 
-/* Sidebar en tono crema más oscuro/neutro para contraste suave */
+/* Sidebar en tono blanco/crema ultra limpio y premium */
 aside#sidebar-left-panel,
 aside.bg-zinc-950\/80 {
-  background-color: #EBEAE4 !important;
-  border-right: 1px solid #DFDDD5 !important;
+  background-color: #FFFFFF !important;
+  border-right: 1px solid #E6E4DD !important;
 }
 
-/* Ajustes de texto para alto contraste pero suave (charcoal en lugar de blanco) */
-.text-zinc-100, 
-.text-zinc-200, 
-.text-zinc-300, 
-.text-zinc-400, 
-.text-zinc-105,
-.text-zinc-150,
-.text-white,
-.text-zinc-350 {
-  color: #27272a !important; /* Charcoal oscuro */
-}
-
-.text-zinc-400, 
-.text-zinc-500,
-.text-zinc-555,
-.text-zinc-550 {
-  color: #5b5b66 !important; /* Gris medio */
-}
-
-/* Títulos y textos destacados */
-h1, h2, h3, h4, h5, h6, 
-.font-bold, 
-.font-black,
-.font-extrabold {
-  color: #18181b !important;
-}
-
-/* Enlaces y botones de navegación inactivos */
-aside button.text-zinc-400 {
-  color: #4a4a52 !important;
-}
+/* Botones de navegación del sidebar hover */
 aside button:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
+  background-color: #F4F4F5 !important;
   color: #18181b !important;
 }
 
@@ -244,6 +247,45 @@ textarea::placeholder {
   color: #A1A1AA !important;
 }
 
+/* Asegurar que los botones amarillos primarios conserven texto oscuro para contraste */
+.bg-\[\#E8B800\],
+.bg-brand-yellow,
+.bg-\[\#E8B800\] *,
+.bg-brand-yellow * {
+  color: #18181b !important;
+}
+
+/* Asegurar que los botones verdes, rojos, naranjas y marrones conserven texto blanco */
+.bg-emerald-500,
+.bg-emerald-600,
+.bg-emerald-700,
+.bg-rose-500,
+.bg-rose-600,
+.bg-rose-700,
+.bg-red-500,
+.bg-red-600,
+.bg-brand-red,
+.bg-brand-orange,
+.bg-\[\#624A3E\],
+.bg-\[\#8C6D58\] {
+  color: #FFFFFF !important;
+}
+
+.bg-emerald-500 *,
+.bg-emerald-600 *,
+.bg-emerald-700 *,
+.bg-rose-500 *,
+.bg-rose-600 *,
+.bg-rose-700 *,
+.bg-red-500 *,
+.bg-red-600 *,
+.bg-brand-red *,
+.bg-brand-orange *,
+.bg-\[\#624A3E\] *,
+.bg-\[\#8C6D58\] * {
+  color: #FFFFFF !important;
+}
+
 /* Bordes en general */
 .border-white\/5, 
 .border-white\/10, 
@@ -251,44 +293,40 @@ textarea::placeholder {
 .border-zinc-800, 
 .border-zinc-700,
 .border-stone-200 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-color: #E6E4DD !important;
 }
 
 /* Mantener el Ticket de Epson simulado con papel blanco y letras negras */
 .simulador-ticket,
-.bg-white.text-zinc-950 {
+.bg-white.text-zinc-950,
+.simulador-ticket * {
   background-color: #FFFFFF !important;
   color: #09090b !important;
 }
 
 /* Mantener colores de estados (éxitos, alertas, errores) en modo legible */
 .text-emerald-400, 
-.text-emerald-450 {
-  color: #15803D !important; /* Verde oscuro */
+.text-emerald-450,
+.text-emerald-600 {
+  color: #16A34A !important; /* Verde claro/medio pero legible */
 }
 .bg-emerald-500\/10 {
-  background-color: rgba(21, 128, 61, 0.08) !important;
+  background-color: rgba(22, 163, 74, 0.08) !important;
 }
 
 .text-rose-450, 
 .text-rose-455, 
-.text-rose-400 {
-  color: #B91C1C !important; /* Rojo oscuro */
+.text-rose-400,
+.text-rose-600,
+.text-red-600 {
+  color: #DC2626 !important; /* Rojo legible */
 }
 .bg-rose-500\/10 {
-  background-color: rgba(185, 28, 28, 0.08) !important;
+  background-color: rgba(220, 38, 38, 0.08) !important;
 }
 
-.text-[#E8B800], 
+.text-\[\#E8B800\], 
 .text-brand-yellow {
-  color: #B28600 !important; /* Amarillo oscuro / dorado para que sea legible en fondo claro */
+  color: #B28600 !important; /* Amarillo oscuro / dorado para contraste */
 }
 
-/* Estilo para el botón de Enviar a Cocina y otros botones primarios oscuros */
-.bg-[#624A3E] {
-  background-color: #8C6D58 !important; /* Softer warm brown */
-  color: #FFFFFF !important;
-}
-.bg-[#624A3E] * {
-  color: #FFFFFF !important;
-}
