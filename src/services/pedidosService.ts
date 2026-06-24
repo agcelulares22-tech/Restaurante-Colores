@@ -174,7 +174,7 @@ export const pedidosService = {
     if (fields.tiempo_despacho_minutos !== undefined) headerFields.tiempo_despacho_minutos = fields.tiempo_despacho_minutos;
     if (fields.segundos_en_listo !== undefined) headerFields.segundos_en_listo = fields.segundos_en_listo;
     // NUNCA actualizar id_mesa/numero_mesa desde un update parcial para evitar mover/combinar comandas por error
-    if (fields.items !== undefined) headerFields.elementos = JSON.stringify(fields.items);
+    if (fields.items !== undefined) headerFields.items = JSON.stringify(fields.items);
     if (fields.fecha_inicio_cocina !== undefined) {
       headerFields.fecha_inicio_cocina = fields.fecha_inicio_cocina
         ? new Date(fields.fecha_inicio_cocina).toISOString()
