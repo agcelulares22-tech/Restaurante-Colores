@@ -402,7 +402,7 @@ function MozoTerminal({
                 className={`min-h-11 py-2 px-3 rounded-lg text-sm font-extrabold transition-all cursor-pointer ${
                   activeMozo === usuario.nombre
                     ? 'bg-brand-yellow text-brand-black shadow-sm scale-[1.02] border border-brand-yellow' 
-                    : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-100'
+                    : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-800'
                 }`}
               >
                 {usuario.nombre}
@@ -689,7 +689,7 @@ function MozoTerminal({
                   className={`py-1.5 px-3 text-xs font-extrabold rounded-lg whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 flex items-center gap-1 shrink-0 ${
                     selectedCategoria === cat.id 
                       ? 'bg-brand-yellow text-brand-black shadow-sm ring-1 ring-brand-yellow/10' 
-                      : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-100 hover:text-stone-900'
+                      : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-800 hover:text-stone-900'
                   }`}
                 >
                   {cat.label}
