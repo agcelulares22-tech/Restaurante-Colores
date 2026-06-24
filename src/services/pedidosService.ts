@@ -157,8 +157,15 @@ export const pedidosService = {
 
   async update(id: number, fields: Partial<Pedido>): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) return;
+    if (!supabase) {
+      console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
+      const { syncQueueService } = await import('./syncQueueService');
+      syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      return;
+    }
     
+    console.log(`[pedidosService.update] Inicio id=${id}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
+
     // Map fields to header columns
     const headerFields: any = {};
     if (fields.estado_comanda !== undefined) headerFields.estado_comanda = fields.estado_comanda;
@@ -192,18 +199,23 @@ export const pedidosService = {
 
     try {
       if (Object.keys(headerFields).length > 0) {
-        let { error } = await supabase
+        console.log(`[pedidosService.update] Enviando a pedidos_cabecera:`, headerFields);
+        let { error, data } = await supabase
           .from('pedidos_cabecera')
           .update(headerFields)
-          .eq('id_pedido', id);
+          .eq('id_pedido', id)
+          .select();
         
+        console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data });
+
         // Dynamic schema fallback: if idempotency_key is missing, strip and retry
         if (error && error.message?.includes('idempotency_key')) {
           console.warn('idempotency_key column missing in update, retrying without it...');
           const fallbackFields = { ...headerFields };
           delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id);
+          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id).select();
           error = res.error;
+          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${id}:`, { error: res.error, data: res.data });
         }
 
         if (error) {
@@ -281,15 +293,19 @@ export const pedidosService = {
     
     for (const ped of pedidos) {
       try {
+        console.log(`[pedidosService.upsert] Procesando pedido id=${ped.id_pedido}, estado=${ped.estado_comanda}, mesa=${ped.numero_mesa}`);
         let activeId: number | null = null;
         let isExisting = false;
 
         // 1. Verificar si esta comanda específica ya existe en la base de datos por ID
+        console.log(`[pedidosService.upsert] Buscando id=${ped.id_pedido} en pedidos_cabecera`);
         const { data: existingHeader, error: checkError } = await supabase
           .from('pedidos_cabecera')
           .select('id_pedido')
           .eq('id_pedido', ped.id_pedido)
           .maybeSingle();
+
+        console.log(`[pedidosService.upsert] Resultado búsqueda id=${ped.id_pedido}:`, { existingHeader, checkError });
 
         if (existingHeader) {
           isExisting = true;
@@ -336,10 +352,15 @@ export const pedidosService = {
           // Importante: no borrar id_mesa ni id_pedido para que Supabase pueda filtrar/relacionar correctamente
           delete (cabeceraUpdate as any).idempotency_key;
 
-          const { error: hError } = await supabase
+          console.log(`[pedidosService.upsert] Actualizando cabecera id=${activeId}:`, cabeceraUpdate);
+
+          const { data: updateData, error: hError } = await supabase
             .from('pedidos_cabecera')
             .update(cabeceraUpdate)
-            .eq('id_pedido', activeId);
+            .eq('id_pedido', activeId)
+            .select();
+
+          console.log(`[pedidosService.upsert] Respuesta update cabecera id=${activeId}:`, { updateData, hError });
 
           if (hError) {
             console.error('Error updating active order header in upsert:', hError);
@@ -380,8 +401,10 @@ export const pedidosService = {
         } else {
           // B. No existe comanda activa -> Crear cabecera y luego insertar detalles
           const cabecera = serializePedidoHeader(ped);
-          let { error: hError } = await supabase.from('pedidos_cabecera').upsert(cabecera);
+          console.log(`[pedidosService.upsert] Insertando nueva cabecera id=${ped.id_pedido}:`, cabecera);
+          let { data: insertData, error: hError } = await supabase.from('pedidos_cabecera').upsert(cabecera).select();
           
+          console.log(`[pedidosService.upsert] Respuesta insert cabecera id=${ped.id_pedido}:`, { insertData, hError });
           if (hError && hError.message?.includes('idempotency_key')) {
             const fallbackCabecera = { ...cabecera };
             delete fallbackCabecera.idempotency_key;

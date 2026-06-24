@@ -651,7 +651,10 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     let updatedPedido: Pedido | null = null;
     let errorMsg = '';
 
+    console.log(`[handleCambiarEstadoPedido] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
+
     const pObj = pedidos.find(p => p.id_pedido === idPedido);
+    console.log(`[handleCambiarEstadoPedido] pObj encontrado:`, pObj ? { id_pedido: pObj.id_pedido, estado: pObj.estado_comanda, mesa: pObj.numero_mesa } : null);
 
     if (nuevoEstado === 'en_cocina' && pObj) {
       if (!pObj.items || pObj.items.length === 0) {
@@ -832,9 +835,11 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       // Sincronizar localStorage y Supabase con el estado actualizado
       setTimeout(() => {
         if (updatedPedido) {
-          dbSavePedidoComplex(updatedPedido);
+          console.log(`[handleCambiarEstadoPedido] dbSavePedidoComplex(updatedPedido):`, { id: updatedPedido.id_pedido, estado: updatedPedido.estado_comanda });
+          dbSavePedidoComplex(updatedPedido).catch(err => console.error('[handleCambiarEstadoPedido] Error guardando updatedPedido:', err));
         } else if (pObj) {
-          dbSavePedidoComplex({ ...pObj, estado_comanda: nuevoEstado });
+          console.log(`[handleCambiarEstadoPedido] dbSavePedidoComplex fallback:`, { id: pObj.id_pedido, estado: nuevoEstado });
+          dbSavePedidoComplex({ ...pObj, estado_comanda: nuevoEstado }).catch(err => console.error('[handleCambiarEstadoPedido] Error guardando fallback:', err));
         }
         if (typeof window !== 'undefined') {
           window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(next));
