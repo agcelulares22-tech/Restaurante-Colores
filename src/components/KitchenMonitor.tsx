@@ -120,7 +120,7 @@ function KitchenMonitor({
       await pedidosDeliveryRapidoService.updateEstado(realId, dbEstado);
       setQuickOrders(prev => prev.map(o => o.id === realId ? { ...o, estado: dbEstado } : o));
     } else {
-      onCambiarEstadoPedido(idPedido, nuevoEstado);
+      await onCambiarEstadoPedido(idPedido, nuevoEstado);
     }
   }, [onCambiarEstadoPedido]);
 

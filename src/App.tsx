@@ -702,7 +702,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       if (!canDeduct) {
         toast.error(`No es posible iniciar cocción: ${errorMsg}`);
         addLog('alerta_stock', `RECHAZADO FUEGO: Pedido #${idPedido} bloqueado por falta de stock. ${errorMsg}`);
-        return;
+        throw new Error(errorMsg);
       }
 
       // Descontar stock
@@ -810,7 +810,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       console.error(`[handleCambiarEstadoPedido] pedidosService.update FAIL id=${idPedido}:`, err);
       toast.error(`No se pudo guardar el estado en Supabase: ${err?.message || err}`);
       // Si falla, retornamos y no modificamos el estado local (así se revierte al valor correcto)
-      return;
+      throw err;
     }
 
     // 5) Aplicar cambios de stock en DB si correspondía
