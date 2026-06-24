@@ -9,19 +9,20 @@
   --color-brand-red: #D42B2B;
   --color-brand-black: #000000;
   --color-brand-white: #FFFFFF;
-  --color-vintage-beige: #F5F0E6;
-  --color-vintage-beige-light: #FAF7F0;
-  --color-vintage-beige-dark: #E8E0D0;
+  --color-vintage-beige: #0F0F11; /* Cambiado a fondo oscuro premium para glassmorphism */
+  --color-vintage-beige-light: #16161A;
+  --color-vintage-beige-dark: #1E1E24;
 }
 
-/* Scrollbar delgado pegado al borde */
+/* Scrollbar personalizado súper delgado estilo premium */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #475569 transparent;
+  scrollbar-color: #3f3f46 transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 *::-webkit-scrollbar-track {
@@ -29,8 +30,13 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #475569;
+  background-color: #3f3f46;
   border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #52525b;
 }
 
 html,
@@ -39,6 +45,8 @@ body,
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
+  background-color: #0F0F11;
+  color: #f4f4f5;
 }
 
 * {
@@ -50,4 +58,95 @@ svg,
 video,
 canvas {
   max-width: 100%;
+}
+
+/* --- CLASES DE UTILIDAD PREMIUM (GLASSMORPHISM & MICRO-INTERACTIONS) --- */
+
+/* Glassmorphism Oscuro Profundo */
+.glass-card {
+  background: rgba(22, 22, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(232, 184, 0, 0.2);
+}
+
+/* Glassmorphism Claro/Blanco Translúcido (para modales o contrastes) */
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Botones Premium con transiciones fluidas y click elástico */
+.btn-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 700;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -5px rgba(232, 184, 0, 0.4);
+}
+
+.btn-premium:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+/* Botón destructivo / peligro */
+.btn-danger {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -5px rgba(212, 43, 43, 0.4);
+}
+
+.btn-danger:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+/* Efecto de resplandor para elementos activos o críticos */
+.glow-yellow {
+  box-shadow: 0 0 15px rgba(232, 184, 0, 0.15);
+  border-color: rgba(232, 184, 0, 0.3) !important;
+}
+
+.glow-green {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.glow-red {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Animaciones sutiles */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s infinite ease-in-out;
+}
+
+/* Controles responsivos táctiles para móviles */
+@media (max-width: 640px) {
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
 }
