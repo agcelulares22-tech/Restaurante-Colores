@@ -682,7 +682,7 @@ export function ManualBillingPanel({
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-zinc-950/65 p-4 rounded-xl border border-white/5">
         
         {/* IVA Inclusion Checkbox */}
-        <label className="flex items-center gap-2 text-xs font-bold text-zinc-350 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-xs font-bold text-zinc-300 cursor-pointer select-none">
           <input 
             type="checkbox" 
             checked={preciosConIva} 
@@ -695,12 +695,12 @@ export function ManualBillingPanel({
         {/* Calculated metrics */}
         <div className="flex gap-4 sm:gap-6 justify-between sm:justify-end text-xs font-semibold text-zinc-400">
           <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-zinc-550 block">Neto Gravado</span>
+            <span className="text-[8px] uppercase font-black text-zinc-400 block">Neto Gravado</span>
             <span className="font-mono text-zinc-200 text-sm font-bold">{money(calculatedTotals.netoGravado)}</span>
           </div>
 
           <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-zinc-550 block">IVA ({ivaGeneral}%)</span>
+            <span className="text-[8px] uppercase font-black text-zinc-400 block">IVA ({ivaGeneral}%)</span>
             <span className="font-mono text-zinc-200 text-sm font-bold">{money(calculatedTotals.ivaValue)}</span>
           </div>
 

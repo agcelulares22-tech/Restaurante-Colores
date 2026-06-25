@@ -961,7 +961,7 @@ function KitchenMonitor({
             <div className="flex gap-3">
               <button
                 onClick={() => setCancelRequest(null)}
-                className="flex-1 min-h-11 py-2.5 rounded-xl bg-white/5 text-zinc-350 text-sm font-black cursor-pointer hover:bg-white/10 transition-colors border border-white/10 btn-premium"
+                className="flex-1 min-h-11 py-2.5 rounded-xl bg-white/5 text-zinc-300 text-sm font-black cursor-pointer hover:bg-white/10 transition-colors border border-white/10 btn-premium"
               >
                 Volver
               </button>

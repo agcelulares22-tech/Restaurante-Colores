@@ -522,7 +522,7 @@ export default function HomeMenuModule({
                     <span>{item.title}</span>
                     <ChevronRight className="w-4 h-4 text-slate-500 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-zinc-350 transition-colors line-clamp-2 leading-relaxed transition-colors duration-300">
+                  <p className="text-sm text-slate-600 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-colors line-clamp-2 leading-relaxed transition-colors duration-300">
                     {item.description}
                   </p>
                 </div>

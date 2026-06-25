@@ -1022,7 +1022,7 @@ function MozoTerminal({
                 <UtensilsCrossed className="w-5 h-5" />
               </div>
               <h4 className="font-bold text-zinc-300 text-sm">Seleccione Mesa</h4>
-              <p className="text-zinc-550 text-xs mt-1 max-w-[180px]">
+              <p className="text-zinc-500 text-xs mt-1 max-w-[180px]">
                 Marque una mesa disponible en el plano izquierdo para iniciar la comanda.
               </p>
             </div>
@@ -1174,7 +1174,7 @@ function MozoTerminal({
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <h4 className="font-bold text-zinc-300 text-sm">Comanda Vacía</h4>
-                  <p className="text-zinc-550 text-xs mt-1 max-w-[180px]">
+                  <p className="text-zinc-500 text-xs mt-1 max-w-[180px]">
                     Toque los platos de la carta central para cargarlos a la mesa de forma interactiva.
                   </p>
                 </div>
@@ -1367,7 +1367,7 @@ function MozoTerminal({
                         >
                           +
                         </button>
-                        <span className="text-[10px] text-zinc-550 mr-1">personas</span>
+                        <span className="text-[10px] text-zinc-500 mr-1">personas</span>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] text-zinc-500 font-medium">Equivale a:</p>
@@ -1477,7 +1477,7 @@ function MozoTerminal({
                 <ArrowRightLeft className="w-5 h-5 text-brand-yellow shrink-0" />
                 Traspasar Mesa {selectedMesa?.numero_mesa}
               </h3>
-              <button onClick={() => setShowTransferModal(false)} className="text-zinc-550 hover:text-zinc-350 cursor-pointer">
+              <button onClick={() => setShowTransferModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1494,7 +1494,7 @@ function MozoTerminal({
                   onChange={(e) => setTransferTargetTableId(parseInt(e.target.value) || null)}
                   className="w-full min-h-11 px-3 bg-zinc-950 border border-white/10 rounded-xl text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 cursor-pointer"
                 >
-                  <option value="" disabled className="text-zinc-550">-- Seleccionar Mesa Libre --</option>
+                  <option value="" disabled className="text-zinc-500">-- Seleccionar Mesa Libre --</option>
                   {dynamicMesas
                     .filter(m => m.estado === 'libre' && m.id_mesa !== 999)
                     .map(m => (
@@ -1510,7 +1510,7 @@ function MozoTerminal({
               <button
                 type="button"
                 onClick={() => setShowTransferModal(false)}
-                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-zinc-350 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1539,7 +1539,7 @@ function MozoTerminal({
               <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
                 🍕 Armar Pizza Mitad y Mitad
               </h3>
-              <button onClick={() => setShowHalfHalfModal(false)} className="text-zinc-550 hover:text-zinc-350 cursor-pointer">
+              <button onClick={() => setShowHalfHalfModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1620,7 +1620,7 @@ function MozoTerminal({
               <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
                 🍕 Adicionales: {toppingsBaseProduct.nombre}
               </h3>
-              <button onClick={() => setShowToppingsModal(false)} className="text-zinc-550 hover:text-zinc-350 cursor-pointer">
+              <button onClick={() => setShowToppingsModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
