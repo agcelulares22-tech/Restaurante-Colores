@@ -614,9 +614,14 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         });
       });
     } else {
-      dbSavePedidoComplex(finalPedido).catch(err => {
-        console.warn('Background save for new order failed:', err);
-      });
+      // Esperar a que el pedido se guarde en Supabase ANTES de permitir cambios de estado
+      try {
+        await dbSavePedidoComplex(finalPedido);
+        console.log(`[handleCrearPedido] Pedido #${finalPedido.id_pedido} guardado en Supabase exitosamente`);
+      } catch (err) {
+        console.error(`[handleCrearPedido] Error guardando pedido #${finalPedido.id_pedido} en Supabase:`, err);
+        toast.error('No se pudo guardar el pedido en la base de datos. Reintentá.');
+      }
     }
 
     dbUpsertMesas(updatedMesas).catch(err => {

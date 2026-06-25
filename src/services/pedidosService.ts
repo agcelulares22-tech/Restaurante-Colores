@@ -67,7 +67,6 @@ export const hydratePedido = (
 
 export const serializePedidoHeader = (pedido: Pedido) => ({
   id_pedido: pedido.id_pedido,
-  idempotency_key: pedido.idempotency_key ?? null,
   id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
   numero_mesa: pedido.numero_mesa,
   mozo: pedido.mozo || 'Sistema',
@@ -170,8 +169,14 @@ export const pedidosService = {
       }
       return;
     }
-    
-    console.log(`[pedidosService.update] Inicio id=${id}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
+
+    // Asegurar que el id sea numérico
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) {
+      throw new Error(`[pedidosService.update] ID inválido: ${id}`);
+    }
+
+    console.log(`[pedidosService.update] Inicio id=${numericId}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
 
     // Map fields to header columns
     const headerFields: any = {};
@@ -204,29 +209,38 @@ export const pedidosService = {
     if (fields.costo_envio !== undefined) headerFields.costo_envio = fields.costo_envio;
     if (fields.zona_envio_id !== undefined) headerFields.zona_envio_id = fields.zona_envio_id;
 
+    console.log(`[pedidosService.update] headerFields preparados id=${numericId}:`, Object.keys(headerFields));
+
     try {
       if (Object.keys(headerFields).length > 0) {
-        console.log(`[pedidosService.update] Enviando a pedidos_cabecera:`, headerFields);
+        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${numericId}:`, headerFields);
         let { error, data } = await supabase
           .from('pedidos_cabecera')
           .update(headerFields)
-          .eq('id_pedido', id.toString())
+          .eq('id_pedido', numericId)
           .select();
-        
-        console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data });
+
+        console.log(`[pedidosService.update] Respuesta update id=${numericId}:`, { error, data, affectedRows: data?.length });
+
+        if (!error && (!data || data.length === 0)) {
+          const errMsg = `[pedidosService.update] El update no afectó ninguna fila. Probablemente el pedido ${numericId} no existe en Supabase.`;
+          console.warn(errMsg);
+          error = { message: errMsg, code: 'ZERO_ROWS_AFFECTED' } as any;
+        }
 
         // Dynamic schema fallback: if idempotency_key is missing, strip and retry
         if (error && error.message?.includes('idempotency_key')) {
           console.warn('idempotency_key column missing in update, retrying without it...');
           const fallbackFields = { ...headerFields };
           delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id.toString()).select();
+          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', numericId).select();
           error = res.error;
-          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${id}:`, { error: res.error, data: res.data });
+          data = res.data;
+          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${numericId}:`, { error: res.error, data: res.data });
         }
 
         if (error) {
-          console.error(`Error updating header for pedido ${id}:`, error);
+          console.error(`Error updating header for pedido ${numericId}:`, error);
           throw error;
         }
       }
@@ -418,12 +432,6 @@ export const pedidosService = {
           let { data: insertData, error: hError } = await supabase.from('pedidos_cabecera').upsert(cabecera).select();
           
           console.log(`[pedidosService.upsert] Respuesta insert cabecera id=${ped.id_pedido}:`, { insertData, hError });
-          if (hError && hError.message?.includes('idempotency_key')) {
-            const fallbackCabecera = { ...cabecera };
-            delete fallbackCabecera.idempotency_key;
-            const res = await supabase.from('pedidos_cabecera').upsert(fallbackCabecera);
-            hError = res.error;
-          }
 
           if (hError) {
             console.error('Error creating order header:', hError);
