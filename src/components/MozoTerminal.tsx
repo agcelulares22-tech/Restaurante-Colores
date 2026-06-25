@@ -27,7 +27,8 @@ import {
   Phone,
   MapPin,
   Settings,
-  User
+  User,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog } from '../types';
 import { useMenu, useSalon, useInventario, usePedidos } from '../context/AppContext';
@@ -36,6 +37,8 @@ import { useMozoTerminal } from '../features/salon/hooks/useMozoTerminal';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { useCategories } from '../hooks/useCategories';
 import { fetchZonasEnvio, fetchCallesEnvio, resolverZonaEnvio } from '../services/zonasEnvioService';
+import { mesasService } from '../services/mesasService';
+import { pedidosService } from '../services/pedidosService';
 
 interface MozoTerminalProps {
   mesas: Mesa[];
@@ -48,7 +51,7 @@ interface MozoTerminalProps {
   onMozoChange: (mozo: string) => void;
   onCrearPedido: (pedido: Omit<Pedido, 'id_pedido' | 'fecha_hora' | 'minutos_transcurridos' | 'origen'> & { origen?: 'Mozo'; idempotency_key?: string }) => void | Promise<void>;
   pedidos: Pedido[];
-  onFacturarMesa: (idPedido: number) => void;
+  onFacturarMesa: (idPedido: string) => void;
   addLog: (tipo: EventoLog['tipo'], mensaje: string) => void;
   permitirVentaSinStock?: boolean;
 }
@@ -174,6 +177,7 @@ function MozoTerminal({
     toast
   });
 
+  const [viewMode, setViewMode] = React.useState<'lista' | 'plano'>('plano');
   const [zonasEnvio, setZonasEnvio] = React.useState<any[]>([]);
   const [callesEnvio, setCallesEnvio] = React.useState<any[]>([]);
   const [zonaResultado, setZonaResultado] = React.useState<any>(null);
@@ -244,6 +248,58 @@ function MozoTerminal({
   };
 
   const [isCalculatingRoute, setIsCalculatingRoute] = React.useState(false);
+
+  const handleTransferTable = async (targetMesaId: number) => {
+    if (!activePedidoDeMesa) return;
+    const targetMesa = dynamicMesas.find(m => m.id_mesa === targetMesaId);
+    if (!targetMesa) return;
+
+    if (targetMesa.estado !== 'libre') {
+      toast.error('La mesa de destino debe estar libre.');
+      return;
+    }
+
+    try {
+      const sourceMesa = selectedMesa;
+      if (!sourceMesa) return;
+
+      const updatedPedido = {
+        ...activePedidoDeMesa,
+        id_mesa: targetMesa.id_mesa,
+        numero_mesa: targetMesa.numero_mesa
+      };
+
+      ctxSalon.setMesas((prev: Mesa[]) => 
+        prev.map(m => {
+          if (m.id_mesa === sourceMesa.id_mesa) {
+            return { ...m, estado: 'libre' as const, comensales: undefined };
+          }
+          if (m.id_mesa === targetMesa.id_mesa) {
+            return { ...m, estado: 'ocupada' as const, comensales: sourceMesa.comensales || 2 };
+          }
+          return m;
+        })
+      );
+
+      ctxPedidos.setPedidos((prev: Pedido[]) => 
+        prev.map(p => p.id_pedido === activePedidoDeMesa.id_pedido ? updatedPedido : p)
+      );
+
+      await Promise.all([
+        mesasService.update(sourceMesa.id_mesa, { ...sourceMesa, estado: 'libre', comensales: undefined }),
+        mesasService.update(targetMesa.id_mesa, { ...targetMesa, estado: 'ocupada', comensales: sourceMesa.comensales || 2 }),
+        pedidosService.update(activePedidoDeMesa.id_pedido, updatedPedido)
+      ]);
+
+      addLog('sistema', `MESAS: Transferido pedido #${activePedidoDeMesa.id_pedido} de mesa ${sourceMesa.numero_mesa} a mesa ${targetMesa.numero_mesa}`);
+      toast.success(`Pedido transferido con éxito a mesa ${targetMesa.numero_mesa}.`);
+      
+      handleSelectMesa({ ...targetMesa, estado: 'ocupada', comensales: sourceMesa.comensales });
+      setShowTransferModal(false);
+    } catch (err: any) {
+      toast.error('Error al transferir la mesa: ' + err.message);
+    }
+  };
 
   React.useEffect(() => {
     if (selectedMesaId !== 999) {
@@ -354,6 +410,9 @@ function MozoTerminal({
   const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
   const [halfPizzaB, setHalfPizzaB] = React.useState<string>('');
 
+  const [showTransferModal, setShowTransferModal] = React.useState(false);
+  const [transferTargetTableId, setTransferTargetTableId] = React.useState<number | null>(null);
+
   const [showToppingsModal, setShowToppingsModal] = React.useState(false);
   const [toppingsBaseProduct, setToppingsBaseProduct] = React.useState<any>(null);
   const [selectedToppings, setSelectedToppings] = React.useState<string[]>([]);
@@ -413,14 +472,41 @@ function MozoTerminal({
 
         {/* Mesas Selector Grid */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-sm md:text-base text-slate-800 font-sans tracking-tight flex items-center gap-2">
-              <UtensilsCrossed className="w-4 h-4 text-slate-500" />
-              Distribución de Mesas
-            </h3>
-            <span className="text-[11px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded">
-              {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999).length} Ocupadas
-            </span>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 font-sans">
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+              <h3 className="font-bold text-sm md:text-base text-slate-800 tracking-tight">
+                Distribución de Mesas
+              </h3>
+              <span className="text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 font-bold shrink-0">
+                {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999).length} Ocupadas
+              </span>
+            </div>
+
+            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-end sm:self-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('lista')}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                  viewMode === 'lista'
+                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Lista
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('plano')}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                  viewMode === 'plano'
+                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Plano 2D
+              </button>
+            </div>
           </div>
 
           <button
@@ -435,69 +521,152 @@ function MozoTerminal({
             Tomar Pedido Delivery
           </button>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-            {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
-              const isSelected = m.id_mesa === selectedMesaId;
-              const isOcupada = m.estado === 'ocupada';
-              const isInCuenta = m.estado === 'esperando_cuenta';
-              const isReservada = m.estado === 'reservada';
+          {viewMode === 'lista' ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+              {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
+                const isSelected = m.id_mesa === selectedMesaId;
+                const isOcupada = m.estado === 'ocupada';
+                const isInCuenta = m.estado === 'esperando_cuenta';
+                const isReservada = m.estado === 'reservada';
 
-              // Determine visual theme according to exact state specs
-              let stateClasses = "border-stone-200 bg-white hover:bg-stone-50 text-stone-700";
-              let labelText = "Libre";
+                // Determine visual theme according to exact state specs
+                let stateClasses = "border-stone-200 bg-white hover:bg-stone-50 text-stone-700";
+                let labelText = "Libre";
 
-              if (isSelected) {
-                stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] ring-4 ring-brand-yellow/20";
-                labelText = isOcupada ? "Ocupada (Sel)" : isInCuenta ? "En Cuenta" : isReservada ? "Reservada" : "Libre";
-              } else if (isReservada) {
-                stateClasses = "border-[#6d3f9e] bg-[#6d3f9e]/5 text-[#6d3f9e] hover:bg-[#6d3f9e]/10";
-                labelText = "Reservada";
-              } else if (isInCuenta) {
-                stateClasses = "border-[#c47f1a] bg-[#c47f1a]/5 text-[#c47f1a] hover:bg-[#c47f1a]/10";
-                labelText = "En Cuenta";
-              } else if (isOcupada) {
-                stateClasses = "border-[#2563a0] bg-[#2563a0]/5 text-[#2563a0] hover:bg-[#2563a0]/10";
-                labelText = "Ocupada";
-              }
+                if (isSelected) {
+                  stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] ring-4 ring-brand-yellow/20";
+                  labelText = isOcupada ? "Ocupada (Sel)" : isInCuenta ? "En Cuenta" : isReservada ? "Reservada" : "Libre";
+                } else if (isReservada) {
+                  stateClasses = "border-[#6d3f9e] bg-[#6d3f9e]/5 text-[#6d3f9e] hover:bg-[#6d3f9e]/10";
+                  labelText = "Reservada";
+                } else if (isInCuenta) {
+                  stateClasses = "border-[#c47f1a] bg-[#c47f1a]/5 text-[#c47f1a] hover:bg-[#c47f1a]/10";
+                  labelText = "En Cuenta";
+                } else if (isOcupada) {
+                  stateClasses = "border-[#2563a0] bg-[#2563a0]/5 text-[#2563a0] hover:bg-[#2563a0]/10";
+                  labelText = "Ocupada";
+                }
 
-              const activePedido = isOcupada ? pedidos.find(p => 
-                isSameTable(m, p) && 
-                ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
-              ) : null;
+                const activePedido = isOcupada ? pedidos.find(p => 
+                  isSameTable(m, p) && 
+                  ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
+                ) : null;
 
-              const elapsedMin = activePedido 
-                ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
-                : 0;
+                const elapsedMin = activePedido 
+                  ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
+                  : 0;
 
-              return (
-                <button
-                  key={m.id_mesa}
-                  id={`mesa-btn-${m.id_mesa}`}
-                  onClick={() => handleSelectMesa(m)}
-                  className={`min-h-[72px] p-2.5 rounded-xl flex flex-col justify-between items-center transition-all aspect-square sm:aspect-auto sm:h-24 border cursor-pointer ${stateClasses}`}
-                >
-                  <span className="text-xs sm:text-sm font-black font-sans">{m.numero_mesa}</span>
-                  {isOcupada ? (
-                    <div className="flex flex-col items-center gap-0.5 mt-1">
-                      <div className="flex items-center gap-0.5">
-                        <Users className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-[#2563a0]'}`} />
-                        <span className="text-[10px] sm:text-xs font-bold">{m.comensales || 0}</span>
+                return (
+                  <button
+                    key={m.id_mesa}
+                    id={`mesa-btn-${m.id_mesa}`}
+                    onClick={() => handleSelectMesa(m)}
+                    className={`min-h-[72px] p-2.5 rounded-xl flex flex-col justify-between items-center transition-all aspect-square sm:aspect-auto sm:h-24 border cursor-pointer ${stateClasses}`}
+                  >
+                    <span className="text-xs sm:text-sm font-black font-sans">{m.numero_mesa}</span>
+                    {isOcupada ? (
+                      <div className="flex flex-col items-center gap-0.5 mt-1">
+                        <div className="flex items-center gap-0.5">
+                          <Users className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-[#2563a0]'}`} />
+                          <span className="text-[10px] sm:text-xs font-bold">{m.comensales || 0}</span>
+                        </div>
+                        {elapsedMin > 0 && (
+                          <span className={`text-[8px] font-mono font-bold ${isSelected ? 'text-white/80' : 'text-[#2563a0]/80 bg-[#2563a0]/5 px-1 rounded'}`}>
+                            ⏱️ {elapsedMin}m
+                          </span>
+                        )}
                       </div>
-                      {elapsedMin > 0 && (
-                        <span className={`text-[8px] font-mono font-bold ${isSelected ? 'text-white/80' : 'text-[#2563a0]/80 bg-[#2563a0]/5 px-1 rounded'}`}>
-                          ⏱️ {elapsedMin}m
+                    ) : isInCuenta ? (
+                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider font-extrabold text-[#c47f1a] text-center leading-tight">Saldar</span>
+                    ) : (
+                      <span className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold opacity-80 text-center leading-tight ${isSelected ? 'text-white/60' : ''}`}>{labelText}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Plano 2D View */
+            <div className="relative w-full h-[520px] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center bg-[radial-gradient(#384152_1.2px,transparent_1.2px)] [background-size:20px_20px]">
+              {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
+                const isSelected = m.id_mesa === selectedMesaId;
+                const isOcupada = m.estado === 'ocupada';
+                const isInCuenta = m.estado === 'esperando_cuenta';
+                const isReservada = m.estado === 'reservada';
+
+                // Determine visual theme according to state
+                let stateBg = "bg-[#1E293B] border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-650";
+                let dotColor = "bg-emerald-500";
+                let label = "Libre";
+
+                if (isReservada) {
+                  stateBg = "bg-[#6d3f9e]/10 border-[#6d3f9e] text-purple-300 hover:bg-[#6d3f9e]/20";
+                  dotColor = "bg-purple-500";
+                  label = "Reservada";
+                } else if (isInCuenta) {
+                  stateBg = "bg-[#c47f1a]/10 border-[#c47f1a] text-[#c47f1a] hover:bg-[#c47f1a]/20";
+                  dotColor = "bg-amber-500";
+                  label = "En Cuenta";
+                } else if (isOcupada) {
+                  stateBg = "bg-[#2563a0]/15 border-[#2563a0] text-[#2563a0] hover:bg-[#2563a0]/25";
+                  dotColor = "bg-blue-500 animate-pulse";
+                  label = "Ocupada";
+                }
+
+                if (isSelected) {
+                  stateBg = "bg-brand-yellow text-brand-black border-brand-yellow ring-4 ring-brand-yellow/30 shadow-md scale-105 z-10";
+                }
+
+                const isRound = m.forma === 'redonda';
+                const shapeClass = isRound ? 'rounded-full' : 'rounded-2xl';
+
+                const w = m.width || (m.forma === 'rectangular' ? 12 : 8);
+                const h = m.height || (m.forma === 'rectangular' ? 6 : 8);
+
+                const activePedido = isOcupada ? pedidos.find(p => 
+                  isSameTable(m, p) && 
+                  ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
+                ) : null;
+
+                const elapsedMin = activePedido 
+                  ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
+                  : 0;
+
+                return (
+                  <button
+                    key={m.id_mesa}
+                    id={`plano-mesa-btn-${m.id_mesa}`}
+                    onClick={() => handleSelectMesa(m)}
+                    style={{
+                      left: `${m.x ?? 50}%`,
+                      top: `${m.y ?? 50}%`,
+                      transform: 'translate(-50%, -50%)',
+                      width: `${w * 10}px`,
+                      height: `${h * 10}px`,
+                    }}
+                    className={`absolute select-none cursor-pointer p-2.5 text-center flex flex-col justify-center items-center shadow-lg border transition-all active:scale-95 ${stateBg} ${shapeClass}`}
+                  >
+                    <strong className="text-xs font-black tracking-tight">{m.numero_mesa}</strong>
+                    {isOcupada ? (
+                      <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                        <span className="text-[10px] font-bold">
+                          👤{m.comensales || 0}
                         </span>
-                      )}
-                    </div>
-                  ) : isInCuenta ? (
-                    <span className="text-[8px] sm:text-[10px] uppercase tracking-wider font-extrabold text-[#c47f1a] text-center leading-tight">Saldar</span>
-                  ) : (
-                    <span className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold opacity-80 text-center leading-tight ${isSelected ? 'text-white/60' : ''}`}>{labelText}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                        {elapsedMin > 0 && (
+                          <span className="text-[8px] font-mono font-bold opacity-80">
+                            ⏱️{elapsedMin}m
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[8px] uppercase tracking-wider font-semibold opacity-75">{label}</span>
+                    )}
+                    <span className={`w-2.5 h-2.5 rounded-full ${dotColor} absolute top-1 right-1 border border-white shadow-xs`} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {selectedMesa && (
             <div className="mt-4 pt-4 border-t border-slate-50 space-y-3">
@@ -567,16 +736,26 @@ function MozoTerminal({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setSplittingPedidoId(activePedidoDeMesa.id_pedido)}
-                      className="flex-1 py-1 px-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="flex-1 py-1 px-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     >
-                      <Receipt className="w-3.5 h-3.5 text-slate-500" />
-                      Dividir Cuenta
+                      <Receipt className="w-3 h-3 text-slate-500" />
+                      Dividir
+                    </button>
+                    <button
+                      onClick={() => {
+                        setTransferTargetTableId(null);
+                        setShowTransferModal(true);
+                      }}
+                      className="flex-1 py-1 px-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <ArrowRightLeft className="w-3 h-3 text-slate-500" />
+                      Traspasar
                     </button>
                     <button
                       onClick={() => onFacturarMesa(activePedidoDeMesa.id_pedido)}
-                      className="flex-1 py-1.5 px-2.5 bg-slate-900 border border-transparent hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
+                      className="flex-1 py-1.5 px-2 bg-slate-900 border border-transparent hover:bg-slate-800 text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
                     >
-                      Cobrar Mesa
+                      Cobrar
                     </button>
                   </div>
                   <button
@@ -1322,6 +1501,69 @@ function MozoTerminal({
                 </div>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TRASPASO DE MESA */}
+      {showTransferModal && activePedidoDeMesa && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-zinc-150 font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-white/5">
+              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+                <ArrowRightLeft className="w-5 h-5 text-brand-yellow shrink-0" />
+                Traspasar Mesa {selectedMesa?.numero_mesa}
+              </h3>
+              <button onClick={() => setShowTransferModal(false)} className="text-zinc-550 hover:text-zinc-350 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-xs text-zinc-400">
+                Seleccioná la mesa libre de destino a la cual transferir la orden activa **#{activePedidoDeMesa.id_pedido}** (Total: ${activePedidoDeMesa.items.reduce((sum, it) => sum + (it.cantidad * (it.precio_unitario ?? productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta ?? 0)), 0).toLocaleString('es-AR')}).
+              </p>
+              
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">Mesa Libre de Destino:</label>
+                <select
+                  value={transferTargetTableId || ''}
+                  onChange={(e) => setTransferTargetTableId(parseInt(e.target.value) || null)}
+                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/10 rounded-xl text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 cursor-pointer"
+                >
+                  <option value="" disabled className="text-zinc-550">-- Seleccionar Mesa Libre --</option>
+                  {dynamicMesas
+                    .filter(m => m.estado === 'libre' && m.id_mesa !== 999)
+                    .map(m => (
+                      <option key={m.id_mesa} value={m.id_mesa} className="bg-zinc-950 text-zinc-200">
+                        {m.numero_mesa} ({m.sector?.toUpperCase() || 'Salón'} - Capacidad: {m.capacidad || 4} pax)
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-3 border-t border-white/5 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowTransferModal(false)}
+                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-zinc-350 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={!transferTargetTableId}
+                onClick={() => transferTargetTableId && handleTransferTable(transferTargetTableId)}
+                className={`flex-1 min-h-11 text-zinc-950 text-xs font-black rounded-xl transition-all ${
+                  transferTargetTableId 
+                    ? 'bg-brand-yellow hover:bg-[#D4A700] cursor-pointer shadow-md' 
+                    : 'bg-zinc-750 text-zinc-500 cursor-not-allowed opacity-50'
+                }`}
+              >
+                Confirmar Traspaso
+              </button>
+            </div>
           </div>
         </div>
       )}

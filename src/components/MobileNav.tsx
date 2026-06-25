@@ -21,6 +21,9 @@ interface MobileNavProps {
   onLogout: () => void;
   onToggleAutoTimer: () => void;
   onAdvanceTime: (mins: number) => void;
+  isOnline: boolean;
+  syncQueueSize: number;
+  onTriggerSync: () => void;
 }
 
 const NAV_ITEMS: { id: AppView; label: string; icon: string }[] = [
@@ -56,13 +59,14 @@ export default function MobileNav({
   onMozoChange,
   onLogout,
   onToggleAutoTimer,
-  onAdvanceTime
+  onAdvanceTime,
+  isOnline,
+  syncQueueSize,
+  onTriggerSync
 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  const isConnected = tryGetActiveSupabaseClient() !== null;
   const isAdmin = activeUser.rol === 'administrador' || activeUser.rol === 'superadmin';
   const visibleItems = NAV_ITEMS.filter(item => allowedViews.includes(item.id));
 
@@ -109,13 +113,13 @@ export default function MobileNav({
           <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
             <ElPatronLogo className="w-6 h-6 object-contain rounded" variant="icon" color="#E8B800" />
             <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
-              isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+              isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
             }`} />
           </div>
           <div className="min-w-0 text-left">
             <span className="font-extrabold text-sm text-brand-yellow drop-shadow block leading-tight truncate">Colores Pizzería</span>
-            <span className="text-[7px] uppercase font-bold text-zinc-400 tracking-wider block leading-tight flex items-center gap-1">
-              {isConnected ? 'En línea (Nube)' : 'Modo Local'}
+            <span className="text-[7px] uppercase font-bold text-zinc-400 tracking-wider block leading-tight">
+              {isOnline ? 'En línea (Cloud)' : 'Sin conexión'} {syncQueueSize > 0 && `• ⚠️ ${syncQueueSize} pend.`}
             </span>
           </div>
         </div>
@@ -155,13 +159,13 @@ export default function MobileNav({
                 <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
                   <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#E8B800" />
                   <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-zinc-950 ${
-                    isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                    isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                   }`} />
                 </div>
                 <div className="min-w-0">
                   <span className="font-extrabold text-sm text-brand-yellow block leading-tight">Colores Pizzería</span>
                   <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
-                    {isConnected ? '🟢 Supabase Cloud' : '🟡 Modo Local'}
+                    {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                   </span>
                 </div>
               </div>
@@ -173,6 +177,21 @@ export default function MobileNav({
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Sync Queue Mobile Panel */}
+            {syncQueueSize > 0 && (
+              <div className="mx-3 mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs">
+                <span className="text-amber-400 font-bold">
+                  ⚠️ {syncQueueSize} cambios por subir
+                </span>
+                <button 
+                  onClick={onTriggerSync}
+                  className="bg-amber-500 text-black hover:bg-amber-400 font-black px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                >
+                  Sincronizar
+                </button>
+              </div>
+            )}
 
 
             {/* Reloj y simulación */}

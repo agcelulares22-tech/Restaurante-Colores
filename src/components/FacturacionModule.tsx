@@ -11,7 +11,8 @@ import {
   Printer,
   Receipt,
   Search,
-  ScanLine
+  ScanLine,
+  TrendingUp
 } from 'lucide-react';
 import { Pedido, ProductoMenu, TicketData, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
@@ -28,7 +29,7 @@ interface FacturacionModuleProps {
 
 type FacturaExtendida = Factura & {
   tipo?: 'ticket' | 'A' | 'B' | 'X';
-  id_pedido?: number | null;
+  id_pedido?: string | null;
   observaciones?: string;
   arcaCae?: string;
   arcaVto?: string;
@@ -41,10 +42,10 @@ type TipoFiltro = 'todos' | 'ticket' | 'A' | 'B' | 'X';
 type MedioFiltro = 'todos' | Factura['medio_pago'];
 
 const DEFAULT_FACTURAS: FacturaExtendida[] = [
-  { id_factura: 'f_101', nro_ticket: 'T-0001-00008321', cliente: 'Consumidor Final', cuit: '99-99999999-9', total: 18500, iva_veintiuno: 3210.33, medio_pago: 'efectivo', fecha: '21:05 hs', estado: 'emitido', tipo: 'ticket' },
-  { id_factura: 'f_102', nro_ticket: 'B-0001-00008322', cliente: 'Agustin Colombo', cuit: '20-38449102-1', total: 43200, iva_veintiuno: 7497.52, medio_pago: 'tarjeta', fecha: '21:14 hs', estado: 'emitido', tipo: 'B' },
-  { id_factura: 'f_103', nro_ticket: 'A-0001-00008323', cliente: 'Siderar S.A.', cuit: '30-50000732-5', total: 125000, iva_veintiuno: 21694.21, medio_pago: 'debito', fecha: '21:40 hs', estado: 'emitido', tipo: 'A' },
-  { id_factura: 'f_104', nro_ticket: 'T-0001-00008324', cliente: 'Camila Galvan', cuit: '27-40112833-2', total: 15400, iva_veintiuno: 2672.72, medio_pago: 'mp_qr', fecha: '21:55 hs', estado: 'emitido', tipo: 'ticket' }
+  { id_factura: 'f_101', nro_ticket: 'T-0001-00008321', cliente: 'Consumidor Final', cuit: '99-99999999-9', total: 18500, iva_veintiuno: 3210.33, medio_pago: 'efectivo', fecha: '21:05 hs', estado: 'emitido', tipo: 'ticket', fecha_emision: '2026-06-24T21:05:00.000Z' },
+  { id_factura: 'f_102', nro_ticket: 'B-0001-00008322', cliente: 'Agustin Colombo', cuit: '20-38449102-1', total: 43200, iva_veintiuno: 7497.52, medio_pago: 'tarjeta', fecha: '21:14 hs', estado: 'emitido', tipo: 'B', fecha_emision: '2026-06-24T21:14:00.000Z' },
+  { id_factura: 'f_103', nro_ticket: 'A-0001-00008323', cliente: 'Siderar S.A.', cuit: '30-50000732-5', total: 125000, iva_veintiuno: 21694.21, medio_pago: 'debito', fecha: '21:40 hs', estado: 'emitido', tipo: 'A', fecha_emision: '2026-06-24T21:40:00.000Z' },
+  { id_factura: 'f_104', nro_ticket: 'T-0001-00008324', cliente: 'Camila Galvan', cuit: '27-40112833-2', total: 15400, iva_veintiuno: 2672.72, medio_pago: 'mp_qr', fecha: '21:55 hs', estado: 'emitido', tipo: 'ticket', fecha_emision: '2026-06-24T21:55:00.000Z' }
 ];
 
 const money = (value: number) => `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -92,6 +93,10 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('todos');
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('todos');
   const [medioFiltro, setMedioFiltro] = useState<MedioFiltro>('todos');
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const [showCharts, setShowCharts] = useState(false);
+
   const [manualTipo, setManualTipo] = useState<'ticket' | 'A' | 'B' | 'X'>('B');
   const [manualCliente, setManualCliente] = useState('Consumidor Final');
   const [manualCuit, setManualCuit] = useState('99-99999999-9');
@@ -99,7 +104,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   const [manualMedio, setManualMedio] = useState<Factura['medio_pago']>('efectivo');
   const [manualIva, setManualIva] = useState(true);
   const [manualObs, setManualObs] = useState('');
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<number | null>(null);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<string | null>(null);
   const [pagoTipo, setPagoTipo] = useState<'ticket' | 'A' | 'B' | 'X'>('ticket');
   const [pagoCliente, setPagoCliente] = useState('Consumidor Final');
   const [pagoCuit, setPagoCuit] = useState('99-99999999-9');
@@ -119,47 +124,67 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     return sum + (producto ? producto.precio_venta * item.cantidad : 0);
   }, 0);
 
-  const facturasActivas = facturas.filter(f => f.estado === 'emitido');
-  const totalBruto = facturasActivas.reduce((acc, f) => acc + f.total, 0);
-  const ivaTotal = facturasActivas.reduce((acc, f) => acc + f.iva_veintiuno, 0);
-  const netoTotal = totalBruto - ivaTotal;
-  const anuladas = facturas.filter(f => f.estado === 'nota_credito').length;
+  const getFacturaDate = (f: FacturaExtendida): Date => {
+    if (f.fecha_emision) return new Date(f.fecha_emision);
+    if (f.id_factura.startsWith('fac_')) {
+      const ts = parseInt(f.id_factura.split('_')[1]);
+      if (!isNaN(ts)) return new Date(ts);
+    }
+    return new Date();
+  };
 
-  const pedidosFacturados = new Set(
+  const filtered = useMemo(() => {
+    return facturas.filter(f => {
+      const term = debouncedSearch.trim().toLowerCase();
+      const tipo = facturaTipo(f);
+      const matchesSearch = !term
+        || f.cliente.toLowerCase().includes(term)
+        || f.cuit.toLowerCase().includes(term)
+        || f.nro_ticket.toLowerCase().includes(term)
+        || f.medio_pago.toLowerCase().includes(term);
+      const matchesTipo = tipoFiltro === 'todos' || tipo === tipoFiltro;
+      const matchesEstado = estadoFiltro === 'todos' || f.estado === estadoFiltro;
+      const matchesMedio = medioFiltro === 'todos' || f.medio_pago === medioFiltro;
+
+      const fDate = getFacturaDate(f);
+      const matchesFechaDesde = !fechaDesde || fDate >= new Date(fechaDesde + 'T00:00:00');
+      const matchesFechaHasta = !fechaHasta || fDate <= new Date(fechaHasta + 'T23:59:59');
+
+      return matchesSearch && matchesTipo && matchesEstado && matchesMedio && matchesFechaDesde && matchesFechaHasta;
+    });
+  }, [facturas, debouncedSearch, tipoFiltro, estadoFiltro, medioFiltro, fechaDesde, fechaHasta]);
+
+  const filteredActivas = useMemo(() => filtered.filter(f => f.estado === 'emitido'), [filtered]);
+  const totalBruto = useMemo(() => filteredActivas.reduce((acc, f) => acc + f.total, 0), [filteredActivas]);
+  const ivaTotal = useMemo(() => filteredActivas.reduce((acc, f) => acc + f.iva_veintiuno, 0), [filteredActivas]);
+  const netoTotal = useMemo(() => totalBruto - ivaTotal, [totalBruto, ivaTotal]);
+  const anuladas = useMemo(() => filtered.filter(f => f.estado === 'nota_credito').length, [filtered]);
+
+  const pedidosFacturados = useMemo(() => new Set(
     facturas
       .map(f => f.id_pedido)
-      .filter((id): id is number => typeof id === 'number')
-  );
+      .filter((id): id is string => typeof id === 'string')
+  ), [facturas]);
 
   const pagosPendientes = useMemo(() => pedidos
     .filter(p => p.estado_comanda !== 'cancelado')
     .filter(p => !pedidosFacturados.has(p.id_pedido))
     .map(p => ({ pedido: p, total: pedidoTotal(p) }))
-    .filter(p => p.total > 0), [pedidos, productosMenu, facturas]);
+    .filter(p => p.total > 0), [pedidos, productosMenu, pedidosFacturados]);
 
-  const filtered = facturas.filter(f => {
-    const term = debouncedSearch.trim().toLowerCase();
-    const tipo = facturaTipo(f);
-    const matchesSearch = !term
-      || f.cliente.toLowerCase().includes(term)
-      || f.cuit.toLowerCase().includes(term)
-      || f.nro_ticket.toLowerCase().includes(term)
-      || f.medio_pago.toLowerCase().includes(term);
-    const matchesTipo = tipoFiltro === 'todos' || tipo === tipoFiltro;
-    const matchesEstado = estadoFiltro === 'todos' || f.estado === estadoFiltro;
-    const matchesMedio = medioFiltro === 'todos' || f.medio_pago === medioFiltro;
-    return matchesSearch && matchesTipo && matchesEstado && matchesMedio;
-  });
+  const resumenPorTipo = useMemo(() => {
+    return (['ticket', 'A', 'B', 'X'] as const).map(tipo => {
+      const subset = filteredActivas.filter(f => facturaTipo(f) === tipo);
+      return { tipo, cantidad: subset.length, total: subset.reduce((acc, f) => acc + f.total, 0) };
+    });
+  }, [filteredActivas]);
 
-  const resumenPorTipo = (['ticket', 'A', 'B', 'X'] as const).map(tipo => {
-    const subset = facturasActivas.filter(f => facturaTipo(f) === tipo);
-    return { tipo, cantidad: subset.length, total: subset.reduce((acc, f) => acc + f.total, 0) };
-  });
-
-  const resumenPorMedio = (['efectivo', 'debito', 'tarjeta', 'transferencia', 'mp_qr', 'mixto'] as Factura['medio_pago'][]).map(medio => {
-    const subset = facturasActivas.filter(f => f.medio_pago === medio);
-    return { medio, cantidad: subset.length, total: subset.reduce((acc, f) => acc + f.total, 0) };
-  });
+  const resumenPorMedio = useMemo(() => {
+    return (['efectivo', 'debito', 'tarjeta', 'transferencia', 'mp_qr', 'mixto'] as Factura['medio_pago'][]).map(medio => {
+      const subset = filteredActivas.filter(f => f.medio_pago === medio);
+      return { medio, cantidad: subset.length, total: subset.reduce((acc, f) => acc + f.total, 0) };
+    });
+  }, [filteredActivas]);
 
   const selectedPending = pagosPendientes.find(p => p.pedido.id_pedido === pedidoSeleccionado) || pagosPendientes[0];
 
@@ -213,7 +238,8 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         estado: 'emitido',
         tipo: manualTipo,
         id_pedido: null,
-        observaciones: manualObs
+        observaciones: manualObs,
+        fecha_emision: new Date().toISOString()
       };
       const arcaResult = await emitToArca(factura);
       if (arcaResult) {
@@ -255,7 +281,8 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         estado: 'emitido',
         tipo: pagoTipo,
         id_pedido: selectedPending.pedido.id_pedido,
-        observaciones: `Pedido #${selectedPending.pedido.id_pedido} - ${selectedPending.pedido.numero_mesa}`
+        observaciones: `Pedido #${selectedPending.pedido.id_pedido} - ${selectedPending.pedido.numero_mesa}`,
+        fecha_emision: new Date().toISOString()
       };
       const arcaResult = await emitToArca(factura);
       if (arcaResult) {
@@ -396,7 +423,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     } catch (e) {}
 
     const ticketData: TicketData = {
-      idPedido: factura.id_pedido || pedido?.id_pedido || 0,
+      idPedido: factura.id_pedido || pedido?.id_pedido || "0",
       nroComprobante: factura.nro_ticket,
       tipoComprobante: tipoToComprobante(tipo),
       fechaHora: factura.fecha,
@@ -477,11 +504,37 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         f.total.toFixed(2)
       ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
     });
-    const blob = new Blob([[header.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['\uFEFF' + [header.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = 'auditoria_comprobantes.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadExcelCsv = () => {
+    const header = ['comprobante', 'fecha', 'cliente', 'cuit', 'tipo', 'medio', 'estado', 'neto', 'iva', 'total'];
+    const lines = filtered.map(f => {
+      const { neto } = calcIvaIncluido(f.total, f.iva_veintiuno > 0);
+      return [
+        f.nro_ticket,
+        f.fecha,
+        f.cliente,
+        f.cuit,
+        facturaTipo(f),
+        f.medio_pago,
+        f.estado,
+        neto.toFixed(2),
+        f.iva_veintiuno.toFixed(2),
+        f.total.toFixed(2)
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';');
+    });
+    const blob = new Blob(['\uFEFF' + [header.join(';'), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'auditoria_comprobantes_excel.csv';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -641,7 +694,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
           {selectedPending ? (
             <>
-              <select value={selectedPending.pedido.id_pedido} onChange={e => setPedidoSeleccionado(Number(e.target.value))} className="w-full p-3 rounded-xl border border-stone-200 text-xs font-bold">
+              <select value={selectedPending.pedido.id_pedido} onChange={e => setPedidoSeleccionado(e.target.value)} className="w-full p-3 rounded-xl border border-stone-200 text-xs font-bold">
                 {pagosPendientes.map(({ pedido, total }) => (
                   <option key={pedido.id_pedido} value={pedido.id_pedido}>
                     Pedido #{pedido.id_pedido} - {pedido.numero_mesa} - {pedido.mozo} - {money(total)}
@@ -724,19 +777,22 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                   className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
                 />
               </div>
-              <button onClick={downloadCsv} className="px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs font-black flex items-center justify-center gap-2">
+              <button onClick={downloadCsv} className="px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs font-black flex items-center justify-center gap-2 hover:bg-stone-100 transition-colors cursor-pointer">
                 <Download className="w-4 h-4" /> CSV
               </button>
-              <button onClick={downloadLibroIva} className="px-3 py-2 rounded-xl bg-[#624A3E] text-white text-xs font-black flex items-center justify-center gap-2">
+              <button onClick={downloadExcelCsv} className="px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs font-black flex items-center justify-center gap-2 hover:bg-stone-100 transition-colors cursor-pointer">
+                <Download className="w-4 h-4" /> Excel (CSV)
+              </button>
+              <button onClick={downloadLibroIva} className="px-3 py-2 rounded-xl bg-[#624A3E] text-white text-xs font-black flex items-center justify-center gap-2 hover:bg-[#503C32] transition-colors cursor-pointer">
                 <Calendar className="w-4 h-4" /> Libro IVA PDF
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             <label className="space-y-1">
               <span className="text-[10px] font-black uppercase text-stone-500 flex items-center gap-1"><Filter className="w-3 h-3" /> Tipo</span>
-              <select value={tipoFiltro} onChange={e => setTipoFiltro(e.target.value as TipoFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold">
+              <select value={tipoFiltro} onChange={e => setTipoFiltro(e.target.value as TipoFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold bg-white focus:outline-none">
                 <option value="todos">Todos</option>
                 <option value="ticket">Ticket</option>
                 <option value="A">Factura A</option>
@@ -746,7 +802,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
             </label>
             <label className="space-y-1">
               <span className="text-[10px] font-black uppercase text-stone-500">Estado</span>
-              <select value={estadoFiltro} onChange={e => setEstadoFiltro(e.target.value as EstadoFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold">
+              <select value={estadoFiltro} onChange={e => setEstadoFiltro(e.target.value as EstadoFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold bg-white focus:outline-none">
                 <option value="todos">Todos</option>
                 <option value="emitido">Validos</option>
                 <option value="nota_credito">Anulados / NC</option>
@@ -754,7 +810,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
             </label>
             <label className="space-y-1">
               <span className="text-[10px] font-black uppercase text-stone-500">Medio</span>
-              <select value={medioFiltro} onChange={e => setMedioFiltro(e.target.value as MedioFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold">
+              <select value={medioFiltro} onChange={e => setMedioFiltro(e.target.value as MedioFiltro)} className="w-full p-2.5 rounded-xl border border-stone-200 text-xs font-bold bg-white focus:outline-none">
                 <option value="todos">Todos</option>
                 <option value="efectivo">Efectivo</option>
                 <option value="debito">Debito</option>
@@ -764,7 +820,140 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                 <option value="mixto">Mixto</option>
               </select>
             </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-black uppercase text-stone-500 flex items-center gap-1"><Calendar className="w-3 h-3" /> Desde</span>
+              <input
+                type="date"
+                value={fechaDesde}
+                onChange={e => setFechaDesde(e.target.value)}
+                className="w-full p-2 rounded-xl border border-stone-200 text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-black uppercase text-stone-500 flex items-center gap-1"><Calendar className="w-3 h-3" /> Hasta</span>
+              <input
+                type="date"
+                value={fechaHasta}
+                onChange={e => setFechaHasta(e.target.value)}
+                className="w-full p-2 rounded-xl border border-stone-200 text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
+              />
+            </label>
           </div>
+
+          <div className="flex justify-start">
+            <button
+              onClick={() => setShowCharts(prev => !prev)}
+              className="text-xs font-black uppercase text-[#624A3E] hover:text-[#503C32] hover:underline flex items-center gap-1 cursor-pointer transition-all"
+            >
+              <TrendingUp className="w-4 h-4" />
+              {showCharts ? 'Ocultar Gráficos de Ventas' : 'Ver Gráficos y Análisis de Ventas'}
+            </button>
+          </div>
+
+          {showCharts && (
+            <div className="bg-stone-50 p-5 rounded-xl border border-stone-200 grid grid-cols-1 md:grid-cols-12 gap-6 items-center animate-fadeIn">
+              {/* Donut chart col */}
+              <div className="md:col-span-4 flex flex-col items-center justify-center">
+                {totalBruto > 0 ? (
+                  <svg width="150" height="150" viewBox="0 0 120 120" className="mx-auto">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      fill="transparent"
+                      stroke="#E5E7EB"
+                      strokeWidth="10"
+                    />
+                    <g transform="rotate(-90 60 60)">
+                      {resumenPorMedio.map((r, idx) => {
+                        const colors: Record<string, string> = {
+                          efectivo: '#10B981', // emerald-500
+                          debito: '#3B82F6', // blue-500
+                          tarjeta: '#6366F1', // indigo-500
+                          transferencia: '#F59E0B', // amber-500
+                          mp_qr: '#8B5CF6', // violet-500
+                          mixto: '#EC4899'  // pink-500
+                        };
+                        const percentage = totalBruto > 0 ? (r.total / totalBruto) * 100 : 0;
+                        const strokeLength = (percentage / 100) * 314.159;
+                        // Calculate offset
+                        const offset = resumenPorMedio.slice(0, idx).reduce((sum, item) => {
+                          const itemPct = totalBruto > 0 ? (item.total / totalBruto) * 100 : 0;
+                          return sum + ((itemPct / 100) * 314.159);
+                        }, 0);
+
+                        return (
+                          <circle
+                            key={r.medio}
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            fill="transparent"
+                            stroke={colors[r.medio] || '#6B7280'}
+                            strokeWidth="10"
+                            strokeDasharray={`${strokeLength} 314.159`}
+                            strokeDashoffset={-offset}
+                            strokeLinecap="round"
+                            className="transition-all duration-300 hover:stroke-[12px] cursor-pointer"
+                          />
+                        );
+                      })}
+                    </g>
+                    <text x="60" y="54" textAnchor="middle" dominantBaseline="middle" className="text-[7px] font-bold fill-stone-400 uppercase tracking-widest font-sans">
+                      Filtrado
+                    </text>
+                    <text x="60" y="70" textAnchor="middle" dominantBaseline="middle" className="text-[10px] font-black fill-stone-800 font-mono">
+                      ${Math.round(totalBruto).toLocaleString('es-AR')}
+                    </text>
+                  </svg>
+                ) : (
+                  <p className="text-xs text-stone-400 italic">Sin datos de facturación</p>
+                )}
+              </div>
+
+              {/* Progress bars col */}
+              <div className="md:col-span-8 space-y-2.5 text-xs text-stone-600">
+                {resumenPorMedio.map(r => {
+                  const colors: Record<string, string> = {
+                    efectivo: 'bg-emerald-500',
+                    debito: 'bg-blue-500',
+                    tarjeta: 'bg-indigo-500',
+                    transferencia: 'bg-amber-500',
+                    mp_qr: 'bg-violet-500',
+                    mixto: 'bg-pink-500'
+                  };
+                  const textColors: Record<string, string> = {
+                    efectivo: 'text-emerald-600',
+                    debito: 'text-blue-600',
+                    tarjeta: 'text-indigo-600',
+                    transferencia: 'text-amber-600',
+                    mp_qr: 'text-violet-600',
+                    mixto: 'text-pink-600'
+                  };
+                  const pct = totalBruto > 0 ? (r.total / totalBruto) * 100 : 0;
+                  return (
+                    <div key={r.medio} className="space-y-1">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`w-2.5 h-2.5 rounded-full ${colors[r.medio] || 'bg-stone-400'}`} />
+                          {medioLabel(r.medio)} ({r.cantidad} comprobantes)
+                        </span>
+                        <span className={textColors[r.medio]}>
+                          {money(r.total)} ({pct.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${colors[r.medio] || 'bg-stone-400'} transition-all duration-500`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="rounded-xl border border-stone-200 overflow-hidden">

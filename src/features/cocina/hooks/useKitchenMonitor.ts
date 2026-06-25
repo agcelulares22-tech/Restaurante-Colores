@@ -26,7 +26,7 @@ const isKitchenItem = (item: PedidoItem) => !isBarItem(item);
 
 interface UseKitchenMonitorProps {
   pedidos: Pedido[];
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   productosMenu: ProductoMenu[];
   recetas: RecetaEscandallo[];
   insumos: Insumo[];
@@ -43,7 +43,7 @@ export function useKitchenMonitor({
   const [kitchenSearch, setKitchenSearch] = useState('');
   const debouncedKitchenSearch = useDebounce(kitchenSearch, 300);
   const [showOnlyKitchen, setShowOnlyKitchen] = useState(false);
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<number, { estado: Pedido['estado_comanda']; updating: boolean }>>(new Map());
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, { estado: Pedido['estado_comanda']; updating: boolean }>>(new Map());
   const [selectedRecipeProduct, setSelectedRecipeProduct] = useState<ProductoMenu | null>(null);
 
   // Clear optimistic updates as soon as they are confirmed by the real pedidos list from the DB
@@ -154,22 +154,22 @@ export function useKitchenMonitor({
     return (pedido.segundos_en_listo ?? 0) >= 300;
   }, []);
 
-  const handleOptimisticStatus = useCallback((idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+  const handleOptimisticStatus = useCallback(async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
     console.log(`[useKitchenMonitor.handleOptimisticStatus] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
     setOptimisticUpdates(prev => new Map(prev).set(idPedido, { estado: nuevoEstado, updating: true }));
-    console.log(`[useKitchenMonitor.handleOptimisticStatus] Llamando onCambiarEstadoPedido...`);
-    onCambiarEstadoPedido(idPedido, nuevoEstado);
-    console.log(`[useKitchenMonitor.handleOptimisticStatus] onCambiarEstadoPedido llamado`);
-    setTimeout(() => {
+    try {
+      console.log(`[useKitchenMonitor.handleOptimisticStatus] Llamando onCambiarEstadoPedido...`);
+      await onCambiarEstadoPedido(idPedido, nuevoEstado);
+      console.log(`[useKitchenMonitor.handleOptimisticStatus] onCambiarEstadoPedido OK`);
+      // El estado real se actualizará via realtime listener; el useEffect limpiará optimistic
+    } catch (error) {
+      console.error(`[handleOptimisticStatus] Error al cambiar estado ${idPedido}:`, error);
       setOptimisticUpdates(prev => {
         const next = new Map(prev);
-        if (next.has(idPedido) && next.get(idPedido)?.estado === nuevoEstado) {
-          next.delete(idPedido);
-          return next;
-        }
-        return prev;
+        next.delete(idPedido);
+        return next;
       });
-    }, 10000); // 10 seconds fallback timeout
+    }
   }, [onCambiarEstadoPedido]);
 
   const getEffectiveStatus = useCallback((pedido: Pedido): Pedido['estado_comanda'] => {

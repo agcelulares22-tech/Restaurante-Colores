@@ -40,7 +40,7 @@ interface AccionJson {
 }
 
 interface MesaAsistenteProps {
-  mesas: MesaEstado[];
+  mesas: any[];
   onAccion?: (accion: AccionJson) => void;
 }
 
@@ -233,7 +233,13 @@ export default function MesaAsistente({ mesas, onAccion }: MesaAsistenteProps) {
       numero_mesa: m.numero_mesa,
       capacidad: m.capacidad || LAYOUT_OFICIAL[m.id_mesa]?.capacidad || 4,
       zona: (m.zona as MesaEstado['zona']) || LAYOUT_OFICIAL[m.id_mesa]?.zona || 'central',
-      estado: (m.estado === 'Ocupada' ? 'Ocupada' : m.estado === 'Reservada' ? 'Reservada' : m.estado === 'Sucia/En Limpieza' ? 'Sucia/En Limpieza' : 'Libre') as EstadoMesa,
+      estado: (m.estado === 'Ocupada' || m.estado === 'ocupada'
+        ? 'Ocupada'
+        : m.estado === 'Reservada' || m.estado === 'reservada'
+        ? 'Reservada'
+        : m.estado === 'Sucia/En Limpieza' || m.estado === 'sucia' || m.estado === 'limpiando'
+        ? 'Sucia/En Limpieza'
+        : 'Libre') as EstadoMesa,
       comensales: m.comensales,
       id_pedido: m.id_pedido,
       mesas_unidas: m.mesas_unidas,

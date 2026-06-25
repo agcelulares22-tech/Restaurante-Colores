@@ -14,8 +14,8 @@ interface DeliveryModuleProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
   onCrearPedido: (pedido: any) => Promise<void>;
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
-  onFacturarMesa: (idPedido: number, alreadyUpdatedInCaja?: boolean) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
+  onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean) => void;
   addLog: (tipo: any, mensaje: string) => void;
   activeMozo: string;
   recetas?: any[];
@@ -139,6 +139,10 @@ function DeliveryModule({
   const mapRef = useRef<any>(null);
   const routeLayerRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+
+  // Route Optimizer States
+  const [selectedCourierForRoute, setSelectedCourierForRoute] = useState<string>('Todos');
+  const [optimizedRoute, setOptimizedRoute] = useState<any[]>([]);
 
   // Cadet Live Tracking simulation states
   const [trackingPedido, setTrackingPedido] = useState<Pedido | null>(null);
@@ -411,6 +415,127 @@ function DeliveryModule({
       toast.error(err.message || 'No se pudo estimar la ruta del delivery.');
     } finally {
       setIsEstimating(false);
+    }
+  };
+
+  const getSimulatedCoordinates = (address: string): [number, number] => {
+    let hash = 0;
+    for (let i = 0; i < address.length; i++) {
+      hash = address.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const latOffset = ((Math.abs(hash) % 1000) / 30000) * (hash > 0 ? 1 : -1);
+    const lngOffset = (((Math.abs(hash) >> 8) % 1000) / 30000) * (hash > 0 ? -1 : 1);
+    return [origenLat + latOffset, origenLng + lngOffset];
+  };
+
+  const handleOptimizeRoute = async () => {
+    const L = (window as any).L;
+    if (!L || !mapRef.current) {
+      toast.error('El mapa no está inicializado.');
+      return;
+    }
+
+    let candidates = pedidos.filter(p => 
+      (p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa') &&
+      (p.estado_comanda === 'listo' || p.estado_comanda === 'entregado')
+    );
+
+    if (selectedCourierForRoute !== 'Todos') {
+      candidates = candidates.filter(p => 
+        p.observaciones?.toLowerCase().includes(`repartidor: ${selectedCourierForRoute.toLowerCase()}`)
+      );
+    }
+
+    if (candidates.length === 0) {
+      toast.info('No hay pedidos listos o en viaje asignados para optimizar.');
+      setOptimizedRoute([]);
+      return;
+    }
+
+    let currentPoint: [number, number] = [origenLat, origenLng];
+    const unvisited = candidates.map(p => {
+      const addr = p.direccion_cliente || parseClientInfo(p.numero_mesa).address;
+      return {
+        pedido: p,
+        address: addr,
+        coords: getSimulatedCoordinates(addr)
+      };
+    });
+
+    const orderedSequence: typeof unvisited = [];
+    
+    while (unvisited.length > 0) {
+      let nearestIdx = 0;
+      let minDistance = Infinity;
+      for (let i = 0; i < unvisited.length; i++) {
+        const dist = Math.sqrt(
+          Math.pow(unvisited[i].coords[0] - currentPoint[0], 2) +
+          Math.pow(unvisited[i].coords[1] - currentPoint[1], 2)
+        );
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestIdx = i;
+        }
+      }
+      const next = unvisited.splice(nearestIdx, 1)[0];
+      orderedSequence.push(next);
+      currentPoint = next.coords;
+    }
+
+    setOptimizedRoute(orderedSequence);
+
+    try {
+      if (routeLayerRef.current) {
+        mapRef.current.removeLayer(routeLayerRef.current);
+      }
+      markersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
+      markersRef.current = [];
+
+      const waypoints = [
+        [origenLng, origenLat],
+        ...orderedSequence.map(s => [s.coords[1], s.coords[0]])
+      ];
+      const waypointsQuery = waypoints.map(w => `${w[0]},${w[1]}`).join(';');
+      
+      const routeResp = await fetch(`https://router.project-osrm.org/route/v1/driving/${waypointsQuery}?overview=full&geometries=geojson`);
+      const routeData = await routeResp.json();
+      
+      let polylineCoords: [number, number][] = [];
+      if (routeData.routes && routeData.routes.length > 0) {
+        polylineCoords = routeData.routes[0].geometry.coordinates.map((c: any) => [c[1], c[0]]);
+      } else {
+        polylineCoords = [[origenLat, origenLng], ...orderedSequence.map(s => s.coords)];
+      }
+
+      routeLayerRef.current = L.polyline(polylineCoords, {
+        color: '#E8B800',
+        weight: 6,
+        opacity: 0.85,
+        lineJoin: 'round'
+      }).addTo(mapRef.current);
+
+      orderedSequence.forEach((stop, index) => {
+        const num = index + 1;
+        const numberIcon = L.divIcon({
+          className: 'custom-stop-marker',
+          html: `<div style="background-color: #EF4444; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px; font-family: sans-serif;">${num}</div>`,
+          iconSize: [24, 24]
+        });
+
+        const stopMarker = L.marker(stop.coords, { icon: numberIcon })
+          .addTo(mapRef.current)
+          .bindPopup(`Parada #${num} - Pedido #${stop.pedido.id_pedido}<br/>Cliente: ${stop.pedido.nombre_cliente || parseClientInfo(stop.pedido.numero_mesa).name}<br/>Dirección: ${stop.address}`);
+        
+        markersRef.current.push(stopMarker);
+      });
+
+      const bounds = [[origenLat, origenLng], ...orderedSequence.map(s => s.coords)];
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+
+      toast.success(`Ruta optimizada para ${orderedSequence.length} entregas.`);
+    } catch (err: any) {
+      console.error('Error drawing optimized route:', err);
+      toast.error('No se pudo trazar la ruta de reparto optimizada.');
     }
   };
 
@@ -1637,8 +1762,72 @@ function DeliveryModule({
 
               {/* Tab Content */}
               {rightPanelTab === 'mapa' ? (
-                /* Map Container */
-                <div id="delivery-route-map" className="flex-1 w-full h-full z-0" style={{ minHeight: '350px', height: '100%', width: '100%' }} />
+                /* Map Container and Route Optimizer Panel */
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                  <div id="delivery-route-map" className="flex-1 w-full z-0" style={{ minHeight: '320px' }} />
+                  
+                  {/* Route optimizer controls (Area 4) */}
+                  <div className="bg-white border-t border-stone-200 p-4 space-y-3 font-sans shrink-0">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                      <div>
+                        <h5 className="text-xs font-black text-stone-850 flex items-center gap-1.5 uppercase tracking-wide">
+                          <Compass className="w-4 h-4 text-brand-yellow shrink-0" />
+                          Optimizador de Ruta de Reparto
+                        </h5>
+                        <p className="text-[10px] text-stone-400 font-medium">
+                          Calculá el recorrido secuencial más eficiente para tus repartos listos y en viaje.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedCourierForRoute}
+                          onChange={(e) => setSelectedCourierForRoute(e.target.value)}
+                          className="text-[11px] p-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 font-bold focus:outline-none focus:ring-1 focus:ring-brand-yellow/30 cursor-pointer"
+                        >
+                          <option value="Todos">Todos los Repartidores</option>
+                          <option value="Repartidor 1">Repartidor 1</option>
+                          <option value="Repartidor 2">Repartidor 2</option>
+                          <option value="Moto 1">Moto 1</option>
+                          <option value="Cadete Colores">Cadete Colores</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={handleOptimizeRoute}
+                          className="px-3.5 py-2.5 bg-stone-900 hover:bg-stone-850 text-brand-yellow font-black text-xs rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm whitespace-nowrap"
+                        >
+                          Calcular Ruta Óptima
+                        </button>
+                      </div>
+                    </div>
+
+                    {optimizedRoute.length > 0 && (
+                      <div className="bg-stone-50 rounded-xl p-3 border border-stone-150 space-y-2">
+                        <p className="text-[10px] font-black text-stone-500 uppercase tracking-wider">Secuencia de Entrega Optimizada:</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 overflow-y-auto max-h-32 pr-1.5 scrollbar-thin">
+                          {optimizedRoute.map((stop, index) => {
+                            const num = index + 1;
+                            return (
+                              <div key={stop.pedido.id_pedido} className="bg-white border border-stone-200/80 rounded-lg p-2 flex items-start gap-2 shadow-xs">
+                                <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                                  {num}
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold text-stone-800 truncate">
+                                    Pedido #{stop.pedido.id_pedido}
+                                  </p>
+                                  <p className="text-[9px] text-stone-500 truncate font-medium" title={stop.address}>
+                                    {stop.address}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ) : (
                 /* Product Catalog Selector */
                 <div className="flex-1 flex flex-col overflow-hidden bg-stone-50 p-4">

@@ -188,7 +188,7 @@ export const insumosService = {
     return data || [];
   },
 
-  async descontarStockPorPedido(pedidoId: number): Promise<void> {
+  async descontarStockPorPedido(pedidoId: string): Promise<void> {
     try {
       const { pedidosService } = await import('./pedidosService');
       const { recetasService } = await import('./recetasService');

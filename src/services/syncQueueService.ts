@@ -25,6 +25,7 @@ export const syncQueueService = {
   saveQueue(queue: SyncQueueItem[]): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    window.dispatchEvent(new CustomEvent('sync-queue-changed'));
   },
 
   enqueue(action: SyncQueueItem['action'], payload: any): void {
@@ -83,20 +84,20 @@ export const syncQueueService = {
       try {
         if (item.action === 'upsert_pedido') {
           if (item.payload.is_accumulation) {
-            await pedidosService.agregarItemsAComandaExistente(item.payload.id_pedido, item.payload.items);
+            await pedidosService.agregarItemsAComandaExistente(item.payload.id_pedido, item.payload.items, true);
           } else {
             // Serialize and push header & details
-            await pedidosService.upsert([item.payload]);
+            await pedidosService.upsert([item.payload], true);
           }
           success = true;
         } else if (item.action === 'upsert_factura') {
-          await facturacionService.upsert([item.payload]);
+          await facturacionService.upsert([item.payload], true);
           success = true;
         } else if (item.action === 'create_merma') {
           await mermasService.create(item.payload);
           success = true;
         } else if (item.action === 'update_pedido_estado') {
-          await pedidosService.update(item.payload.id, item.payload.fields);
+          await pedidosService.update(item.payload.id, item.payload.fields, true);
           success = true;
         }
       } catch (err) {

@@ -22,7 +22,7 @@ export const hydratePedido = (
 ): Pedido => {
   const headerItems = parseHeaderItems(header.items);
   const relatedItems: PedidoItem[] = details
-    .filter(detail => detail.id_pedido === header.id_pedido)
+    .filter(detail => String(detail.id_pedido) === String(header.id_pedido))
     .sort((a, b) => String(a.id_detalle || '').localeCompare(String(b.id_detalle || '')))
     .map(detail => {
       const matchingHeaderItem = headerItems.find(hi => hi.id_producto === detail.id_producto);
@@ -40,7 +40,7 @@ export const hydratePedido = (
   const idMesa = isDelivery ? 999 : header.id_mesa;
 
   return {
-    id_pedido: header.id_pedido,
+    id_pedido: String(header.id_pedido),
     idempotency_key: header.idempotency_key ?? undefined,
     id_mesa: idMesa,
     numero_mesa: header.numero_mesa,
@@ -112,10 +112,13 @@ export const pedidosService = {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) return [];
     
-    // 1. Fetch headers
+    // 1. Fetch headers (optimized: active orders + last 30 days of completed/cancelled orders)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const { data: headers, error: hError } = await supabase
       .from('pedidos_cabecera')
       .select('*')
+      .or(`fecha_hora.gte.${thirtyDaysAgo.toISOString()},estado_comanda.not.in.("entregado_cobrado","cancelado")`)
       .order('fecha_hora', { ascending: false });
       
     if (hError) {
@@ -140,9 +143,9 @@ export const pedidosService = {
     return headers.map(header => hydratePedido(header, details || []));
   },
 
-  async getById(id: number): Promise<Pedido | null> {
+  async getById(id: string): Promise<Pedido | null> {
     const list = await this.list();
-    return list.find(p => p.id_pedido === id) || null;
+    return list.find(p => String(p.id_pedido) === String(id)) || null;
   },
 
   async create(pedido: Pedido): Promise<Pedido> {
@@ -154,12 +157,16 @@ export const pedidosService = {
     return pedido;
   },
 
-  async update(id: number, fields: Partial<Pedido>): Promise<void> {
+  async update(id: string, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
-      console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      if (!fromSyncQueue) {
+        console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      } else {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       return;
     }
 
@@ -293,15 +300,20 @@ export const pedidosService = {
       }
     } catch (error) {
       console.warn(`Error in remote update for pedido ${id}. Enqueueing action to SyncQueue.`, error);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('update_pedido_estado', { id, fields });
-      throw error; // Re-lanzar para que el caller sepa que falló
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('update_pedido_estado', { id, fields });
+      }
+      throw error;
     }
   },
 
-  async upsert(pedidos: Pedido[]): Promise<void> {
+  async upsert(pedidos: Pedido[], fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
+      if (fromSyncQueue) {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       console.warn('Supabase is not configured or offline. Skipping database upsert.');
       return;
     }
@@ -309,7 +321,7 @@ export const pedidosService = {
     for (const ped of pedidos) {
       try {
         console.log(`[pedidosService.upsert] Procesando pedido id=${ped.id_pedido}, estado=${ped.estado_comanda}, mesa=${ped.numero_mesa}`);
-        let activeId: number | null = null;
+        let activeId: string | null = null;
         let isExisting = false;
 
         // 1. Verificar si esta comanda específica ya existe en la base de datos por ID
@@ -454,21 +466,28 @@ export const pedidosService = {
         }
       } catch (err) {
         console.warn(`Error in remote upsert for order ${ped.id_pedido}. Enqueueing to SyncQueue.`, err);
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('upsert_pedido', ped);
+        if (!fromSyncQueue) {
+          const { syncQueueService } = await import('./syncQueueService');
+          syncQueueService.enqueue('upsert_pedido', ped);
+        }
+        throw err;
       }
     }
   },
 
-  async agregarItemsAComandaExistente(idPedido: number, nuevosItems: PedidoItem[]): Promise<void> {
+  async agregarItemsAComandaExistente(idPedido: string, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('upsert_pedido', {
-        id_pedido: idPedido,
-        items: nuevosItems,
-        is_accumulation: true
-      });
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('upsert_pedido', {
+          id_pedido: idPedido,
+          items: nuevosItems,
+          is_accumulation: true
+        });
+      } else {
+        throw new Error('Supabase client not available during sync queue processing');
+      }
       return;
     }
 
@@ -524,12 +543,12 @@ export const pedidosService = {
     }
   },
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: string): Promise<boolean> {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) return false;
     
     try {
-      const { error } = await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id);
+      const { error } = await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
       if (error) {
         console.error('Error deleting order:', error);
         return false;

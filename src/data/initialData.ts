@@ -1180,7 +1180,7 @@ export const INITIAL_RECETAS_ESCANDALLO: RecetaEscandallo[] = [
 
 export const INITIAL_PEDIDOS: Pedido[] = [
   {
-    id_pedido: 1021,
+    id_pedido: '1021',
     id_mesa: 2,
     numero_mesa: 'Mesa 2',
     mozo: 'Enzo',
@@ -1198,7 +1198,7 @@ export const INITIAL_PEDIDOS: Pedido[] = [
     tiempo_despacho_minutos: 15
   },
   {
-    id_pedido: 1022,
+    id_pedido: '1022',
     id_mesa: 12,
     numero_mesa: 'Mesa 12',
     mozo: 'Enzo',
@@ -1213,7 +1213,7 @@ export const INITIAL_PEDIDOS: Pedido[] = [
     origen: 'Mozo'
   },
   {
-    id_pedido: 1023,
+    id_pedido: '1023',
     id_mesa: 4,
     numero_mesa: 'Mesa 4',
     mozo: 'Micaela',

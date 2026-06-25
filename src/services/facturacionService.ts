@@ -2,7 +2,7 @@ import { getActiveSupabaseClient } from '../lib/supabaseClient';
 
 export interface Factura {
   id_factura: string;
-  id_pedido?: number;
+  id_pedido?: string;
   nro_ticket: string;
   cliente: string;
   cuit: string;
@@ -15,6 +15,7 @@ export interface Factura {
   afip_vto?: string;
   afip_qr?: string;
   afip_resultado?: 'A' | 'O' | 'R';
+  fecha_emision?: string;
 }
 
 const mapMetodoPagoToDb = (medioPago: Factura['medio_pago']) => {
@@ -88,7 +89,8 @@ export const facturacionService = {
           afip_cae: f.afip_cae,
           afip_vto: f.afip_vto,
           afip_qr: f.afip_qr,
-          afip_resultado: f.afip_resultado
+          afip_resultado: f.afip_resultado,
+          fecha_emision: f.fecha_emision
         };
       });
 
@@ -99,7 +101,7 @@ export const facturacionService = {
     }
   },
 
-  async create(factura: Factura): Promise<Factura> {
+  async create(factura: Factura, fromSyncQueue: boolean = false): Promise<Factura> {
     cacheFactura(factura);
     const supabase = getActiveSupabaseClient();
     const dbPayload = {
@@ -110,7 +112,7 @@ export const facturacionService = {
       tipo_comprobante: factura.estado === 'nota_credito' ? 'Nota Credito' : 'Factura B',
       metodo_pago: mapMetodoPagoToDb(factura.medio_pago),
       cuit_cliente: factura.cuit,
-      fecha_emision: new Date().toISOString(),
+      fecha_emision: factura.fecha_emision || new Date().toISOString(),
       afip_cae: factura.afip_cae,
       afip_vto: factura.afip_vto,
       afip_qr: factura.afip_qr,
@@ -129,13 +131,15 @@ export const facturacionService = {
       };
     } catch (err) {
       console.warn('facturacionService.create failed remote push, enqueued for sync:', err);
-      const { syncQueueService } = await import('./syncQueueService');
-      syncQueueService.enqueue('upsert_factura', factura);
-      return factura;
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        syncQueueService.enqueue('upsert_factura', factura);
+      }
+      throw err;
     }
   },
 
-  async upsert(facturas: Factura[]): Promise<void> {
+  async upsert(facturas: Factura[], fromSyncQueue: boolean = false): Promise<void> {
     writeLocalFacturas(mergeFacturas([], [...facturas, ...readLocalFacturas()]));
     const supabase = getActiveSupabaseClient();
     const dbPayloads = facturas.map(f => {
@@ -147,7 +151,7 @@ export const facturacionService = {
         tipo_comprobante: f.estado === 'nota_credito' ? 'Nota Credito' : 'Factura B',
         metodo_pago: mapMetodoPagoToDb(f.medio_pago),
         cuit_cliente: f.cuit,
-        fecha_emision: new Date().toISOString(),
+        fecha_emision: f.fecha_emision || new Date().toISOString(),
         afip_cae: f.afip_cae,
         afip_vto: f.afip_vto,
         afip_qr: f.afip_qr,
@@ -163,8 +167,11 @@ export const facturacionService = {
       }
     } catch (err) {
       console.warn('facturacionService.upsert failed remote push, enqueued for sync:', err);
-      const { syncQueueService } = await import('./syncQueueService');
-      facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
+      if (!fromSyncQueue) {
+        const { syncQueueService } = await import('./syncQueueService');
+        facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
+      }
+      throw err;
     }
   },
 

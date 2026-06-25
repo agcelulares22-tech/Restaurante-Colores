@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { 
   User,
   Clock,
@@ -93,6 +93,8 @@ function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?
 
 export default function App() {
   const { toast, toasts, removeToast } = useToast();
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // --- Global Synced States ---
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
     typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
@@ -109,6 +111,40 @@ export default function App() {
   const [postLoginLoading, setPostLoginLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
+
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [syncQueueSize, setSyncQueueSize] = useState<number>(0);
+
+  const handleTriggerSync = useCallback(async () => {
+    try {
+      const { syncQueueService } = await import('./services/syncQueueService');
+      await syncQueueService.processQueue();
+      setSyncQueueSize(syncQueueService.getQueue().length);
+      toast.success("Sincronización completada o intentada.");
+    } catch (err: any) {
+      toast.error(`Error al sincronizar: ${err?.message || err}`);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    const updateSyncState = () => {
+      setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+      import('./services/syncQueueService').then(({ syncQueueService }) => {
+        setSyncQueueSize(syncQueueService.getQueue().length);
+      });
+    };
+
+    updateSyncState();
+    window.addEventListener('online', updateSyncState);
+    window.addEventListener('offline', updateSyncState);
+    window.addEventListener('sync-queue-changed', updateSyncState);
+
+    return () => {
+      window.removeEventListener('online', updateSyncState);
+      window.removeEventListener('offline', updateSyncState);
+      window.removeEventListener('sync-queue-changed', updateSyncState);
+    };
+  }, []);
 
 
   // Mapa O(1) de precio_venta para cálculos de ventas en toda la app
@@ -315,9 +351,11 @@ export default function App() {
     loadData();
 
     if (client) {
-      channel = client
-        .channel('realtime_pedidos_app')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, async () => {
+      const triggerDebouncedFetch = () => {
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        fetchTimeoutRef.current = setTimeout(async () => {
           try {
             const refreshed = await dbFetchPedidos();
             if (refreshed && active) {
@@ -326,17 +364,13 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for pedidos failed:', err);
           }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, async () => {
-          try {
-            const refreshed = await dbFetchPedidos();
-            if (refreshed && active) {
-              setPedidos(refreshed);
-            }
-          } catch (err) {
-            console.warn('Realtime fetch for pedido_detalle failed:', err);
-          }
-        })
+        }, 150);
+      };
+
+      channel = client
+        .channel('realtime_pedidos_app')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, triggerDebouncedFetch)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, triggerDebouncedFetch)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, async () => {
           try {
             const refreshed = await dbFetchMesas();
@@ -653,7 +687,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   // --- Handlers for Kitchen View ---
-  const handleCambiarEstadoPedido = async (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+  const handleCambiarEstadoPedido = async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
     console.log(`[handleCambiarEstadoPedido] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
 
     const pObj = pedidos.find(p => p.id_pedido === idPedido);
@@ -664,49 +698,25 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       return;
     }
 
-    // 1) Preparar campos a actualizar en Supabase
-    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado };
+    // 1) Validaciones básicas
     if (nuevoEstado === 'en_cocina') {
       if (!pObj.items || pObj.items.length === 0) {
         toast.error("Error: No se puede enviar a cocina un pedido vacío (sin productos).");
         addLog('sistema', `RECHAZADO: Intento de enviar a cocina el pedido vacío #${idPedido}`);
         return;
       }
-      if (!pObj.stock_descontado) {
-        updateFields.stock_descontado = true;
-        updateFields.fecha_descuento_stock = new Date();
-      }
-      updateFields.fecha_inicio_cocina = new Date();
-    }
-    if (nuevoEstado === 'listo') {
-      updateFields.segundos_en_listo = 0;
-      updateFields.fecha_listo = new Date();
-      if (pObj.fecha_inicio_cocina) {
-        const diffMs = new Date().getTime() - new Date(pObj.fecha_inicio_cocina).getTime();
-        updateFields.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
-      }
-    }
-    if (nuevoEstado === 'cancelado') {
-      updateFields.stock_descontado = false;
-      updateFields.fecha_descuento_stock = undefined;
     }
 
-    // 2) Persistir el cambio directamente en Supabase ANTES de mutar estado local
-    try {
-      await pedidosService.update(idPedido, updateFields);
-      console.log(`[handleCambiarEstadoPedido] pedidosService.update OK id=${idPedido}`);
-    } catch (err: any) {
-      console.error(`[handleCambiarEstadoPedido] pedidosService.update FAIL id=${idPedido}:`, err);
-      toast.error(`No se pudo guardar el estado en Supabase: ${err?.message || err}`);
-      return;
-    }
+    // 2) Lógica de stock/escandallo (Chequeo y Deducción de Stock)
+    let itemsDescontados: string[] = [];
+    let alarmasBajoStock: string[] = [];
+    let updatedInsumos: Insumo[] = [];
+    let stockDescontadoResult = pObj.stock_descontado;
+    let fechaDescuentoStockResult = pObj.fecha_descuento_stock;
 
-    // 3) Lógica de stock/escandallo
     if (nuevoEstado === 'en_cocina' && !pObj.stock_descontado) {
       let canDeduct = true;
       let errorMsg = '';
-      let itemsDescontados: string[] = [];
-      let alarmasBajoStock: string[] = [];
 
       if (!permitirVentaSinStock) {
         for (const item of pObj.items) {
@@ -731,10 +741,13 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       if (!canDeduct) {
         toast.error(`No es posible iniciar cocción: ${errorMsg}`);
         addLog('alerta_stock', `RECHAZADO FUEGO: Pedido #${idPedido} bloqueado por falta de stock. ${errorMsg}`);
-        return;
+        throw new Error(errorMsg);
       }
 
-      let updatedInsumos: Insumo[] = [];
+      // Descontar stock
+      stockDescontadoResult = true;
+      fechaDescuentoStockResult = new Date();
+
       setInsumos(prevInsumos => {
         const copy = prevInsumos.map(ins => ({ ...ins }));
         pObj.items.forEach(item => {
@@ -767,20 +780,14 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         updatedInsumos = copy;
         return copy;
       });
-
-      if (itemsDescontados.length > 0) {
-        addLog('descuento_stock', `ESCANDALLO: Pedido #${idPedido} cambió a EN_COCINA. Descuento automático de: ${itemsDescontados.join(', ')}`);
-      }
-      alarmasBajoStock.forEach(alertStr => {
-        addLog('alerta_stock', `CRÍTICO REPOSICIÓN: El insumo '${alertStr}' cayó por debajo del stock mínimo estipulado.`);
-      });
-      dbUpsertInsumos(updatedInsumos);
     }
 
+    // Revertir stock si se cancela
     if (nuevoEstado === 'cancelado' && pObj.stock_descontado) {
-      let itemsReversados: string[] = [];
-      let updatedInsumos: Insumo[] = [];
+      stockDescontadoResult = false;
+      fechaDescuentoStockResult = undefined;
 
+      let itemsReversados: string[] = [];
       setInsumos(prevInsumos => {
         const copy = prevInsumos.map(ins => ({ ...ins }));
         pObj.items.forEach(pItem => {
@@ -812,10 +819,54 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       if (itemsReversados.length > 0) {
         addLog('descuento_stock', `REVERSO ESCANDALLO: Pedido #${idPedido} CANCELADO. Reintegro automático de: ${itemsReversados.join(', ')}`);
       }
+    }
+
+    // 3) Preparar campos a actualizar en Supabase
+    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado };
+    if (nuevoEstado === 'en_cocina') {
+      updateFields.stock_descontado = stockDescontadoResult;
+      updateFields.fecha_descuento_stock = fechaDescuentoStockResult;
+      updateFields.fecha_inicio_cocina = new Date();
+    }
+    if (nuevoEstado === 'listo') {
+      updateFields.segundos_en_listo = 0;
+      updateFields.fecha_listo = new Date();
+      if (pObj.fecha_inicio_cocina) {
+        const diffMs = new Date().getTime() - new Date(pObj.fecha_inicio_cocina).getTime();
+        updateFields.tiempo_despacho_minutos = Math.max(1, Math.round(diffMs / 60000));
+      }
+    }
+    if (nuevoEstado === 'cancelado') {
+      updateFields.stock_descontado = false;
+      updateFields.fecha_descuento_stock = undefined;
+    }
+
+    // 4) Persistir el cambio directamente en Supabase
+    try {
+      await pedidosService.update(idPedido, updateFields);
+      console.log(`[handleCambiarEstadoPedido] pedidosService.update OK id=${idPedido}`);
+    } catch (err: any) {
+      console.error(`[handleCambiarEstadoPedido] pedidosService.update FAIL id=${idPedido}:`, err);
+      toast.error(`No se pudo guardar el estado en Supabase: ${err?.message || err}`);
+      // Si falla, retornamos y no modificamos el estado local (así se revierte al valor correcto)
+      throw err;
+    }
+
+    // 5) Aplicar cambios de stock en DB si correspondía
+    if (nuevoEstado === 'en_cocina' && !pObj.stock_descontado) {
+      if (itemsDescontados.length > 0) {
+        addLog('descuento_stock', `ESCANDALLO: Pedido #${idPedido} cambió a EN_COCINA. Descuento automático de: ${itemsDescontados.join(', ')}`);
+      }
+      alarmasBajoStock.forEach(alertStr => {
+        addLog('alerta_stock', `CRÍTICO REPOSICIÓN: El insumo '${alertStr}' cayó por debajo del stock mínimo estipulado.`);
+      });
+      dbUpsertInsumos(updatedInsumos);
+    }
+    if (nuevoEstado === 'cancelado' && pObj.stock_descontado) {
       dbUpsertInsumos(updatedInsumos);
     }
 
-    // 4) Mutar estado local y localStorage SOLO después del éxito
+    // 6) Mutar estado local y localStorage después del éxito
     setPedidos(prev => {
       const next = prev.map(p => (p.id_pedido === idPedido ? { ...p, ...updateFields } : p));
       if (typeof window !== 'undefined') {
@@ -833,12 +884,12 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     }
   };
 
-  const handleProducirPedidoConEscandallo = (idPedido: number) => {
+  const handleProducirPedidoConEscandallo = (idPedido: string) => {
     handleCambiarEstadoPedido(idPedido, 'listo');
   };
 
   // --- Handlers for Cashier View (Caja & Cierre) ---
-  const handleFacturarMesa = useCallback((idPedido: number, alreadyUpdatedInCaja: boolean = false) => {
+  const handleFacturarMesa = useCallback((idPedido: string, alreadyUpdatedInCaja: boolean = false, itemsRemaining?: Pedido['items']) => {
     const target = pedidos.find(p => p.id_pedido === idPedido);
     if (!target) return;
 
@@ -847,6 +898,30 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       p.estado_comanda !== 'entregado_cobrado' && 
       p.estado_comanda !== 'cancelado'
     );
+
+    if (itemsRemaining && itemsRemaining.length > 0) {
+      setPedidos(prev => prev.map(p => {
+        if (!ordersToBill.some(o => o.id_pedido === p.id_pedido)) return p;
+        const updatedItems = p.items.map(item => {
+          const matchRemaining = itemsRemaining.find(r => r.id_producto === item.id_producto);
+          if (matchRemaining) {
+            return { ...item, cantidad: matchRemaining.cantidad };
+          }
+          return null;
+        }).filter((item): item is NonNullable<typeof item> => item !== null && item.cantidad > 0);
+
+        if (updatedItems.length === 0) {
+          dbSavePedidoComplex({ ...p, estado_comanda: 'entregado_cobrado', items: [] });
+          return { ...p, estado_comanda: 'entregado_cobrado', items: [] };
+        } else {
+          dbSavePedidoComplex({ ...p, items: updatedItems });
+          return { ...p, items: updatedItems };
+        }
+      }));
+
+      addLog('sistema', `CAJA: Cobro parcial de ítems procesado para Mesa ${target.numero_mesa}. Ítems restantes activos: ${itemsRemaining.map(i => `${i.cantidad}x ${i.nombre}`).join(', ')}`);
+      return;
+    }
 
     const orderIds = ordersToBill.map(o => o.id_pedido);
 
@@ -1104,6 +1179,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         onLogout={handleLogout}
         onToggleAutoTimer={handleToggleAutoTimer}
         onAdvanceTime={handleAdvanceTime}
+        isOnline={isOnline}
+        syncQueueSize={syncQueueSize}
+        onTriggerSync={handleTriggerSync}
       />
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
@@ -1113,24 +1191,37 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         }`}
         id="sidebar-left-panel"
       >
-        {/* Logo */}
+        {/* Logo & Sync Status */}
         <div 
-          onClick={() => setShowDiagnostics(true)}
-          className={`flex items-center border-b border-zinc-900 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
-          title="Ver estado de conexión"
+          className={`flex flex-col border-b border-zinc-900 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
         >
-          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
-            <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
-            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
-              tryGetActiveSupabaseClient() !== null ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-            }`} />
+          <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
+            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
+              <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
+              <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
+                isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+              }`} />
+            </div>
+            {!isSidebarCollapsed && (
+              <div className="ml-3 min-w-0">
+                <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
+                <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
+                  {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
+                </span>
+              </div>
+            )}
           </div>
-          {!isSidebarCollapsed && (
-            <div className="ml-3 min-w-0">
-              <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
-              <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight flex items-center gap-1">
-                {tryGetActiveSupabaseClient() !== null ? '🟢 Supabase Cloud' : '🟡 Modo Local'}
+          {!isSidebarCollapsed && syncQueueSize > 0 && (
+            <div className="mt-2 flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-md text-[10px]">
+              <span className="text-amber-400 font-bold flex items-center gap-1">
+                ⚠️ {syncQueueSize} por subir
               </span>
+              <button 
+                onClick={handleTriggerSync}
+                className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+              >
+                Subir
+              </button>
             </div>
           )}
         </div>

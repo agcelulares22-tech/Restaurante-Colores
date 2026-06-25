@@ -130,7 +130,7 @@ export interface PedidoItem {
 }
 
 export interface Pedido {
-    id_pedido: number;
+    id_pedido: string;
     idempotency_key?: string;
     id_mesa: number;
     numero_mesa: string;
@@ -229,6 +229,7 @@ export interface PrinterConfig {
 
 /** Ítem de ticket/factura para impresión */
 export interface TicketItem {
+    id_producto?: string;
     descripcion: string;
     cantidad: number;
     precioUnitario?: number;
@@ -238,7 +239,7 @@ export interface TicketItem {
 
 /** Datos completos para generar un ticket/factura PDF o ESC/POS */
 export interface TicketData {
-    idPedido: number;
+    idPedido: string;
     nroComprobante: string;
     tipoComprobante: TipoComprobante;
     fechaHora: string;
@@ -287,7 +288,7 @@ export interface FacturaDb {
     fecha?: string;
     fecha_emision?: string;
     estado?: 'emitido' | 'nota_credito';
-    id_pedido?: number;
+    id_pedido?: string;
 }
 
 /** Pago individual persistido en BD */

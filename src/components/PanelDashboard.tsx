@@ -214,7 +214,8 @@ export default function PanelDashboard({
         stats[mozoName] = { mozo: mozoName, totalFacturado: 0, count: 0, totalTiempo: 0 };
       }
       const total = calcularTotalPedido(p);
-      const tiempo = p.tiempo_despacho_minutos || (15 + (p.id_pedido % 12));
+      const numericId = parseInt(p.id_pedido.replace(/\D/g, ''), 10) || 0;
+      const tiempo = p.tiempo_despacho_minutos || (15 + (numericId % 12));
       stats[mozoName].totalFacturado += total;
       stats[mozoName].count += 1;
       stats[mozoName].totalTiempo += tiempo;
@@ -243,7 +244,8 @@ export default function PanelDashboard({
         stats[cadeteName] = { cadete: cadeteName, totalEntregas: 0, totalTiempo: 0 };
       }
       
-      const tiempo = p.tiempo_despacho_minutos || (18 + (p.id_pedido % 15));
+      const numericId = parseInt(p.id_pedido.replace(/\D/g, ''), 10) || 0;
+      const tiempo = p.tiempo_despacho_minutos || (18 + (numericId % 15));
       stats[cadeteName].totalEntregas += 1;
       stats[cadeteName].totalTiempo += tiempo;
     });

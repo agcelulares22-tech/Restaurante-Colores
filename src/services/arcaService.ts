@@ -12,6 +12,16 @@ const STORAGE_KEY = 'colores_pizzeria_arca_creds';
 
 const API_URL = '/api/arca';
 
+export function saveArcaCredentials(creds: ArcaCredentials) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
+  window.dispatchEvent(new Event('arca_config_changed'));
+}
+
+export function deleteArcaCredentials() {
+  localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event('arca_config_changed'));
+}
+
 function getStoredCredentials(): ArcaCredentials | null {
   try {
     const env = (import.meta as any).env || {};
@@ -21,7 +31,10 @@ function getStoredCredentials(): ArcaCredentials | null {
     if (envCuit && envKey && envCert) {
       return { cuit: Number(envCuit), key: envKey, cert: envCert, production: env.VITE_ARCA_PROD === 'true' };
     }
-    // Only store non-sensitive metadata, credentials must be in env vars or entered each session
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
     return null;
   } catch { return null; }
 }

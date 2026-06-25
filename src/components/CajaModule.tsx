@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Smartphone,
   FolderOpen,
-  X
+  X,
+  Tag
 } from 'lucide-react';
 import { facturacionService } from '../services/facturacionService';
 import { 
@@ -42,7 +43,7 @@ import {
   Cliente
 } from '../types';
 import { useToast, ToastContainer } from './ToastContainer';
-import { useCaja } from '../features/caja/hooks/useCaja';
+import { useCaja, SplitPartition } from '../features/caja/hooks/useCaja';
 import { cajaService } from '../services/cajaService';
 import { pdfService } from '../services/pdfService';
 import { printerService } from '../services/printerService';
@@ -51,8 +52,8 @@ import ElPatronLogo from './ElPatronLogo';
 interface CajaModuleProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
-  onFacturarMesa: (idPedido: number) => void;
-  onCambiarEstadoPedido: (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => void;
+  onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean, itemsRemaining?: Pedido['items']) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
 }
 
@@ -150,6 +151,12 @@ function CajaModule({
     setTelNuevoCliente,
     puntosRedimidos,
     setPuntosRedimidos,
+    couponInput,
+    setCouponInput,
+    appliedCoupon,
+    couponError,
+    handleApplyCoupon,
+    handleRemoveCoupon,
     movimientosCajaChica,
     showMovimientoModal,
     setShowMovimientoModal,
@@ -179,6 +186,16 @@ function CajaModule({
     triggerManualPrint,
     triggerPDFDownloadOnly,
     downloadFacturaHistorialPdf,
+    isAdvancedSplitMode,
+    setIsAdvancedSplitMode,
+    advancedPartitions,
+    setAdvancedPartitions,
+    initAdvancedSplit,
+    updatePartitionItem,
+    updatePartitionPayment,
+    processPartitionPayment,
+    resetAdvancedSplit,
+    getPartitionBreakdown,
     loadCajaState,
     getShiftProductBreakdown
   } = caja;
@@ -872,83 +889,416 @@ function CajaModule({
 
                 {/* Group categories of order items (Rule 3) */}
                 <div className="bg-zinc-950/40 border border-white/5 p-3 sm:p-3.5 rounded-xl space-y-2">
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Items del pedido</h4>
-                  
-                  <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1 text-xs sm:text-sm">
-                    {(Object.entries(groupedItemsByCategory) as [string, any[]][]).map(([category, items]) => (
-                      <div key={category} className="space-y-1">
-                        <h5 className="text-[9px] font-black text-[#E8B800] uppercase tracking-wider">
-                          ■ {category}
-                        </h5>
-                        
-                        <div className="pl-2 space-y-1">
-                          {items.map((it, idx) => {
-                            const pm = productosMenu.find(p => p.id_producto === it.id_producto);
-                            const unitPrice = pm ? pm.precio_venta : 0;
-                            const isProductSelected = selectedProductsForSplit.includes(it.id_producto);
+                  {!isAdvancedSplitMode && (
+                    <>
+                      <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Items del pedido</h4>
+                      
+                      <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1 text-xs sm:text-sm">
+                        {(Object.entries(groupedItemsByCategory) as [string, any[]][]).map(([category, items]) => (
+                          <div key={category} className="space-y-1">
+                            <h5 className="text-[9px] font-black text-[#E8B800] uppercase tracking-wider">
+                              ■ {category}
+                            </h5>
+                            
+                            <div className="pl-2 space-y-1">
+                              {items.map((it, idx) => {
+                                const pm = productosMenu.find(p => p.id_producto === it.id_producto);
+                                const unitPrice = pm ? pm.precio_venta : 0;
+                                const isProductSelected = selectedProductsForSplit.includes(it.id_producto);
 
-                            return (
-                              <div key={idx} className="flex justify-between items-center text-zinc-300 py-0.5 font-medium">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  {/* Item split selection checkbox (Dividir por productos - Rule 3) */}
-                                  {splitByProducts && (
-                                    <input 
-                                      type="checkbox" 
-                                      checked={isProductSelected}
-                                      onChange={() => {
-                                        if (isProductSelected) {
-                                          setSelectedProductsForSplit(prev => prev.filter(id => id !== it.id_producto));
-                                        } else {
-                                          setSelectedProductsForSplit(prev => [...prev, it.id_producto]);
-                                        }
-                                      }}
-                                      className="w-4 h-4 accent-[#E8B800] shrink-0"
-                                    />
-                                  )}
-                                  <span className="truncate">{it.cantidad}x {it.nombre}</span>
-                                </div>
-                                <span className="font-mono text-white shrink-0">
-                                  ${(it.cantidad * unitPrice).toLocaleString('es-AR')}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                                return (
+                                  <div key={idx} className="flex justify-between items-center text-zinc-300 py-0.5 font-medium">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {/* Item split selection checkbox (Dividir por productos - Rule 3) */}
+                                      {splitByProducts && (
+                                        <input 
+                                          type="checkbox" 
+                                          checked={isProductSelected}
+                                          onChange={() => {
+                                            if (isProductSelected) {
+                                              setSelectedProductsForSplit(prev => prev.filter(id => id !== it.id_producto));
+                                            } else {
+                                              setSelectedProductsForSplit(prev => [...prev, it.id_producto]);
+                                            }
+                                          }}
+                                          className="w-4 h-4 accent-[#E8B800] shrink-0"
+                                        />
+                                      )}
+                                      <span className="truncate">{it.cantidad}x {it.nombre}</span>
+                                    </div>
+                                    <span className="font-mono text-white shrink-0">
+                                      ${(it.cantidad * unitPrice).toLocaleString('es-AR')}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
 
                   {/* Division controls helper line */}
-                  <div className="flex justify-between items-center pt-2.5 border-t border-white/5 font-sans">
-                    <button
-                      onClick={() => {
-                        setSplitByProducts(!splitByProducts);
-                        setSelectedProductsForSplit([]);
-                      }}
-                      className="text-[10px] font-extrabold uppercase text-zinc-300 hover:text-white hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Users className="w-3 h-3" />
-                      {splitByProducts ? 'Quitar selector por producto' : 'Dividir o seleccionar ítems indiv.'}
-                    </button>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2.5 border-t border-white/5 font-sans">
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={() => {
+                          setSplitByProducts(!splitByProducts);
+                          setSelectedProductsForSplit([]);
+                          resetAdvancedSplit();
+                        }}
+                        className="text-[10px] font-extrabold uppercase text-zinc-300 hover:text-white hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Users className="w-3 h-3" />
+                        {splitByProducts ? 'Quitar selector por producto' : 'Dividir o seleccionar ítems indiv.'}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (isAdvancedSplitMode) {
+                            resetAdvancedSplit();
+                          } else {
+                            initAdvancedSplit(2);
+                            setSplitByProducts(false);
+                            setSelectedProductsForSplit([]);
+                          }
+                        }}
+                        className="text-[10px] font-extrabold uppercase text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Users className="w-3 h-3 text-amber-400" />
+                        {isAdvancedSplitMode ? 'Quitar División Avanzada' : 'División Avanzada por Personas / Fracciones'}
+                      </button>
+                    </div>
                     {splitByProducts && (
                       <span className="text-[8px] bg-amber-500/10 text-amber-400 font-extrabold uppercase px-1.5 py-0.5 rounded border border-amber-500/20">
                         Cuenta Fraccionada por Productos
                       </span>
                     )}
+                    {isAdvancedSplitMode && (
+                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 font-extrabold uppercase px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        División Avanzada Activa
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Automated Promotions Detector flag box */}
-                {((selectedPedido.items.some(it => it.id_producto === 'prod_car_ojo_bife' || it.id_producto === 'prod_bife') && selectedPedido.items.some(it => it.id_producto === 'prod_vino_malbec' || it.id_producto === 'prod_vino_rutini_botella')) || 
-                 (selectedPedido.items.some(it => it.id_producto === 'prod_cri_hamburguesa' || it.id_producto === 'prod_hamburguesa') && selectedPedido.items.some(it => it.id_insumo === 'ins_beb_gaseosa' || it.id_producto === 'prod_gaseosa'))) && (
-                  <div className="bg-emerald-550/10 border border-emerald-500/20 p-3 rounded-lg flex items-start gap-2 text-emerald-400">
-                    <Percent className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                    <div className="text-[10px] font-sans">
-                      <p className="font-bold uppercase tracking-wide">Promoción automática calificada</p>
-                      <p className="text-zinc-400 font-normal mt-0.5 leading-snug">Se han deducido $1.500 (Combo burger + lata) y/o el 15% del vino (Combo Ojo de bife + Vino) por compras cruzadas.</p>
+                {isAdvancedSplitMode ? (
+                  <div className="space-y-4 font-sans animate-fadeIn text-left">
+                    {/* Header/Control comensales */}
+                    <div className="bg-[#624A3E]/10 border border-[#624A3E]/20 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div>
+                        <h4 className="text-xs font-black text-[#E8B800] uppercase tracking-widest">División de Cuenta Avanzada</h4>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">Asigna porciones de ítems, propinas y cobra por separado.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-zinc-400 uppercase font-bold">Comensales:</span>
+                        <div className="flex bg-zinc-950 border border-white/10 p-0.5 rounded-lg">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextCount = Math.max(1, advancedPartitions.length - 1);
+                              initAdvancedSplit(nextCount);
+                            }}
+                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-white/5"
+                          >
+                            -
+                          </button>
+                          <span className="px-3 py-1 font-mono font-bold text-xs text-white">{advancedPartitions.length}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextCount = advancedPartitions.length + 1;
+                              initAdvancedSplit(nextCount);
+                            }}
+                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-white/5"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Distribuidor de Ítems */}
+                    <div className="bg-zinc-950/40 border border-white/5 p-4 rounded-xl space-y-3">
+                      <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <h5 className="text-[10px] font-black text-white uppercase tracking-wider">Asignación y Fraccionamiento de Platos</h5>
+                        <span className="text-[9px] text-[#E8B800] font-black uppercase bg-[#E8B800]/10 px-1.5 py-0.5 rounded border border-[#E8B800]/20">
+                          Total Mesa: ${(orderBreakdowns.finalTotal || 0).toLocaleString('es-AR')}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
+                        {selectedPedido.items.map((item) => {
+                          const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+                          const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
+                          
+                          const totalAssigned = advancedPartitions.reduce((sum, p) => {
+                            const pItem = p.items.find(pi => pi.id_producto === item.id_producto);
+                            return sum + (pItem ? pItem.cantidad : 0);
+                          }, 0);
+
+                          const unassigned = Number((item.cantidad - totalAssigned).toFixed(2));
+                          const isFullyAssigned = Math.abs(unassigned) < 0.01;
+
+                          return (
+                            <div key={item.id_producto} className="bg-zinc-900/60 p-3 rounded-lg border border-white/5 space-y-2 text-left">
+                              <div className="flex justify-between items-start text-xs font-bold">
+                                <div>
+                                  <span className="text-zinc-200">{item.cantidad}x {item.nombre}</span>
+                                  <span className="text-[10px] text-zinc-400 block font-normal">Precio Unitario: ${price.toLocaleString('es-AR')}</span>
+                                </div>
+                                <div className="text-right">
+                                  {isFullyAssigned ? (
+                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase font-black">Asignado</span>
+                                  ) : (
+                                    <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase font-black">
+                                      Faltan {unassigned} por asignar
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Comensales Assign Rows */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1 border-t border-white/5">
+                                {advancedPartitions.map((p) => {
+                                  const pItem = p.items.find(pi => pi.id_producto === item.id_producto);
+                                  const currentQty = pItem ? pItem.cantidad : 0;
+                                  
+                                  return (
+                                    <div key={p.id} className="flex justify-between items-center text-[11px] bg-zinc-950 p-2 rounded border border-white/5">
+                                      <span className="text-zinc-300 font-bold truncate max-w-[85px]">{p.nombre}:</span>
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          disabled={p.pagado || currentQty <= 0}
+                                          onClick={() => {
+                                            const nextQty = Number((currentQty - 0.25).toFixed(2));
+                                            updatePartitionItem(p.id, item.id_producto, Math.max(0, nextQty));
+                                          }}
+                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-white/5"
+                                        >
+                                          -
+                                        </button>
+                                        <span className="font-mono text-white text-xs font-black px-1">{currentQty}</span>
+                                        <button
+                                          type="button"
+                                          disabled={p.pagado || isFullyAssigned}
+                                          onClick={() => {
+                                            const nextQty = Number((currentQty + 0.25).toFixed(2));
+                                            updatePartitionItem(p.id, item.id_producto, nextQty);
+                                          }}
+                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-white/5"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Quick split shortcuts */}
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  disabled={advancedPartitions.some(p => p.pagado)}
+                                  onClick={() => {
+                                    advancedPartitions.forEach((p, idx) => {
+                                      let qty = Number((item.cantidad / advancedPartitions.length).toFixed(2));
+                                      if (idx === advancedPartitions.length - 1) {
+                                        const assignedSoFar = Number((Number((item.cantidad / advancedPartitions.length).toFixed(2)) * (advancedPartitions.length - 1)).toFixed(2));
+                                        qty = Number((item.cantidad - assignedSoFar).toFixed(2));
+                                      }
+                                      updatePartitionItem(p.id, item.id_producto, qty);
+                                    });
+                                  }}
+                                  className="text-[9px] uppercase font-black text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                >
+                                  Dividir Equitativamente
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={advancedPartitions.some(p => p.pagado)}
+                                  onClick={() => {
+                                    advancedPartitions.forEach(p => {
+                                      updatePartitionItem(p.id, item.id_producto, 0);
+                                    });
+                                  }}
+                                  className="text-[9px] uppercase font-black text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                                >
+                                  Limpiar
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Grilla de Participantes */}
+                    <div className="space-y-3">
+                      <h5 className="text-[10px] font-black text-[#E8B800] uppercase tracking-widest text-left">Liquidación por Comensal</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {advancedPartitions.map((p) => {
+                          const breakdowns = getPartitionBreakdown(p);
+                          
+                          let cashChange = 0;
+                          if (p.metodoPago === 'efectivo' && p.montoEntregadoEfectivo) {
+                            const delivered = parseFloat(p.montoEntregadoEfectivo);
+                            if (!isNaN(delivered)) {
+                              cashChange = Math.max(0, delivered - breakdowns.finalTotal);
+                            }
+                          }
+
+                          return (
+                            <div key={p.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3.5 text-left ${
+                              p.pagado 
+                                ? 'bg-emerald-950/20 border-emerald-500/25' 
+                                : 'bg-zinc-950/40 border-white/5'
+                            }`}>
+                              {/* Person Header */}
+                              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                <input
+                                  type="text"
+                                  disabled={p.pagado}
+                                  value={p.nombre}
+                                  onChange={(e) => updatePartitionPayment(p.id, 'nombre', e.target.value)}
+                                  className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#E8B800] text-xs font-black text-white focus:outline-none py-0.5 max-w-[120px] transition-colors"
+                                  placeholder="Nombre comensal"
+                                />
+                                {p.pagado ? (
+                                  <span className="text-[8px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 px-1.5 py-0.5 rounded font-black uppercase">
+                                    Pagado ✓
+                                  </span>
+                                ) : (
+                                  <span className="text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-black uppercase">
+                                    Pendiente
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Items allocated list */}
+                              <div className="space-y-1.5 max-h-[100px] overflow-y-auto pr-1">
+                                {p.items.filter(it => it.cantidad > 0).map((it, idx) => (
+                                  <div key={idx} className="flex justify-between text-[10px] text-zinc-300 font-mono">
+                                    <span className="font-sans">{it.cantidad}x {it.nombre}</span>
+                                    <span>${(it.cantidad * it.precio_unitario).toLocaleString('es-AR')}</span>
+                                  </div>
+                                ))}
+                                {p.items.filter(it => it.cantidad > 0).length === 0 && (
+                                  <p className="text-[10px] text-zinc-500 italic">Sin platos asignados aún</p>
+                                )}
+                              </div>
+
+                              {/* Total breakdown */}
+                              <div className="bg-zinc-950/60 p-2.5 rounded-lg border border-white/5 text-[10px] space-y-1">
+                                <div className="flex justify-between text-zinc-400">
+                                  <span>Subtotal:</span>
+                                  <span className="font-mono">${breakdowns.subtotal.toLocaleString('es-AR')}</span>
+                                </div>
+                                {(breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction) > 0 && (
+                                  <div className="flex justify-between text-rose-450">
+                                    <span>Bonif. Proporcional:</span>
+                                    <span className="font-mono">-${(breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction).toLocaleString('es-AR')}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between text-zinc-400">
+                                  <span>Propina ({propinaPorcentaje}%):</span>
+                                  <span className="font-mono">${breakdowns.propinaValue.toLocaleString('es-AR')}</span>
+                                </div>
+                                <div className="flex justify-between text-white font-black border-t border-white/5 pt-1 text-xs">
+                                  <span>Total a pagar:</span>
+                                  <span className="font-mono text-[#E8B800]">${breakdowns.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 1 })}</span>
+                                </div>
+                              </div>
+
+                              {/* Payment method */}
+                              {!p.pagado && breakdowns.finalTotal > 0 && (
+                                <div className="space-y-2 pt-1">
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    {[
+                                      { key: 'efectivo', label: 'Efe', icon: '💵' },
+                                      { key: 'tarjeta', label: 'Tarj', icon: '💳' },
+                                      { key: 'transferencia', label: 'Trans', icon: '🏦' },
+                                      { key: 'mp_qr', label: 'QR', icon: '📱' }
+                                    ].map(m => (
+                                      <button
+                                        key={m.key}
+                                        type="button"
+                                        onClick={() => updatePartitionPayment(p.id, 'metodoPago', m.key as any)}
+                                        className={`py-1 px-1.5 rounded text-[9px] font-black flex items-center justify-center gap-1 border transition-colors cursor-pointer ${
+                                          p.metodoPago === m.key
+                                            ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
+                                            : 'bg-zinc-900 border-white/15 text-zinc-300 hover:bg-zinc-800'
+                                        }`}
+                                      >
+                                        <span>{m.icon}</span>
+                                        <span>{m.label}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  {/* Cash input helper */}
+                                  {p.metodoPago === 'efectivo' && (
+                                    <div className="flex items-center gap-1 bg-zinc-950 p-1.5 rounded border border-white/5">
+                                      <input
+                                        type="number"
+                                        value={p.montoEntregadoEfectivo}
+                                        onChange={(e) => updatePartitionPayment(p.id, 'montoEntregadoEfectivo', e.target.value)}
+                                        placeholder="Paga con..."
+                                        className="bg-transparent text-[10px] text-white font-mono focus:outline-none w-full"
+                                      />
+                                      {cashChange > 0 && (
+                                        <span className="text-[9px] text-[#22C55E] font-black shrink-0 font-mono">Vuelto: ${cashChange.toLocaleString('es-AR')}</span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Charge action */}
+                                  <button
+                                    type="button"
+                                    onClick={() => processPartitionPayment(p.id)}
+                                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] uppercase rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    Cobrar Parte (${breakdowns.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })})
+                                  </button>
+                                </div>
+                              )}
+
+                              {p.pagado && (
+                                <div className="bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/20 text-center font-mono text-[9px] text-zinc-300">
+                                  Ticket Nº: {p.ticketNo}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Back Button */}
+                    <button
+                      type="button"
+                      onClick={resetAdvancedSplit}
+                      className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-black uppercase rounded-lg border border-white/10 transition-colors cursor-pointer"
+                    >
+                      ← Volver a Cobro Consolidado
+                    </button>
                   </div>
-                )}
+                ) : (
+                  <>
+                    {/* Automated Promotions Detector flag box */}
+                    {((selectedPedido.items.some(it => it.id_producto === 'prod_car_ojo_bife' || it.id_producto === 'prod_bife') && selectedPedido.items.some(it => it.id_producto === 'prod_vino_malbec' || it.id_producto === 'prod_vino_rutini_botella')) || 
+                     (selectedPedido.items.some(it => it.id_producto === 'prod_cri_hamburguesa' || it.id_producto === 'prod_hamburguesa') && selectedPedido.items.some(it => it.id_insumo === 'ins_beb_gaseosa' || it.id_producto === 'prod_gaseosa'))) && (
+                      <div className="bg-emerald-550/10 border border-emerald-500/20 p-3 rounded-lg flex items-start gap-2 text-emerald-400">
+                        <Percent className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                        <div className="text-[10px] font-sans">
+                          <p className="font-bold uppercase tracking-wide">Promoción automática calificada</p>
+                          <p className="text-zinc-400 font-normal mt-0.5 leading-snug">Se han deducido $1.500 (Combo burger + lata) y/o el 15% del vino (Combo Ojo de bife + Vino) por compras cruzadas.</p>
+                        </div>
+                      </div>
+                    )}
 
                 {/* CLIENT & AFIP TYPE SYSTEM */}
                 <div className="bg-zinc-950/40 border border-white/5 p-3 rounded-xl space-y-2">
@@ -1289,6 +1639,55 @@ function CajaModule({
                   </div>
                 </div>
 
+                {/* Coupon discount codes panel (Area 3) */}
+                <div className="p-3 bg-zinc-950/40 border border-white/5 rounded-xl space-y-2.5 font-sans">
+                  <h5 className="text-[10px] font-black text-zinc-350 flex items-center gap-1 uppercase tracking-wider">
+                    <Tag className="w-3.5 h-3.5 text-[#E8B800]" /> Cuponera & Promociones
+                  </h5>
+                  {appliedCoupon ? (
+                    <div className="flex justify-between items-center bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
+                      <div>
+                        <p className="text-xs font-bold text-emerald-400 font-sans">Cupón Activo: {appliedCoupon.code}</p>
+                        <p className="text-[10px] text-zinc-400 font-mono">
+                          Descuento: {appliedCoupon.type === 'porcentaje' ? `${appliedCoupon.value}%` : `$${appliedCoupon.value}`}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCoupon}
+                        className="text-rose-400 hover:text-rose-300 text-xs font-black transition-colors cursor-pointer"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Ingresar código de cupón"
+                          value={couponInput}
+                          onChange={e => setCouponInput(e.target.value)}
+                          className="flex-1 min-h-11 text-xs p-2.5 bg-zinc-950 border border-white/10 rounded-xl text-zinc-100 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          className="px-4 min-h-11 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-100 text-xs font-black rounded-xl cursor-pointer transition-colors active:scale-95"
+                        >
+                          Aplicar
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-[10px] text-rose-400 font-semibold">{couponError}</p>
+                      )}
+                      <p className="text-[9px] text-zinc-500 leading-relaxed">
+                        Probá con: <span className="font-mono text-zinc-400 font-bold">PROMO10</span> (10%), <span className="font-mono text-zinc-400 font-bold">BIENVENIDA</span> ($500), <span className="font-mono text-zinc-400 font-bold">PIZZALOVER</span> (15%).
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* PAYMENT TYPE / MIXED PAYMENTS LAYOUT (Rule 4) */}
                 <div className="bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl space-y-3.5">
                   <div>
@@ -1508,8 +1907,9 @@ function CajaModule({
                     ← Volver a Comandas
                   </button>
                 </div>
-
-              </div>
+              </>
+            )}
+          </div>
 
               {/* EPSON TICKET PREVIEW SIMULATOR (MD: Span 5) */}
               <div className="md:col-span-5 bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
@@ -1567,11 +1967,11 @@ function CajaModule({
                       <span className="font-mono">${orderBreakdowns.subtotal.toLocaleString('es-AR')}</span>
                     </div>
 
-                    {(orderBreakdowns.promoDeduction > 0 || orderBreakdowns.manualDeduction > 0) && (
+                    {(orderBreakdowns.promoDeduction > 0 || orderBreakdowns.manualDeduction > 0 || (orderBreakdowns.couponDeduction || 0) > 0) && (
                       <>
-                        <div className="flex justify-between text-emerald-800 font-bold">
+                        <div className="flex justify-between text-emerald-800 font-bold font-sans">
                           <span>Descuentos:</span>
-                          <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction).toLocaleString('es-AR')}</span>
+                          <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction + (orderBreakdowns.couponDeduction || 0)).toLocaleString('es-AR')}</span>
                         </div>
                         {orderBreakdowns.appliedPromosList && (orderBreakdowns.appliedPromosList as string[]).length > 0 && (
                           <div className="pl-3.5 space-y-0.5">
@@ -1580,6 +1980,11 @@ function CajaModule({
                                 <span>• {promoName}</span>
                               </div>
                             ))}
+                          </div>
+                        )}
+                        {appliedCoupon && (
+                          <div className="pl-3.5 flex justify-between text-[9px] text-emerald-700 font-semibold italic">
+                            <span>• Cupón: {appliedCoupon.code}</span>
                           </div>
                         )}
                       </>
