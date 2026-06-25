@@ -113,10 +113,13 @@ export const pedidosService = {
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) return [];
     
-    // 1. Fetch headers
+    // 1. Fetch headers (optimized: active orders + last 30 days of completed/cancelled orders)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const { data: headers, error: hError } = await supabase
       .from('pedidos_cabecera')
       .select('*')
+      .or(`fecha_hora.gte.${thirtyDaysAgo.toISOString()},estado_comanda.not.in.("entregado_cobrado","cancelado")`)
       .order('fecha_hora', { ascending: false });
       
     if (hError) {

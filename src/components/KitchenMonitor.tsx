@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { motion, LayoutGroup } from 'framer-motion';
 import {
   AlertTriangle,
   Flame,
@@ -45,6 +46,7 @@ function KitchenMonitor({
   onCrearPedido
 }: KitchenMonitorProps) {
   const [quickOrders, setQuickOrders] = useState<PedidoDeliveryRapido[]>([]);
+  const [showMiseEnPlace, setShowMiseEnPlace] = useState(false);
 
   useEffect(() => {
     // Cargar pedidos rápidos iniciales
@@ -148,6 +150,103 @@ function KitchenMonitor({
     recetas,
     insumos
   });
+
+  const prevPendingIdsRef = React.useRef<string[]>([]);
+
+  React.useEffect(() => {
+    const pending = activeKitchenOrders.filter(p => p.estado_comanda === 'pendiente');
+    const pendingIds = pending.map(p => String(p.id_pedido));
+    const hasNew = pendingIds.some(id => !prevPendingIdsRef.current.includes(id));
+    
+    if (hasNew && prevPendingIdsRef.current.length > 0) {
+      try {
+        const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+          gain1.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain1.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.15);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start();
+          osc1.stop(ctx.currentTime + 0.15);
+          
+          setTimeout(() => {
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+            gain2.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.25);
+          }, 110);
+        }
+      } catch (e) {
+        console.warn('Audio feedback failed:', e);
+      }
+    }
+    prevPendingIdsRef.current = pendingIds;
+  }, [activeKitchenOrders]);
+
+  const ingredientsConsolidated = useMemo(() => {
+    const list: { [name: string]: { qty: number; unit: string; available: number } } = {};
+    activeKitchenOrders.forEach(p => {
+      if (p.estado_comanda === 'pendiente' || p.estado_comanda === 'en_cocina') {
+        p.items.forEach(item => {
+          const matchingRecetas = recetas.filter(r => r.id_producto === item.id_producto);
+          matchingRecetas.forEach(rec => {
+            const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
+            if (insumo) {
+              const name = insumo.nombre;
+              const requiredAmt = rec.cantidad_a_descontar * item.cantidad;
+              if (!list[name]) {
+                list[name] = { qty: 0, unit: insumo.unidad_medida, available: insumo.stock_actual };
+              }
+              list[name].qty += requiredAmt;
+            }
+          });
+        });
+      }
+    });
+    return Object.entries(list).map(([name, data]) => ({
+      name,
+      qty: parseFloat(data.qty.toFixed(2)),
+      unit: data.unit,
+      available: data.available
+    })).filter(i => i.qty > 0);
+  }, [activeKitchenOrders, recetas, insumos]);
+
+  const handleDragStart = (e: React.DragEvent, idPedido: string) => {
+    e.dataTransfer.setData('text/plain', idPedido);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetEstado: Pedido['estado_comanda']) => {
+    e.preventDefault();
+    const idPedido = e.dataTransfer.getData('text/plain');
+    if (!idPedido) return;
+
+    const p = combinedPedidos.find(x => x.id_pedido === idPedido);
+    if (!p) return;
+
+    if (p.estado_comanda === 'pendiente' && targetEstado === 'en_cocina') {
+      await handleOptimisticStatus(idPedido, 'en_cocina');
+    } else if (p.estado_comanda === 'en_cocina' && targetEstado === 'listo') {
+      await handleOptimisticStatus(idPedido, 'listo');
+    } else if (p.estado_comanda === 'listo' && targetEstado === 'entregado') {
+      await handleOptimisticStatus(idPedido, 'entregado');
+    }
+  };
 
   // Alerta sonora para nuevos pedidos
   const activeOrderIds = useMemo(() => {
@@ -387,11 +486,17 @@ function KitchenMonitor({
     const createdAgeMs = Date.now() - new Date(p.fecha_hora).getTime();
     const isRecentlyCreated = createdAgeMs > 0 && createdAgeMs < 20000;
 
+    const isDelayCritical = (estado === 'pendiente' || estado === 'en_cocina') && (p.minutos_transcurridos > 20);
+
     return (
       <div
         key={p.id_pedido}
-        className={`rounded-[20px] border border-zinc-700 bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || ''} border-l-4 transition-all duration-300 hover:border-zinc-600 ${
+        draggable
+        onDragStart={(e) => handleDragStart(e, p.id_pedido)}
+        className={`rounded-[20px] border bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || 'border-zinc-700'} border-l-4 transition-all duration-300 hover:border-zinc-600 cursor-grab active:cursor-grabbing ${
           isRecentlyCreated ? 'ring-2 ring-amber-400 animate-pulse shadow-amber-500/20 shadow-lg' : ''
+        } ${
+          isDelayCritical ? 'border-rose-600 ring-2 ring-rose-500/40 animate-pulse shadow-rose-900/30 shadow-lg' : ''
         }`}
       >
         {cold && (
@@ -401,12 +506,17 @@ function KitchenMonitor({
           </div>
         )}
 
-        {sem?.delayed && (
+        {isDelayCritical ? (
+          <div className="bg-[#E63946] text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow animate-pulse">
+            <AlertTriangle className="w-3.5 h-3.5 text-white animate-bounce" />
+            <span>Demora Crítica: +20m de espera!</span>
+          </div>
+        ) : sem?.delayed ? (
           <div className="bg-[#D42B2B] text-white text-[9px] uppercase font-black tracking-wider px-4 py-1.5 flex items-center gap-1.5 shadow animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5 text-[#E8B800] animate-bounce" />
             <span>Retraso Crítico en Horno</span>
           </div>
-        )}
+        ) : null}
 
         <div className={`p-4 flex justify-between items-start ${headerTheme} shadow-sm`}>
           <div className="flex flex-col min-w-0">
@@ -595,7 +705,11 @@ function KitchenMonitor({
     if (estado === 'en_cocina') {
       const activeCount = ovenActive.length;
       return (
-        <div className="space-y-4">
+        <div 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, estado)}
+          className="space-y-4 h-full min-h-[500px]"
+        >
           <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-card text-zinc-100 shadow-sm ${headerClass}`}>
             <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-150">
               {icon}
@@ -618,7 +732,11 @@ function KitchenMonitor({
                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Horno Vacío</p>
                 </div>
               ) : (
-                ovenActive.map(p => renderTicket(p, estado, true))
+                ovenActive.map(p => (
+                  <motion.div layout layoutId={p.id_pedido} key={p.id_pedido} className="origin-center">
+                    {renderTicket(p, estado, true)}
+                  </motion.div>
+                ))
               )}
             </div>
 
@@ -629,7 +747,11 @@ function KitchenMonitor({
                   <Clock className="w-3.5 h-3.5 text-zinc-500" />
                   Cola de Espera ({ovenQueue.length})
                 </div>
-                {ovenQueue.map(p => renderTicket(p, estado, false))}
+                {ovenQueue.map(p => (
+                  <motion.div layout layoutId={p.id_pedido} key={p.id_pedido} className="origin-center">
+                    {renderTicket(p, estado, false)}
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
@@ -638,7 +760,11 @@ function KitchenMonitor({
     }
 
     return (
-      <div className="space-y-4">
+      <div 
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, estado)}
+        className="space-y-4 h-full min-h-[500px]"
+      >
         <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-card text-zinc-100 shadow-sm ${headerClass}`}>
           <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-150">
             {icon}
@@ -651,7 +777,7 @@ function KitchenMonitor({
 
         <div className="space-y-4 max-h-[700px] overflow-y-auto pr-1">
           {isEmpty ? (
-            <div className="h-40 border-2 border-dashed border-zinc-600 bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs">
+            <div className="h-40 border-2 border-dashed border-zinc-650 border-dashed border-zinc-600 bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs">
               {(() => {
                 const { Icon } = emptyMessages[estado];
                 return <Icon className="w-12 h-12 text-[#E8B800] mb-3 animate-pulse-soft" />;
@@ -659,7 +785,11 @@ function KitchenMonitor({
               <p className="text-xs text-zinc-300 font-bold uppercase tracking-wide">{emptyMessages[estado].text}</p>
             </div>
           ) : (
-            orders.map(p => renderTicket(p, estado))
+            orders.map(p => (
+              <motion.div layout layoutId={p.id_pedido} key={p.id_pedido} className="origin-center">
+                {renderTicket(p, estado)}
+              </motion.div>
+            ))
           )}
         </div>
       </div>
@@ -728,32 +858,84 @@ function KitchenMonitor({
           <Filter className="w-3.5 h-3.5" />
           {showOnlyKitchen ? 'Solo Cocina' : 'Todo'}
         </button>
+        <button
+          onClick={() => setShowMiseEnPlace(!showMiseEnPlace)}
+          className={`min-h-11 btn-premium flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-sm font-black transition-all cursor-pointer border ${
+            showMiseEnPlace
+              ? 'bg-[#E85D00] text-white border-[#E85D00] hover:bg-[#d14f00]'
+              : 'bg-white/5 text-zinc-300 border border-white/10 hover:bg-white/10'
+          }`}
+        >
+          <ChefHat className="w-3.5 h-3.5" />
+          {showMiseEnPlace ? 'Ocultar Prep' : 'Mise en Place'}
+        </button>
       </div>
 
+      {/* Panel de Mise en Place */}
+      {showMiseEnPlace && (
+        <div className="mb-6 bg-zinc-950 border border-zinc-800 rounded-[20px] p-5 shadow-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <ChefHat className="w-5 h-5 text-[#E85D00] animate-pulse" />
+            <h3 className="text-[#E8B800] font-black text-sm uppercase tracking-wider font-display">Mise en Place Consolidado (Ingredientes Activos)</h3>
+          </div>
+          {ingredientsConsolidated.length === 0 ? (
+            <p className="text-xs text-zinc-500 italic">No hay ingredientes requeridos en las comandas activas.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {ingredientsConsolidated.map((ing, idx) => {
+                const isUnderStock = ing.available < ing.qty;
+                return (
+                  <div key={idx} className={`p-3 rounded-xl border ${
+                    isUnderStock 
+                      ? 'bg-red-500/10 border-red-500/30 text-red-200' 
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-300'
+                  } flex flex-col justify-between`}>
+                    <span className="text-xs font-bold truncate" title={ing.name}>{ing.name}</span>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-sm font-mono font-black text-[#E8B800]">
+                        {ing.qty} <span className="text-[10px] opacity-75">{ing.unit}</span>
+                      </span>
+                      <span className="text-[9px] opacity-60">
+                        Disp: {ing.available}{ing.unit}
+                      </span>
+                    </div>
+                    {isUnderStock && (
+                      <span className="text-[8px] font-black uppercase text-red-400 mt-1">⚠️ STOCK INSUFICIENTE</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Columnas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {renderColumn(
-          'pendiente',
-          'Pendientes (Ingresos)',
-          <CircleDot className="w-4 h-4 text-[#E8B800]" />,
-          'border-[#E8B800]',
-          ordersPendientes
-        )}
-        {renderColumn(
-          'en_cocina',
-          'En Preparación (Horno)',
-          <Flame className="w-4 h-4 text-[#E85D00]" />,
-          'border-[#E85D00]',
-          ordersEnCocina
-        )}
-        {renderColumn(
-          'listo',
-          'Delivery',
-          <CheckCircle className="w-4 h-4 text-emerald-500" />,
-          'border-emerald-500',
-          ordersListo
-        )}
-      </div>
+      <LayoutGroup>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {renderColumn(
+            'pendiente',
+            'Pendientes (Ingresos)',
+            <CircleDot className="w-4 h-4 text-[#E8B800]" />,
+            'border-[#E8B800]',
+            ordersPendientes
+          )}
+          {renderColumn(
+            'en_cocina',
+            'En Preparación (Horno)',
+            <Flame className="w-4 h-4 text-[#E85D00]" />,
+            'border-[#E85D00]',
+            ordersEnCocina
+          )}
+          {renderColumn(
+            'listo',
+            'Delivery',
+            <CheckCircle className="w-4 h-4 text-emerald-500" />,
+            'border-emerald-500',
+            ordersListo
+          )}
+        </div>
+      </LayoutGroup>
 
       {cancelRequest && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">

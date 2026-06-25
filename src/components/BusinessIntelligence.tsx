@@ -16,10 +16,13 @@ import {
   ChevronDown,
   DollarSign,
   TrendingDown,
-  Calendar
+  Calendar,
+  FileDown
 } from 'lucide-react';
 import { ProductoMenu, EventoLog, Pedido, Insumo, RecetaEscandallo, Merma } from '../types';
 import { insumosService } from '../services/insumosService';
+import { jsPDF } from 'jspdf';
+
 
 interface BusinessIntelligenceProps {
   productosMenu: ProductoMenu[];
@@ -44,10 +47,341 @@ function BusinessIntelligence({
   const [logSearch, setLogSearch] = useState('');
   const [historialCostos, setHistorialCostos] = useState<any[]>([]);
   const [selectedInsumoId, setSelectedInsumoId] = useState<string>('todos');
+  const [projectionDays, setProjectionDays] = useState<number>(3);
   
   // Filtro Temporal Global
   const [fechaInicio, setFechaInicio] = useState<string>('');
   const [fechaFin, setFechaFin] = useState<string>('');
+
+  const handleDownloadBIReport = () => {
+    // Generate PDF report
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const primaryColor = [98, 74, 62]; // #624A3E
+    const goldColor = [232, 184, 0]; // #E8B800
+    const textColor = [28, 25, 23]; // #1C1917
+    const lightBg = [245, 245, 244]; // #F5F5F4
+    const redColor = [239, 68, 68]; // #EF4444
+
+    // Helper functions for page header/footer and layouts
+    const drawHeader = (pageNum: number) => {
+      // Top banner
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 25, 'F');
+      
+      // Gold line under header
+      doc.setFillColor(goldColor[0], goldColor[1], goldColor[2]);
+      doc.rect(0, 25, 210, 1.5, 'F');
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('PIZZERÍA COLORES', 15, 11);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(230, 230, 230);
+      doc.text('GastroGestión BI - Informe de Rendimiento y Operaciones', 15, 16);
+
+      // Page indicators or date on header
+      const periodStr = (fechaInicio || fechaFin) 
+        ? `Período: ${fechaInicio ? new Date(fechaInicio + 'T00:00:00').toLocaleDateString('es-AR') : 'Inicio'} al ${fechaFin ? new Date(fechaFin + 'T23:59:59').toLocaleDateString('es-AR') : 'Fin'}`
+        : 'Período: Todo el Historial';
+      doc.text(periodStr, 195, 16, { align: 'right' });
+    };
+
+    const drawFooter = (pageNum: number, totalPages: number) => {
+      // Thin line
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.line(15, 282, 195, 282);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Desarrollado para Gastrogénesis S.A. ©', 15, 287);
+      
+      const dateStr = `Emitido el: ${new Date().toLocaleString('es-AR')}`;
+      doc.text(dateStr, 105, 287, { align: 'center' });
+
+      doc.text(`Página ${pageNum} de ${totalPages}`, 195, 287, { align: 'right' });
+    };
+
+    // --- PAGE 1: EXECUTIVE AND FINANCIAL ---
+    drawHeader(1);
+
+    // Section 1: Resumen de Indicadores Clave (Financial KPIs)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('1. RESUMEN DE INDICADORES CLAVE (KPIs)', 15, 38);
+
+    // Draw KPI Boxes
+    const drawKPIBox = (x: number, y: number, w: number, h: number, title: string, mainVal: string, subVal: string, iconColor: number[]) => {
+      // Light background
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.rect(x, y, w, h, 'F');
+      // Left border accent
+      doc.setFillColor(iconColor[0], iconColor[1], iconColor[2]);
+      doc.rect(x, y, 1.5, h, 'F');
+      
+      // Text
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 100, 100);
+      doc.text(title.toUpperCase(), x + 5, y + 5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text(mainVal, x + 5, y + 12);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.text(subVal, x + 5, y + 17);
+    };
+
+    const formattedIngresos = `$${metricasFinancieras.ingresosTotales.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+    const formattedCosto = `$${metricasFinancieras.costoTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+    const formattedNeta = `$${metricasFinancieras.gananciaNeta.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+    const formattedMargen = `${metricasFinancieras.margenPromedio.toFixed(1)}%`;
+    const formattedMermas = `-$${perdidaMermas.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+    
+    // Draw KPIs row 1
+    drawKPIBox(15, 43, 56, 21, 'Ventas Facturadas', formattedIngresos, `Ganancia: ${formattedNeta}`, primaryColor);
+    drawKPIBox(77, 43, 56, 21, 'Margen Neto Estimado', formattedMargen, 'Sobre costo de recetas', [16, 185, 129]);
+    drawKPIBox(139, 43, 56, 21, 'Costo de Recetas', formattedCosto, 'Insumos calculados', [245, 158, 11]);
+
+    // Draw KPIs row 2
+    drawKPIBox(15, 68, 88, 21, 'Pérdidas por Mermas', formattedMermas, `${filteredMermas.length} incidentes registrados`, redColor);
+    drawKPIBox(107, 68, 88, 21, 'Tiempo de Despacho Cocina', `${tiempoPromedio} min`, `Efectividad Verde: ${efectividad}%`, [249, 115, 22]);
+
+    // Section 2: Ventas por Categoría de Producto
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('2. PARTICIPACIÓN Y FACTURACIÓN POR CATEGORÍA', 15, 102);
+
+    // Table Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, 107, 180, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Categoría', 18, 112);
+    doc.text('Ingresos ($)', 120, 112, { align: 'right' });
+    doc.text('Participación (%)', 192, 112, { align: 'right' });
+
+    let currentY = 114;
+    categoriaVentasData.forEach((cat, idx) => {
+      // Row background zebra
+      if (idx % 2 === 1) {
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.rect(15, currentY, 180, 6.5, 'F');
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      
+      // Capitalize first letter of category name
+      const catName = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+      doc.text(catName, 18, currentY + 4.5);
+      doc.text(`$${cat.value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`, 120, currentY + 4.5, { align: 'right' });
+      doc.text(`${Math.round(cat.percentage)}%`, 192, currentY + 4.5, { align: 'right' });
+      currentY += 6.5;
+    });
+
+    if (categoriaVentasData.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('No hay ventas registradas en el período.', 18, currentY + 5);
+      currentY += 8;
+    }
+
+    // Section 3: Top 5 Productos más Vendidos
+    const topY = currentY + 12;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('3. TOP 5 PRODUCTOS MÁS VENDIDOS (RANKING)', 15, topY);
+
+    // Table Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, topY + 5, 180, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Posición', 18, topY + 10);
+    doc.text('Producto', 35, topY + 10);
+    doc.text('Cantidad Vendida', 120, topY + 10, { align: 'right' });
+    doc.text('Ingresos Totales ($)', 192, topY + 10, { align: 'right' });
+
+    let rankY = topY + 12;
+    rankingPlatos.forEach((item, idx) => {
+      if (idx % 2 === 1) {
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.rect(15, rankY, 180, 6.5, 'F');
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+
+      doc.text(`${idx + 1}°`, 18, rankY + 4.5);
+      doc.text(item.nombre, 35, rankY + 4.5);
+      doc.text(`${item.cantidad} uds`, 120, rankY + 4.5, { align: 'right' });
+      doc.text(`$${item.ingresos.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`, 192, rankY + 4.5, { align: 'right' });
+      rankY += 6.5;
+    });
+
+    if (rankingPlatos.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Sin registros de ventas en el ranking.', 18, rankY + 5);
+      rankY += 8;
+    }
+
+    drawFooter(1, 2);
+
+    // --- PAGE 2: SUPPLY CHAIN, PROJECTIONS & AUDIT ---
+    doc.addPage();
+    drawHeader(2);
+
+    // Section 4: Proyección Predictiva de Insumos (Faltantes a 3 días / projectionDays)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text(`4. PROYECCIÓN PREDICTIVA DE INSUMOS (STOCK FALTANTE A ${projectionDays} DÍAS)`, 15, 38);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Estimación calculada a partir del consumo promedio diario de recetas durante el período seleccionado.`, 15, 43);
+
+    // Table Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, 48, 180, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Ingrediente / Insumo', 18, 53);
+    doc.text('Stock Actual', 90, 53, { align: 'right' });
+    doc.text(`Consumo Proyectado (${projectionDays}d)`, 135, 53, { align: 'right' });
+    doc.text('Déficit / Faltante', 168, 53, { align: 'right' });
+    doc.text('Estado', 192, 53, { align: 'right' });
+
+    let projY = 55;
+    // Show top 15 projections to keep it clean on page 2
+    const displayProjections = ingredientProjections.slice(0, 15);
+    
+    displayProjections.forEach((proj, idx) => {
+      if (idx % 2 === 1) {
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.rect(15, projY, 180, 6.5, 'F');
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+
+      doc.text(proj.nombre, 18, projY + 4.5);
+      doc.text(`${proj.stockActual} ${proj.unidad}`, 90, projY + 4.5, { align: 'right' });
+      doc.text(`${proj.proyectado} ${proj.unidad}`, 135, projY + 4.5, { align: 'right' });
+      
+      const isCritical = proj.estado === 'CRÍTICO';
+      if (isCritical) {
+        doc.setTextColor(redColor[0], redColor[1], redColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${proj.deficit} ${proj.unidad}`, 168, projY + 4.5, { align: 'right' });
+        doc.text(proj.estado, 192, projY + 4.5, { align: 'right' });
+      } else {
+        doc.setTextColor(16, 185, 129); // Green
+        doc.setFont('helvetica', 'bold');
+        doc.text('-', 168, projY + 4.5, { align: 'right' });
+        doc.text(proj.estado, 192, projY + 4.5, { align: 'right' });
+      }
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFont('helvetica', 'normal');
+      projY += 6.5;
+    });
+
+    if (ingredientProjections.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('No hay recetas de insumos configuradas para proyectar stock.', 18, projY + 5);
+      projY += 8;
+    }
+
+    // Section 5: Auditoría de Proveedores e Inflación
+    const auditY = projY + 12;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('5. AUDITORÍA DE INFLACIÓN POR PROVEEDOR', 15, auditY);
+
+    // Table Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, auditY + 5, 180, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Proveedor', 18, auditY + 10);
+    doc.text('Actualizaciones de Costo', 85, auditY + 10);
+    doc.text('Insumos Afectados', 125, auditY + 10);
+    doc.text('Aumento Máximo (%)', 192, auditY + 10, { align: 'right' });
+
+    let auditRowY = auditY + 12;
+    // Show top 8 audit entries
+    const displayProveedores = proveedoresAudit.slice(0, 8);
+
+    displayProveedores.forEach((p, idx) => {
+      if (idx % 2 === 1) {
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.rect(15, auditRowY, 180, 6.5, 'F');
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+
+      doc.text(p.proveedor, 18, auditRowY + 4.5);
+      doc.text(`${p.updates} actualizaciones`, 85, auditRowY + 4.5);
+      
+      const insumosStr = Array.from(p.insumos).join(', ');
+      // Truncate to keep layout nice
+      const truncatedInsumos = insumosStr.length > 30 ? insumosStr.substring(0, 27) + '...' : insumosStr;
+      doc.text(truncatedInsumos, 125, auditRowY + 4.5);
+      
+      doc.setTextColor(redColor[0], redColor[1], redColor[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`+${p.maxPct.toFixed(1)}%`, 192, auditRowY + 4.5, { align: 'right' });
+      
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFont('helvetica', 'normal');
+      auditRowY += 6.5;
+    });
+
+    if (proveedoresAudit.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('No se registraron cambios de costos en el período.', 18, auditRowY + 5);
+      auditRowY += 8;
+    }
+
+    drawFooter(2, 2);
+
+    // Save report
+    const filename = `Reporte_Mensual_BI_${fechaInicio || 'Todo'}_a_${fechaFin || 'Todo'}.pdf`;
+    doc.save(filename);
+  };
+
 
   useEffect(() => {
     insumosService.getHistory().then(data => {
@@ -400,6 +734,72 @@ function BusinessIntelligence({
     });
   }, [pedidosCobrados, productosMenu, recetaCostMap]);
 
+  const daysInPeriod = useMemo(() => {
+    if (fechaInicio && fechaFin) {
+      const start = new Date(fechaInicio);
+      const end = new Date(fechaFin);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+      return diffDays;
+    }
+    if (pedidosCobrados.length === 0) return 1;
+    const dates = pedidosCobrados.map(p => new Date(p.fecha_hora).getTime());
+    const min = Math.min(...dates);
+    const max = Math.max(...dates);
+    const diffTime = Math.abs(max - min);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    return diffDays;
+  }, [pedidosCobrados, fechaInicio, fechaFin]);
+
+  const averageSalesPerProduct = useMemo(() => {
+    const sales = new Map<string, number>();
+    pedidosCobrados.forEach(p => {
+      p.items.forEach(it => {
+        const prev = sales.get(it.id_producto) ?? 0;
+        sales.set(it.id_producto, prev + it.cantidad);
+      });
+    });
+    const averages = new Map<string, number>();
+    sales.forEach((qty, idProd) => {
+      averages.set(idProd, qty / daysInPeriod);
+    });
+    return averages;
+  }, [pedidosCobrados, daysInPeriod]);
+
+  const ingredientProjections = useMemo(() => {
+    const required = new Map<string, { insumo: Insumo; qtyNeeded: number }>();
+    
+    averageSalesPerProduct.forEach((avgQty, idProd) => {
+      const matchingRecetas = recetas.filter(r => r.id_producto === idProd);
+      const projectedSales = avgQty * projectionDays;
+
+      matchingRecetas.forEach(rec => {
+        const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
+        if (insumo) {
+          const requiredAmt = rec.cantidad_a_descontar * projectedSales;
+          const prev = required.get(insumo.id_insumo) ?? { insumo, qtyNeeded: 0 };
+          required.set(insumo.id_insumo, {
+            insumo,
+            qtyNeeded: prev.qtyNeeded + requiredAmt
+          });
+        }
+      });
+    });
+
+    return [...required.values()].map(proj => {
+      const deficit = Math.max(0, proj.qtyNeeded - proj.insumo.stock_actual);
+      return {
+        id_insumo: proj.insumo.id_insumo,
+        nombre: proj.insumo.nombre,
+        unidad: proj.insumo.unidad_medida,
+        stockActual: proj.insumo.stock_actual,
+        proyectado: parseFloat(proj.qtyNeeded.toFixed(2)),
+        deficit: parseFloat(deficit.toFixed(2)),
+        estado: deficit > 0 ? 'CRÍTICO' : 'SUFICIENTE'
+      };
+    }).sort((a, b) => b.proyectado - a.proyectado);
+  }, [averageSalesPerProduct, projectionDays, recetas, insumos]);
+
   // Filter logs safely
   const filteredLogs = useMemo(() => {
     return logs.filter(l => {
@@ -454,6 +854,13 @@ function BusinessIntelligence({
               Limpiar
             </button>
           )}
+          <button
+            onClick={handleDownloadBIReport}
+            className="text-[10px] uppercase font-black px-3.5 py-2 bg-[#624A3E] hover:bg-[#4d3a30] text-amber-300 rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <FileDown className="w-3.5 h-3.5" />
+            <span>Exportar PDF</span>
+          </button>
         </div>
       </div>
 
@@ -968,6 +1375,86 @@ function BusinessIntelligence({
               </table>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN: PRONÓSTICO DE STOCK E INSUMOS PREDICTIVO */}
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 sm:p-6 space-y-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-stone-100 pb-4 font-sans">
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm text-stone-850 tracking-tight flex items-center gap-2">
+              <TrendingUp className="w-4.5 h-4.5 text-stone-600 shrink-0" />
+              Proyección de Demanda e Insumos Predictivo
+            </h4>
+            <p className="text-xs text-stone-400">
+              Proyección de consumo de insumos e ingredientes para los próximos días, calculada según ventas históricas del período actual.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-stone-500 font-semibold">Proyectar a:</span>
+            <div className="flex bg-stone-50 p-0.5 rounded-lg border border-stone-150">
+              {([1, 3, 7] as const).map(days => (
+                <button
+                  key={days}
+                  onClick={() => setProjectionDays(days)}
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+                    projectionDays === days
+                      ? 'bg-white text-stone-900 shadow-xs border border-stone-200/50'
+                      : 'text-stone-500 hover:text-stone-850'
+                  }`}
+                >
+                  {days} {days === 1 ? 'día' : 'días'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          {ingredientProjections.length === 0 ? (
+            <p className="text-xs text-stone-500 py-4 text-center">No hay datos de ventas o recetas configuradas para generar una proyección.</p>
+          ) : (
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-stone-200 text-stone-400 font-bold uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-3">Insumo</th>
+                  <th className="py-2.5 px-3 text-right">Stock Actual</th>
+                  <th className="py-2.5 px-3 text-right">Consumo Proyectado ({projectionDays}d)</th>
+                  <th className="py-2.5 px-3 text-right">Faltante (Déficit)</th>
+                  <th className="py-2.5 px-3 text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-sans">
+                {ingredientProjections.map((proj) => {
+                  const isCritical = proj.estado === 'CRÍTICO';
+                  return (
+                    <tr key={proj.id_insumo} className="hover:bg-stone-50 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-stone-850">{proj.nombre}</td>
+                      <td className="py-2.5 px-3 text-right text-stone-600 font-mono">
+                        {proj.stockActual} {proj.unidad}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-stone-950 font-mono font-semibold">
+                        {proj.proyectado} {proj.unidad}
+                      </td>
+                      <td className={`py-2.5 px-3 text-right font-mono font-bold ${isCritical ? 'text-rose-600' : 'text-stone-400'}`}>
+                        {proj.deficit > 0 ? `${proj.deficit} ${proj.unidad}` : '-'}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide ${
+                          isCritical
+                            ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        }`}>
+                          {proj.estado}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

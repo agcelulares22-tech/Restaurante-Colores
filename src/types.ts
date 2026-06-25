@@ -229,6 +229,7 @@ export interface PrinterConfig {
 
 /** Ítem de ticket/factura para impresión */
 export interface TicketItem {
+    id_producto?: string;
     descripcion: string;
     cantidad: number;
     precioUnitario?: number;

@@ -21,10 +21,25 @@ import { clientesService } from '../../../services/clientesService';
 import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE } from '../../../services/arcaService';
 import { promocionesService, Promocion } from '../../../services/promocionesService';
 
+export interface SplitPartition {
+  id: string;
+  nombre: string;
+  items: {
+    id_producto: string;
+    nombre: string;
+    cantidad: number;
+    precio_unitario: number;
+  }[];
+  metodoPago: 'efectivo' | 'tarjeta' | 'transferencia' | 'mp_qr';
+  montoEntregadoEfectivo: string;
+  pagado: boolean;
+  ticketNo?: string;
+}
+
 interface UseCajaProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
-  onFacturarMesa: (idPedido: string) => void;
+  onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean, itemsRemaining?: Pedido['items']) => void;
   onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
   toast: {
@@ -52,6 +67,7 @@ function getProcessedPedidoItems(pedido: Pedido, productosMenu: ProductoMenu[]):
     const prod = productosMenu.find(p => p.id_producto === item.id_producto);
     const unit = item.precio_unitario ?? prod?.precio_venta ?? 0;
     return {
+      id_producto: item.id_producto,
       cantidad: item.cantidad,
       descripcion: item.nombre,
       precio_unitario: unit,
@@ -182,6 +198,10 @@ export function useCaja({
   const [splitByProducts, setSplitByProducts] = useState<boolean>(false);
   const [selectedProductsForSplit, setSelectedProductsForSplit] = useState<string[]>([]); // id_producto keys
 
+  // Advanced Split Billing
+  const [isAdvancedSplitMode, setIsAdvancedSplitMode] = useState<boolean>(false);
+  const [advancedPartitions, setAdvancedPartitions] = useState<SplitPartition[]>([]);
+
   // Success transaction modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{ nro: string, total: number, vuelto: number } | null>(null);
@@ -197,6 +217,11 @@ export function useCaja({
   const [emailNuevoCliente, setEmailNuevoCliente] = useState<string>('');
   const [telNuevoCliente, setTelNuevoCliente] = useState<string>('');
   const [puntosRedimidos, setPuntosRedimidos] = useState<number>(0);
+
+  // Coupon Engine States
+  const [couponInput, setCouponInput] = useState<string>('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: 'porcentaje' | 'monto'; value: number; minPurchase: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   // Caja chica states
   const [movimientosCajaChica, setMovimientosCajaChica] = useState<any[]>([]);
@@ -323,6 +348,53 @@ export function useCaja({
     } catch (err: any) {
       toast.error('Error al buscar cliente: ' + err.message);
     }
+  };
+
+  const handleApplyCoupon = () => {
+    setCouponError(null);
+    const code = couponInput.trim().toUpperCase();
+    if (!code) {
+      setCouponError('Por favor ingrese un código de cupón.');
+      return;
+    }
+    const found = [
+      { code: 'PROMO10', type: 'porcentaje', value: 10, minPurchase: 1000 },
+      { code: 'BIENVENIDA', type: 'monto', value: 500, minPurchase: 2000 },
+      { code: 'FIESTA20', type: 'porcentaje', value: 20, minPurchase: 5000 },
+      { code: 'PIZZALOVER', type: 'porcentaje', value: 15, minPurchase: 3000 }
+    ].find(c => c.code === code);
+
+    if (!found) {
+      setCouponError('Cupón inválido o inexistente.');
+      toast.error('Cupón inválido o inexistente.');
+      return;
+    }
+
+    const subtotal = selectedPedido
+      ? selectedPedido.items.reduce((sum, item) => {
+          const matchingProduct = productosMenu.find(p => p.id_producto === item.id_producto);
+          const price = matchingProduct ? matchingProduct.precio_venta : 0;
+          return sum + price * item.cantidad;
+        }, 0)
+      : 0;
+
+    if (subtotal < found.minPurchase) {
+      const errMsg = `El cupón requiere una compra mínima de $${found.minPurchase}.`;
+      setCouponError(errMsg);
+      toast.error(errMsg);
+      return;
+    }
+
+    setAppliedCoupon(found as any);
+    setCouponError(null);
+    toast.success(`Cupón ${found.code} aplicado con éxito.`);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError(null);
+    toast.info('Cupón removido.');
   };
 
   const handleRegistrarCliente = async (e: React.FormEvent) => {
@@ -563,10 +635,19 @@ export function useCaja({
       }
     });
 
+    let couponDeduction = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.type === 'porcentaje') {
+        couponDeduction = subtotal * (appliedCoupon.value / 100);
+      } else {
+        couponDeduction = appliedCoupon.value;
+      }
+    }
+
     let manualDeduction = tipoDescuento === 'porcentaje'
       ? subtotal * (descuentoPorcentaje / 100)
       : descuentoMonto;
-    let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction);
+    let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction);
     let propinaValue = baseTotal * (propinaPorcentaje / 100);
     let ivaValue = baseTotal * 0.21;
     let finalTotal = Math.max(0, baseTotal + propinaValue - (puntosRedimidos * 10));
@@ -574,6 +655,7 @@ export function useCaja({
       subtotal,
       promoDeduction,
       manualDeduction,
+      couponDeduction,
       baseTotal,
       propinaValue,
       ivaValue,
@@ -581,23 +663,27 @@ export function useCaja({
       itemsCalculados: lineItems,
       appliedPromosList
     };
-  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos, promociones, metodoPago]);
+  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos, promociones, metodoPago, appliedCoupon]);
+
+  const invoiceTotal = useMemo(() => {
+    return splitPayerCount > 1 ? (orderBreakdowns.finalTotal / splitPayerCount) : orderBreakdowns.finalTotal;
+  }, [orderBreakdowns.finalTotal, splitPayerCount]);
 
   const mixedSum = useMemo(() => {
     return mixedPayments.reduce((sum, current) => sum + current.monto, 0);
   }, [mixedPayments]);
 
   const rawRemainingMixedBalance = useMemo(() => {
-    return Math.max(0, orderBreakdowns.finalTotal - mixedSum);
-  }, [mixedSum, orderBreakdowns.finalTotal]);
+    return Math.max(0, invoiceTotal - mixedSum);
+  }, [mixedSum, invoiceTotal]);
 
   const calculatedChange = useMemo(() => {
     const rawVal = parseFloat(montoEntregadoEfectivo);
     if (isNaN(rawVal)) return 0;
     
-    const targetValue = metodoPago === 'mixto' ? rawRemainingMixedBalance : orderBreakdowns.finalTotal;
+    const targetValue = metodoPago === 'mixto' ? rawRemainingMixedBalance : invoiceTotal;
     return Math.max(0, rawVal - targetValue);
-  }, [montoEntregadoEfectivo, metodoPago, rawRemainingMixedBalance, orderBreakdowns.finalTotal]);
+  }, [montoEntregadoEfectivo, metodoPago, rawRemainingMixedBalance, invoiceTotal]);
 
   const handleAddMixedPayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -696,25 +782,29 @@ export function useCaja({
       return;
     }
 
-    if (orderBreakdowns.finalTotal <= 0) {
+    const currentInvoiceTotal = splitPayerCount > 1 
+      ? (orderBreakdowns.finalTotal / splitPayerCount) 
+      : orderBreakdowns.finalTotal;
+
+    if (currentInvoiceTotal <= 0) {
       toast.error('No se permite emitir comprobantes por un valor negativo o cero.');
       return;
     }
 
     let pays: { metodo: string; monto: number }[] = [];
     if (metodoPago === 'mixto') {
-      if (Math.abs(mixedSum - orderBreakdowns.finalTotal) > 0.5) {
+      if (Math.abs(mixedSum - currentInvoiceTotal) > 0.5) {
         toast.error(`Monto incompleto en forma mixta. Saldo faltante: ${rawRemainingMixedBalance.toLocaleString('es-AR')}`);
         return;
       }
       pays = [...mixedPayments];
     } else {
-      pays = [{ metodo: metodoPago, monto: orderBreakdowns.finalTotal }];
+      pays = [{ metodo: metodoPago, monto: currentInvoiceTotal }];
     }
 
     if (metodoPago === 'efectivo' && montoEntregadoEfectivo) {
       const delivered = parseFloat(montoEntregadoEfectivo);
-      if (!isNaN(delivered) && delivered < orderBreakdowns.finalTotal) {
+      if (!isNaN(delivered) && delivered < currentInvoiceTotal) {
         toast.error('El efectivo entregado es menor que el total de la cuenta.');
         return;
       }
@@ -732,8 +822,8 @@ export function useCaja({
         const tipoId = tipoMap[tipoComprobante] || 206;
         const arcaTipo = Object.values(TIPOS_COMPROBANTE).find((t: any) => t.id === tipoId) as any;
         if (arcaTipo) {
-          const neto = Number((orderBreakdowns.finalTotal / 1.21).toFixed(2));
-          const iva = Number((orderBreakdowns.finalTotal - neto).toFixed(2));
+          const neto = Number((currentInvoiceTotal / 1.21).toFixed(2));
+          const iva = Number((currentInvoiceTotal - neto).toFixed(2));
           const nroDoc = cuitCliente === '99-99999999-9' ? 0 : parseInt(cuitCliente.replace(/-/g, '').slice(0, 11)) || 0;
           const docTipo = nroDoc === 0 ? 99 : (cuitCliente.replace(/-/g, '').length >= 11 ? 80 : 96);
 
@@ -749,12 +839,12 @@ export function useCaja({
             items: [{
               descripcion: `Facturacion mesa ${selectedPedido.numero_mesa}`,
               cantidad: 1,
-              precioUnitario: orderBreakdowns.finalTotal,
+              precioUnitario: currentInvoiceTotal,
               ivaId: 5,
               ivaBase: neto,
               ivaImporte: iva,
             }],
-            total: orderBreakdowns.finalTotal,
+            total: currentInvoiceTotal,
             neto,
             ivaTotal: iva,
           });
@@ -772,7 +862,7 @@ export function useCaja({
               ptoVta: 1,
               tipoCmp: tipoId,
               nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
-              importe: orderBreakdowns.finalTotal,
+              importe: currentInvoiceTotal,
               moneda: 'PES',
               ctz: 1,
               tipoDocRec: docTipo,
@@ -789,6 +879,28 @@ export function useCaja({
       }
     }
 
+    const currentSubtotal = splitPayerCount > 1 ? (orderBreakdowns.subtotal / splitPayerCount) : orderBreakdowns.subtotal;
+    const currentDescuento = splitPayerCount > 1 ? ((orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction) / splitPayerCount) : (orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction);
+    const currentPropina = splitPayerCount > 1 ? (orderBreakdowns.propinaValue / splitPayerCount) : orderBreakdowns.propinaValue;
+    const currentIva = splitPayerCount > 1 ? (orderBreakdowns.ivaValue / splitPayerCount) : orderBreakdowns.ivaValue;
+
+    let currentItems: TicketItem[] = [];
+    if (splitPayerCount > 1) {
+      currentItems = [{
+        id_producto: 'pax_split',
+        cantidad: 1,
+        descripcion: `Consumo Mesa ${selectedPedido.numero_mesa} (Parte ${activePayerIndex + 1} de ${splitPayerCount})`,
+        precio_unitario: currentInvoiceTotal,
+        subtotal: currentInvoiceTotal
+      }];
+    } else if (splitByProducts) {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu).filter(item =>
+        item.id_producto && selectedProductsForSplit.includes(item.id_producto)
+      );
+    } else {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu);
+    }
+
     const dataTicket: TicketData = {
       nombreComercial: restaurante.nombreComercial,
       razonSocial: restaurante.razonSocial,
@@ -802,12 +914,12 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + 'hs',
-      items: getProcessedPedidoItems(selectedPedido, productosMenu),
-      subtotal: orderBreakdowns.subtotal,
-      descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
-      propina: orderBreakdowns.propinaValue,
-      iva: orderBreakdowns.ivaValue,
-      total: orderBreakdowns.finalTotal,
+      items: currentItems,
+      subtotal: currentSubtotal,
+      descuento: currentDescuento,
+      propina: currentPropina,
+      iva: currentIva,
+      total: currentInvoiceTotal,
       metodosPago: pays,
       vuelto: calculatedChange,
       tipoComprobante: tipoComprobante,
@@ -819,9 +931,10 @@ export function useCaja({
       clienteCuit: selectedCliente ? selectedCliente.dni_cuit : cuitCliente,
       clienteDniCuit: selectedCliente ? selectedCliente.dni_cuit : cuitCliente,
       puntosCanjeados: puntosRedimidos,
-      puntosGanados: selectedCliente ? Math.round(orderBreakdowns.finalTotal * 0.05) : 0,
-      descuentoFidelidad: puntosRedimidos * 10
+      puntosGanados: selectedCliente ? Math.round(currentInvoiceTotal * 0.05) : 0,
+      descuentoFidelidad: splitPayerCount > 1 ? (puntosRedimidos * 10 / splitPayerCount) : (puntosRedimidos * 10)
     };
+
     const idFactura = `fac_${Date.now()}`;
     const mappedMedio = pays.map(p => p.metodo.toUpperCase()).join(' + ');
 
@@ -832,8 +945,8 @@ export function useCaja({
         nro_ticket: compiledTicketNo,
         cliente: nombreCliente === 'Consumidor Final' ? 'Consumidor Final' : nombreCliente + ` (CUIT ${cuitCliente})`,
         cuit: cuitCliente,
-        total: orderBreakdowns.finalTotal,
-        iva_veintiuno: orderBreakdowns.ivaValue,
+        total: currentInvoiceTotal,
+        iva_veintiuno: currentIva,
         medio_pago: metodoPago,
         fecha: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs',
         estado: 'emitido',
@@ -869,14 +982,14 @@ export function useCaja({
     };
 
     try {
-      await cajaService.updateSales(orderBreakdowns.finalTotal, paymentDesglosesCount);
+      await cajaService.updateSales(currentInvoiceTotal, paymentDesglosesCount);
     } catch (e: any) {
       toast.error(`Error al actualizar ventas: ${e.message}`);
     }
 
     if (selectedCliente) {
       try {
-        const puntosGanados = Math.round(orderBreakdowns.finalTotal * 0.05);
+        const puntosGanados = Math.round(currentInvoiceTotal * 0.05);
         const nextPuntos = Math.max(0, selectedCliente.puntos - puntosRedimidos) + puntosGanados;
         await clientesService.updatePuntos(selectedCliente.id_cliente, nextPuntos);
         addLog('sistema', `FIDELIDAD: Cliente ${selectedCliente.nombre} redimió ${puntosRedimidos} puntos y ganó ${puntosGanados} puntos. Balance actual: ${nextPuntos}.`);
@@ -885,13 +998,31 @@ export function useCaja({
       }
     }
 
-    onFacturarMesa(selectedPedido.id_pedido);
+    // Determine how to update the table/pedido based on split options
+    let remainsTableOpen = false;
+    if (splitPayerCount > 1) {
+      if (activePayerIndex + 1 >= splitPayerCount) {
+        onFacturarMesa(selectedPedido.id_pedido, true);
+      } else {
+        remainsTableOpen = true;
+      }
+    } else if (splitByProducts) {
+      const remainingItems = selectedPedido.items.filter(item => !selectedProductsForSplit.includes(item.id_producto));
+      if (remainingItems.length > 0) {
+        onFacturarMesa(selectedPedido.id_pedido, true, remainingItems);
+        remainsTableOpen = true;
+      } else {
+        onFacturarMesa(selectedPedido.id_pedido, true);
+      }
+    } else {
+      onFacturarMesa(selectedPedido.id_pedido, true);
+    }
 
     try {
       await auditoriaService.create({
         id: `aud_${Date.now()}`,
         tipo: 'sistema',
-        mensaje: `Cobro Exitoso Mesa ${selectedPedido.numero_mesa}. Factura Nº: ${compiledTicketNo}. Total: $${orderBreakdowns.finalTotal.toLocaleString('es-AR')}. Pago: ${mappedMedio}`,
+        mensaje: `Cobro Exitoso Mesa ${selectedPedido.numero_mesa}. Factura Nº: ${compiledTicketNo}. Total: $${currentInvoiceTotal.toLocaleString('es-AR')}. Pago: ${mappedMedio}`,
         timestamp: new Date()
       });
     } catch (e: any) {
@@ -907,26 +1038,55 @@ export function useCaja({
       toast.warning(`Cobro registrado, pero hubo un error al generar el PDF/impresión: ${e.message}`);
     }
 
-    setSelectedPedidoId(null);
-    setMixedPayments([]);
-    setMontoEntregadoEfectivo('');
-    setTipoDescuento('porcentaje');
-    setDescuentoPorcentaje(0);
-    setDescuentoMonto(0);
-    setPropinaPorcentaje(10);
-    setSplitByProducts(false);
-    setSelectedProductsForSplit([]);
-    setSelectedCliente(null);
-    setPuntosRedimidos(0);
-    setDniCuitBuscar('');
-    setNombreNuevoCliente('');
-    setEmailNuevoCliente('');
-    setTelNuevoCliente('');
-    loadCajaState();
+    if (remainsTableOpen) {
+      if (splitPayerCount > 1) {
+        setActivePayerIndex(prev => prev + 1);
+      } else if (splitByProducts) {
+        setSelectedProductsForSplit([]);
+      }
+      setMixedPayments([]);
+      setMontoEntregadoEfectivo('');
+      setTipoDescuento('porcentaje');
+      setDescuentoPorcentaje(0);
+      setDescuentoMonto(0);
+      setPropinaPorcentaje(10);
+      setSelectedCliente(null);
+      setPuntosRedimidos(0);
+      setDniCuitBuscar('');
+      setNombreNuevoCliente('');
+      setEmailNuevoCliente('');
+      setTelNuevoCliente('');
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponError(null);
+      loadCajaState();
+    } else {
+      setSelectedPedidoId(null);
+      setMixedPayments([]);
+      setMontoEntregadoEfectivo('');
+      setTipoDescuento('porcentaje');
+      setDescuentoPorcentaje(0);
+      setDescuentoMonto(0);
+      setPropinaPorcentaje(10);
+      setSplitByProducts(false);
+      setSelectedProductsForSplit([]);
+      setSelectedCliente(null);
+      setPuntosRedimidos(0);
+      setDniCuitBuscar('');
+      setNombreNuevoCliente('');
+      setEmailNuevoCliente('');
+      setTelNuevoCliente('');
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponError(null);
+      setSplitPayerCount(1);
+      setActivePayerIndex(0);
+      loadCajaState();
+    }
 
     setSuccessDetails({
       nro: compiledTicketNo,
-      total: orderBreakdowns.finalTotal,
+      total: currentInvoiceTotal,
       vuelto: calculatedChange
     });
     setShowSuccessModal(true);
@@ -934,6 +1094,32 @@ export function useCaja({
 
   const triggerManualPrint = async () => {
     if (!selectedPedido || !cajaSession) return;
+
+    const currentInvoiceTotal = splitPayerCount > 1 
+      ? (orderBreakdowns.finalTotal / splitPayerCount) 
+      : orderBreakdowns.finalTotal;
+
+    const currentSubtotal = splitPayerCount > 1 ? (orderBreakdowns.subtotal / splitPayerCount) : orderBreakdowns.subtotal;
+    const currentDescuento = splitPayerCount > 1 ? ((orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction) / splitPayerCount) : (orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction);
+    const currentPropina = splitPayerCount > 1 ? (orderBreakdowns.propinaValue / splitPayerCount) : orderBreakdowns.propinaValue;
+    const currentIva = splitPayerCount > 1 ? (orderBreakdowns.ivaValue / splitPayerCount) : orderBreakdowns.ivaValue;
+
+    let currentItems: TicketItem[] = [];
+    if (splitPayerCount > 1) {
+      currentItems = [{
+        id_producto: 'pax_split',
+        cantidad: 1,
+        descripcion: `Consumo Mesa ${selectedPedido.numero_mesa} (Parte ${activePayerIndex + 1} de ${splitPayerCount})`,
+        precio_unitario: currentInvoiceTotal,
+        subtotal: currentInvoiceTotal
+      }];
+    } else if (splitByProducts) {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu).filter(item =>
+        item.id_producto && selectedProductsForSplit.includes(item.id_producto)
+      );
+    } else {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu);
+    }
 
     const dataTicket: TicketData = {
       nombreComercial: restaurante.nombreComercial,
@@ -948,13 +1134,13 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      items: getProcessedPedidoItems(selectedPedido, productosMenu),
-      subtotal: orderBreakdowns.subtotal,
-      descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
-      propina: orderBreakdowns.propinaValue,
-      iva: orderBreakdowns.ivaValue,
-      total: orderBreakdowns.finalTotal,
-      metodosPago: [{ metodo: metodoPago, monto: orderBreakdowns.finalTotal }],
+      items: currentItems,
+      subtotal: currentSubtotal,
+      descuento: currentDescuento,
+      propina: currentPropina,
+      iva: currentIva,
+      total: currentInvoiceTotal,
+      metodosPago: [{ metodo: metodoPago, monto: currentInvoiceTotal }],
       vuelto: calculatedChange,
       tipoComprobante: tipoComprobante,
       mensajePie: restaurante.mensajePie,
@@ -980,6 +1166,32 @@ export function useCaja({
   const triggerPDFDownloadOnly = async () => {
     if (!selectedPedido || !cajaSession) return;
 
+    const currentInvoiceTotal = splitPayerCount > 1 
+      ? (orderBreakdowns.finalTotal / splitPayerCount) 
+      : orderBreakdowns.finalTotal;
+
+    const currentSubtotal = splitPayerCount > 1 ? (orderBreakdowns.subtotal / splitPayerCount) : orderBreakdowns.subtotal;
+    const currentDescuento = splitPayerCount > 1 ? ((orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction) / splitPayerCount) : (orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction);
+    const currentPropina = splitPayerCount > 1 ? (orderBreakdowns.propinaValue / splitPayerCount) : orderBreakdowns.propinaValue;
+    const currentIva = splitPayerCount > 1 ? (orderBreakdowns.ivaValue / splitPayerCount) : orderBreakdowns.ivaValue;
+
+    let currentItems: TicketItem[] = [];
+    if (splitPayerCount > 1) {
+      currentItems = [{
+        id_producto: 'pax_split',
+        cantidad: 1,
+        descripcion: `Consumo Mesa ${selectedPedido.numero_mesa} (Parte ${activePayerIndex + 1} de ${splitPayerCount})`,
+        precio_unitario: currentInvoiceTotal,
+        subtotal: currentInvoiceTotal
+      }];
+    } else if (splitByProducts) {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu).filter(item =>
+        item.id_producto && selectedProductsForSplit.includes(item.id_producto)
+      );
+    } else {
+      currentItems = getProcessedPedidoItems(selectedPedido, productosMenu);
+    }
+
     const dataTicket: TicketData = {
       nombreComercial: restaurante.nombreComercial,
       razonSocial: restaurante.razonSocial,
@@ -993,13 +1205,13 @@ export function useCaja({
       mozo: selectedPedido.mozo,
       cajero: cajaSession.usuario_cajero,
       fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      items: getProcessedPedidoItems(selectedPedido, productosMenu),
-      subtotal: orderBreakdowns.subtotal,
-      descuento: orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction,
-      propina: orderBreakdowns.propinaValue,
-      iva: orderBreakdowns.ivaValue,
-      total: orderBreakdowns.finalTotal,
-      metodosPago: [{ metodo: metodoPago, monto: orderBreakdowns.finalTotal }],
+      items: currentItems,
+      subtotal: currentSubtotal,
+      descuento: currentDescuento,
+      propina: currentPropina,
+      iva: currentIva,
+      total: currentInvoiceTotal,
+      metodosPago: [{ metodo: metodoPago, monto: currentInvoiceTotal }],
       vuelto: calculatedChange,
       tipoComprobante: tipoComprobante,
       mensajePie: restaurante.mensajePie
@@ -1042,6 +1254,281 @@ export function useCaja({
       vto: factura.afip_vto,
       qrData: factura.afip_qr
     });
+  };
+
+  const initAdvancedSplit = (numPartitions: number) => {
+    if (!selectedPedido) return;
+    const parts = Array.from({ length: numPartitions }).map((_, i) => ({
+      id: `P${i + 1}`,
+      nombre: `Comensal ${i + 1}`,
+      items: selectedPedido.items.map(item => {
+        const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+        const price = item.precio_unitario ?? pm?.precio_venta ?? 0;
+        let qty = Number((item.cantidad / numPartitions).toFixed(2));
+        if (i === numPartitions - 1) {
+          const assignedSoFar = Number((Number((item.cantidad / numPartitions).toFixed(2)) * (numPartitions - 1)).toFixed(2));
+          qty = Number((item.cantidad - assignedSoFar).toFixed(2));
+        }
+        return {
+          id_producto: item.id_producto,
+          nombre: item.nombre,
+          cantidad: qty,
+          precio_unitario: price
+        };
+      }),
+      metodoPago: 'efectivo' as const,
+      montoEntregadoEfectivo: '',
+      pagado: false
+    }));
+    setAdvancedPartitions(parts);
+    setIsAdvancedSplitMode(true);
+  };
+
+  const updatePartitionItem = (partitionId: string, idProducto: string, newQty: number) => {
+    if (!selectedPedido) return;
+    const origItem = selectedPedido.items.find(it => it.id_producto === idProducto);
+    if (!origItem) return;
+
+    setAdvancedPartitions(prev => {
+      const otherQty = prev
+        .filter(p => p.id !== partitionId)
+        .reduce((sum, p) => {
+          const item = p.items.find(it => it.id_producto === idProducto);
+          return sum + (item ? item.cantidad : 0);
+        }, 0);
+      
+      const maxAllowed = origItem.cantidad - otherQty;
+      const finalQty = Math.max(0, Math.min(newQty, maxAllowed));
+
+      return prev.map(p => {
+        if (p.id !== partitionId) return p;
+        return {
+          ...p,
+          items: p.items.map(it => {
+            if (it.id_producto !== idProducto) return it;
+            return { ...it, cantidad: Number(finalQty.toFixed(2)) };
+          })
+        };
+      });
+    });
+  };
+
+  const updatePartitionPayment = (partitionId: string, field: 'metodoPago' | 'montoEntregadoEfectivo' | 'nombre', value: any) => {
+    setAdvancedPartitions(prev => prev.map(p => {
+      if (p.id !== partitionId) return p;
+      return { ...p, [field]: value };
+    }));
+  };
+
+  const getPartitionBreakdown = (partition: SplitPartition) => {
+    if (!selectedPedido) return { subtotal: 0, promoDeduction: 0, manualDeduction: 0, couponDeduction: 0, baseTotal: 0, propinaValue: 0, fidelidadDeduction: 0, finalTotal: 0, ivaValue: 0 };
+    const subtotal = partition.items.reduce((sum, it) => sum + (it.precio_unitario * it.cantidad), 0);
+    const totalSubtotal = orderBreakdowns.subtotal || 1;
+    const ratio = subtotal / totalSubtotal;
+
+    const promoDeduction = orderBreakdowns.promoDeduction * ratio;
+    const manualDeduction = orderBreakdowns.manualDeduction * ratio;
+    const couponDeduction = orderBreakdowns.couponDeduction * ratio;
+    const baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction);
+    const propinaValue = baseTotal * (propinaPorcentaje / 100);
+    const fidelidadDeduction = (puntosRedimidos * 10) * ratio;
+    const finalTotal = Math.max(0, baseTotal + propinaValue - fidelidadDeduction);
+    const ivaValue = baseTotal * 0.21;
+
+    return {
+      subtotal,
+      promoDeduction,
+      manualDeduction,
+      couponDeduction,
+      baseTotal,
+      propinaValue,
+      fidelidadDeduction,
+      finalTotal,
+      ivaValue
+    };
+  };
+
+  const processPartitionPayment = async (partitionId: string) => {
+    if (!selectedPedido || !cajaSession) return;
+    const partition = advancedPartitions.find(p => p.id === partitionId);
+    if (!partition || partition.pagado) return;
+
+    const breakdowns = getPartitionBreakdown(partition);
+    
+    if (partition.metodoPago === 'efectivo' && partition.montoEntregadoEfectivo) {
+      const delivered = parseFloat(partition.montoEntregadoEfectivo);
+      if (!isNaN(delivered) && delivered < breakdowns.finalTotal) {
+        toast.error(`El efectivo entregado por ${partition.nombre} es menor que su total.`);
+        return;
+      }
+    }
+
+    const compiledTicketNo = `T-0001-${Math.floor(Math.random() * 900000 + 100000)}`;
+
+    let arcaCae = "";
+    let arcaVto = "";
+    let arcaQr = "";
+
+    if (isArcaConfigured()) {
+      try {
+        const tipoMap: Record<string, number> = { 'factura_a': 1, 'factura_b': 6, 'ticket_consumo': 206 };
+        const tipoId = tipoMap[tipoComprobante] || 206;
+        const arcaTipo = Object.values(TIPOS_COMPROBANTE).find((t: any) => t.id === tipoId) as any;
+        if (arcaTipo) {
+          const neto = Number((breakdowns.finalTotal / 1.21).toFixed(2));
+          const iva = Number((breakdowns.finalTotal - neto).toFixed(2));
+          const nroDoc = cuitCliente === '99-99999999-9' ? 0 : parseInt(cuitCliente.replace(/-/g, '').slice(0, 11)) || 0;
+          const docTipo = nroDoc === 0 ? 99 : (cuitCliente.replace(/-/g, '').length >= 11 ? 80 : 96);
+
+          const result = await createArcaInvoice({
+            tipoComprobante: tipoId as any,
+            puntoVenta: 1,
+            cliente: {
+              tipoDoc: docTipo,
+              nroDoc,
+              nombre: partition.nombre,
+              condicionIva: nroDoc === 0 ? 5 : arcaTipo.condicionIva,
+            },
+            items: partition.items.filter(it => it.cantidad > 0).map(it => {
+              const itemNeto = Number(((it.precio_unitario * it.cantidad) / 1.21).toFixed(2));
+              const itemIva = Number(((it.precio_unitario * it.cantidad) - itemNeto).toFixed(2));
+              return {
+                descripcion: it.nombre,
+                cantidad: it.cantidad,
+                precioUnitario: it.precio_unitario,
+                ivaId: 5,
+                ivaBase: itemNeto,
+                ivaImporte: itemIva,
+              };
+            }),
+            total: breakdowns.finalTotal,
+            neto,
+            ivaTotal: iva,
+          });
+
+          const cae = result?.CodAutorizacion || result?.CAE || '';
+          const vto = result?.Vencimiento || result?.CAEFchVto || '';
+
+          if (cae) {
+            arcaCae = cae;
+            arcaVto = vto;
+            arcaQr = JSON.stringify({
+              ver: 1,
+              fecha: new Date().toISOString().split('T')[0],
+              cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
+              ptoVta: 1,
+              tipoCmp: tipoId,
+              nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
+              importe: breakdowns.finalTotal,
+              moneda: 'PES',
+              ctz: 1,
+              tipoDocRec: docTipo,
+              nroDocRec: nroDoc,
+              tipoCodAut: 1,
+              codAut: parseInt(cae) || 0
+            });
+            addLog('sistema', `ARCA: CAE ${cae} emitido para parte de ${partition.nombre}.`);
+          }
+        }
+      } catch (err: any) {
+        console.error('[ARCA Split] Error:', err);
+        toast.warning(`ARCA: No se pudo emitir el comprobante electrónico para esta parte. ${err.message || ''}`);
+      }
+    }
+
+    await cajaService.updateSales(breakdowns.finalTotal, { [partition.metodoPago]: breakdowns.finalTotal });
+
+    const dataTicket: TicketData = {
+      nombreComercial: restaurante.nombreComercial,
+      razonSocial: restaurante.razonSocial,
+      cuit: restaurante.cuit,
+      direccion: restaurante.direccion,
+      telefono: restaurante.telefono,
+      email: restaurante.email,
+      nroComprobante: compiledTicketNo,
+      idPedido: selectedPedido.id_pedido,
+      mesa: selectedPedido.numero_mesa,
+      mozo: selectedPedido.mozo,
+      cajero: cajaSession.usuario_cajero,
+      fechaHora: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + 'hs',
+      items: partition.items.filter(it => it.cantidad > 0).map(it => ({
+        id_producto: it.id_producto,
+        cantidad: it.cantidad,
+        descripcion: it.nombre,
+        precio_unitario: it.precio_unitario,
+        subtotal: it.precio_unitario * it.cantidad
+      })),
+      subtotal: breakdowns.subtotal,
+      descuento: breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction,
+      descuentoFidelidad: breakdowns.fidelidadDeduction,
+      propina: breakdowns.propinaValue,
+      iva: breakdowns.ivaValue,
+      total: breakdowns.finalTotal,
+      metodosPago: [{ metodo: partition.metodoPago, monto: breakdowns.finalTotal }],
+      vuelto: partition.metodoPago === 'efectivo' && partition.montoEntregadoEfectivo
+        ? Math.max(0, parseFloat(partition.montoEntregadoEfectivo) - breakdowns.finalTotal)
+        : 0,
+      tipoComprobante: tipoComprobante,
+      mensajePie: restaurante.mensajePie,
+      cae: arcaCae || undefined,
+      vto: arcaVto || undefined,
+      qrData: arcaQr || undefined,
+      clienteNombre: partition.nombre,
+      clienteCuit: cuitCliente,
+      clienteDniCuit: cuitCliente
+    };
+
+    try {
+      await pdfService.exportToPDF(dataTicket);
+      await printerService.sendToPrinter(dataTicket, printerConfig);
+    } catch (e: any) {
+      toast.warning(`Parte cobrada, pero hubo un error al generar el PDF/impresión: ${e.message}`);
+    }
+
+    let updatedPartitions: SplitPartition[] = [];
+    setAdvancedPartitions(prev => {
+      updatedPartitions = prev.map(p => {
+        if (p.id !== partitionId) return p;
+        return { ...p, pagado: true, ticketNo: compiledTicketNo };
+      });
+      return updatedPartitions;
+    });
+
+    toast.success(`Cobro de la parte de ${partition.nombre} procesado por $${breakdowns.finalTotal.toLocaleString('es-AR')}`);
+    addLog('sistema', `CAJA: Cobro parcial exitoso para parte de ${partition.nombre} en Mesa ${selectedPedido.numero_mesa}. Monto: $${breakdowns.finalTotal.toLocaleString('es-AR')}.`);
+
+    const paidQtyMap: Record<string, number> = {};
+    updatedPartitions.forEach(p => {
+      if (p.pagado) {
+        p.items.forEach(it => {
+          paidQtyMap[it.id_producto] = (paidQtyMap[it.id_producto] || 0) + it.cantidad;
+        });
+      }
+    });
+
+    const remainingItems = selectedPedido.items.map(item => {
+      const paidQty = paidQtyMap[item.id_producto] || 0;
+      const remainingQty = Number((item.cantidad - paidQty).toFixed(2));
+      return {
+        ...item,
+        cantidad: remainingQty
+      };
+    }).filter(item => item.cantidad > 0);
+
+    if (remainingItems.length > 0) {
+      onFacturarMesa(selectedPedido.id_pedido, true, remainingItems);
+    } else {
+      onFacturarMesa(selectedPedido.id_pedido, true);
+      toast.success('¡Mesa saldada por completo!');
+      setIsAdvancedSplitMode(false);
+      setAdvancedPartitions([]);
+      setSelectedPedidoId(null);
+    }
+  };
+
+  const resetAdvancedSplit = () => {
+    setIsAdvancedSplitMode(false);
+    setAdvancedPartitions([]);
   };
 
   return {
@@ -1118,6 +1605,13 @@ export function useCaja({
     setTelNuevoCliente,
     puntosRedimidos,
     setPuntosRedimidos,
+    couponInput,
+    setCouponInput,
+    appliedCoupon,
+    setAppliedCoupon,
+    couponError,
+    handleApplyCoupon,
+    handleRemoveCoupon,
     movimientosCajaChica,
     showMovimientoModal,
     setShowMovimientoModal,
@@ -1147,6 +1641,16 @@ export function useCaja({
     triggerManualPrint,
     triggerPDFDownloadOnly,
     downloadFacturaHistorialPdf,
+    isAdvancedSplitMode,
+    setIsAdvancedSplitMode,
+    advancedPartitions,
+    setAdvancedPartitions,
+    initAdvancedSplit,
+    updatePartitionItem,
+    updatePartitionPayment,
+    processPartitionPayment,
+    resetAdvancedSplit,
+    getPartitionBreakdown,
     loadCajaState,
     getShiftProductBreakdown
   };

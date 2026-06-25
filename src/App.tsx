@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
 import { 
   User,
   Clock,
@@ -93,6 +93,8 @@ function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?
 
 export default function App() {
   const { toast, toasts, removeToast } = useToast();
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // --- Global Synced States ---
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
     typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
@@ -109,6 +111,40 @@ export default function App() {
   const [postLoginLoading, setPostLoginLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
+
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [syncQueueSize, setSyncQueueSize] = useState<number>(0);
+
+  const handleTriggerSync = useCallback(async () => {
+    try {
+      const { syncQueueService } = await import('./services/syncQueueService');
+      await syncQueueService.processQueue();
+      setSyncQueueSize(syncQueueService.getQueue().length);
+      toast.success("Sincronización completada o intentada.");
+    } catch (err: any) {
+      toast.error(`Error al sincronizar: ${err?.message || err}`);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    const updateSyncState = () => {
+      setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+      import('./services/syncQueueService').then(({ syncQueueService }) => {
+        setSyncQueueSize(syncQueueService.getQueue().length);
+      });
+    };
+
+    updateSyncState();
+    window.addEventListener('online', updateSyncState);
+    window.addEventListener('offline', updateSyncState);
+    window.addEventListener('sync-queue-changed', updateSyncState);
+
+    return () => {
+      window.removeEventListener('online', updateSyncState);
+      window.removeEventListener('offline', updateSyncState);
+      window.removeEventListener('sync-queue-changed', updateSyncState);
+    };
+  }, []);
 
 
   // Mapa O(1) de precio_venta para cálculos de ventas en toda la app
@@ -315,9 +351,11 @@ export default function App() {
     loadData();
 
     if (client) {
-      channel = client
-        .channel('realtime_pedidos_app')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, async () => {
+      const triggerDebouncedFetch = () => {
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        fetchTimeoutRef.current = setTimeout(async () => {
           try {
             const refreshed = await dbFetchPedidos();
             if (refreshed && active) {
@@ -326,17 +364,13 @@ export default function App() {
           } catch (err) {
             console.warn('Realtime fetch for pedidos failed:', err);
           }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, async () => {
-          try {
-            const refreshed = await dbFetchPedidos();
-            if (refreshed && active) {
-              setPedidos(refreshed);
-            }
-          } catch (err) {
-            console.warn('Realtime fetch for pedido_detalle failed:', err);
-          }
-        })
+        }, 150);
+      };
+
+      channel = client
+        .channel('realtime_pedidos_app')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_cabecera' }, triggerDebouncedFetch)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_detalle' }, triggerDebouncedFetch)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, async () => {
           try {
             const refreshed = await dbFetchMesas();
@@ -850,7 +884,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   // --- Handlers for Cashier View (Caja & Cierre) ---
-  const handleFacturarMesa = useCallback((idPedido: string, alreadyUpdatedInCaja: boolean = false) => {
+  const handleFacturarMesa = useCallback((idPedido: string, alreadyUpdatedInCaja: boolean = false, itemsRemaining?: Pedido['items']) => {
     const target = pedidos.find(p => p.id_pedido === idPedido);
     if (!target) return;
 
@@ -859,6 +893,30 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       p.estado_comanda !== 'entregado_cobrado' && 
       p.estado_comanda !== 'cancelado'
     );
+
+    if (itemsRemaining && itemsRemaining.length > 0) {
+      setPedidos(prev => prev.map(p => {
+        if (!ordersToBill.some(o => o.id_pedido === p.id_pedido)) return p;
+        const updatedItems = p.items.map(item => {
+          const matchRemaining = itemsRemaining.find(r => r.id_producto === item.id_producto);
+          if (matchRemaining) {
+            return { ...item, cantidad: matchRemaining.cantidad };
+          }
+          return null;
+        }).filter((item): item is NonNullable<typeof item> => item !== null && item.cantidad > 0);
+
+        if (updatedItems.length === 0) {
+          dbSavePedidoComplex({ ...p, estado_comanda: 'entregado_cobrado', items: [] });
+          return { ...p, estado_comanda: 'entregado_cobrado', items: [] };
+        } else {
+          dbSavePedidoComplex({ ...p, items: updatedItems });
+          return { ...p, items: updatedItems };
+        }
+      }));
+
+      addLog('sistema', `CAJA: Cobro parcial de ítems procesado para Mesa ${target.numero_mesa}. Ítems restantes activos: ${itemsRemaining.map(i => `${i.cantidad}x ${i.nombre}`).join(', ')}`);
+      return;
+    }
 
     const orderIds = ordersToBill.map(o => o.id_pedido);
 
@@ -1116,6 +1174,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         onLogout={handleLogout}
         onToggleAutoTimer={handleToggleAutoTimer}
         onAdvanceTime={handleAdvanceTime}
+        isOnline={isOnline}
+        syncQueueSize={syncQueueSize}
+        onTriggerSync={handleTriggerSync}
       />
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
@@ -1125,24 +1186,37 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         }`}
         id="sidebar-left-panel"
       >
-        {/* Logo */}
+        {/* Logo & Sync Status */}
         <div 
-          onClick={() => setShowDiagnostics(true)}
-          className={`flex items-center border-b border-zinc-900 ${isSidebarCollapsed ? 'justify-center px-2' : 'px-3'} py-4 cursor-pointer hover:opacity-90 select-none`}
-          title="Ver estado de conexión"
+          className={`flex flex-col border-b border-zinc-900 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
         >
-          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
-            <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
-            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
-              tryGetActiveSupabaseClient() !== null ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-            }`} />
+          <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
+            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
+              <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
+              <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
+                isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+              }`} />
+            </div>
+            {!isSidebarCollapsed && (
+              <div className="ml-3 min-w-0">
+                <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
+                <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
+                  {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
+                </span>
+              </div>
+            )}
           </div>
-          {!isSidebarCollapsed && (
-            <div className="ml-3 min-w-0">
-              <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
-              <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight flex items-center gap-1">
-                {tryGetActiveSupabaseClient() !== null ? '🟢 Supabase Cloud' : '🟡 Modo Local'}
+          {!isSidebarCollapsed && syncQueueSize > 0 && (
+            <div className="mt-2 flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-md text-[10px]">
+              <span className="text-amber-400 font-bold flex items-center gap-1">
+                ⚠️ {syncQueueSize} por subir
               </span>
+              <button 
+                onClick={handleTriggerSync}
+                className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+              >
+                Subir
+              </button>
             </div>
           )}
         </div>

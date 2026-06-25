@@ -25,6 +25,7 @@ export const syncQueueService = {
   saveQueue(queue: SyncQueueItem[]): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    window.dispatchEvent(new CustomEvent('sync-queue-changed'));
   },
 
   enqueue(action: SyncQueueItem['action'], payload: any): void {
