@@ -417,7 +417,7 @@ export const pdfService = {
     // 1. Logo
     if (logo) {
       addLogo(doc, logo, 29, y, 22);
-      y += 24;
+      y += 27;
     } else {
       y += 2;
     }
