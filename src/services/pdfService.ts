@@ -104,14 +104,9 @@ export const pdfService = {
   async generateTicketPDF(data: TicketData): Promise<jsPDF> {
     const logo = await loadLogoDataUrl();
     const qrImage = await loadQrDataUrl(data.qrData);
-    const compType = data.tipoComprobante as string;
-    const isA4 = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c';
 
-    if (isA4) {
-      return this.generateA4Invoice(data, logo, qrImage);
-    }
-
-    return this.generateThermalTicket(data, logo);
+    // For Pizzería Colores, they want ONLY thermal tickets for their tiketera
+    return this.generateThermalTicket(data, logo, qrImage);
   },
 
   generateA4Invoice(data: TicketData, logo: string | null, qrImage: string | null): jsPDF {
@@ -382,15 +377,23 @@ export const pdfService = {
     return doc;
   },
 
-  generateThermalTicket(data: TicketData, logo: string | null): jsPDF {
+  generateThermalTicket(data: TicketData, logo: string | null, qrImage: string | null = null): jsPDF {
     const wrappedRows = data.items.map(item => ({
       item,
       lines: Math.max(1, Math.ceil(item.descripcion.length / 22))
     }));
+    
+    const compType = data.tipoComprobante as string;
+    const isFactura = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c';
+    const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * 4.2 + 8, 0);
+    const paymentsHeight = data.metodosPago.length * 5;
+    
+    const baseHeight = isFactura ? 190 : 135;
     const ticketHeight = Math.max(
       180,
-      110 + wrappedRows.reduce((sum, row) => sum + row.lines * 4.2 + 8, 0) + data.metodosPago.length * 5
+      baseHeight + itemsHeight + paymentsHeight
     );
+
     const doc = new jsPDF('p', 'mm', [80, ticketHeight]);
     let y = 6;
 
@@ -411,6 +414,7 @@ export const pdfService = {
       y += 3;
     };
 
+    // 1. Logo
     if (logo) {
       addLogo(doc, logo, 29, y, 22);
       y += 24;
@@ -418,6 +422,7 @@ export const pdfService = {
       y += 2;
     }
 
+    // 2. Brand details
     center(data.nombreComercial.toUpperCase(), 11, true);
     center('SISTEMA DE GESTIÓN GASTRONÓMICA', 6.5, false);
     y += 1.5;
@@ -430,25 +435,90 @@ export const pdfService = {
     y += 1.5;
     line();
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.text(`TICKET Nº: ${data.nroComprobante}`, 5, y);
-    y += 4;
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(...BRAND.muted);
-    doc.text(`Fecha: ${data.fechaHora}`, 5, y);
-    y += 4;
-    doc.text(`Mesa: ${data.mesa.toUpperCase()}`, 5, y);
-    doc.text(`Mozo: ${data.mozo}`, 75, y, { align: 'right' });
-    y += 4;
-    doc.text(`Cajero: ${data.cajero}`, 5, y);
-    doc.text(`Pedido ID: EP-${data.idPedido}`, 75, y, { align: 'right' });
-    y += 4.5;
-    line();
+    // 3. Document type / invoice header
+    if (isFactura) {
+      const letter = compType === 'factura_a' ? 'A' : (compType === 'factura_c' ? 'C' : 'B');
+      const codComprobante = compType === 'factura_a' ? 'COD. 001' : (compType === 'factura_c' ? 'COD. 011' : 'COD. 006');
+      
+      // Draw Letter Badge
+      doc.setFillColor(...BRAND.cream);
+      doc.rect(58, y, 12, 12, 'F');
+      doc.setDrawColor(...BRAND.brown);
+      doc.setLineWidth(0.25);
+      doc.rect(58, y, 12, 12, 'D');
 
-    // Table Header
+      doc.setTextColor(...BRAND.brown);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(letter, 64, y + 7, { align: 'center' });
+      doc.setFontSize(5);
+      doc.text(codComprobante, 64, y + 10.5, { align: 'center' });
+
+      // Left info
+      doc.setTextColor(...BRAND.dark);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text(`FACTURA ${letter}`, 5, y + 3.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text(`Nº: ${data.nroComprobante}`, 5, y + 7.5);
+      doc.text(`Fecha: ${data.fechaHora}`, 5, y + 11.5);
+      y += 15;
+      line();
+
+      // Client info
+      const cliente = data.clienteNombre || 'Consumidor Final';
+      const clienteCuit = data.clienteCuit || (data.cuit.startsWith('99') ? 'Consumidor Final' : data.cuit);
+      const IVA_cond = compType === 'factura_a' ? 'IVA Responsable Inscripto' : 'IVA Consumidor Final';
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text('DATOS DEL CLIENTE', 5, y);
+      y += 3.8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text(`Cliente: ${cliente}`, 5, y);
+      y += 3.5;
+      doc.text(`CUIT/DNI: ${clienteCuit}`, 5, y);
+      y += 3.5;
+      doc.text(IVA_cond, 5, y);
+      y += 4;
+      line();
+      
+      // Mesa / Mozo info
+      doc.setFontSize(7);
+      doc.setTextColor(...BRAND.muted);
+      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, 5, y);
+      doc.text(`Mozo: ${data.mozo}`, 75, y, { align: 'right' });
+      y += 3.5;
+      doc.text(`Cajero: ${data.cajero}`, 5, y);
+      doc.text(`Pedido ID: PC-${data.idPedido}`, 75, y, { align: 'right' });
+      y += 4.5;
+      line();
+
+    } else {
+      // Non-factura simple ticket header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text('TICKET DE CONSUMO', 5, y);
+      y += 4.5;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(...BRAND.muted);
+      doc.text(`Nº: ${data.nroComprobante || 'PREVENTA'}`, 5, y);
+      doc.text(`Fecha: ${data.fechaHora}`, 75, y, { align: 'right' });
+      y += 4;
+      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, 5, y);
+      doc.text(`Mozo: ${data.mozo}`, 75, y, { align: 'right' });
+      y += 4;
+      doc.text(`Cajero: ${data.cajero}`, 5, y);
+      doc.text(`Pedido ID: PC-${data.idPedido}`, 75, y, { align: 'right' });
+      y += 4.5;
+      line();
+    }
+
+    // 4. Table Header
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(...BRAND.dark);
@@ -457,7 +527,7 @@ export const pdfService = {
     y += 3.5;
     line(-1);
 
-    // Items list
+    // 5. Items list
     doc.setFont('helvetica', 'normal');
     data.items.forEach((item) => {
       const { descripcion, cantidad, subtotal } = item;
@@ -494,6 +564,7 @@ export const pdfService = {
     y += 1;
     line();
 
+    // 6. Totals
     const sum = (label: string, value: string, bold = false) => {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
       doc.setFontSize(bold ? 8.5 : 7);
@@ -522,6 +593,7 @@ export const pdfService = {
     doc.line(5, y, 75, y);
     y += 5;
 
+    // 7. Payment Methods
     doc.setTextColor(...BRAND.dark);
     center('MEDIOS DE PAGO', 7, true);
     y += 1;
@@ -535,6 +607,25 @@ export const pdfService = {
 
     y += 2;
     line();
+
+    // 8. AFIP CAE + QR Code for Facturas
+    if (isFactura && qrImage) {
+      try {
+        doc.addImage(qrImage, 'PNG', 30, y, 20, 20);
+        y += 22;
+        
+        doc.setTextColor(...BRAND.muted);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        center(`CAE Nro: ${data.cae || '732049182390'}`, 6.5);
+        center(`Vto CAE: ${data.vto || '15/12/2026'}`, 6.5);
+        center('Comprobante autorizado por AFIP / ARCA', 5.8);
+        y += 1;
+      } catch (err) {
+        console.warn('Error al insertar QR en ticket térmico:', err);
+      }
+    }
+
     center(data.mensajePie || 'Gracias por su visita.', 7);
     center('Conserve este comprobante', 6.2);
 
