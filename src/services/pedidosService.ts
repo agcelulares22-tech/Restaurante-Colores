@@ -432,12 +432,6 @@ export const pedidosService = {
           let { data: insertData, error: hError } = await supabase.from('pedidos_cabecera').upsert(cabecera).select();
           
           console.log(`[pedidosService.upsert] Respuesta insert cabecera id=${ped.id_pedido}:`, { insertData, hError });
-          if (hError && hError.message?.includes('idempotency_key')) {
-            const fallbackCabecera = { ...cabecera };
-            delete fallbackCabecera.idempotency_key;
-            const res = await supabase.from('pedidos_cabecera').upsert(fallbackCabecera);
-            hError = res.error;
-          }
 
           if (hError) {
             console.error('Error creating order header:', hError);

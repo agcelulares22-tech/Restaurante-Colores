@@ -110,7 +110,7 @@ function KitchenMonitor({
     return [...pedidos, ...mapped];
   }, [pedidos, quickOrders]);
 
-  const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+  const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
     const numericId = Number(idPedido);
     console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Inicio id=${numericId}, nuevoEstado=${nuevoEstado}`);
     // Los IDs de delivery rápido son id_real + 10000000 (rango controlado < 1e9).
@@ -125,7 +125,7 @@ function KitchenMonitor({
       await pedidosDeliveryRapidoService.updateEstado(realId, dbEstado);
       setQuickOrders(prev => prev.map(o => o.id === realId ? { ...o, estado: dbEstado } : o));
     } else {
-      console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Llamando onCambiarEstadoPedido (App.tsx) id=${numericId}, estado=${nuevoEstado}`);
+      console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Llamando onCambiarEstadoPedido (App.tsx) id=${idPedido}, estado=${nuevoEstado}`);
       try {
         await onCambiarEstadoPedido(idPedido, nuevoEstado);
         console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] onCambiarEstadoPedido completado`);
