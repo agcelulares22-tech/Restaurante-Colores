@@ -1254,7 +1254,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto overscroll-contain py-3 sidebar-scroll-hidden">
+        <nav className="flex-1 overflow-y-auto overscroll-contain py-3">
           {[
             { id: 'home', label: 'Inicio', icon: '🏠' },
             { id: 'panel', label: 'Panel', icon: '📊' },
