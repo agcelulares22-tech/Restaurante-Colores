@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Smartphone, ChefHat, DollarSign, Receipt, Grid } from 'lucide-react';
+import { Home, Smartphone, ChefHat, DollarSign } from 'lucide-react';
 import { AppView } from '../lib/permissions';
 
 interface BottomNavigationProps {
@@ -13,8 +13,6 @@ const NAV_ITEMS: { id: AppView; label: string; icon: React.ElementType }[] = [
   { id: 'mozo', label: 'Mozo', icon: Smartphone },
   { id: 'cocina', label: 'Horno', icon: ChefHat },
   { id: 'caja', label: 'Caja', icon: DollarSign },
-  { id: 'facturacion', label: 'Factura', icon: Receipt },
-  { id: 'panel', label: 'Panel', icon: Grid },
 ];
 
 export default function BottomNavigation({ activeView, allowedViews, onNavigate }: BottomNavigationProps) {

@@ -15,7 +15,6 @@ import {
   Wine, 
   DollarSign, 
   Receipt,
-  UserCheck,
   RefreshCw,
   MoreVertical,
   Pencil,
@@ -432,43 +431,7 @@ function MozoTerminal({
     <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6" id="mozo-terminal-container">
       <div className="min-w-0 space-y-4 lg:col-span-4 lg:space-y-6 order-1">
         
-        {/* Active Waiter Picker */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-              <UserCheck className="w-5 h-5" />
-            </div>
-            <div className="flex-1 flex justify-between items-center min-w-0">
-              <div>
-                <p className="text-xs text-slate-400 font-medium font-sans">Mozo en Turno Activo</p>
-                <h3 className="font-bold text-slate-800 font-sans tracking-tight">Terminal Registrada</h3>
-              </div>
-              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 border shrink-0 ${
-                isOnline 
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' 
-                  : 'bg-amber-50 text-amber-700 border-amber-200/50'
-              }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-                {isOnline ? 'Online (Nube)' : 'Offline (Local)'}
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {usuarios.filter(usuario => usuario.activo !== false && usuario.rol !== 'cocina').map(usuario => (
-              <button
-                key={usuario.id_usuario}
-                onClick={() => onMozoChange(usuario.nombre)}
-                className={`min-h-11 py-2 px-3 rounded-lg text-sm font-extrabold transition-all cursor-pointer ${
-                  activeMozo === usuario.nombre
-                    ? 'bg-brand-yellow text-brand-black shadow-sm scale-[1.02] border border-brand-yellow' 
-                    : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-800'
-                }`}
-              >
-                {usuario.nombre}
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Mesas Selector Grid */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">

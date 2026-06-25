@@ -577,3 +577,14 @@ BEGIN
 END $$;
 
 NOTIFY pgrst, 'reload schema';
+
+-- Update reservas table with missing columns
+ALTER TABLE public.reservas ADD COLUMN IF NOT EXISTS telefono TEXT;
+ALTER TABLE public.reservas ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.reservas ADD COLUMN IF NOT EXISTS observaciones TEXT;
+ALTER TABLE public.reservas ADD COLUMN IF NOT EXISTS lista_espera BOOLEAN DEFAULT false;
+ALTER TABLE public.reservas ADD COLUMN IF NOT EXISTS prioridad_espera INT DEFAULT 0;
+
+-- Update proveedores table with missing columns
+ALTER TABLE public.proveedores ADD COLUMN IF NOT EXISTS correo TEXT;
+ALTER TABLE public.proveedores ADD COLUMN IF NOT EXISTS tiempo_entrega_dias INT DEFAULT 1;

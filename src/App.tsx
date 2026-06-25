@@ -45,10 +45,8 @@ const HomeMenuModule = lazy(() => import('./components/HomeMenuModule'));
 const MozoTerminal = lazy(() => import('./components/MozoTerminal'));
 const KitchenMonitor = lazy(() => import('./components/KitchenMonitor'));
 const InventoryModule = lazy(() => import('./components/InventoryModule'));
-const BusinessIntelligence = lazy(() => import('./components/BusinessIntelligence'));
 const CajaModule = lazy(() => import('./components/CajaModule'));
 const SistemaModule = lazy(() => import('./components/SistemaModule'));
-const PanelDashboard = lazy(() => import('./components/PanelDashboard'));
 const UsuariosModule = lazy(() => import('./components/UsuariosModule'));
 const MenuModule = lazy(() => import('./components/MenuModule'));
 const RecetasModule = lazy(() => import('./components/RecetasModule'));
@@ -57,7 +55,6 @@ const DeliveryModule = lazy(() => import('./components/DeliveryModule'));
 const ProveedoresModule = lazy(() => import('./components/ProveedoresModule'));
 const PromocionesModule = lazy(() => import('./components/PromocionesModule'));
 const ReservasModule = lazy(() => import('./components/ReservasModule'));
-const FacturacionModule = lazy(() => import('./components/FacturacionModule'));
 const BackupsModule = lazy(() => import('./components/BackupsModule'));
 const FichajeModule = lazy(() => import('./components/FichajeModule'));
 import { 
@@ -668,7 +665,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
     const chunksToPreload = [
       import('./components/HomeMenuModule'),
-      import('./components/PanelDashboard'),
     ];
 
     Promise.allSettled(chunksToPreload).finally(() => {
@@ -1025,19 +1021,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     }
   }, [insumos, addLog]);
 
-  const handleRestockTodo = () => {
-    const updatedInsumos = insumos.map(i => {
-      const restockAmt = i.unidad_medida === 'unidades' ? 10 : 3000;
-      return {
-        ...i,
-        stock_actual: i.stock_actual + restockAmt
-      };
-    });
-    setInsumos(updatedInsumos);
-    addLog('sistema', `REPOSICIÓN GENERAL: Abastecimiento global automático de todos los insumos y materias primas.`);
-
-    dbUpsertInsumos(updatedInsumos);
-  };
 
   const handleReservaEstadoChange = useCallback((reserva: Reserva, estado: Reserva['estado']) => {
     if (!reserva.id_mesa) return;
@@ -1194,7 +1177,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
           isSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
         id="sidebar-left-panel"
@@ -1257,11 +1240,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         <nav className="flex-1 overflow-y-auto overscroll-contain py-3">
           {[
             { id: 'home', label: 'Inicio', icon: '🏠' },
-            { id: 'panel', label: 'Panel', icon: '📊' },
             { id: 'mozo', label: 'Mozo', icon: '📱' },
             { id: 'cocina', label: 'Horno', icon: '🍕' },
             { id: 'caja', label: 'Caja', icon: '💵' },
-            { id: 'reportes', label: 'Reportes', icon: '📈' },
             { id: 'menu', label: 'Menú', icon: '📖' },
             { id: 'recetas', label: 'Recetas', icon: '⚖️' },
             { id: 'mesas', label: 'Delivery', icon: '🛵' },
@@ -1269,7 +1250,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
             { id: 'promociones', label: 'Promociones', icon: '🏷️' },
             { id: 'reservas', label: 'Reservas', icon: '📅' },
-            { id: 'facturacion', label: 'Facturación', icon: '🧾' },
             { id: 'usuarios', label: 'Usuarios', icon: '👥' },
             { id: 'sistema', label: 'Sistema', icon: '💻' },
             { id: 'backups', label: 'Backups', icon: '🗄️' },
@@ -1386,15 +1366,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               <InventoryModule insumos={insumos} productosMenu={productosMenu} recetas={recetas} mermas={mermas}
                 onRegistrarMerma={handleRegistrarMerma}
                 onRestockInsumo={handleRestockInsumo}
-                onRestockTodo={handleRestockTodo}
                 addLog={addLog}
               />
-            )}
-            {activeView === 'reportes' && (
-              <BusinessIntelligence pedidos={pedidos} productosMenu={productosMenu} logs={logs} precioMap={precioMap} insumos={insumos} recetas={recetas} mermas={mermas} />
-            )}
-            {activeView === 'panel' && (
-              <PanelDashboard pedidos={pedidos} insumos={insumos} mesas={mesas} productosMenu={productosMenu} logs={logs} allowedViews={allowedViews} onNavigate={handleNavigate} getSimulatedTimeStr={getSimulatedTimeStr} onRegistrarMerma={handleRegistrarMerma} />
             )}
             {activeView === 'usuarios' && (
               <UsuariosModule usuarios={usuarios} onUsuariosChange={setUsuarios} addLog={addLog} activeUser={activeUser} />
@@ -1422,9 +1395,6 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
             {activeView === 'promociones' && <PromocionesModule addLog={addLog} />}
             {activeView === 'reservas' && (
               <ReservasModule mesas={mesas} onEstadoChange={handleReservaEstadoChange} addLog={addLog} />
-            )}
-            {activeView === 'facturacion' && (
-              <FacturacionModule pedidos={pedidos} productosMenu={productosMenu} addLog={addLog} />
             )}
             {activeView === 'sistema' && (
               <SistemaModule 

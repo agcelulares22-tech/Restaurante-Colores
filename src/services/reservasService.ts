@@ -94,7 +94,6 @@ function toDbPayload(res: Partial<Reserva> & { id_reserva?: string }) {
     if (res.pax            !== undefined) payload.personas      = res.pax;
     if (res.lista_espera === true && res.id_mesa === undefined) payload.id_mesa = null;
     else if (res.id_mesa   !== undefined) payload.id_mesa       = res.id_mesa ?? null;
-    if (res.nombre_mesa    !== undefined) payload.nombre_mesa   = res.nombre_mesa;
     if (res.hora           !== undefined) payload.hora          = res.hora;
     if (res.estado         !== undefined) payload.estado        = res.estado;
     if (res.fecha          !== undefined) payload.fecha         = res.fecha;

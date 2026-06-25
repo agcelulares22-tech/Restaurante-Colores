@@ -1209,7 +1209,7 @@ function DeliveryModule({
           className={`py-3 px-6 font-black text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer rounded-t-lg ${
             activeTab === 'activas'
               ? 'border-brand-yellow text-stone-900 bg-brand-yellow/5'
-              : 'border-transparent text-stone-450 hover:text-stone-700'
+              : 'border-transparent text-stone-500 hover:text-stone-700'
           }`}
         >
           Entregas Activas ({pedidos.filter(p => (p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa') && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado').length})
@@ -1219,7 +1219,7 @@ function DeliveryModule({
           className={`py-3 px-6 font-black text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer rounded-t-lg ${
             activeTab === 'historial'
               ? 'border-brand-yellow text-stone-900 bg-brand-yellow/5'
-              : 'border-transparent text-stone-450 hover:text-stone-700'
+              : 'border-transparent text-stone-500 hover:text-stone-700'
           }`}
         >
           Historial de Pedidos ({pedidos.filter(p => (p.numero_mesa.startsWith('DELIVERY:') || p.origen === 'Rappi' || p.origen === 'PedidosYa') && (p.estado_comanda === 'entregado_cobrado' || p.estado_comanda === 'cancelado')).length})
@@ -1241,54 +1241,7 @@ function DeliveryModule({
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-end">
-          
-          {/* Status Filters */}
-          <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
-            {(activeTab === 'activas'
-              ? [
-                  { id: 'todos', label: 'Todos' },
-                  { id: 'pendiente', label: 'Pendiente' },
-                  { id: 'en_cocina', label: 'En Horno' },
-                  { id: 'listo', label: 'Listos' },
-                  { id: 'viaje', label: 'En Viaje' }
-                ]
-              : [
-                  { id: 'todos', label: 'Todos' },
-                  { id: 'entregado_cobrado', label: 'Entregados' },
-                  { id: 'cancelado', label: 'Cancelados' }
-                ]
-            ).map(f => (
-              <button
-                key={f.id}
-                onClick={() => setStatusFilter(f.id)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${statusFilter === f.id ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'}`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Channel Filters */}
-          <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
-            {[
-              { id: 'todos', label: 'Todos' },
-              { id: 'propio', label: 'Propio' },
-              { id: 'rappi', label: 'Rappi' },
-              { id: 'pedidosya', label: 'PedidosYa' }
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setChannelFilter(f.id)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${channelFilter === f.id ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'}`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
         </div>
-      </div>
 
       {/* ORDERS LIST */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

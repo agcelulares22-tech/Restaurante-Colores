@@ -2,11 +2,9 @@ import { Usuario } from '../types';
 
 export type AppView =
   | 'home'
-  | 'panel'
   | 'mozo'
   | 'cocina'
   | 'caja'
-  | 'reportes'
   | 'usuarios'
   | 'menu'
   | 'recetas'
@@ -16,18 +14,15 @@ export type AppView =
   | 'proveedores'
   | 'promociones'
   | 'reservas'
-  | 'facturacion'
   | 'sistema'
   | 'backups'
   | 'fichaje';
 
 export const ALL_APP_VIEWS: AppView[] = [
   'home',
-  'panel',
   'mozo',
   'cocina',
   'caja',
-  'reportes',
   'usuarios',
   'menu',
   'recetas',
@@ -37,7 +32,6 @@ export const ALL_APP_VIEWS: AppView[] = [
   'proveedores',
   'promociones',
   'reservas',
-  'facturacion',
   'sistema',
   'backups',
   'fichaje'
@@ -52,11 +46,9 @@ const ALL_SIN_RESTRINGIDOS = ALL_APP_VIEWS.filter(
 const ROLE_PERMISSIONS: Record<Usuario['rol'], AppView[]> = {
   superadmin: [
     'home',
-    'panel',
     'mozo',
     'cocina',
     'caja',
-    'reportes',
     'usuarios',
     'menu',
     'recetas',
@@ -66,14 +58,13 @@ const ROLE_PERMISSIONS: Record<Usuario['rol'], AppView[]> = {
     'proveedores',
     'promociones',
     'reservas',
-    'facturacion',
     'sistema',
     'backups',
     'fichaje'
   ],
   administrador: ALL_SIN_RESTRINGIDOS,
-  mozo: ['home', 'panel', 'mozo', 'caja', 'reservas', 'fichaje'] as AppView[],
-  cocina: ['home', 'panel', 'cocina', 'fichaje']
+  mozo: ['home', 'mozo', 'caja', 'reservas', 'fichaje', 'mesas', 'menu', 'recetas'] as AppView[],
+  cocina: ['home', 'cocina', 'fichaje']
 };
 
 export const getAllowedViews = (role: Usuario['rol']): AppView[] => (

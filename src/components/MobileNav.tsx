@@ -28,11 +28,9 @@ interface MobileNavProps {
 
 const NAV_ITEMS: { id: AppView; label: string; icon: string }[] = [
   { id: 'home', label: 'Inicio', icon: '🏠' },
-  { id: 'panel', label: 'Panel', icon: '📊' },
   { id: 'mozo', label: 'Mozo', icon: '📱' },
   { id: 'cocina', label: 'Horno', icon: '🍕' },
   { id: 'caja', label: 'Caja', icon: '💵' },
-  { id: 'reportes', label: 'Reportes', icon: '📈' },
   { id: 'menu', label: 'Menú', icon: '📖' },
   { id: 'recetas', label: 'Recetas', icon: '⚖️' },
   { id: 'mesas', label: 'Delivery', icon: '🛵' },
@@ -40,7 +38,6 @@ const NAV_ITEMS: { id: AppView; label: string; icon: string }[] = [
   { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
   { id: 'promociones', label: 'Promociones', icon: '🏷️' },
   { id: 'reservas', label: 'Reservas', icon: '📅' },
-  { id: 'facturacion', label: 'Facturación', icon: '🧾' },
   { id: 'usuarios', label: 'Usuarios', icon: '👥' },
   { id: 'sistema', label: 'Sistema', icon: '💻' },
   { id: 'backups', label: 'Backups', icon: '🗄️' },

@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useToast, ToastContainer } from './ToastContainer';
 import {
-  Sofa, List, Link2, Unlink, Plus, Check, Trash, Edit2, X,
-  MapPin, Users, AlertCircle, Search, LayoutGrid, Armchair
+  List, Link2, Unlink, Plus, Check, Trash, Edit2, X,
+  MapPin, Users, AlertCircle, Search, Armchair
 } from 'lucide-react';
 import { Mesa, EventoLog } from '../types';
 import { mesasService } from '../services/mesasService';
@@ -64,7 +64,6 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
   }, [mesas]);
 
   const [localMesas, setLocalMesas] = useState<Mesa[]>(normalizedMesas);
-  const [viewMode, setViewMode] = useState<'lista' | 'plano'>('plano');
   const [filterSector, setFilterSector] = useState<'todos' | NonNullable<Mesa['sector']>>('todos');
   const [filterEstado, setFilterEstado] = useState<'todos' | Mesa['estado']>('todos');
   const [search, setSearch] = useState('');
@@ -81,8 +80,6 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
   const [editSector, setEditSector] = useState<NonNullable<Mesa['sector']>>('salon');
   const [editCapacidad, setEditCapacidad] = useState(4);
   const [editForma, setEditForma] = useState<NonNullable<Mesa['forma']>>('redonda');
-  const [editWidth, setEditWidth] = useState(12);
-  const [editHeight, setEditHeight] = useState(6);
 
   // Unión
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -91,120 +88,13 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
   // Confirmación eliminación
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
-  // Drag & Drop
-  const [draggingId, setDraggingId] = useState<number | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const handleStartEditFromPlano = (m: Mesa) => {
-    setEditingMesaId(m.id_mesa);
-    setEditNumero(m.numero_mesa);
-    setEditSector(m.sector || 'salon');
-    setEditCapacidad(m.capacidad || 4);
-    setEditForma(m.forma || 'redonda');
-    setEditWidth(m.width || (m.forma === 'rectangular' ? 12 : 8));
-    setEditHeight(m.height || (m.forma === 'rectangular' ? 6 : 8));
-  };
-
-  const handleSaveEditFromSidebar = () => {
-    if (!editingMesaId || !editNumero.trim()) return;
-    const duplicate = localMesas.find(m => m.numero_mesa.toLowerCase() === editNumero.trim().toLowerCase() && m.id_mesa !== editingMesaId);
-    if (duplicate) {
-      toast.error('Ya existe otra mesa con ese nombre.');
-      return;
-    }
-    const next = localMesas.map(m => {
-      if (m.id_mesa === editingMesaId) {
-        const updated: Mesa = {
-          ...m,
-          numero_mesa: editNumero.trim(),
-          sector: editSector,
-          capacidad: editCapacidad,
-          forma: editForma,
-          width: editWidth,
-          height: editHeight
-        };
-        mesasService.update(editingMesaId, updated).catch(() => {});
-        addLog('sistema', `MESAS: Modificada mesa '${m.numero_mesa}' a '${editNumero.trim()}'`);
-        return updated;
-      }
-      return m;
-    });
-    persist(next);
-    setEditingMesaId(null);
-    toast.success('Mesa actualizada.');
-  };
-
-  const handleToggleEditMode = async () => {
-    if (isEditMode) {
-      try {
-        await mesasService.upsert(localMesas);
-        toast.success('Distribución del salón guardada en la base de datos.');
-      } catch (err) {
-        toast.error('Error al guardar la distribución en la base de datos.');
-      }
-      setIsEditMode(false);
-      setEditingMesaId(null);
-    } else {
-      setIsEditMode(true);
-      setUnionMode(false);
-      setSelectedIds([]);
-      setEditingMesaId(null);
-    }
-  };
-
   useEffect(() => {
     setLocalMesas(normalizedMesas);
   }, [normalizedMesas]);
 
-  useEffect(() => {
-    if (draggingId === null) return;
-
-    const handleWindowMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      let x = ((e.clientX - rect.left) / rect.width) * 100;
-      let y = ((e.clientY - rect.top) / rect.height) * 100;
-
-      x = Math.max(3, Math.min(97, x));
-      y = Math.max(3, Math.min(97, y));
-
-      setLocalMesas(prev =>
-        prev.map(m =>
-          m.id_mesa === draggingId
-            ? { ...m, x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) }
-            : m
-        )
-      );
-    };
-
-    const handleWindowMouseUp = () => {
-      const finalMesa = localMesas.find(m => m.id_mesa === draggingId);
-      if (finalMesa) {
-        mesasService.update(draggingId, finalMesa).catch(() => {});
-        persist(localMesas);
-      }
-      setDraggingId(null);
-    };
-
-    window.addEventListener('mousemove', handleWindowMouseMove);
-    window.addEventListener('mouseup', handleWindowMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleWindowMouseMove);
-      window.removeEventListener('mouseup', handleWindowMouseUp);
-    };
-  }, [draggingId, localMesas]);
-
   const persist = (next: Mesa[]) => {
     setLocalMesas(next);
     onMesasChange(next);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent, id: number) => {
-    if (!isEditMode) return;
-    e.preventDefault();
-    setDraggingId(id);
   };
 
   const handleCreateMesa = (e: React.FormEvent) => {
@@ -761,7 +651,7 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
 
           <div className="space-y-2">
             <button
-              onClick={() => { setUnionMode(v => !v); setSelectedIds([]); setIsEditMode(false); }}
+              onClick={() => { setUnionMode(v => !v); setSelectedIds([]); }}
               className={`w-full min-h-10 flex items-center justify-center gap-2 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
                 unionMode ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200'
               }`}
@@ -796,28 +686,6 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
               <MapPin className="w-5 h-5 text-[#624A3E]" />
               Distribución del Salón
             </h3>
-            <div className="flex items-center gap-1 bg-stone-100 p-1.5 rounded-xl border border-stone-200 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setViewMode('lista')}
-                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  viewMode === 'lista' ? 'bg-[#624A3E] text-white shadow-sm' : 'text-stone-500 hover:text-stone-700'
-                }`}
-              >
-                <List className="w-3.5 h-3.5" />
-                Lista
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('plano')}
-                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  viewMode === 'plano' ? 'bg-[#624A3E] text-white shadow-sm' : 'text-stone-500 hover:text-stone-700'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                Plano
-              </button>
-            </div>
           </div>
 
           {/* Leyenda de estados */}
@@ -830,7 +698,7 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
             ))}
           </div>
 
-          {viewMode === 'lista' ? (
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMesas.map(m => {
                 const estilo = getEstadoStyle(m.estado);
@@ -950,84 +818,6 @@ export default function MesasModule({ mesas, onMesasChange, addLog }: MesasModul
                 );
               })}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center bg-[#FDF8E2] text-[#856404] p-3 rounded-xl border border-[#FFEBAA] text-xs">
-                <span className="font-semibold">
-                  {isEditMode 
-                    ? '🔧 MODO DISEÑO ACTIVO: Arrastrá las mesas para acomodar la distribución del salón.' 
-                    : '💡 Habilitá el modo diseño para reordenar las coordenadas de las mesas.'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    isEditMode 
-                      ? 'bg-amber-600 text-white shadow-sm hover:bg-amber-700' 
-                      : 'bg-white text-stone-700 hover:bg-stone-100 border border-stone-200 shadow-xs'
-                  }`}
-                >
-                  {isEditMode ? 'Guardar Cambios' : 'Modo Diseño'}
-                </button>
-              </div>
-
-              <div 
-                ref={containerRef}
-                className="relative w-full h-[620px] bg-stone-900 border border-stone-800 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center bg-[radial-gradient(#3c3c3c_1.5px,transparent_1.5px)] [background-size:24px_24px]"
-              >
-                {filteredMesas.map(m => {
-                  const estilo = getEstadoStyle(m.estado);
-                  const isParent = (m.mesas_unidas?.length ?? 0) > 0;
-                  const isChild = !!m.parent_id;
-                  
-                  const isRound = m.forma === 'redonda';
-                  const shapeClass = isRound ? 'rounded-full' : 'rounded-2xl';
-
-                  const w = m.width || (m.forma === 'rectangular' ? 12 : 8);
-                  const h = m.height || (m.forma === 'rectangular' ? 6 : 8);
-
-                  return (
-                    <div
-                      key={m.id_mesa}
-                      onMouseDown={(e) => handleMouseDown(e, m.id_mesa)}
-                      style={{
-                        left: `${m.x ?? 50}%`,
-                        top: `${m.y ?? 50}%`,
-                        transform: 'translate(-50%, -50%)',
-                        width: `${w * 12}px`,
-                        height: `${h * 12}px`,
-                      }}
-                      className={`absolute select-none cursor-pointer p-2 text-center flex flex-col justify-center items-center shadow-md border-2 ${
-                        draggingId === m.id_mesa ? 'ring-4 ring-amber-500 scale-105 z-50 border-amber-500 shadow-2xl' : ''
-                      } ${
-                        isEditMode ? 'cursor-move border-dashed hover:border-amber-400' : ''
-                      } ${estilo.bg} ${estilo.color} ${estilo.border} ${shapeClass} transition-transform active:scale-95`}
-                    >
-                      <strong className="text-sm font-black tracking-tight">{m.numero_mesa}</strong>
-                      <span className="text-[10px] opacity-75 font-black uppercase tracking-wider">{m.capacidad} pax</span>
-                      {isParent && <span className="text-[8px] font-black uppercase text-[#624A3E]">(Principal)</span>}
-                      {isChild && <span className="text-[8px] font-black uppercase text-stone-500">(Unida)</span>}
-                      
-                      <span className={`w-3.5 h-3.5 rounded-full ${estilo.dot} absolute top-1 right-1 border-2 border-white ring-1 ring-black/5 shadow-xs`} />
-                      
-                      {!isEditMode && !isChild && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleEstadoMesa(m.id_mesa);
-                          }}
-                          className="absolute -bottom-2 bg-stone-950 hover:bg-stone-900 border border-white/10 hover:scale-105 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md transition-all active:scale-90"
-                        >
-                          Cambiar
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

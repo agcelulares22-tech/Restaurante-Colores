@@ -171,17 +171,7 @@ export default function HomeMenuModule({
         type: 'emerald'
       }
     },
-    {
-      id: 'reportes',
-      title: 'Reportes / BI',
-      description: 'Análisis de ventas, rentabilidad por plato, matriz BCG y consola de auditoría.',
-      icon: TrendingUp,
-      iconColor: 'text-blue-400',
-      badge: {
-        text: 'BUSINESS INTELLIGENCE',
-        type: 'emerald'
-      }
-    },
+
     {
       id: 'menu',
       title: 'Menú',
@@ -248,17 +238,7 @@ export default function HomeMenuModule({
         type: 'neutral'
       }
     },
-    {
-      id: 'facturacion',
-      title: 'Facturación',
-      description: 'Comprobantes fiscales, resúmenes de ventas y exportación para contador.',
-      icon: Receipt,
-      iconColor: 'text-emerald-500',
-      badge: {
-        text: 'FISCAL',
-        type: 'neutral'
-      }
-    },
+
     {
       id: 'sistema',
       title: 'Sistema',
@@ -292,17 +272,7 @@ export default function HomeMenuModule({
         type: 'neutral'
       }
     },
-    {
-      id: 'panel',
-      title: 'Panel Gerencial',
-      description: 'Dashboard de KPIs operativos, ventas del turno y estado del negocio.',
-      icon: CheckCircle,
-      iconColor: 'text-emerald-500',
-      badge: {
-        text: 'HISTORIAL',
-        type: 'neutral'
-      }
-    }
+
   ];
 
   return (
@@ -342,7 +312,7 @@ export default function HomeMenuModule({
             Bienvenido a Pizzería Colores
           </h2>
           <p className="text-base md:text-lg text-slate-600 dark:text-zinc-300 font-medium leading-relaxed max-w-xl transition-colors duration-300">
-            Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja, facturación e inventario.
+            Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja e inventario.
           </p>
           <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
             <span className="bg-white text-brand-black dark:bg-zinc-950 dark:text-brand-yellow text-[11px] px-3 py-1 rounded-full font-bold border border-slate-200 dark:border-zinc-700 font-mono shadow-xs transition-colors duration-300">
