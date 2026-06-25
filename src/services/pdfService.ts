@@ -102,7 +102,8 @@ export const pdfService = {
   async generateTicketPDF(data: TicketData): Promise<jsPDF> {
     const logo = await loadLogoDataUrl();
     const qrImage = await loadQrDataUrl(data.qrData);
-    const isA4 = data.tipoComprobante === 'factura_a' || data.tipoComprobante === 'factura_b' || data.tipoComprobante === 'factura_c';
+    const compType = data.tipoComprobante as string;
+    const isA4 = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c';
 
     if (isA4) {
       return this.generateA4Invoice(data, logo, qrImage);
@@ -115,7 +116,8 @@ export const pdfService = {
     const doc = new jsPDF('p', 'mm', 'a4');
     const margin = 14;
     let y = 14;
-    const letter = data.tipoComprobante === 'factura_a' ? 'A' : (data.tipoComprobante === 'factura_c' ? 'C' : 'B');
+    const compType = data.tipoComprobante as string;
+    const letter = compType === 'factura_a' ? 'A' : (compType === 'factura_c' ? 'C' : 'B');
     const cliente = data.clienteNombre || 'Consumidor Final';
     const clienteCuit = data.clienteCuit || (data.cuit.startsWith('99') ? 'Consumidor Final' : data.cuit);
 
@@ -159,7 +161,7 @@ export const pdfService = {
     doc.text(letter, margin + 167, y + 11, { align: 'center' });
     doc.setTextColor(...BRAND.dark);
     doc.setFontSize(7);
-    const codComprobante = data.tipoComprobante === 'factura_a' ? 'COD. 001' : data.tipoComprobante === 'factura_c' ? 'COD. 011' : 'COD. 006';
+    const codComprobante = compType === 'factura_a' ? 'COD. 001' : (compType === 'factura_c' ? 'COD. 011' : 'COD. 006');
     doc.text(codComprobante, margin + 167, y + 16, { align: 'center' });
 
     y += 26;
