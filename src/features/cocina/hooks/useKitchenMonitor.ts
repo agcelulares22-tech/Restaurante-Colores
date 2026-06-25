@@ -155,8 +155,11 @@ export function useKitchenMonitor({
   }, []);
 
   const handleOptimisticStatus = useCallback((idPedido: number, nuevoEstado: Pedido['estado_comanda']) => {
+    console.log(`[useKitchenMonitor.handleOptimisticStatus] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
     setOptimisticUpdates(prev => new Map(prev).set(idPedido, { estado: nuevoEstado, updating: true }));
+    console.log(`[useKitchenMonitor.handleOptimisticStatus] Llamando onCambiarEstadoPedido...`);
     onCambiarEstadoPedido(idPedido, nuevoEstado);
+    console.log(`[useKitchenMonitor.handleOptimisticStatus] onCambiarEstadoPedido llamado`);
     setTimeout(() => {
       setOptimisticUpdates(prev => {
         const next = new Map(prev);
