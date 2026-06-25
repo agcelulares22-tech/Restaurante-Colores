@@ -185,6 +185,7 @@ export interface EventoLog {
 export type TipoComprobante =
     | 'factura_a'
   | 'factura_b'
+  | 'factura_c'
   | 'ticket_consumo'
   | 'nota_credito_b';
 
@@ -413,3 +414,12 @@ export interface RegistroAsistencia {
     dispositivo?: string;
     direccion?: string;
 }
+
+export interface LoteInsumo {
+    id_lote: string;
+    id_insumo: string;
+    cantidad: number;
+    fecha_vencimiento: string; // ISO format YYYY-MM-DD
+    creado_at: string;
+}
+

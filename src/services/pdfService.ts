@@ -102,7 +102,7 @@ export const pdfService = {
   async generateTicketPDF(data: TicketData): Promise<jsPDF> {
     const logo = await loadLogoDataUrl();
     const qrImage = await loadQrDataUrl(data.qrData);
-    const isA4 = data.tipoComprobante === 'factura_a' || data.tipoComprobante === 'factura_b';
+    const isA4 = data.tipoComprobante === 'factura_a' || data.tipoComprobante === 'factura_b' || data.tipoComprobante === 'factura_c';
 
     if (isA4) {
       return this.generateA4Invoice(data, logo, qrImage);
@@ -115,7 +115,7 @@ export const pdfService = {
     const doc = new jsPDF('p', 'mm', 'a4');
     const margin = 14;
     let y = 14;
-    const letter = data.tipoComprobante === 'factura_a' ? 'A' : 'B';
+    const letter = data.tipoComprobante === 'factura_a' ? 'A' : (data.tipoComprobante === 'factura_c' ? 'C' : 'B');
     const cliente = data.clienteNombre || 'Consumidor Final';
     const clienteCuit = data.clienteCuit || (data.cuit.startsWith('99') ? 'Consumidor Final' : data.cuit);
 

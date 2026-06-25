@@ -812,6 +812,77 @@ function BusinessIntelligence({
     });
   }, [logs, logFilter, logSearch]);
 
+  const handleDownloadCSVReport = () => {
+    // 1. Calculate sales breakdown by product
+    const productSales = new Map<string, { id_producto: string; nombre: string; categoria: string; cantidad: number; facturacion: number }>();
+    
+    pedidosCobrados.forEach(p => {
+      p.items.forEach(item => {
+        const precio = item.precio_unitario ?? precioMap.get(item.id_producto) ?? 0;
+        const subtotal = precio * item.cantidad;
+        const prev = productSales.get(item.id_producto) ?? {
+          id_producto: item.id_producto,
+          nombre: item.nombre,
+          categoria: item.categoria || 'Otros',
+          cantidad: 0,
+          facturacion: 0
+        };
+        productSales.set(item.id_producto, {
+          ...prev,
+          cantidad: prev.cantidad + item.cantidad,
+          facturacion: prev.facturacion + subtotal
+        });
+      });
+    });
+
+    // 2. Generate CSV rows
+    const headers = [
+      'ID Producto', 
+      'Producto', 
+      'Categoría', 
+      'Cantidad Vendida', 
+      'Facturación Bruta (ARS)', 
+      'Costo Unitario Receta (ARS)', 
+      'Costo Total Recetas (ARS)', 
+      'Margen Neto Unitario (ARS)', 
+      'Margen Neto Total (ARS)', 
+      'Margen %'
+    ];
+    const csvRows = [headers.join(';')];
+
+    productSales.forEach(val => {
+      const costoUnitario = recetaCostMap.get(val.id_producto) ?? 0;
+      const costoTotal = costoUnitario * val.cantidad;
+      const margenNetoTotal = val.facturacion - costoTotal;
+      const margenNetoUnitario = val.cantidad > 0 ? margenNetoTotal / val.cantidad : 0;
+      const margenPct = val.facturacion > 0 ? (margenNetoTotal / val.facturacion) * 100 : 0;
+
+      const row = [
+        val.id_producto,
+        `"${val.nombre.replace(/"/g, '""')}"`,
+        `"${val.categoria.replace(/"/g, '""')}"`,
+        val.cantidad,
+        val.facturacion.toFixed(2),
+        costoUnitario.toFixed(2),
+        costoTotal.toFixed(2),
+        margenNetoUnitario.toFixed(2),
+        margenNetoTotal.toFixed(2),
+        margenPct.toFixed(1) + '%'
+      ];
+      csvRows.push(row.join(';'));
+    });
+
+    const blob = new Blob(["\uFEFF" + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    const filename = `Reporte_BI_Productos_${fechaInicio || 'Todo'}_a_${fechaFin || 'Todo'}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Colores para Gráfico de Donut de Categorías
   const donutColors = ['#624A3E', '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#6B7280'];
 
@@ -858,8 +929,15 @@ function BusinessIntelligence({
             onClick={handleDownloadBIReport}
             className="text-[10px] uppercase font-black px-3.5 py-2 bg-[#624A3E] hover:bg-[#4d3a30] text-amber-300 rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm"
           >
-            <FileDown className="w-3.5 h-3.5" />
+            <FileDown className="w-3.5 h-3.5 text-amber-300" />
             <span>Exportar PDF</span>
+          </button>
+          <button
+            onClick={handleDownloadCSVReport}
+            className="text-[10px] uppercase font-black px-3.5 py-2 bg-stone-900 hover:bg-stone-850 text-white rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm border border-stone-800"
+          >
+            <FileDown className="w-3.5 h-3.5 text-brand-yellow" />
+            <span>Exportar CSV</span>
           </button>
         </div>
       </div>

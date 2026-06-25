@@ -1478,6 +1478,28 @@ export function useCaja({
       clienteDniCuit: cuitCliente
     };
 
+    const idFactura = `fac_${Date.now()}`;
+    try {
+      await facturacionService.create({
+        id_factura: idFactura,
+        id_pedido: selectedPedido.id_pedido,
+        nro_ticket: compiledTicketNo,
+        cliente: partition.nombre,
+        cuit: cuitCliente,
+        total: breakdowns.finalTotal,
+        iva_veintiuno: breakdowns.ivaValue,
+        medio_pago: partition.metodoPago,
+        fecha: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs',
+        estado: 'emitido',
+        afip_cae: arcaCae || undefined,
+        afip_vto: arcaVto || undefined,
+        afip_qr: arcaQr || undefined,
+        afip_resultado: arcaCae ? 'A' : undefined
+      });
+    } catch (err) {
+      console.warn('Network offline backup creation for partition failed:', err);
+    }
+
     try {
       await pdfService.exportToPDF(dataTicket);
       await printerService.sendToPrinter(dataTicket, printerConfig);

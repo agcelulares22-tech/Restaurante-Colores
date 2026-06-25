@@ -18,9 +18,11 @@ import {
   Sparkles,
   DollarSign
 } from 'lucide-react';
-import { Insumo, ProductoMenu, RecetaEscandallo, Merma, Proveedor } from '../types';
+import { Insumo, ProductoMenu, RecetaEscandallo, Merma, Proveedor, LoteInsumo } from '../types';
 import { useInventory, getInsumoDeposito } from '../features/inventario/hooks/useInventory';
 import { proveedoresService } from '../services/proveedoresService';
+import { lotesService } from '../services/lotesService';
+import { insumosService } from '../services/insumosService';
 import { jsPDF } from 'jspdf';
 
 interface InventoryModuleProps {
@@ -127,8 +129,231 @@ function InventoryModule({
     handleRemoveFromPurchaseCart,
     handleSuggestMissingStock,
     handleConfirmPurchaseOrder,
-    handleDescargarMovimientosCSV
+    handleDescargarMovimientosCSV,
+    lotes,
+    loadLotes,
+    fechaVencimientoLote,
+    setFechaVencimientoLote,
+    handleDiscardLote
   } = inventory;
+
+  const suggestedOrdersBySupplier = React.useMemo(() => {
+    const criticalInsumos = insumos.filter(i => i.stock_actual < i.stock_minimo);
+    const groups: Record<string, {
+      supplierName: string;
+      supplierInfo?: Proveedor;
+      items: {
+        id_insumo: string;
+        nombre: string;
+        unidad_medida: string;
+        neededQty: number;
+        costo_unitario: number;
+        subtotal: number;
+      }[];
+      totalCost: number;
+    }> = {};
+
+    criticalInsumos.forEach(ins => {
+      const provName = ins.proveedor || 'Proveedor General S.A.';
+      const neededQty = parseFloat((ins.stock_minimo * 1.5 - ins.stock_actual).toFixed(2));
+      const cost = ins.costo_unitario ?? 100;
+      const subtotal = neededQty * cost;
+
+      if (!groups[provName]) {
+        const info = proveedores.find(p => p.nombre === provName);
+        groups[provName] = {
+          supplierName: provName,
+          supplierInfo: info,
+          items: [],
+          totalCost: 0
+        };
+      }
+
+      groups[provName].items.push({
+        id_insumo: ins.id_insumo,
+        nombre: ins.nombre,
+        unidad_medida: ins.unidad_medida,
+        neededQty,
+        costo_unitario: cost,
+        subtotal
+      });
+      groups[provName].totalCost = parseFloat((groups[provName].totalCost + subtotal).toFixed(2));
+    });
+
+    return Object.values(groups);
+  }, [insumos, proveedores]);
+
+  const handleSendWhatsAppOrder = (group: any) => {
+    const phone = group.supplierInfo?.telefono || '';
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    let itemText = '';
+    group.items.forEach((item: any) => {
+      itemText += `• *${item.nombre}*: ${item.neededQty} ${item.unidad_medida}\n`;
+    });
+
+    const msg = `Hola *${group.supplierInfo?.contacto || group.supplierName}*, te escribo de *Pizzería Colores* para realizar el siguiente pedido:\n\n${itemText}\nTotal estimado: *$${group.totalCost.toLocaleString('es-AR')}*\n\nPor favor, confirmar disponibilidad y fecha de entrega. ¡Muchas gracias!`;
+    
+    const url = `https://wa.me/${cleanPhone || '5491100000000'}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+    
+    addLog('sistema', `COMPRAS: Solicitud de pedido enviada a ${group.supplierName} vía WhatsApp.`);
+    toast.success(`Mensaje de WhatsApp para ${group.supplierName} abierto en otra pestaña.`);
+  };
+
+  const handleSendEmailOrder = (group: any) => {
+    const email = group.supplierInfo?.email || group.supplierInfo?.correo || '';
+    
+    let itemText = '';
+    group.items.forEach((item: any) => {
+      itemText += `- ${item.nombre}: ${item.neededQty} ${item.unidad_medida} (Costo unitario est.: $${item.costo_unitario})\n`;
+    });
+
+    const subject = `Solicitud de Compra - Pizzería Colores`;
+    const body = `Hola ${group.supplierInfo?.contacto || group.supplierName},\n\nLe escribimos de Pizzería Colores para realizar el siguiente pedido de mercadería:\n\n${itemText}\nTotal estimado: $${group.totalCost.toLocaleString('es-AR')}\n\nPor favor, confirme la recepción de este pedido y el tiempo estimado de entrega.\n\nAtentamente,\nPizzería Colores`;
+    
+    const url = `mailto:${email || 'proveedor@correo.com'}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(url, '_blank');
+    
+    addLog('sistema', `COMPRAS: Solicitud de pedido enviada a ${group.supplierName} vía Correo Electrónico.`);
+    toast.success(`Cliente de correo abierto para ${group.supplierName}.`);
+  };
+
+  const handleConfirmSuggestedOrder = async (group: any) => {
+    try {
+      const ocId = `OC-${Math.floor(Math.random() * 300) + 2400}`;
+      
+      for (const item of group.items) {
+        onRestockInsumo(item.id_insumo, item.neededQty);
+
+        const insObj = insumos.find(i => i.id_insumo === item.id_insumo);
+        if (insObj) {
+          const stockNuevo = insObj.stock_actual + item.neededQty;
+          await insumosService.recordMovement({
+            id_insumo: item.id_insumo,
+            tipo_movimiento: 'entrada',
+            stock_anterior: insObj.stock_actual,
+            stock_nuevo: stockNuevo,
+            cantidad: item.neededQty
+          });
+
+          if (insObj.categoria === 'frescos') {
+            const defaultExpiry = new Date();
+            defaultExpiry.setDate(defaultExpiry.getDate() + 7);
+            await lotesService.create({
+              id_lote: `lot_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+              id_insumo: item.id_insumo,
+              cantidad: item.neededQty,
+              fecha_vencimiento: defaultExpiry.toISOString().split('T')[0],
+              creado_at: new Date().toISOString()
+            });
+          }
+        }
+        addLog('sistema', `COMPRAS: Recibido de [${group.supplierName}]. +${item.neededQty}${item.unidad_medida} de "${item.nombre}" ingresados.`);
+      }
+
+      // Add to historical purchase orders list
+      const summaryNames = group.items.map((i: any) => i.nombre).join(', ');
+      const newOC = {
+        id: ocId,
+        proveedor: group.supplierName,
+        insumo: summaryNames.length > 30 ? summaryNames.slice(0, 30) + '...' : summaryNames,
+        cantidad: `${group.items.length} ítems`,
+        costo: group.totalCost,
+        fecha: new Date().toLocaleDateString('es-AR'),
+        estado: 'Entregado ✓'
+      };
+      
+      setComprasHistorial((prev: any) => [newOC, ...prev]);
+      await loadLotes();
+      toast.success(`Orden de compra ${ocId} ingresada con éxito. Stock y lotes actualizados.`);
+    } catch (err: any) {
+      toast.error('Error al confirmar la orden de compra: ' + err.message);
+    }
+  };
+
+  const handleExportGroupPDF = async (group: any) => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      doc.setFillColor(98, 74, 62); // Brown #624A3E
+      doc.rect(0, 0, 210, 35, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.text("PIZZERÍA COLORES", 15, 22);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("GESTION DE COMPRAS Y RESTOCK DE INSUMOS", 15, 28);
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("SOLICITUD DE COTIZACIÓN", 120, 22);
+
+      const ocId = `OC-COT-${Math.floor(Math.random() * 300) + 2400}`;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Ref: ${ocId}`, 120, 28);
+
+      doc.setTextColor(35, 31, 28);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("PROVEEDOR:", 15, 50);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(group.supplierName, 15, 56);
+      doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-AR')}`, 15, 62);
+
+      let startY = 75;
+      doc.setFillColor(245, 241, 233);
+      doc.rect(15, startY, 180, 8, 'F');
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("Insumo / Descripción", 18, startY + 5.5);
+      doc.text("Cantidad", 90, startY + 5.5);
+      doc.text("Costo Unitario", 130, startY + 5.5);
+      doc.text("Subtotal", 170, startY + 5.5);
+
+      doc.setFont("helvetica", "normal");
+      let currentY = startY + 8;
+
+      group.items.forEach((item: any) => {
+        doc.line(15, currentY, 195, currentY);
+        doc.text(item.nombre, 18, currentY + 6);
+        doc.text(`${item.neededQty} ${item.unidad_medida}`, 90, currentY + 6);
+        doc.text(`$${item.costo_unitario.toLocaleString('es-AR')}`, 130, currentY + 6);
+        doc.text(`$${item.subtotal.toLocaleString('es-AR')}`, 170, currentY + 6);
+        currentY += 8;
+      });
+
+      doc.line(15, currentY, 195, currentY);
+
+      currentY += 8;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("TOTAL ESTIMADO:", 120, currentY);
+      doc.setFontSize(12);
+      doc.setTextColor(22, 101, 52); // Emerald 800
+      doc.text(`$${group.totalCost.toLocaleString('es-AR')}`, 170, currentY);
+
+      doc.setFontSize(8);
+      doc.setTextColor(120, 113, 108);
+      doc.text("Este documento sirve como remito de solicitud de cotización interna de Pizzería Colores.", 15, 280);
+
+      doc.save(`Cotizacion_Pizzeria_Colores_${group.supplierName.replace(/\s+/g, '_')}.pdf`);
+      toast.success("Solicitud de cotización exportada a PDF correctamente.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al exportar la Solicitud a PDF.");
+    }
+  };
 
   const totalValuation = React.useMemo(() => {
     return insumos.reduce((sum, ins) => sum + (ins.stock_actual * (ins.costo_unitario ?? 0)), 0);
@@ -578,6 +803,99 @@ function InventoryModule({
                 )}
               </div>
 
+              {/* CONTROL DE LOTES Y VENCIMIENTOS */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mt-6 space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-[#624A3E]/10 rounded-lg">
+                      <Sliders className="w-4 h-4 text-[#624A3E]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Control de Lotes y Vencimiento
+                      </h4>
+                      <p className="text-[10px] text-slate-400">
+                        Supervisión de ingredientes frescos y fechas límite de consumo
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {lotes.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs font-sans bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    No hay lotes activos registrados. Ingrese un lote en el panel lateral o realice una compra.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-slate-50 rounded-xl">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-505 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+                          <th className="p-3">Insumo</th>
+                          <th className="p-3">Cantidad</th>
+                          <th className="p-3">Vencimiento</th>
+                          <th className="p-3">Estado</th>
+                          <th className="p-3 text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {lotes.map((lote) => {
+                          const ins = insumos.find(i => i.id_insumo === lote.id_insumo);
+                          if (!ins) return null;
+
+                          // Calcular estado del vencimiento
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const expDate = new Date(lote.fecha_vencimiento);
+                          expDate.setHours(0, 0, 0, 0);
+                          
+                          const diffTime = expDate.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          
+                          let statusText = 'Saludable';
+                          let statusClass = 'bg-emerald-100 text-emerald-800';
+                          if (diffDays < 0) {
+                            statusText = `VENCIDO (hace ${Math.abs(diffDays)}d) 🔴`;
+                            statusClass = 'bg-rose-100 text-rose-800 font-bold border border-rose-200';
+                          } else if (diffDays <= 3) {
+                            statusText = `Vence pronto (${diffDays}d) ⚠️`;
+                            statusClass = 'bg-amber-100 text-amber-800 font-bold border border-amber-200';
+                          }
+
+                          return (
+                            <tr key={lote.id_lote} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3">
+                                <div className="font-semibold text-slate-800">{ins.nombre}</div>
+                                <div className="text-[9px] text-slate-400">Lote ID: {lote.id_lote.replace('lot_', 'LOT-').slice(0, 10).toUpperCase()}</div>
+                              </td>
+                              <td className="p-3 font-mono font-bold text-slate-700">
+                                {lote.cantidad} {ins.unidad_medida}
+                              </td>
+                              <td className="p-3 font-mono text-slate-600">
+                                {lote.fecha_vencimiento}
+                              </td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 text-[9px] rounded-full ${statusClass}`}>
+                                  {statusText}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDiscardLote(lote.id_lote)}
+                                  className="text-[9px] font-bold text-rose-600 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 py-1 px-2.5 rounded bg-white transition-all cursor-pointer"
+                                >
+                                  Dar de Baja (Merma)
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* REGISTER WASTE AND ADJUSTMENTS TABS (Lg Span 4) */}
@@ -593,8 +911,9 @@ function InventoryModule({
 
                 {/* Sub-form splits */}
                 <div className="border-b border-slate-100 flex gap-2 pb-2 mb-3">
-                  <button onClick={() => setAjusteOperacion('sumar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'sumar' ? 'bg-[#624A3E] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Ajustar Stock</button>
-                  <button onClick={() => setAjusteOperacion('restar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'restar' ? 'bg-[#EF4444] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Merma manual</button>
+                  <button type="button" onClick={() => setAjusteOperacion('sumar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'sumar' ? 'bg-[#624A3E] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Ajustar Stock</button>
+                  <button type="button" onClick={() => setAjusteOperacion('restar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'restar' ? 'bg-[#EF4444] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Merma manual</button>
+                  <button type="button" onClick={() => setAjusteOperacion('lote')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'lote' ? 'bg-[#E8B800] text-black shadow-sm font-black' : 'text-slate-500 bg-slate-50'}`}>Ingresar Lote</button>
                 </div>
 
                 {ajusteOperacion === 'sumar' ? (
@@ -658,7 +977,7 @@ function InventoryModule({
                       Procesar Ajuste Físico
                     </button>
                   </form>
-                ) : (
+                ) : ajusteOperacion === 'restar' ? (
                   // MERMA FORM
                   <form onSubmit={submitMermaForm} className="space-y-3">
                     <div>
@@ -714,6 +1033,56 @@ function InventoryModule({
                       className="w-full py-2 bg-[#EF4444] hover:bg-[#d83a3a] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm shadow-[#EF4444]/10"
                     >
                       Baja de Desperdicio
+                    </button>
+                  </form>
+                ) : (
+                  // LOTE FORM
+                  <form onSubmit={submitAjusteForm} className="space-y-3">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase font-sans">Ingrediente Fresco</label>
+                      <select
+                        value={ajusteInsumoId}
+                        onChange={(e) => setAjusteInsumoId(e.target.value)}
+                        className="w-full text-xs text-slate-700 bg-slate-50 p-2 border border-slate-100 rounded-lg focus:outline-none"
+                      >
+                        <option value="">-- Seleccionar frescos --</option>
+                        {insumos.filter(i => i.categoria === 'frescos').map(i => (
+                          <option key={i.id_insumo} value={i.id_insumo}>
+                            {i.nombre} ({i.stock_actual} {i.unidad_medida})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase font-sans">Cantidad</label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={ajusteCantidad || ''}
+                          onChange={(e) => setAjusteCantidad(parseFloat(e.target.value))}
+                          placeholder="Ej: 500"
+                          className="w-full text-xs p-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-800 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase font-sans">Vencimiento</label>
+                        <input
+                          type="date"
+                          value={fechaVencimientoLote}
+                          onChange={(e) => setFechaVencimientoLote(e.target.value)}
+                          className="w-full text-xs p-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-800 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2 bg-[#E8B800] hover:bg-[#d0a500] text-black font-extrabold rounded-xl text-xs transition-all cursor-pointer shadow-sm shadow-[#E8B800]/10 border-0"
+                    >
+                      Registrar Lote de Fresco
                     </button>
                   </form>
                 )}
@@ -1001,6 +1370,90 @@ function InventoryModule({
 
             {/* Shopping Cart & Simulated Purchase Orders lists (Lg Span 7) */}
             <div className="lg:col-span-7 space-y-6">
+
+              {/* Órdenes de Compra Sugeridas por Proveedor */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+                <h4 className="font-extrabold text-sm text-slate-800 font-sans tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#E8B800] animate-pulse" />
+                  Órdenes de Compra Sugeridas por Proveedor
+                </h4>
+                <p className="text-[11px] text-slate-400 font-sans leading-normal">
+                  Calculado reactivamente para todos los ingredientes con stock por debajo de su límite mínimo.
+                </p>
+
+                {suggestedOrdersBySupplier.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs font-sans bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    🎉 ¡Todo en orden! No hay insumos críticos por debajo del stock mínimo.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {suggestedOrdersBySupplier.map((group, idx) => (
+                      <div key={idx} className="bg-slate-50/70 border border-slate-100 rounded-xl p-4 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
+                          <div>
+                            <span className="font-bold text-slate-800 font-sans block">{group.supplierName}</span>
+                            <span className="text-[9px] text-slate-400 block">
+                              Tel: {group.supplierInfo?.telefono || 'Sin tel'} • Correo: {group.supplierInfo?.email || group.supplierInfo?.correo || 'Sin correo'}
+                            </span>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold block">Total Estimado</span>
+                            <span className="font-mono font-black text-emerald-800">${group.totalCost.toLocaleString('es-AR')}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                          {group.items.map((item, itemIdx) => (
+                            <div key={itemIdx} className="bg-white border border-slate-50 rounded-lg p-2 flex justify-between items-center text-[11px]">
+                              <div>
+                                <span className="font-semibold text-slate-850">{item.nombre}</span>
+                                <span className="text-[9px] text-slate-400 block">Costo unitario est.: ${item.costo_unitario}</span>
+                              </div>
+                              <div className="text-right font-mono">
+                                <span className="font-bold text-slate-700">+{item.neededQty} {item.unidad_medida}</span>
+                                <span className="text-[9px] text-slate-400 block">${item.subtotal.toLocaleString('es-AR')}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 justify-end pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleExportGroupPDF(group)}
+                            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                          >
+                            <Download className="w-3 h-3" />
+                            PDF
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSendEmailOrder(group)}
+                            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                          >
+                            ✉️ Email
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSendWhatsAppOrder(group)}
+                            className="bg-[#25D366] hover:bg-[#20ba59] text-white text-[10px] font-extrabold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer border-0"
+                          >
+                            💬 WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmSuggestedOrder(group)}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-extrabold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer border-0"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            Confirmar e Ingresar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Carrito de Compras (Actual) */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">

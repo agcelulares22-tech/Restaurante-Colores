@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../../../components/ToastContainer';
-import { Insumo, ProductoMenu, RecetaEscandallo, Merma } from '../../../types';
+import { Insumo, ProductoMenu, RecetaEscandallo, Merma, LoteInsumo } from '../../../types';
 import { insumosService } from '../../../services/insumosService';
+import { lotesService } from '../../../services/lotesService';
 
 export function getInsumoDeposito(insumo: Insumo): string {
   switch (insumo.categoria) {
@@ -57,8 +58,10 @@ export function useInventory({
   // Manual Adjustments Form States
   const [ajusteInsumoId, setAjusteInsumoId] = useState<string>('');
   const [ajusteCantidad, setAjusteCantidad] = useState<number>(0);
-  const [ajusteOperacion, setAjusteOperacion] = useState<'sumar' | 'restar'>('sumar');
+  const [ajusteOperacion, setAjusteOperacion] = useState<'sumar' | 'restar' | 'lote'>('sumar');
   const [ajusteMotivo, setAjusteMotivo] = useState<string>('Ajuste de Arqueo Físico');
+  const [lotes, setLotes] = useState<LoteInsumo[]>([]);
+  const [fechaVencimientoLote, setFechaVencimientoLote] = useState<string>('');
 
   // Real purchase orders states
   const [selectedProveedor, setSelectedProveedor] = useState<string>('Distribuidora Alvear S.A. (Bebidas)');
@@ -143,6 +146,19 @@ export function useInventory({
     }
   }, [activeSubTab, insumos]);
 
+  const loadLotes = async () => {
+    try {
+      const data = await lotesService.list();
+      setLotes(data);
+    } catch (e) {
+      console.error('Error loading lotes:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadLotes();
+  }, [activeSubTab, insumos]);
+
   // Filtered insumos
   const filteredInsumos = useMemo(() => {
     return insumos.filter(ins => {
@@ -186,7 +202,7 @@ export function useInventory({
     toast.success("Merma registrada correctamente");
   };
 
-  // Process manual adjustments (plus/minus)
+  // Process manual adjustments (plus/minus/lote)
   const submitAjusteForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ajusteInsumoId || ajusteCantidad <= 0) {
@@ -199,6 +215,32 @@ export function useInventory({
 
     if (ajusteOperacion === 'restar' && insSelected.stock_actual < ajusteCantidad) {
       toast.error("No puede restar más que el stock disponible");
+      return;
+    }
+
+    if (ajusteOperacion === 'lote') {
+      if (!fechaVencimientoLote) {
+        toast.warning("Ingrese una fecha de vencimiento válida");
+        return;
+      }
+      const newLot: LoteInsumo = {
+        id_lote: `lot_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        id_insumo: ajusteInsumoId,
+        cantidad: ajusteCantidad,
+        fecha_vencimiento: fechaVencimientoLote,
+        creado_at: new Date().toISOString()
+      };
+      lotesService.create(newLot).then(() => {
+        onRestockInsumo(ajusteInsumoId, ajusteCantidad);
+        addLog('sistema', `LOTE REGISTRADO: Ingreso de ${ajusteCantidad}${insSelected.unidad_medida} de ${insSelected.nombre} con vencimiento el ${fechaVencimientoLote}`);
+        toast.success("Lote registrado e ingresado al stock correctamente");
+        setFechaVencimientoLote('');
+        setAjusteCantidad(0);
+        setAjusteInsumoId('');
+        loadLotes();
+      }).catch(err => {
+        toast.error("Error al registrar lote: " + err.message);
+      });
       return;
     }
 
@@ -337,6 +379,18 @@ export function useInventory({
           },
           ...prev
         ]);
+
+        if (ins.categoria === 'frescos') {
+          const defaultExpiry = new Date();
+          defaultExpiry.setDate(defaultExpiry.getDate() + 7); // 7 días por defecto
+          await lotesService.create({
+            id_lote: `lot_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            id_insumo: item.id_insumo,
+            cantidad: item.cantidad,
+            fecha_vencimiento: defaultExpiry.toISOString().split('T')[0],
+            creado_at: new Date().toISOString()
+          });
+        }
       }
 
       // Add to historical purchase orders list
@@ -354,7 +408,8 @@ export function useInventory({
 
       // Reset cart
       setPurchaseCart([]);
-      toast.success(`Orden de compra ${ocId} procesada con éxito. Stock ingresado.`);
+      loadLotes();
+      toast.success(`Orden de compra ${ocId} procesada con éxito. Stock e ingresado.`);
     } catch (err: any) {
       toast.error('Error al procesar la orden de compra: ' + err.message);
     }
@@ -426,6 +481,22 @@ export function useInventory({
     toast.success("Reporte CSV descargado correctamente");
   };
 
+  const handleDiscardLote = async (idLote: string) => {
+    try {
+      const lot = lotes.find(l => l.id_lote === idLote);
+      if (!lot) return;
+      const insObj = insumos.find(i => i.id_insumo === lot.id_insumo);
+      if (!insObj) return;
+
+      onRegistrarMerma(lot.id_insumo, lot.cantidad, 'vencimiento');
+      await lotesService.remove(idLote);
+      toast.success(`Lote de ${insObj.nombre} dado de baja (Merma registrada)`);
+      loadLotes();
+    } catch (err: any) {
+      toast.error("Error al dar de baja el lote: " + err.message);
+    }
+  };
+
   return {
     activeSubTab,
     setActiveSubTab,
@@ -481,6 +552,11 @@ export function useInventory({
     handleRemoveFromPurchaseCart,
     handleSuggestMissingStock,
     handleConfirmPurchaseOrder,
-    handleDescargarMovimientosCSV
+    handleDescargarMovimientosCSV,
+    lotes,
+    loadLotes,
+    fechaVencimientoLote,
+    setFechaVencimientoLote,
+    handleDiscardLote
   };
 }

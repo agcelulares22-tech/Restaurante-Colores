@@ -106,6 +106,7 @@ export default function SupabaseManager({
     { name: 'usuarios', desc: 'Credenciales, roles y perfiles de operarios/as.', key: 'id_usuario' },
     { name: 'mesas', desc: 'Configuracion y estado actual de mesas fisicas en salon.', key: 'id_mesa' },
     { name: 'insumos', desc: 'Stock actual de insumos y materias primas.', key: 'id_insumo' },
+    { name: 'lotes_insumo', desc: 'Control de lotes de frescos, cantidades y vencimientos.', key: 'id_lote' },
     { name: 'productos_menu', desc: 'Platos, tragos y articulos activos del catalogo de venta.', key: 'id_producto' },
     { name: 'recetas_escandallo', desc: 'Ingredientes y descuentos automaticos por escandallo.', key: 'id_receta' },
     { name: 'mermas', desc: 'Mermas registradas por roturas o perdidas de bodega.', key: 'id_merma' },
@@ -407,8 +408,7 @@ export default function SupabaseManager({
       if (dbMesas && dbMesas.length > 0) {
         // Map from DB schema to app type if needed
         syncedPayload.mesas = dbMesas.map(m => ({
-          id_mesa: m.id_mesa,
-          numero_mesa: m.numero_mesa,
+          ...m,
           estado: m.estado || 'libre',
           comensales: m.comensales || undefined
         }));
@@ -610,6 +610,14 @@ CREATE TABLE IF NOT EXISTS public.insumos (
   categoria text NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.lotes_insumo (
+  id_lote text PRIMARY KEY,
+  id_insumo text NOT NULL REFERENCES public.insumos(id_insumo) ON DELETE CASCADE,
+  cantidad numeric NOT NULL DEFAULT 0,
+  fecha_vencimiento date NOT NULL,
+  creado_at timestamp with time zone DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.recetas_escandallo (
   id_receta text PRIMARY KEY,
   id_producto text,
@@ -700,7 +708,8 @@ ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;`}
+ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`}
               </pre>
               <button
                 onClick={() => {
@@ -737,6 +746,14 @@ CREATE TABLE IF NOT EXISTS public.insumos (
   categoria text NOT NULL DEFAULT 'secos'
 );
 
+CREATE TABLE IF NOT EXISTS public.lotes_insumo (
+  id_lote text PRIMARY KEY,
+  id_insumo text NOT NULL REFERENCES public.insumos(id_insumo) ON DELETE CASCADE,
+  cantidad numeric NOT NULL DEFAULT 0,
+  fecha_vencimiento date NOT NULL,
+  creado_at timestamp with time zone DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.recetas_escandallo (
   id_receta text PRIMARY KEY,
   id_producto text,
@@ -826,7 +843,8 @@ ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;`;
+ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
                   navigator.clipboard.writeText(sqlCode);
                   setCopiedSql(true);
                   setTimeout(() => setCopiedSql(false), 2000);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, User, Clock, LogOut } from 'lucide-react';
+import { Menu, X, User, Clock, LogOut, RefreshCw } from 'lucide-react';
 import { AppView, getAllowedViews } from '../lib/permissions';
 import { Usuario } from '../types';
 import ElPatronLogo from './ElPatronLogo';
@@ -118,9 +118,24 @@ export default function MobileNav({
           </div>
           <div className="min-w-0 text-left">
             <span className="font-extrabold text-sm text-brand-yellow drop-shadow block leading-tight truncate">Colores Pizzería</span>
-            <span className="text-[7px] uppercase font-bold text-zinc-400 tracking-wider block leading-tight">
-              {isOnline ? 'En línea (Cloud)' : 'Sin conexión'} {syncQueueSize > 0 && `• ⚠️ ${syncQueueSize} pend.`}
-            </span>
+            <div className="flex items-center gap-1.5 leading-none mt-0.5">
+              <span className="text-[7px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">
+                {isOnline ? 'En línea' : 'Sin conexión'}
+              </span>
+              {syncQueueSize > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTriggerSync();
+                  }}
+                  className="bg-amber-500 hover:bg-amber-400 text-black text-[7px] font-black uppercase px-1 rounded flex items-center gap-0.5 animate-pulse cursor-pointer shrink-0 transition-colors"
+                  title="Sincronizar cambios pendientes ahora"
+                >
+                  <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                  <span>{syncQueueSize} Sync</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -181,8 +196,9 @@ export default function MobileNav({
             {/* Sync Queue Mobile Panel */}
             {syncQueueSize > 0 && (
               <div className="mx-3 mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs">
-                <span className="text-amber-400 font-bold">
-                  ⚠️ {syncQueueSize} cambios por subir
+                <span className="text-amber-400 font-bold flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
+                  <span>{syncQueueSize} cambios por subir</span>
                 </span>
                 <button 
                   onClick={onTriggerSync}

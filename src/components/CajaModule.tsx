@@ -48,6 +48,8 @@ import { cajaService } from '../services/cajaService';
 import { pdfService } from '../services/pdfService';
 import { printerService } from '../services/printerService';
 import ElPatronLogo from './ElPatronLogo';
+import { ManualBillingPanel } from './ManualBillingPanel';
+
 
 interface CajaModuleProps {
   pedidos: Pedido[];
@@ -201,6 +203,13 @@ function CajaModule({
   } = caja;
 
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showManualBilling, setShowManualBilling] = useState(false);
+
+  useEffect(() => {
+    if (selectedPedidoId) {
+      setShowManualBilling(false);
+    }
+  }, [selectedPedidoId]);
   const [archiveSearchQuery, setArchiveSearchQuery] = useState('');
   const [archiveMetodoFilter, setArchiveMetodoFilter] = useState('todos');
   const [archiveEstadoFilter, setArchiveEstadoFilter] = useState('todos');
@@ -303,6 +312,21 @@ function CajaModule({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              setSelectedPedidoId(null);
+              setShowManualBilling(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] uppercase font-extrabold cursor-pointer transition-colors ${
+              showManualBilling 
+                ? 'bg-[#E8B800] border-[#E8B800] text-zinc-950 font-black' 
+                : 'border-[#624A3E]/30 bg-[#F5F1E9] text-[#624A3E] hover:bg-[#ebdfd8]'
+            }`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Factura Manual
+          </button>
+
           <button
             onClick={() => setShowArchiveModal(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#624A3E]/30 bg-[#F5F1E9] text-[10px] uppercase font-extrabold text-[#624A3E] hover:bg-[#ebdfd8] cursor-pointer transition-colors"
@@ -867,7 +891,19 @@ function CajaModule({
         {/* RIGHT COLUMN: CORE TERMINAL & RECEIPT PREVIEW (LG: Span 8) */}
         <div className="lg:col-span-8">
           
-          {selectedPedido ? (
+          {showManualBilling ? (
+            <ManualBillingPanel
+              cajaSession={cajaSession}
+              restaurante={restaurante}
+              onEmitSuccess={() => {
+                setShowManualBilling(false);
+                loadCajaState();
+              }}
+              onClose={() => setShowManualBilling(false)}
+              addLog={addLog}
+              toast={toast}
+            />
+          ) : selectedPedido ? (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 bg-white rounded-2xl p-4 sm:p-6 border border-stone-200 shadow-sm">
               
               {/* TICKET OPTIONS CONTROLS (MD: Span 7) */}
@@ -2045,6 +2081,16 @@ function CajaModule({
               <p className="text-zinc-400 text-xs mt-2 max-w-md leading-relaxed font-semibold">
                 Seleccione una mesa ocupada desde la lista lateral. Se iniciará el panel interactivo de check-out, permitiéndole coordinar pagos mixtos, aplicar deducciones manuales, configurar datos de CUIT, fraccionar saldos por comensales u artículos indivisos, y emitir comprobantes en PDF y thermal roll.
               </p>
+
+              {cajaSession && (
+                <button
+                  onClick={() => setShowManualBilling(true)}
+                  className="mt-4 px-5 py-2.5 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 rounded-xl text-xs font-black uppercase shadow-md cursor-pointer transition-all flex items-center justify-center gap-2 border-0 active:scale-95"
+                >
+                  <Plus className="w-4 h-4 text-zinc-950" />
+                  Emitir Factura Manual
+                </button>
+              )}
               
               {!cajaSession && (
                 <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[11px] text-amber-400 max-w-sm flex items-start gap-2.5">

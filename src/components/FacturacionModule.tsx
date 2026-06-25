@@ -18,7 +18,7 @@ import { Pedido, ProductoMenu, TicketData, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { ToastContainer, useToast } from './ToastContainer';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, getArcaCuit } from '../services/arcaService';
 import { useDebounce } from '../hooks/useDebounce';
 
 interface FacturacionModuleProps {
@@ -31,9 +31,6 @@ type FacturaExtendida = Factura & {
   tipo?: 'ticket' | 'A' | 'B' | 'X';
   id_pedido?: string | null;
   observaciones?: string;
-  arcaCae?: string;
-  arcaVto?: string;
-  arcaQr?: string;
 };
 
 type TabKey = 'manual' | 'pagos' | 'archivo';
@@ -243,9 +240,10 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       };
       const arcaResult = await emitToArca(factura);
       if (arcaResult) {
-        factura.arcaCae = arcaResult.cae;
-        factura.arcaVto = arcaResult.vto;
-        factura.arcaQr = arcaResult.qr;
+        factura.afip_cae = arcaResult.cae;
+        factura.afip_vto = arcaResult.vto;
+        factura.afip_qr = arcaResult.qr;
+        factura.afip_resultado = 'A';
       }
       await downloadFacturaPdf(factura);
       await persistFactura(factura);
@@ -286,9 +284,10 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       };
       const arcaResult = await emitToArca(factura);
       if (arcaResult) {
-        factura.arcaCae = arcaResult.cae;
-        factura.arcaVto = arcaResult.vto;
-        factura.arcaQr = arcaResult.qr;
+        factura.afip_cae = arcaResult.cae;
+        factura.afip_vto = arcaResult.vto;
+        factura.afip_qr = arcaResult.qr;
+        factura.afip_resultado = 'A';
       }
       await downloadFacturaPdf(factura, selectedPending.pedido);
       await persistFactura(factura);
@@ -359,10 +358,11 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
       if (cae) {
         addLog('sistema', `ARCA: CAE ${cae} emitido para ${factura.nro_ticket}.`);
+        const emitterCuit = getArcaCuit() || parseInt((import.meta as any).env?.VITE_ARCA_CUIT || '30716492514');
         const qrJson = JSON.stringify({
           ver: 1,
           fecha: new Date().toISOString().split('T')[0],
-          cuit: parseInt((import.meta as any).env?.VITE_ARCA_CUIT || '30716492514'),
+          cuit: emitterCuit,
           ptoVta: 1,
           tipoCmp: tipoId,
           nroCmp: parseInt(factura.nro_ticket.split('-').pop() || '1'),
@@ -447,9 +447,9 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       mensajePie: rInfo.mensajePie || 'Gracias por su visita. Comprobante generado por Pizzería Colores.',
       clienteNombre: factura.cliente,
       clienteCuit: factura.cuit,
-      cae: factura.arcaCae,
-      vto: factura.arcaVto,
-      qrData: factura.arcaQr
+      cae: factura.afip_cae,
+      vto: factura.afip_vto,
+      qrData: factura.afip_qr
     };
 
     await pdfService.exportToPDF(ticketData);
@@ -998,7 +998,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                     <tr key={f.id_factura} className={`border-b border-stone-100 hover:bg-stone-50/50 transition-colors ${isNCD ? 'opacity-60 bg-red-50/10' : ''}`}>
                       <td data-label="Nro" className="py-3 px-3 font-mono font-bold text-stone-800">
                         {f.nro_ticket}
-                        {f.arcaCae && <span className="block text-[8px] text-emerald-600 font-medium">CAE: {f.arcaCae}</span>}
+                        {f.afip_cae && <span className="block text-[8px] text-emerald-600 font-medium font-sans">CAE: {f.afip_cae}</span>}
                       </td>
                       <td data-label="Fecha" className="py-3 px-3 font-medium text-stone-400">{f.fecha}</td>
                       <td data-label="Cliente" className="py-3 px-3">
@@ -1009,8 +1009,14 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                       <td data-label="IVA" className="py-3 px-3 text-right font-mono text-stone-400">{money(f.iva_veintiuno)}</td>
                       <td data-label="Total" className={`py-3 px-3 text-right font-mono font-extrabold ${isNCD ? 'text-red-500 line-through' : 'text-stone-900'}`}>{money(f.total)}</td>
                       <td data-label="Estado" className="py-3 px-3 text-center">
-                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${isNCD ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
-                          {isNCD ? 'Anulado' : f.arcaCae ? 'CAE ✓' : 'Valido'}
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                          isNCD 
+                            ? 'bg-rose-50 text-rose-600 border-rose-100' 
+                            : f.afip_cae 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                              : 'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}>
+                          {isNCD ? 'Anulado' : f.afip_cae ? 'CAE ✓' : 'Simulado'}
                         </span>
                       </td>
                       <td data-label="Acciones" className="py-3 px-3 text-right space-x-1.5 whitespace-nowrap">

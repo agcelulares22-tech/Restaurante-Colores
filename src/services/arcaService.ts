@@ -43,6 +43,11 @@ export function isArcaConfigured(): boolean {
   return getStoredCredentials() !== null;
 }
 
+export function getArcaCuit(): number | null {
+  const creds = getStoredCredentials();
+  return creds ? creds.cuit : null;
+}
+
 export async function testArcaConnection(): Promise<boolean> {
   const creds = getStoredCredentials();
   if (!creds) return false;

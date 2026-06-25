@@ -64,6 +64,46 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
     }
   };
 
+  // Haversine formula to calculate distance in meters between two coordinates
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371e3; // Earth radius in meters
+    const phi1 = (lat1 * Math.PI) / 180;
+    const phi2 = (lat2 * Math.PI) / 180;
+    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+      Math.cos(phi1) * Math.cos(phi2) *
+      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // in meters
+  };
+
+  const getGeofenceStatus = (lat?: number, lon?: number) => {
+    if (lat === undefined || lon === undefined || lat === null || lon === null) {
+      return { isLocal: false, distance: 0, text: 'Sin GPS', badgeClass: 'bg-stone-100 text-stone-600 border-stone-200' };
+    }
+    const dist = calculateDistance(lat, lon, -33.12356, -64.34882);
+    const roundedDist = Math.round(dist);
+    if (dist <= 120) {
+      return { isLocal: true, distance: roundedDist, text: 'En Local ✓', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+    } else {
+      return { isLocal: false, distance: roundedDist, text: `Fuera de Rango (${roundedDist}m) ⚠️`, badgeClass: 'bg-amber-100 text-amber-800 border-amber-200' };
+    }
+  };
+
+  const renderGeofenceBadge = (lat?: number, lon?: number) => {
+    const status = getGeofenceStatus(lat, lon);
+    if (lat === undefined || lon === undefined || lat === null || lon === null) return null;
+    return (
+      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border ${status.badgeClass} w-fit`}>
+        {status.text}
+      </span>
+    );
+  };
+
   // Filtering states
   const [filterEmpleado, setFilterEmpleado] = useState<string>('todos');
   const [filterTipo, setFilterTipo] = useState<string>('todos');
@@ -453,7 +493,17 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 <span className="text-[10px] uppercase font-black tracking-wider text-stone-400">Geolocalización GPS</span>
                  {locationStatus === 'success' && coords ? (
                   <div className="text-xs text-slate-700 space-y-0.5">
-                    <p className="font-semibold text-emerald-800">Ubicación capturada correctamente ✓</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-emerald-800">Ubicación capturada correctamente ✓</p>
+                      {(() => {
+                        const status = getGeofenceStatus(coords.latitude, coords.longitude);
+                        return (
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase border ${status.badgeClass}`}>
+                            {status.text}
+                          </span>
+                        );
+                      })()}
+                    </div>
                     {direccionResolvida && (
                       <p className="font-extrabold text-stone-850 text-sm py-0.5">📍 {direccionResolvida}</p>
                     )}
@@ -681,22 +731,27 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                             <td className="py-3 px-3 font-extrabold text-stone-850 font-mono">
                               {hora} hs
                             </td>
-                            <td className="py-3 px-3 max-w-[220px] truncate">
-                              {googleMapsUrl ? (
-                                <a
-                                  href={googleMapsUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-brand-orange font-bold flex items-center gap-1 hover:underline text-[10px] cursor-pointer"
-                                  title={`Ver en mapa: ${f.latitud}, ${f.longitud}`}
-                                >
-                                  <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
-                                  <span className="truncate">{f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}</span>
-                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 italic">Sin GPS</span>
-                              )}
+                            <td className="py-3 px-3 max-w-[240px]">
+                              <div className="flex flex-col gap-1">
+                                {googleMapsUrl ? (
+                                  <>
+                                    <a
+                                      href={googleMapsUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-brand-orange font-bold flex items-center gap-1 hover:underline text-[10px] cursor-pointer"
+                                      title={`Ver en mapa: ${f.latitud}, ${f.longitud}`}
+                                    >
+                                      <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
+                                      <span className="truncate max-w-[150px]">{f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}</span>
+                                      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                    </a>
+                                    {renderGeofenceBadge(f.latitud, f.longitud)}
+                                  </>
+                                ) : (
+                                  <span className="text-slate-400 italic">Sin GPS</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -733,6 +788,11 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           <p>🕒 Hora: <strong className="text-stone-800">{hora} hs</strong></p>
                           {f.direccion && (
                             <p className="text-stone-750 font-semibold mt-1">📍 {f.direccion}</p>
+                          )}
+                          {f.latitud && f.longitud && (
+                            <div className="mt-1">
+                              {renderGeofenceBadge(f.latitud, f.longitud)}
+                            </div>
                           )}
                         </div>
 

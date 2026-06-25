@@ -14,9 +14,10 @@ import {
     PieChart,
     BarChart3
 } from 'lucide-react';
-import { Mesa, Pedido, Insumo, EventoLog, ProductoMenu } from '../types';
+import { Mesa, Pedido, Insumo, EventoLog, ProductoMenu, LoteInsumo, Merma, RecetaEscandallo } from '../types';
 import { AppView } from '../lib/permissions';
 import { facturacionService, Factura } from '../services/facturacionService';
+import { mermasService } from '../services/mermasService';
 
 interface PanelDashboardProps {
     mesas: Mesa[];
@@ -27,6 +28,7 @@ interface PanelDashboardProps {
     allowedViews: AppView[];
     onNavigate: (view: any) => void;
     getSimulatedTimeStr: () => string;
+    onRegistrarMerma?: (idInsumo: string, cantidad: number, motivo: 'vencimiento' | 'rotura' | 'error_cocina' | 'otro') => void;
 }
 
 export default function PanelDashboard({
@@ -37,11 +39,15 @@ export default function PanelDashboard({
     logs,
     allowedViews,
     onNavigate,
-    getSimulatedTimeStr
+    getSimulatedTimeStr,
+    onRegistrarMerma
 }: PanelDashboardProps) {
 
-  // State to hold facturas
+  // State to hold facturas, batch lots, mermas and recipes
   const [facturas, setFacturas] = useState<Factura[]>([]);
+  const [lotes, setLotes] = useState<LoteInsumo[]>([]);
+  const [mermas, setMermas] = useState<Merma[]>([]);
+  const [recetas, setRecetas] = useState<RecetaEscandallo[]>([]);
 
   // Mapa de precio_venta por id_producto para lookups O(1)
   const precioMap = useMemo(() => {
@@ -75,6 +81,31 @@ export default function PanelDashboard({
       .then(data => setFacturas(data || []))
       .catch(err => console.error('Error loading invoices in PanelDashboard:', err));
   }, [pedidosCobrados]);
+
+  // Load active batches/lotes
+  useEffect(() => {
+    import('../services/lotesService').then(({ lotesService }) => {
+      lotesService.list()
+        .then(data => setLotes(data || []))
+        .catch(err => console.error('Error loading lotes in PanelDashboard:', err));
+    });
+  }, [insumos]);
+
+  // Load mermas
+  useEffect(() => {
+    mermasService.list()
+      .then(data => setMermas(data || []))
+      .catch(err => console.error('Error loading mermas in PanelDashboard:', err));
+  }, [logs, insumos]);
+
+  // Load recipes (escandallo)
+  useEffect(() => {
+    import('../services/recetasService').then(({ recetasService }) => {
+      recetasService.list()
+        .then(data => setRecetas(data || []))
+        .catch(err => console.error('Error loading recipes in PanelDashboard:', err));
+    });
+  }, [productosMenu]);
 
   // KPI: ticket promedio
   const ticketPromedio = pedidosCobrados.length > 0
@@ -268,6 +299,98 @@ export default function PanelDashboard({
     return vals.length > 0 ? Math.max(...vals, 1) : 1;
   }, [courierStats]);
 
+  // Expiration warnings filter (expired or expiring in <= 3 days)
+  const expWarnings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return lotes
+      .filter(l => l.cantidad > 0)
+      .map(l => {
+        const expiry = new Date(l.fecha_vencimiento + 'T00:00:00');
+        const diffTime = expiry.getTime() - today.getTime();
+        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const insObj = insumos.find(i => i.id_insumo === l.id_insumo);
+        return {
+          ...l,
+          daysRemaining: days,
+          insumoName: insObj?.nombre || l.id_insumo,
+          unidad: insObj?.unidad_medida || ''
+        };
+      })
+      .filter(l => l.daysRemaining <= 3)
+      .sort((a, b) => a.daysRemaining - b.daysRemaining);
+  }, [lotes, insumos]);
+
+  const mermasPorMotivo = useMemo(() => {
+    const motivos: Record<string, number> = {
+      vencimiento: 0,
+      rotura: 0,
+      error_cocina: 0,
+      otro: 0
+    };
+    let totalPerdida = 0;
+    mermas.forEach(m => {
+      const costo = m.costo_perdida ?? 0;
+      motivos[m.motivo] = (motivos[m.motivo] || 0) + costo;
+      totalPerdida += costo;
+    });
+
+    const labelMap: Record<string, string> = {
+      vencimiento: 'Vencimiento',
+      rotura: 'Rotura',
+      error_cocina: 'Error Cocina',
+      otro: 'Otro'
+    };
+
+    return Object.entries(motivos)
+      .map(([key, value]) => ({
+        key,
+        name: labelMap[key] || key,
+        value,
+        percentage: totalPerdida > 0 ? (value / totalPerdida) * 100 : 0
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [mermas]);
+
+  const totalMermasCosto = useMemo(() => {
+    return mermas.reduce((sum, m) => sum + (m.costo_perdida ?? 0), 0);
+  }, [mermas]);
+
+  const mermasColorsMap: Record<string, string> = {
+    vencimiento: '#D42B2B',
+    rotura: '#E85D00',
+    error_cocina: '#E8B800',
+    otro: '#A8A29E'
+  };
+
+  const platosMasRentables = useMemo(() => {
+    const list = productosMenu
+      .filter(p => p.activo && p.precio_venta > 0)
+      .map(p => {
+        const itemsReceta = recetas.filter(r => r.id_producto === p.id_producto);
+        const costoReceta = itemsReceta.reduce((sum, r) => {
+          const insumo = insumos.find(i => i.id_insumo === r.id_insumo);
+          const costoUnit = insumo?.costo_unitario ?? 0;
+          return sum + (costoUnit * r.cantidad_a_descontar);
+        }, 0);
+
+        const margenAbsoluto = p.precio_venta - costoReceta;
+        const margenPorcentaje = p.precio_venta > 0 ? (margenAbsoluto / p.precio_venta) * 100 : 0;
+
+        return {
+          id_producto: p.id_producto,
+          nombre: p.nombre,
+          precio_venta: p.precio_venta,
+          costo_receta: costoReceta,
+          margen_absoluto: margenAbsoluto,
+          margen_porcentaje: margenPorcentaje
+        };
+      });
+
+    return list.sort((a, b) => b.margen_absoluto - a.margen_absoluto).slice(0, 5);
+  }, [productosMenu, recetas, insumos]);
+
   return (
         <div className="space-y-6">
         
@@ -369,6 +492,62 @@ export default function PanelDashboard({
                                 </div>
                       </div>
               </div>
+
+              {/* ── EXPIRATION ALERTS PANEL ─────────────────────────────────── */}
+              {expWarnings.length > 0 && (
+                <div className="bg-red-50/40 border border-red-200 rounded-2xl p-5 space-y-4 shadow-xs">
+                  <div className="flex items-center gap-2.5 text-red-700">
+                    <AlertTriangle className="w-5 h-5 text-red-600 animate-pulse" />
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider">Control de Vencimiento de Ingredientes</h4>
+                      <p className="text-[10px] text-red-600/80">Se detectaron lotes de materia prima vencidos o próximos a expirar en 3 días o menos.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {expWarnings.map(l => {
+                      const isExpired = l.daysRemaining <= 0;
+                      return (
+                        <div key={l.id_lote} className={`p-4 rounded-xl border flex items-center justify-between gap-4 transition-all bg-white ${isExpired ? 'border-red-100' : 'border-amber-100'}`}>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                isExpired 
+                                  ? 'bg-red-100 text-red-700' 
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {isExpired ? 'Vencido' : `Vence en ${l.daysRemaining} ${l.daysRemaining === 1 ? 'día' : 'días'}`}
+                              </span>
+                              <span className="text-[9px] text-stone-400 font-mono font-medium">Lote: {l.id_lote}</span>
+                            </div>
+                            <p className="text-xs font-extrabold text-stone-850">
+                              {l.insumoName}
+                            </p>
+                            <p className="text-[10px] text-stone-500">
+                              Cantidad en riesgo: <strong className="text-stone-750 font-mono">{l.cantidad} {l.unidad}</strong> · Vence: {new Date(l.fecha_vencimiento + 'T00:00:00').toLocaleDateString('es-AR')}
+                            </p>
+                          </div>
+                          {onRegistrarMerma && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Confirmar descarte de ${l.cantidad} ${l.unidad} de '${l.insumoName}' por vencimiento?`)) {
+                                  onRegistrarMerma(l.id_insumo, l.cantidad, 'vencimiento');
+                                }
+                              }}
+                              className={`py-1.5 px-3 rounded-lg text-[10px] font-bold uppercase transition-colors cursor-pointer border flex items-center gap-1.5 ${
+                                isExpired 
+                                  ? 'bg-red-50 hover:bg-red-100 border-red-200 text-red-600' 
+                                  : 'bg-stone-50 hover:bg-stone-100 border-stone-200 text-stone-600'
+                              }`}
+                            >
+                              Descartar
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
           {/* ── GRÁFICOS DE RENDIMIENTO Y VENTAS ──────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -545,6 +724,134 @@ export default function PanelDashboard({
                       ) : (
                           <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8">
                               Sin facturas emitidas en este turno
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+
+          {/* ── GRÁFICOS DE MERMAS Y RENTABILIDAD DE PLATOS ───────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Distribución de Mermas */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col">
+                  <div className="flex items-center gap-2 mb-4 justify-between">
+                      <div className="flex items-center gap-2">
+                        <PieChart className="w-4 h-4 text-red-650" />
+                        <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Distribución de Mermas (Costo)</h4>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-red-605 bg-red-50 px-2 py-0.5 rounded">
+                        Pérdida Total: ${Math.round(totalMermasCosto).toLocaleString('es-AR')}
+                      </span>
+                  </div>
+                  <div className="flex-1 flex flex-row items-center gap-4">
+                      {totalMermasCosto > 0 ? (
+                          <>
+                              {/* Donut SVG */}
+                              <div className="w-24 h-24 flex-shrink-0">
+                                  <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
+                                      {/* Background Circle */}
+                                      <circle cx="60" cy="60" r="40" fill="transparent" stroke="#FAF7F0" strokeWidth="14" />
+                                      {(() => {
+                                          let currentRotation = 0;
+                                          return mermasPorMotivo.map((d) => {
+                                              const radius = 40;
+                                              const circumference = 2 * Math.PI * radius;
+                                              const strokeDasharray = circumference;
+                                              const strokeDashoffset = circumference - (d.percentage / 100) * circumference;
+                                              const rotation = currentRotation;
+                                              currentRotation += (d.percentage / 100) * 360;
+                                              
+                                              return (
+                                                  <circle
+                                                      key={d.key}
+                                                      cx="60"
+                                                      cy="60"
+                                                      r={radius}
+                                                      fill="transparent"
+                                                      stroke={mermasColorsMap[d.key] || '#A8A29E'}
+                                                      strokeWidth="14"
+                                                      strokeDasharray={strokeDasharray}
+                                                      strokeDashoffset={strokeDashoffset}
+                                                      transform={`rotate(${rotation} 60 60)`}
+                                                      className="transition-all duration-300 hover:stroke-[16px]"
+                                                  >
+                                                      <title>{`${d.name}: $${d.value.toLocaleString('es-AR')} (${d.percentage.toFixed(1)}%)`}</title>
+                                                  </circle>
+                                              );
+                                          });
+                                      })()}
+                                  </svg>
+                              </div>
+                              {/* Legend */}
+                              <div className="flex-1 flex flex-col justify-center space-y-1.5 max-h-[110px] overflow-y-auto pr-1">
+                                  {mermasPorMotivo.map((d) => (
+                                      <div key={d.key} className="flex items-center justify-between text-[10px]">
+                                          <div className="flex items-center gap-1.5 truncate mr-1">
+                                              <span
+                                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                                  style={{ backgroundColor: mermasColorsMap[d.key] || '#A8A29E' }}
+                                              />
+                                              <span className="font-bold text-stone-700 truncate">{d.name}</span>
+                                          </div>
+                                          <span className="font-mono text-stone-500 font-extrabold flex-shrink-0 flex items-center gap-1">
+                                              <span>${Math.round(d.value).toLocaleString('es-AR')}</span>
+                                              <span className="text-[9px] text-stone-450 font-normal">({d.percentage.toFixed(0)}%)</span>
+                                          </span>
+                                      </div>
+                                  ))}
+                              </div>
+                          </>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8 italic">
+                              Sin mermas registradas
+                          </div>
+                      )}
+                  </div>
+              </div>
+
+              {/* Rentabilidad de Platos */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col">
+                  <div className="flex items-center gap-2 mb-4">
+                      <TrendingUp className="w-4 h-4 text-emerald-600" />
+                      <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Top 5 Platos Más Rentables (Escandallo)</h4>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between">
+                      {platosMasRentables.length > 0 ? (
+                          <div className="space-y-3">
+                              {platosMasRentables.map((p) => {
+                                  const pctBar = p.precio_venta > 0 ? (p.margen_absoluto / p.precio_venta) * 100 : 0;
+                                  return (
+                                      <div key={p.id_producto} className="space-y-1 text-left">
+                                          <div className="flex justify-between items-center text-xs">
+                                              <span className="font-extrabold text-stone-850 truncate max-w-[160px]">{p.nombre}</span>
+                                              <span className="font-mono text-[11px] text-stone-600 flex items-center gap-1.5">
+                                                  <span>Margen: <strong className="text-emerald-700 font-bold">${Math.round(p.margen_absoluto).toLocaleString('es-AR')}</strong></span>
+                                                  <span className="text-[10px] text-stone-400">({Math.round(p.margen_porcentaje)}%)</span>
+                                              </span>
+                                          </div>
+                                          <div className="flex justify-between text-[9px] text-stone-450 font-mono">
+                                              <span>Venta: ${p.precio_venta.toLocaleString('es-AR')}</span>
+                                              <span>Costo Receta: ${Math.round(p.costo_receta).toLocaleString('es-AR')}</span>
+                                          </div>
+                                          <div className="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden flex">
+                                              <div 
+                                                  className="bg-emerald-500 h-full rounded-l-full" 
+                                                  style={{ width: `${pctBar}%` }}
+                                                  title={`Margen: ${Math.round(pctBar)}%`}
+                                              />
+                                              <div 
+                                                  className="bg-red-200 h-full" 
+                                                  style={{ width: `${100 - pctBar}%` }}
+                                                  title={`Costo: ${Math.round(100 - pctBar)}%`}
+                                              />
+                                          </div>
+                                      </div>
+                                  );
+                              })}
+                          </div>
+                      ) : (
+                          <div className="flex-1 flex items-center justify-center text-xs text-stone-400 py-8 italic">
+                              Cargando recetas para calcular rentabilidad...
                           </div>
                       )}
                   </div>

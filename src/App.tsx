@@ -37,7 +37,7 @@ import { tryGetActiveSupabaseClient } from './lib/supabaseClient';
 import { pedidosService } from './services/pedidosService';
 import DiagnosticsTester from './components/DiagnosticsTester';
 import { ThemeToggle } from './components/ThemeToggle';
-
+import { lotesService } from './services/lotesService';
 
 import type { BackupSnapshotData } from './services/backupsService';
 // Lazy-loaded modules (code-split, loaded on demand)
@@ -302,8 +302,7 @@ export default function App() {
 
         if ((dbMesas ?? []).length > 0) {
           setMesas((dbMesas ?? []).map(m => ({
-            id_mesa: m.id_mesa,
-            numero_mesa: m.numero_mesa,
+            ...m,
             estado: m.estado || 'libre',
             comensales: m.comensales || undefined
           })));
@@ -767,6 +766,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 stock_anterior: stockAnterior,
                 stock_nuevo: updatedStock
               }).catch(console.error);
+              lotesService.deductFIFO(currentIns.id_insumo, discountAmt).catch(err =>
+                console.error('FIFO deduction failed:', err)
+              );
             } else {
               addLog('sistema', `ADVERTENCIA: No existe insumo '${rec.id_insumo}' solicitado por la receta.`);
             }
@@ -804,6 +806,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 stock_anterior: stockAnterior,
                 stock_nuevo: updatedStock
               }).catch(console.error);
+              lotesService.restoreFIFO(currentIns.id_insumo, restoreAmt).catch(err =>
+                console.error('FIFO restoration failed:', err)
+              );
             }
           });
         });
@@ -988,6 +993,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       stock_anterior: insObj.stock_actual,
       stock_nuevo: Math.max(0, parseFloat((insObj.stock_actual - cantidad).toFixed(2)))
     }).catch(console.error);
+    lotesService.deductFIFO(idInsumo, cantidad).catch(err =>
+      console.error('FIFO deduction failed during merma:', err)
+    );
   };
 
   const handleRestockInsumo = useCallback((idInsumo: string, cantidad: number) => {
@@ -1206,18 +1214,36 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               </div>
             )}
           </div>
-          {!isSidebarCollapsed && syncQueueSize > 0 && (
-            <div className="mt-2 flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-md text-[10px]">
-              <span className="text-amber-400 font-bold flex items-center gap-1">
-                ⚠️ {syncQueueSize} por subir
-              </span>
-              <button 
-                onClick={handleTriggerSync}
-                className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+          {/* Sincronización interactiva */}
+          {syncQueueSize > 0 && (
+            isSidebarCollapsed ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTriggerSync();
+                }}
+                className="mt-2 w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center cursor-pointer transition-colors relative"
+                title={`Sincronizar ${syncQueueSize} cambios pendientes`}
               >
-                Subir
+                <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                <span className="absolute -top-1 -right-1 bg-red-650 text-white font-mono text-[7px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-zinc-950">
+                  {syncQueueSize}
+                </span>
               </button>
-            </div>
+            ) : (
+              <div className="mt-2 flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2 py-1.5 rounded-md text-[10px]">
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 animate-spin shrink-0 text-amber-400" />
+                  <span>{syncQueueSize} por subir</span>
+                </span>
+                <button 
+                  onClick={handleTriggerSync}
+                  className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                >
+                  Subir
+                </button>
+              </div>
+            )
           )}
         </div>
 
@@ -1363,7 +1389,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
               <BusinessIntelligence pedidos={pedidos} productosMenu={productosMenu} logs={logs} precioMap={precioMap} insumos={insumos} recetas={recetas} mermas={mermas} />
             )}
             {activeView === 'panel' && (
-              <PanelDashboard pedidos={pedidos} insumos={insumos} mesas={mesas} productosMenu={productosMenu} logs={logs} allowedViews={allowedViews} onNavigate={handleNavigate} getSimulatedTimeStr={getSimulatedTimeStr} />
+              <PanelDashboard pedidos={pedidos} insumos={insumos} mesas={mesas} productosMenu={productosMenu} logs={logs} allowedViews={allowedViews} onNavigate={handleNavigate} getSimulatedTimeStr={getSimulatedTimeStr} onRegistrarMerma={handleRegistrarMerma} />
             )}
             {activeView === 'usuarios' && (
               <UsuariosModule usuarios={usuarios} onUsuariosChange={setUsuarios} addLog={addLog} activeUser={activeUser} />

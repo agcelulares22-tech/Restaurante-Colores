@@ -13,16 +13,16 @@ export const INITIAL_USUARIOS: Usuario[] = [
 ];
 
 export const INITIAL_MESAS: Mesa[] = [
-  { id_mesa: 1, numero_mesa: 'Mesa 1', estado: 'libre' },
-  { id_mesa: 2, numero_mesa: 'Mesa 2', estado: 'ocupada', comensales: 2 },
-  { id_mesa: 3, numero_mesa: 'Mesa 3', estado: 'libre' },
-  { id_mesa: 4, numero_mesa: 'Mesa 4', estado: 'ocupada', comensales: 3 },
-  { id_mesa: 5, numero_mesa: 'Mesa 5', estado: 'libre' },
-  { id_mesa: 6, numero_mesa: 'Mesa 6', estado: 'libre' },
-  { id_mesa: 8, numero_mesa: 'Mesa 8', estado: 'ocupada', comensales: 1 },
-  { id_mesa: 12, numero_mesa: 'Mesa 12', estado: 'ocupada', comensales: 4 },
-  { id_mesa: 101, numero_mesa: 'VIP-1', estado: 'libre' },
-  { id_mesa: 102, numero_mesa: 'Terraza-3', estado: 'libre' },
+  { id_mesa: 1, numero_mesa: 'Mesa 1', estado: 'libre', capacidad: 4, zona: 'comedor', sector: 'comedor', forma: 'rectangular', x: 61, y: 16, width: 12, height: 6 },
+  { id_mesa: 2, numero_mesa: 'Mesa 2', estado: 'ocupada', comensales: 2, capacidad: 5, zona: 'comedor', sector: 'comedor', forma: 'rectangular', x: 22, y: 16, width: 12, height: 6 },
+  { id_mesa: 3, numero_mesa: 'Mesa 3', estado: 'libre', capacidad: 5, zona: 'comedor', sector: 'comedor', forma: 'rectangular', x: 22, y: 27, width: 12, height: 6 },
+  { id_mesa: 4, numero_mesa: 'Mesa 4', estado: 'ocupada', comensales: 3, capacidad: 4, zona: 'comedor', sector: 'comedor', forma: 'rectangular', x: 61, y: 27, width: 12, height: 6 },
+  { id_mesa: 5, numero_mesa: 'Mesa 5', estado: 'libre', capacidad: 4, zona: 'salon', sector: 'salon', forma: 'redonda', x: 41, y: 58, width: 8, height: 8 },
+  { id_mesa: 6, numero_mesa: 'Mesa 6', estado: 'libre', capacidad: 4, zona: 'salon', sector: 'salon', forma: 'redonda', x: 22, y: 70, width: 8, height: 8 },
+  { id_mesa: 8, numero_mesa: 'Mesa 8', estado: 'ocupada', comensales: 1, capacidad: 4, zona: 'salon', sector: 'salon', forma: 'redonda', x: 22, y: 84, width: 8, height: 8 },
+  { id_mesa: 12, numero_mesa: 'Mesa 12', estado: 'ocupada', comensales: 4, capacidad: 4, zona: 'salon', sector: 'salon', forma: 'redonda', x: 61, y: 70, width: 8, height: 8 },
+  { id_mesa: 101, numero_mesa: 'VIP-1', estado: 'libre', capacidad: 4, zona: 'salon', sector: 'vip', forma: 'redonda', x: 41, y: 84, width: 8, height: 8 },
+  { id_mesa: 102, numero_mesa: 'Terraza-3', estado: 'libre', capacidad: 2, zona: 'salon', sector: 'terraza', forma: 'redonda', x: 61, y: 84, width: 8, height: 8 },
 ];
 
 export const INITIAL_INSUMOS: Insumo[] = [

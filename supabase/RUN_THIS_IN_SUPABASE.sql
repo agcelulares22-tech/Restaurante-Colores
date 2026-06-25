@@ -31,6 +31,7 @@ DROP TABLE IF EXISTS public.configuracion CASCADE;
 DROP TABLE IF EXISTS public.auditoria_eventos CASCADE;
 DROP TABLE IF EXISTS public.backups CASCADE;
 DROP TABLE IF EXISTS public.registro_asistencia CASCADE;
+DROP TABLE IF EXISTS public.lotes_insumo CASCADE;
 
 -- ============================================================
 -- 2. CREACIÓN DE TABLAS MAESTRAS
@@ -78,6 +79,15 @@ CREATE TABLE public.insumos (
     proveedor TEXT,
     costo_unitario NUMERIC DEFAULT 0.0,
     es_bebida_directa BOOLEAN NOT NULL DEFAULT false
+);
+
+-- Tabla de Control de Lotes e Ingredientes Frescos
+CREATE TABLE public.lotes_insumo (
+    id_lote TEXT PRIMARY KEY,
+    id_insumo TEXT NOT NULL REFERENCES public.insumos(id_insumo) ON DELETE CASCADE,
+    cantidad NUMERIC NOT NULL DEFAULT 0.0,
+    fecha_vencimiento DATE NOT NULL,
+    creado_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Tabla de Productos del Menú (Carta)
@@ -280,18 +290,26 @@ INSERT INTO public.usuarios (id_usuario, nombre, apellido, username, password, r
 ON CONFLICT (id_usuario) DO NOTHING;
 
 -- Mesas iniciales
-INSERT INTO public.mesas (id_mesa, numero_mesa, estado, comensales) VALUES
-    (1, 'Mesa 1', 'libre', NULL),
-    (2, 'Mesa 2', 'ocupada', 2),
-    (3, 'Mesa 3', 'libre', NULL),
-    (4, 'Mesa 4', 'ocupada', 3),
-    (5, 'Mesa 5', 'libre', NULL),
-    (6, 'Mesa 6', 'libre', NULL),
-    (8, 'Mesa 8', 'ocupada', 1),
-    (12, 'Mesa 12', 'ocupada', 4),
-    (101, 'VIP-1', 'libre', NULL),
-    (102, 'Terraza-3', 'libre', NULL)
-ON CONFLICT (id_mesa) DO NOTHING;
+INSERT INTO public.mesas (id_mesa, numero_mesa, estado, comensales, capacidad, zona, sector, forma, x, y, width, height) VALUES
+    (1, 'Mesa 1', 'libre', NULL, 4, 'comedor', 'comedor', 'rectangular', 61, 16, 12, 6),
+    (2, 'Mesa 2', 'ocupada', 2, 5, 'comedor', 'comedor', 'rectangular', 22, 16, 12, 6),
+    (3, 'Mesa 3', 'libre', NULL, 5, 'comedor', 'comedor', 'rectangular', 22, 27, 12, 6),
+    (4, 'Mesa 4', 'ocupada', 3, 4, 'comedor', 'comedor', 'rectangular', 61, 27, 12, 6),
+    (5, 'Mesa 5', 'libre', NULL, 4, 'salon', 'salon', 'redonda', 41, 58, 8, 8),
+    (6, 'Mesa 6', 'libre', NULL, 4, 'salon', 'salon', 'redonda', 22, 70, 8, 8),
+    (8, 'Mesa 8', 'ocupada', 1, 4, 'salon', 'salon', 'redonda', 22, 84, 8, 8),
+    (12, 'Mesa 12', 'ocupada', 4, 4, 'salon', 'salon', 'redonda', 61, 70, 8, 8),
+    (101, 'VIP-1', 'libre', NULL, 4, 'salon', 'vip', 'redonda', 41, 84, 8, 8),
+    (102, 'Terraza-3', 'libre', NULL, 2, 'salon', 'terraza', 'redonda', 61, 84, 8, 8)
+ON CONFLICT (id_mesa) DO UPDATE SET
+    capacidad = EXCLUDED.capacidad,
+    zona = EXCLUDED.zona,
+    sector = EXCLUDED.sector,
+    forma = EXCLUDED.forma,
+    x = EXCLUDED.x,
+    y = EXCLUDED.y,
+    width = EXCLUDED.width,
+    height = EXCLUDED.height;
 
 -- Insumos iniciales
 INSERT INTO public.insumos (id_insumo, nombre, stock_actual, stock_minimo, unidad_medida, categoria, subcategoria, proveedor, costo_unitario, es_bebida_directa) VALUES
@@ -541,6 +559,7 @@ ALTER TABLE public.movimientos_inventario ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registro_asistencia ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE
@@ -549,7 +568,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'categorias', 'usuarios', 'mesas', 'insumos', 'productos_menu', 'recetas_escandallo', 
     'pedidos_cabecera', 'pedido_detalle', 'mermas', 'cierres_caja', 
-    'movimientos_inventario', 'clientes', 'configuracion', 'registro_asistencia'
+    'movimientos_inventario', 'clientes', 'configuracion', 'registro_asistencia', 'lotes_insumo'
   ]
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', 'permitir_todo_demo_' || t, t);
