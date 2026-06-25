@@ -176,7 +176,7 @@ function MozoTerminal({
     toast
   });
 
-  const [viewMode, setViewMode] = React.useState<'lista' | 'plano'>('plano');
+  const [viewMode, setViewMode] = React.useState<'lista' | 'plano'>('lista');
   const [zonasEnvio, setZonasEnvio] = React.useState<any[]>([]);
   const [callesEnvio, setCallesEnvio] = React.useState<any[]>([]);
   const [zonaResultado, setZonaResultado] = React.useState<any>(null);
@@ -444,31 +444,6 @@ function MozoTerminal({
               <span className="text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 font-bold shrink-0">
                 {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999).length} Ocupadas
               </span>
-            </div>
-
-            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-end sm:self-auto shrink-0">
-              <button
-                type="button"
-                onClick={() => setViewMode('lista')}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                  viewMode === 'lista'
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Lista
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('plano')}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                  viewMode === 'plano'
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Plano 2D
-              </button>
             </div>
           </div>
 
