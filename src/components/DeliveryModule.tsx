@@ -397,7 +397,7 @@ function DeliveryModule({
         const polylineCoords = data.route_geojson.coordinates.map((coord: any) => [coord[1], coord[0]]);
         
         routeLayerRef.current = L.polyline(polylineCoords, {
-          color: '#E8B800',
+          color: '#0EA5E9',
           weight: 5,
           opacity: 0.85,
           lineJoin: 'round'
@@ -508,7 +508,7 @@ function DeliveryModule({
       }
 
       routeLayerRef.current = L.polyline(polylineCoords, {
-        color: '#E8B800',
+        color: '#0EA5E9',
         weight: 6,
         opacity: 0.85,
         lineJoin: 'round'
@@ -668,7 +668,7 @@ function DeliveryModule({
 
           // Draw Route Line
           L.polyline(routeCoords, {
-            color: '#E8B800',
+            color: '#0EA5E9',
             weight: 5,
             opacity: 0.8,
             lineJoin: 'round'
@@ -683,7 +683,7 @@ function DeliveryModule({
           // Add Moving Bike Courier Marker
           const bikeIcon = L.divIcon({
             className: 'custom-bike-marker',
-            html: '<div style="background-color: #3E3228; color: #E8B800; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #E8B800; box-shadow: 0 0 8px rgba(0,0,0,0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 5.5 3-3-3-3M8.5 17.5 12 11.5h4.5"/></svg></div>',
+            html: '<div style="background-color: #3E3228; color: #0EA5E9; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #0EA5E9; box-shadow: 0 0 8px rgba(0,0,0,0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 5.5 3-3-3-3M8.5 17.5 12 11.5h4.5"/></svg></div>',
             iconSize: [32, 32],
             iconAnchor: [16, 16]
           });
@@ -1103,7 +1103,7 @@ function DeliveryModule({
           </button>
           <button
             onClick={() => setShowNewOrderModal(true)}
-            className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-4 py-3 rounded-xl font-black text-xs tracking-wider uppercase shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+            className="bg-brand-yellow hover:bg-[#0284c7] text-brand-black px-4 py-3 rounded-xl font-black text-xs tracking-wider uppercase shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             Nueva Entrega (Delivery)
@@ -1390,7 +1390,7 @@ function DeliveryModule({
                     {p.estado_comanda === 'pendiente' && (
                       <button
                         onClick={() => onCambiarEstadoPedido(p.id_pedido, 'en_cocina')}
-                        className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95"
+                        className="bg-brand-yellow hover:bg-[#0284c7] text-brand-black px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95"
                       >
                         Enviar a Horno
                       </button>
@@ -1436,7 +1436,7 @@ function DeliveryModule({
                         <button
                           type="button"
                           onClick={() => handleStartTracking(p)}
-                          className="bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
+                          className="bg-[#0EA5E9] hover:bg-[#0284c7] text-[#1A1A1A] px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
                         >
                           <Compass className="w-3.5 h-3.5 animate-spin-slow" />
                           Seguimiento
@@ -1514,7 +1514,7 @@ function DeliveryModule({
                         type="button"
                         onClick={handleEstimateRoute}
                         disabled={isEstimating}
-                        className="bg-brand-yellow hover:bg-[#D4A700] text-brand-black px-3 rounded-xl font-bold text-xs border border-transparent flex items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                        className="bg-brand-yellow hover:bg-[#0284c7] text-brand-black px-3 rounded-xl font-bold text-xs border border-transparent flex items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                         title="Calcular ruta en el mapa"
                       >
                         {isEstimating ? 'Estimando...' : <Compass className="w-4 h-4 animate-spin-slow" />}
@@ -1539,7 +1539,7 @@ function DeliveryModule({
                         <span
                           className="font-black px-2 py-0.5 rounded-full text-[10px]"
                           style={{
-                            backgroundColor: zonaResultado.status === 'success' ? zonaResultado.color || '#E8B800' : '#D42B2B',
+                            backgroundColor: zonaResultado.status === 'success' ? zonaResultado.color || '#0EA5E9' : '#D42B2B',
                             color: zonaResultado.status === 'success' ? '#1A1A1A' : '#FFFFFF'
                           }}
                         >
@@ -1663,7 +1663,7 @@ function DeliveryModule({
                 <button
                   onClick={handleCreateOrder}
                   disabled={zonaResultado?.status !== 'success' || clientAddress.trim() === ''}
-                  className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-[#D4A700] disabled:bg-stone-300 disabled:text-stone-500 text-brand-black font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-[#0284c7] disabled:bg-stone-300 disabled:text-stone-500 text-brand-black font-black text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   Enviar Pedido a Cocinar
@@ -1906,7 +1906,7 @@ function DeliveryModule({
                                     e.stopPropagation();
                                     if (!isOutOfStock) addToCart(p);
                                   }}
-                                  className="w-5 h-5 rounded bg-brand-yellow hover:bg-[#D4A700] text-brand-black flex items-center justify-center text-xs font-black"
+                                  className="w-5 h-5 rounded bg-brand-yellow hover:bg-[#0284c7] text-brand-black flex items-center justify-center text-xs font-black"
                                 >
                                   +
                                 </button>
@@ -1936,7 +1936,7 @@ function DeliveryModule({
               <div>
                 <span className="text-[9px] font-black uppercase text-stone-400 font-mono tracking-widest">Seguimiento en Tiempo Real</span>
                 <h3 className="text-sm font-black text-stone-900 flex items-center gap-1.5 mt-0.5">
-                  <Bike className="w-4 h-4 text-[#E8B800] fill-current" />
+                  <Bike className="w-4 h-4 text-[#0EA5E9] fill-current" />
                   Orden #{trackingPedido.id_pedido} • En Viaje
                 </h3>
               </div>
@@ -1977,7 +1977,7 @@ function DeliveryModule({
                 {/* Simulated Progress Bar */}
                 <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden relative">
                   <div 
-                    className="bg-gradient-to-r from-[#E8B800] to-emerald-500 h-full rounded-full transition-all duration-300 ease-out" 
+                    className="bg-gradient-to-r from-[#0EA5E9] to-emerald-500 h-full rounded-full transition-all duration-300 ease-out" 
                     style={{ width: `${trackingProgress}%` }}
                   />
                 </div>
@@ -1993,7 +1993,7 @@ function DeliveryModule({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Courier Details */}
                 <div className="bg-[#3E3228] text-[#F5F0E6] p-3 rounded-xl border border-[#3E3228] flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center text-[#E8B800] shrink-0 border border-[#E8B800]/20">
+                  <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center text-[#0EA5E9] shrink-0 border border-[#0EA5E9]/20">
                     <User className="w-5 h-5 fill-current" />
                   </div>
                   <div>

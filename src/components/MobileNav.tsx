@@ -108,7 +108,7 @@ export default function MobileNav({
           title="Ver estado de conexión"
         >
           <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
-            <ElPatronLogo className="w-6 h-6 object-contain rounded" variant="icon" color="#E8B800" />
+            <ElPatronLogo className="w-6 h-6 object-contain rounded" variant="icon" color="#0EA5E9" />
             <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
               isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
             }`} />
@@ -169,7 +169,7 @@ export default function MobileNav({
                 title="Abrir Diagnóstico"
               >
                 <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
-                  <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#E8B800" />
+                  <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#0EA5E9" />
                   <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-zinc-950 ${
                     isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                   }`} />

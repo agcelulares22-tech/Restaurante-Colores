@@ -450,7 +450,7 @@ export function ManualBillingPanel({
       {/* Panel Header */}
       <div className="flex justify-between items-center border-b border-white/5 pb-3">
         <div className="flex items-center gap-2">
-          <Receipt className="w-5 h-5 text-[#E8B800]" />
+          <Receipt className="w-5 h-5 text-[#0EA5E9]" />
           <div>
             <h3 className="text-sm font-black text-white uppercase tracking-wider block">Emitir Factura Libre</h3>
             <p className="text-[9px] text-zinc-400 font-semibold">Generador de comprobantes manuales e ítems libres</p>
@@ -481,7 +481,7 @@ export function ManualBillingPanel({
           <select 
             value={tipoComprobante} 
             onChange={e => setTipoComprobante(e.target.value as any)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             <option value="Factura C">Factura C</option>
             <option value="Factura B">Factura B</option>
@@ -497,7 +497,7 @@ export function ManualBillingPanel({
           <select 
             value={condicionIvaReceptor} 
             onChange={e => setCondicionIvaReceptor(parseInt(e.target.value) || 5)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             {CONDICIONES_IVA.map(c => (
               <option key={c.id} value={c.id}>{c.label}</option>
@@ -511,7 +511,7 @@ export function ManualBillingPanel({
           <select 
             value={docTipo} 
             onChange={e => handleDocTipoChange(parseInt(e.target.value) || 99)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             <option value="99">C. Final</option>
             <option value="96">DNI</option>
@@ -528,7 +528,7 @@ export function ManualBillingPanel({
             value={numeroDocumento} 
             onChange={e => setNumeroDocumento(e.target.value)} 
             placeholder="Ej: 20-35661223-4"
-            className="w-full min-h-10 px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono font-bold text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full min-h-10 px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono font-bold text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </label>
 
@@ -538,7 +538,7 @@ export function ManualBillingPanel({
           <select 
             value={concepto} 
             onChange={e => setConcepto(parseInt(e.target.value) || 1)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             {CONCEPTOS_AFIP.map(c => (
               <option key={c.id} value={c.id}>{c.label}</option>
@@ -552,7 +552,7 @@ export function ManualBillingPanel({
           <select 
             value={ivaGeneral} 
             onChange={e => setIvaGeneral(parseFloat(e.target.value) || 21)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             {ALICUOTAS_IVA.map(a => (
               <option key={a.id} value={a.value}>{a.label}</option>
@@ -567,7 +567,7 @@ export function ManualBillingPanel({
             type="date"
             value={fechaEmision}
             onChange={e => setFechaEmision(e.target.value)}
-            className="w-full min-h-10 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           />
         </label>
 
@@ -577,7 +577,7 @@ export function ManualBillingPanel({
           <select 
             value={medioPago} 
             onChange={e => setMedioPago(e.target.value as any)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30"
           >
             <option value="efectivo">Efectivo</option>
             <option value="debito">Débito</option>
@@ -614,7 +614,7 @@ export function ManualBillingPanel({
                   value={it.descripcion}
                   onChange={e => handleUpdateItem(it.id, 'descripcion', e.target.value)}
                   placeholder="Ej: Programacion sistion web"
-                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/20"
+                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/20"
                 />
               </div>
 
@@ -687,7 +687,7 @@ export function ManualBillingPanel({
             type="checkbox" 
             checked={preciosConIva} 
             onChange={e => setPreciosConIva(e.target.checked)} 
-            className="w-4 h-4 accent-[#E8B800] rounded"
+            className="w-4 h-4 accent-[#0EA5E9] rounded"
           />
           Precios de conceptos con IVA incluido
         </label>
@@ -705,8 +705,8 @@ export function ManualBillingPanel({
           </div>
 
           <div className="text-left sm:text-right border-l border-white/10 pl-4 sm:pl-6">
-            <span className="text-[8px] uppercase font-black text-[#E8B800] block">Total General</span>
-            <span className="font-mono text-[#E8B800] text-base font-black">{money(calculatedTotals.total)}</span>
+            <span className="text-[8px] uppercase font-black text-[#0EA5E9] block">Total General</span>
+            <span className="font-mono text-[#0EA5E9] text-base font-black">{money(calculatedTotals.total)}</span>
           </div>
         </div>
 
@@ -723,7 +723,7 @@ export function ManualBillingPanel({
         <button
           onClick={handleEmitInvoice}
           disabled={isEmitting || !cajaSession}
-          className="w-full sm:w-2/3 min-h-11 py-2.5 bg-[#E8B800] hover:bg-[#D4A700] disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 text-xs font-black uppercase rounded-xl shadow-md cursor-pointer transition-all flex items-center justify-center gap-2 glow-yellow border-0 active:scale-95"
+          className="w-full sm:w-2/3 min-h-11 py-2.5 bg-[#0EA5E9] hover:bg-[#0284c7] disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 text-xs font-black uppercase rounded-xl shadow-md cursor-pointer transition-all flex items-center justify-center gap-2 glow-yellow border-0 active:scale-95"
         >
           <CheckCircle className="w-4 h-4 text-zinc-950" />
           {isEmitting ? 'Emitiendo...' : `Emitir y descargar PDF`}
