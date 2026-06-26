@@ -13,6 +13,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, Merma, EventoLog, Reserva, Usuario } from './types';
 import { 
   INITIAL_USUARIOS,
@@ -1262,20 +1263,24 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 id={`tab-${item.id}`}
                 title={isSidebarCollapsed ? item.label : ''}
                 onClick={() => handleNavigate(item.id as AppView)}
-                className={`w-full flex items-center gap-3 px-3 py-3 transition-colors cursor-pointer ${
+                className={`mx-3 my-1 px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 cursor-pointer ${
                   isSidebarCollapsed ? 'justify-center' : 'justify-start'
                 } ${
                   isActive
-                    ? 'bg-brand-yellow text-brand-black font-black'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                    ? 'bg-[#0EA5E9] text-zinc-950 font-black glow-blue shadow-md hover:bg-[#0284c7]'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <span className="text-base shrink-0 leading-none">{item.icon}</span>
                 {!isSidebarCollapsed && (
-                  <span className="text-sm whitespace-nowrap truncate">{item.label}</span>
+                  <span className="text-xs whitespace-nowrap truncate">{item.label}</span>
                 )}
-                {!isSidebarCollapsed && isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-black shrink-0" />
+                {isActive && !isSidebarCollapsed && (
+                  <motion.span 
+                    layoutId="activeIndicator"
+                    className="ml-auto w-2 h-2 rounded-full bg-zinc-950 shrink-0" 
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
                 )}
               </button>
             );

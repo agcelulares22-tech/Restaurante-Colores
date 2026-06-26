@@ -72,7 +72,7 @@ canvas {
 /* Scrollbar especial para el Sidebar */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #E8B800 rgba(0, 0, 0, 0.3);
+  scrollbar-color: #0EA5E9 rgba(0, 0, 0, 0.3);
 }
 
 .sidebar-scrollbar::-webkit-scrollbar {
@@ -85,10 +85,21 @@ canvas {
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #E8B800; /* Color de marca amarillo */
+  background-color: #0EA5E9; /* Color de marca azul */
   border-radius: 999px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #ffcc00;
+  background-color: #0284c7;
+}
+
+/* Sombra de brillo azul para el botón de menú activo */
+.glow-blue {
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.45);
+}
+
+/* Fondo zafiro oscuro y borde para el Sidebar de escritorio */
+#sidebar-left-panel {
+  background-color: #050914 !important;
+  border-right-color: #0c1328 !important;
 }
