@@ -104,3 +104,8 @@ canvas {
 .sidebar-scroll-hidden::-webkit-scrollbar {
   display: none;
 }
+
+/* Premium dark background radial gradient */
+.bg-premium-dark {
+  background: radial-gradient(ellipse at top, #0d1527, #090d16) !important;
+}

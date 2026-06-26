@@ -1155,7 +1155,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-[#090d16] flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
@@ -1313,7 +1313,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-[#FAF7F0] dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-[#0d1527] dark:to-[#090d16] ${
+      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-[#FAF7F0] dark:bg-premium-dark ${
         isSidebarCollapsed ? 'lg:ml-[6.5rem]' : 'lg:ml-[18.5rem]'
       }`}>
         <ToastContainer toasts={toasts} removeToast={removeToast} />
