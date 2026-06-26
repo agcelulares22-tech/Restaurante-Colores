@@ -1326,7 +1326,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-[#FAF7F0] dark:bg-premium-dark ${
+      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-premium-dark ${
         isSidebarCollapsed ? 'lg:ml-[6.5rem]' : 'lg:ml-[18.5rem]'
       }`}>
         <ToastContainer toasts={toasts} removeToast={removeToast} />

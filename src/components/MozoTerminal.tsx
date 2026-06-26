@@ -433,7 +433,7 @@ function MozoTerminal({
       <div className="min-w-0 space-y-4 lg:col-span-4 lg:space-y-6 order-1">
         
         {/* Mesas Selector Grid */}
-        <div className="glass-panel-light dark:glass-panel rounded-2xl p-4 sm:p-5 shadow-sm text-slate-800 dark:text-slate-100">
+        <div className="glass-panel rounded-2xl p-4 sm:p-5 shadow-sm text-slate-800 dark:text-slate-100">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 font-sans">
             <div className="flex items-center gap-2">
               <UtensilsCrossed className="w-4.5 h-4.5 text-slate-555 dark:text-slate-400 shrink-0" />
@@ -467,7 +467,7 @@ function MozoTerminal({
                 const isReservada = m.estado === 'reservada';
 
                 // Determine visual theme according to exact state specs
-                let stateClasses = "glass-panel-light dark:glass-panel border-stone-200/50 hover:bg-stone-100/50 dark:hover:bg-white/5 text-stone-700 dark:text-zinc-300 hover:scale-[1.02]";
+                let stateClasses = "glass-panel border-stone-200/50 hover:bg-stone-100/50 dark:hover:bg-white/5 text-stone-700 dark:text-zinc-300 hover:scale-[1.02]";
                 let labelText = "Libre";
                 let textClass = "text-stone-700 dark:text-zinc-300";
 
@@ -735,7 +735,7 @@ function MozoTerminal({
       {/* CENTRAL COLUMN: Product Catalog */}
       <div className="min-w-0 lg:col-span-5 space-y-4 order-3 lg:order-2">
          {/* Search and Filters */}
-        <div className="glass-panel-light dark:glass-panel rounded-2xl p-3 sm:p-4 shadow-sm space-y-3 text-slate-800 dark:text-slate-100">
+        <div className="glass-panel rounded-2xl p-3 sm:p-4 shadow-sm space-y-3 text-slate-800 dark:text-slate-100">
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
             <h3 className="font-extrabold text-sm md:text-base text-slate-850 dark:text-[#E8B800] tracking-wider uppercase">Categorías</h3>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -839,7 +839,7 @@ function MozoTerminal({
               <div
                 key={p.id_producto}
                 onClick={() => !isOutOfStock && handleAddToCart(p.id_producto)}
-                className={`group cursor-pointer rounded-2xl glass-panel-light dark:glass-panel border overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 relative ${
+                className={`group cursor-pointer rounded-2xl glass-panel border overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 relative ${
                   isOutOfStock 
                     ? 'opacity-50 border-rose-950/20 pointer-events-none' 
                     : currentInCart > 0 
@@ -988,7 +988,7 @@ function MozoTerminal({
 
       {/* RIGHT COLUMN: Active Comanda Cart Summary */}
       <div className="min-w-0 lg:col-span-3 order-2">
-        <div className="glass-panel-light dark:glass-panel rounded-2xl p-4 sm:p-5 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6 text-slate-800 dark:text-zinc-150">
+        <div className="glass-panel rounded-2xl p-4 sm:p-5 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6 text-slate-800 dark:text-zinc-150">
           <div className="flex items-center justify-between pb-3 border-b border-white/5">
             <h3 className="font-bold text-zinc-150 text-sm md:text-base font-sans flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-zinc-400" />

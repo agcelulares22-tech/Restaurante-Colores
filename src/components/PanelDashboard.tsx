@@ -671,7 +671,7 @@ export default function PanelDashboard({
                               <div className="w-24 h-24 flex-shrink-0">
                                   <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
                                       {/* Background Circle */}
-                                      <circle cx="60" cy="60" r="40" fill="transparent" stroke="#FAF7F0" strokeWidth="14" />
+                                      <circle cx="60" cy="60" r="40" fill="transparent" className="stroke-stone-200/60 dark:stroke-white/5" strokeWidth="14" />
                                       {(() => {
                                           let currentRotation = 0;
                                           return paymentMethodsData.map((d, i) => {
@@ -750,7 +750,7 @@ export default function PanelDashboard({
                               <div className="w-24 h-24 flex-shrink-0">
                                   <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
                                       {/* Background Circle */}
-                                      <circle cx="60" cy="60" r="40" fill="transparent" stroke="#FAF7F0" strokeWidth="14" />
+                                      <circle cx="60" cy="60" r="40" fill="transparent" className="stroke-stone-200/60 dark:stroke-white/5" strokeWidth="14" />
                                       {(() => {
                                           let currentRotation = 0;
                                           return mermasPorMotivo.map((d) => {

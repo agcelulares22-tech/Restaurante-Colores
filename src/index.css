@@ -79,17 +79,18 @@ canvas {
 
 /* Glassmorphism Utilities */
 .glass-panel {
-  background: rgba(12, 20, 40, 0.6);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(138, 180, 255, 0.12);
-}
-
-.glass-panel-light {
   background: rgba(245, 240, 230, 0.7);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.dark .glass-panel {
+  background: rgba(12, 20, 40, 0.6);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(138, 180, 255, 0.12);
 }
 
 .glow-yellow {
@@ -113,7 +114,12 @@ canvas {
   display: none;
 }
 
-/* Premium dark background radial gradient */
+/* Premium background radial gradient */
 .bg-premium-dark {
+  background: #FAF7F0 !important;
+  transition: background 0.3s;
+}
+
+.dark .bg-premium-dark {
   background: radial-gradient(ellipse at top, #10214c, #040812) !important;
 }
