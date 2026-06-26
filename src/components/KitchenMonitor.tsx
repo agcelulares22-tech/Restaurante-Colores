@@ -502,10 +502,11 @@ function KitchenMonitor({
         key={p.id_pedido}
         draggable
         onDragStart={(e) => handleDragStart(e, p.id_pedido)}
-        className={`rounded-[20px] border bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || 'border-zinc-700'} border-l-4 transition-all duration-300 hover:border-zinc-600 cursor-grab active:cursor-grabbing ${
-          isRecentlyCreated ? 'ring-2 ring-amber-400 animate-pulse shadow-amber-500/20 shadow-lg' : ''
+        className={`rounded-[20px] border glass-panel-light dark:glass-panel shadow-lg overflow-hidden relative ${sem?.border || 'border-zinc-700/50'} border-l-4 transition-all duration-300 hover:border-zinc-650/80 cursor-grab active:cursor-grabbing ${
+          isRecentlyCreated ? 'glow-yellow border-amber-400/50 ring-2 ring-amber-400/30 animate-pulse shadow-lg' : ''
         } ${
-          isDelayCritical ? 'border-rose-600 ring-2 ring-rose-500/40 animate-pulse shadow-rose-900/30 shadow-lg' : ''
+          isDelayCritical ? 'glow-red border-rose-500/50 ring-2 ring-rose-500/30 animate-[pulse_1.5s_infinite] shadow-lg' :
+          sem?.delayed ? 'glow-red border-rose-500/40 ring-1 ring-rose-500/20 animate-[pulse_2s_infinite]' : ''
         }`}
       >
         {cold && (
@@ -719,8 +720,8 @@ function KitchenMonitor({
           onDrop={(e) => handleDrop(e, estado)}
           className="space-y-4 h-full min-h-[500px]"
         >
-          <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-card text-zinc-100 shadow-sm ${headerClass}`}>
-            <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-150">
+          <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-panel-light dark:glass-panel text-zinc-800 dark:text-zinc-100 shadow-sm ${headerClass}`}>
+            <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-800 dark:text-zinc-150">
               {icon}
               {title}
             </h4>
@@ -774,8 +775,8 @@ function KitchenMonitor({
         onDrop={(e) => handleDrop(e, estado)}
         className="space-y-4 h-full min-h-[500px]"
       >
-        <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-card text-zinc-100 shadow-sm ${headerClass}`}>
-          <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-150">
+        <div className={`flex justify-between items-center p-4 rounded-t-xl border-b-[3px] glass-panel-light dark:glass-panel text-zinc-800 dark:text-zinc-100 shadow-sm ${headerClass}`}>
+          <h4 className="font-black text-xs sm:text-sm tracking-tight flex items-center gap-2 uppercase font-display text-zinc-800 dark:text-zinc-150">
             {icon}
             {title}
           </h4>
@@ -807,8 +808,8 @@ function KitchenMonitor({
   return (
     <div className="space-y-5" id="kitchen-monitor-container">
 
-      <div className="glass-card rounded-[20px] p-5 glow-yellow">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-white/10">
+      <div className="glass-panel-light dark:glass-panel rounded-[20px] p-5 glow-yellow">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-black/10 dark:border-white/10">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-[#E8B800] text-black flex items-center justify-center text-xl shadow-sm border border-[#E8B800]">
               📋
@@ -845,7 +846,7 @@ function KitchenMonitor({
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between glass-card rounded-[20px] p-4">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between glass-panel-light dark:glass-panel rounded-[20px] p-4">
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -853,7 +854,7 @@ function KitchenMonitor({
             placeholder="Buscar mesa, mozo o pizza..."
             value={kitchenSearch}
             onChange={e => setKitchenSearch(e.target.value)}
-            className="w-full min-h-11 pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-zinc-150 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#E8B800]/40 focus:border-[#E8B800] transition-colors"
+            className="w-full min-h-11 pl-9 pr-3 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-sm text-zinc-800 dark:text-zinc-150 placeholder:text-zinc-550 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#E8B800]/40 focus:border-[#E8B800] transition-colors"
           />
         </div>
         <button

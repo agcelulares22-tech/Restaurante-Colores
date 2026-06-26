@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Users, 
   Plus, 
@@ -431,14 +432,12 @@ function MozoTerminal({
     <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6" id="mozo-terminal-container">
       <div className="min-w-0 space-y-4 lg:col-span-4 lg:space-y-6 order-1">
         
-
-
         {/* Mesas Selector Grid */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
+        <div className="glass-panel-light dark:glass-panel rounded-2xl p-4 sm:p-5 shadow-sm text-slate-800 dark:text-slate-100">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 font-sans">
             <div className="flex items-center gap-2">
-              <UtensilsCrossed className="w-4.5 h-4.5 text-slate-500 shrink-0" />
-              <h3 className="font-bold text-sm md:text-base text-slate-800 tracking-tight">
+              <UtensilsCrossed className="w-4.5 h-4.5 text-slate-555 dark:text-slate-400 shrink-0" />
+              <h3 className="font-bold text-sm md:text-base text-slate-850 dark:text-slate-200 tracking-tight">
                 Distribución de Mesas
               </h3>
               <span className="text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 font-bold shrink-0">
@@ -468,21 +467,26 @@ function MozoTerminal({
                 const isReservada = m.estado === 'reservada';
 
                 // Determine visual theme according to exact state specs
-                let stateClasses = "border-stone-200 bg-white hover:bg-stone-50 text-stone-700";
+                let stateClasses = "glass-panel-light dark:glass-panel border-stone-200/50 hover:bg-stone-100/50 dark:hover:bg-white/5 text-stone-700 dark:text-zinc-300 hover:scale-[1.02]";
                 let labelText = "Libre";
+                let textClass = "text-stone-700 dark:text-zinc-300";
 
                 if (isSelected) {
-                  stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] ring-4 ring-brand-yellow/20";
+                  stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] glow-yellow ring-4 ring-brand-yellow/20 font-black";
                   labelText = isOcupada ? "Ocupada (Sel)" : isInCuenta ? "En Cuenta" : isReservada ? "Reservada" : "Libre";
+                  textClass = "text-brand-black";
                 } else if (isReservada) {
-                  stateClasses = "border-[#6d3f9e] bg-[#6d3f9e]/5 text-[#6d3f9e] hover:bg-[#6d3f9e]/10";
+                  stateClasses = "border-purple-500/50 bg-purple-500/10 text-purple-650 dark:text-purple-300 hover:bg-purple-500/15 shadow-[0_0_10px_rgba(168,85,247,0.15)]";
                   labelText = "Reservada";
+                  textClass = "text-purple-600 dark:text-purple-300";
                 } else if (isInCuenta) {
-                  stateClasses = "border-[#c47f1a] bg-[#c47f1a]/5 text-[#c47f1a] hover:bg-[#c47f1a]/10";
+                  stateClasses = "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-350 hover:bg-amber-500/15 glow-yellow shadow-[0_0_10px_rgba(245,158,11,0.2)]";
                   labelText = "En Cuenta";
+                  textClass = "text-amber-600 dark:text-amber-355";
                 } else if (isOcupada) {
-                  stateClasses = "border-[#2563a0] bg-[#2563a0]/5 text-[#2563a0] hover:bg-[#2563a0]/10";
+                  stateClasses = "border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15 shadow-[0_0_10px_rgba(59,130,246,0.2)]";
                   labelText = "Ocupada";
+                  textClass = "text-blue-600 dark:text-blue-350";
                 }
 
                 const activePedido = isOcupada ? pedidos.find(p => 
@@ -501,23 +505,23 @@ function MozoTerminal({
                     onClick={() => handleSelectMesa(m)}
                     className={`min-h-[72px] p-2.5 rounded-xl flex flex-col justify-between items-center transition-all aspect-square sm:aspect-auto sm:h-24 border cursor-pointer ${stateClasses}`}
                   >
-                    <span className="text-xs sm:text-sm font-black font-sans">{m.numero_mesa}</span>
+                    <span className={`text-xs sm:text-sm font-black font-sans ${textClass}`}>{m.numero_mesa}</span>
                     {isOcupada ? (
                       <div className="flex flex-col items-center gap-0.5 mt-1">
                         <div className="flex items-center gap-0.5">
-                          <Users className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-[#2563a0]'}`} />
-                          <span className="text-[10px] sm:text-xs font-bold">{m.comensales || 0}</span>
+                          <Users className={`w-3 h-3 ${isSelected ? 'text-brand-black' : 'text-blue-550 dark:text-blue-300'}`} />
+                          <span className={`text-[10px] sm:text-xs font-bold ${textClass}`}>{m.comensales || 0}</span>
                         </div>
                         {elapsedMin > 0 && (
-                          <span className={`text-[8px] font-mono font-bold ${isSelected ? 'text-white/80' : 'text-[#2563a0]/80 bg-[#2563a0]/5 px-1 rounded'}`}>
+                          <span className={`text-[8px] font-mono font-bold ${isSelected ? 'text-brand-black/80' : 'text-blue-550 dark:text-blue-300 bg-blue-500/10 px-1 rounded'}`}>
                             ⏱️ {elapsedMin}m
                           </span>
                         )}
                       </div>
                     ) : isInCuenta ? (
-                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider font-extrabold text-[#c47f1a] text-center leading-tight">Saldar</span>
+                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider font-extrabold text-amber-600 dark:text-amber-400 text-center leading-tight">Saldar</span>
                     ) : (
-                      <span className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold opacity-80 text-center leading-tight ${isSelected ? 'text-white/60' : ''}`}>{labelText}</span>
+                      <span className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold opacity-80 text-center leading-tight ${textClass}`}>{labelText}</span>
                     )}
                   </button>
                 );
@@ -731,9 +735,9 @@ function MozoTerminal({
       {/* CENTRAL COLUMN: Product Catalog */}
       <div className="min-w-0 lg:col-span-5 space-y-4 order-3 lg:order-2">
          {/* Search and Filters */}
-        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-stone-105 shadow-sm space-y-3">
+        <div className="glass-panel-light dark:glass-panel rounded-2xl p-3 sm:p-4 shadow-sm space-y-3 text-slate-800 dark:text-slate-100">
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-            <h3 className="font-extrabold text-sm md:text-base text-[#624A3E] tracking-wider uppercase">Filtro de Categorías Premium</h3>
+            <h3 className="font-extrabold text-sm md:text-base text-slate-850 dark:text-[#E8B800] tracking-wider uppercase">Categorías</h3>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative w-full sm:w-56">
                 <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -742,7 +746,7 @@ function MozoTerminal({
                   placeholder="Buscar pizza o bebida..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full min-h-11 pl-9 pr-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#624A3E] focus:border-[#624A3E] transition-all"
+                  className="w-full min-h-11 pl-9 pr-3 py-2 bg-stone-100/50 dark:bg-zinc-950/60 border border-stone-200 dark:border-white/10 rounded-xl text-sm text-stone-700 dark:text-zinc-200 placeholder-stone-400 dark:placeholder-zinc-550 focus:outline-none focus:ring-1 focus:ring-brand-yellow/30"
                 />
               </div>
               <button
@@ -763,8 +767,7 @@ function MozoTerminal({
               </button>
             </div>
           </div>
-
-          <div className="flex gap-1.5 w-full overflow-x-auto py-1.5 scrollbar-thin scroll-smooth border-t border-stone-100 pt-3 pb-2">
+          <div className="flex gap-2 w-full overflow-x-auto py-1.5 scrollbar-thin scroll-smooth border-t border-stone-150 dark:border-white/5 pt-3 pb-2">
             {[
               { id: 'todo', label: 'Todos' },
               ...categories.map(c => ({ id: c.slug, label: c.nombre }))
@@ -803,14 +806,21 @@ function MozoTerminal({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoria(cat.id)}
-                  className={`py-1.5 px-3 text-xs font-extrabold rounded-lg whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 flex items-center gap-1 shrink-0 ${
-                    selectedCategoria === cat.id 
-                      ? 'bg-brand-yellow text-brand-black shadow-sm ring-1 ring-brand-yellow/10' 
-                      : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-zinc-800 hover:text-stone-900'
-                  }`}
+                  className="relative py-1.5 px-3 text-xs font-extrabold rounded-lg whitespace-nowrap transition-colors duration-200 cursor-pointer active:scale-95 flex items-center gap-1 shrink-0 z-10"
                 >
-                  {cat.label}
-                  <span className={`text-[9px] font-bold ml-0.5 ${selectedCategoria === cat.id ? 'text-brand-black/75' : 'text-stone-400'}`}>({count})</span>
+                  {selectedCategoria === cat.id && (
+                    <motion.span
+                      layoutId="activeCategoryBg"
+                      className="absolute inset-0 bg-brand-yellow rounded-lg z-[-1]"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className={selectedCategoria === cat.id ? 'text-brand-black' : 'text-stone-600 dark:text-stone-300'}>
+                    {cat.label}
+                  </span>
+                  <span className={`text-[9px] font-bold ml-0.5 ${selectedCategoria === cat.id ? 'text-brand-black/75' : 'text-stone-400 dark:text-stone-500'}`}>
+                    ({count})
+                  </span>
                 </button>
               );
             })}
@@ -829,12 +839,12 @@ function MozoTerminal({
               <div
                 key={p.id_producto}
                 onClick={() => !isOutOfStock && handleAddToCart(p.id_producto)}
-                className={`group cursor-pointer rounded-2xl bg-white border overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 relative ${
+                className={`group cursor-pointer rounded-2xl glass-panel-light dark:glass-panel border overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 relative ${
                   isOutOfStock 
-                    ? 'opacity-60 border-rose-100 pointer-events-none bg-stone-50' 
+                    ? 'opacity-50 border-rose-950/20 pointer-events-none' 
                     : currentInCart > 0 
-                      ? 'border-brand-yellow bg-zinc-50 ring-1 ring-brand-yellow/25' 
-                      : 'border-stone-200/80 hover:-translate-y-1'
+                      ? 'border-brand-yellow dark:border-brand-yellow bg-brand-yellow/5 ring-1 ring-brand-yellow/20 scale-[1.01] glow-yellow' 
+                      : 'border-stone-200/50 dark:border-white/5 hover:-translate-y-1 hover:border-[#E8B800]/50'
                 }`}
                 style={{ contentVisibility: 'auto' }}
               >
@@ -885,8 +895,8 @@ function MozoTerminal({
                 </div>
  
                 {/* Content: stacked layout - name full width, price+actions below */}
-                <div className="p-3 bg-white">
-                  <h4 className="font-extrabold text-stone-800 text-sm font-sans line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-brand-orange transition-colors">
+                <div className="p-3">
+                  <h4 className="font-extrabold text-stone-850 dark:text-zinc-200 text-sm font-sans line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-brand-orange transition-colors">
                     {p.nombre}
                   </h4>
                   <div className="flex flex-col gap-2 mt-2">
@@ -905,7 +915,7 @@ function MozoTerminal({
                             <X className="w-3 h-3" /></button>
                         </div>
                       ) : (
-                        <span className="text-stone-900 font-mono text-sm font-black truncate">
+                        <span className="text-stone-900 dark:text-zinc-150 font-mono text-sm font-black truncate">
                           ${p.precio_venta.toLocaleString('es-AR')}
                         </span>
                       )}
@@ -978,7 +988,7 @@ function MozoTerminal({
 
       {/* RIGHT COLUMN: Active Comanda Cart Summary */}
       <div className="min-w-0 lg:col-span-3 order-2">
-        <div className="bg-zinc-900/40 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/5 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6">
+        <div className="glass-panel-light dark:glass-panel rounded-2xl p-4 sm:p-5 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6 text-slate-800 dark:text-zinc-150">
           <div className="flex items-center justify-between pb-3 border-b border-white/5">
             <h3 className="font-bold text-zinc-150 text-sm md:text-base font-sans flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-zinc-400" />

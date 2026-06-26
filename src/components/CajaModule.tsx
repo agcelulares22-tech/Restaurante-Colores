@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { PaginatedList } from './VirtualizedList';
 import { 
   Receipt, 
@@ -1633,7 +1634,7 @@ function CajaModule({
                                 const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
                                 setDescuentoPorcentaje(val);
                               }}
-                              className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-mono text-center font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                              className="w-full min-h-11 text-sm p-2 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded font-mono text-center font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                               placeholder="Ej. 10"
                             />
                           </>
@@ -1650,7 +1651,7 @@ function CajaModule({
                                 const val = Math.min(maxMonto, Math.max(0, parseFloat(e.target.value) || 0));
                                 setDescuentoMonto(val);
                               }}
-                              className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-mono text-center font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                              className="w-full min-h-11 text-sm p-2 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded font-mono text-center font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                               placeholder="Monto $"
                             />
                           </>
@@ -1662,7 +1663,7 @@ function CajaModule({
                         <select
                           value={propinaPorcentaje}
                           onChange={e => setPropinaPorcentaje(parseInt(e.target.value) || 0)}
-                          className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                          className="w-full min-h-11 text-sm p-2 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                         >
                           <option value="0" className="bg-zinc-950 text-zinc-100">0%</option>
                           <option value="5" className="bg-zinc-950 text-zinc-100">5%</option>
@@ -1704,7 +1705,7 @@ function CajaModule({
                           placeholder="Ingresar código de cupón"
                           value={couponInput}
                           onChange={e => setCouponInput(e.target.value)}
-                          className="flex-1 min-h-11 text-xs p-2.5 bg-zinc-950 border border-white/10 rounded-xl text-zinc-100 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-600"
+                          className="flex-1 min-h-11 text-xs p-2.5 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded-xl text-zinc-850 dark:text-zinc-100 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-stone-400 dark:placeholder-zinc-600"
                         />
                         <button
                           type="button"
@@ -1774,7 +1775,7 @@ function CajaModule({
                           value={montoEntregadoEfectivo}
                           onChange={e => setMontoEntregadoEfectivo(e.target.value)}
                           placeholder="Monto entregado"
-                          className="min-h-11 p-2 bg-zinc-950 border border-white/10 rounded-lg text-sm font-mono font-black text-zinc-100 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                          className="min-h-11 p-2 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-mono font-black text-zinc-800 dark:text-zinc-100 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-stone-400 dark:placeholder-zinc-500"
                         />
                         {calculatedChange > 0 && (
                           <div className="text-right pl-2 border-l border-white/10">
@@ -1829,7 +1830,7 @@ function CajaModule({
                           <select
                             value={mixedMetodoInput}
                             onChange={e => setMixedMetodoInput(e.target.value)}
-                            className="min-h-11 bg-zinc-950 border border-white/10 text-sm p-2 rounded-lg text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                            className="min-h-11 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 text-sm p-2 rounded-lg text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                           >
                             <option value="efectivo" className="bg-zinc-950 text-zinc-100">Efectivo</option>
                             <option value="tarjeta" className="bg-zinc-950 text-zinc-100">Tarjeta Crédito</option>
@@ -1848,7 +1849,7 @@ function CajaModule({
                                   setMontoEntregadoEfectivo(e.target.value);
                               }
                             }}
-                            className="min-h-11 flex-1 bg-zinc-950 border border-white/10 p-2 text-sm rounded-lg font-mono font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                            className="min-h-11 flex-1 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 p-2 text-sm rounded-lg font-mono font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-stone-400 dark:placeholder-zinc-500"
                           />
 
                           <button
@@ -1875,7 +1876,7 @@ function CajaModule({
                               value={montoEntregadoEfectivo}
                               onChange={e => setMontoEntregadoEfectivo(e.target.value)}
                               placeholder="Monto entregado"
-                              className="min-h-11 p-1.5 bg-zinc-950 border border-white/10 rounded text-sm text-zinc-100 font-mono w-full sm:w-24 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                              className="min-h-11 p-1.5 glass-panel dark:bg-zinc-950/40 bg-white/40 border border-slate-200 dark:border-white/10 rounded text-sm text-zinc-800 dark:text-zinc-100 font-mono w-full sm:w-24 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-stone-400 dark:placeholder-zinc-500"
                             />
                             {calculatedChange > 0 && (
                               <span className="text-[#22C55E] font-black">${calculatedChange.toLocaleString('es-AR')}</span>
@@ -1948,16 +1949,29 @@ function CajaModule({
           </div>
 
               {/* EPSON TICKET PREVIEW SIMULATOR (MD: Span 5) */}
-              <div className="md:col-span-5 bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
+              <div className="md:col-span-5 bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start [perspective:1200px]">
                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                   <Printer className="w-3.5 h-3.5" /> Simulación Salida Térmica (80mm)
                 </span>
 
-                <div className="w-full bg-white text-zinc-950 p-3 sm:p-4 shadow-sm font-mono text-[9px] sm:text-[10px] leading-relaxed border border-stone-200 relative">
+                {/* Simulated Printer Slot */}
+                <div className="w-full h-3 bg-zinc-800 dark:bg-zinc-900 rounded-lg shadow-inner border border-zinc-700/50 relative overflow-hidden mb-[-4px] z-20">
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-black/60" />
+                  <div className="absolute inset-x-0 top-0.5 h-[1px] bg-brand-yellow/30 blur-[0.5px] animate-pulse" />
+                </div>
+
+                <motion.div
+                  initial={{ height: 0, opacity: 0, scaleY: 0.1 }}
+                  animate={{ height: "auto", opacity: 1, scaleY: 1 }}
+                  style={{ transformOrigin: "top" }}
+                  transition={{ duration: 0.85, ease: "easeOut" }}
+                  key={selectedPedido.id_pedido}
+                  className="w-full bg-gradient-to-b from-[#fffff8] to-[#f7f7eb] text-zinc-950 p-4 sm:p-5 shadow-[5px_5px_15px_rgba(0,0,0,0.3),-2px_-2px_10px_rgba(255,255,255,0.02)] font-mono text-[9px] sm:text-[10px] leading-relaxed border-x border-stone-300 relative [transform:rotateX(6deg)_rotateY(-3deg)] origin-top rounded-b-md"
+                >
                   
-                  <div className="absolute top-0 inset-x-0 h-1 bg-stone-300 flex overflow-hidden">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-stone-250 flex overflow-hidden opacity-50">
                     {Array.from({ length: 40 }).map((_, i) => (
-                      <div key={i} className="w-1.5 h-1.5 shrink-0 bg-stone-250 rotate-45 transform -translate-y-0.5 border border-stone-250" />
+                      <div key={i} className="w-1.5 h-1.5 shrink-0 bg-stone-300 rotate-45 transform -translate-y-0.5 border border-stone-350" />
                     ))}
                   </div>
 
@@ -2062,7 +2076,7 @@ function CajaModule({
                     {restaurante.mensajePie}
                   </p>
 
-                </div>
+                </motion.div>
 
                 <div className="mt-3 text-[10px] text-zinc-400 max-w-xs text-center font-bold">
                   ✓ Pizzería Colores POS emitirá este ticket y enviará el string compilado en bytes ESC/POS.
