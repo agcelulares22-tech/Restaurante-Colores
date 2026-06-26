@@ -37,7 +37,7 @@ export default function BottomNavigation({ activeView, allowedViews, onNavigate 
               <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${isActive ? 'text-brand-yellow' : 'text-zinc-500'}`}>
                 {item.label}
               </span>
-              {isActive && <div className="w-3 h-1 bg-brand-yellow rounded-full mt-0.5 shadow-[0_0_10px_#0EA5E9]" />}
+              {isActive && <div className="w-3 h-1 bg-brand-yellow rounded-full mt-0.5 shadow-[0_0_10px_#E8B800]" />}
             </button>
           );
         })}

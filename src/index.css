@@ -3,30 +3,22 @@
 @theme {
   --font-display: 'Outfit', sans-serif;
   --font-sans: 'Outfit', sans-serif;
-  --color-brand-yellow: #0EA5E9;
-  --color-brand-orange: #FF7A00;
-  --color-brand-red: #FF4B4B;
-  --color-brand-black: #03060f;
+  --color-brand-yellow: #E8B800;
+  --color-brand-orange: #E85D00;
+  --color-brand-red: #D42B2B;
+  --color-brand-black: #121214;
   --color-brand-white: #FFFFFF;
   --color-vintage-beige: #F5F0E6;
   --color-vintage-beige-light: #FAF7F0;
   --color-vintage-beige-dark: #E8E0D0;
   
-  /* Soften Tailwind's default dark colors globally with a premium Deep Sapphire Navy Palette */
-  --color-zinc-950: #050914;
-  --color-zinc-900: #0c1328;
-  --color-zinc-800: #141f3d;
-  --color-zinc-700: #1e2d56;
-  --color-zinc-600: #2b3d70;
-  --color-zinc-500: #465a94;
-  
-  --color-slate-950: #040812;
-  --color-slate-900: #0a1024;
-  --color-slate-800: #121c38;
-  --color-slate-700: #1a274c;
-  --color-slate-600: #253664;
-  
-  --color-black: #03060f;
+  /* Soften Tailwind's default dark colors globally */
+  --color-zinc-950: #121214;
+  --color-zinc-900: #1c1c1f;
+  --color-zinc-800: #27272a;
+  --color-slate-950: #0d111c;
+  --color-slate-900: #151c2c;
+  --color-black: #121214;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -77,49 +69,26 @@ canvas {
   max-width: 100%;
 }
 
-/* Glassmorphism Utilities */
-.glass-panel {
-  background: rgba(245, 240, 230, 0.7);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  transition: background-color 0.3s, border-color 0.3s;
+/* Scrollbar especial para el Sidebar */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #E8B800 rgba(0, 0, 0, 0.3);
 }
 
-.dark .glass-panel {
-  background: rgba(12, 20, 40, 0.6);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(138, 180, 255, 0.12);
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 5px;
 }
 
-.glow-yellow {
-  box-shadow: 0 0 15px rgba(14, 165, 233, 0.35);
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 999px;
 }
 
-.glow-green {
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #E8B800; /* Color de marca amarillo */
+  border-radius: 999px;
 }
 
-.glow-red {
-  box-shadow: 0 0 15px rgba(212, 43, 43, 0.25);
-}
-
-/* Custom Scrollbar for floating sidebar */
-.sidebar-scroll-hidden {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.sidebar-scroll-hidden::-webkit-scrollbar {
-  display: none;
-}
-
-/* Premium background radial gradient */
-.bg-premium-dark {
-  background: #FAF7F0 !important;
-  transition: background 0.3s;
-}
-
-.dark .bg-premium-dark {
-  background: radial-gradient(ellipse at top, #10214c, #040812) !important;
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #ffcc00;
 }

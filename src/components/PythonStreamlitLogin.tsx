@@ -138,7 +138,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess }: PythonStreamlit
 
       <div className="max-w-md w-full bg-zinc-950/85 backdrop-blur-md rounded-3xl border border-zinc-800/80 shadow-2xl p-6 sm:p-8 md:p-10 space-y-8 relative z-10">
         <div className="text-center space-y-4 flex flex-col items-center">
-          <ElPatronLogo className="w-32 h-32 sm:w-36 sm:h-36 drop-shadow-md" variant="badge" color="#0EA5E9" />
+          <ElPatronLogo className="w-32 h-32 sm:w-36 sm:h-36 drop-shadow-md" variant="badge" color="#E8B800" />
           <div className="space-y-1">
             <h1 className="text-3xl font-display uppercase tracking-wider text-brand-yellow">Colores Pizzería Pro</h1>
             <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-widest">

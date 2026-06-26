@@ -282,12 +282,12 @@ export default function HomeMenuModule({
       <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-white dark:from-amber-500/10 dark:via-orange-500/5 dark:to-transparent rounded-3xl p-8 md:p-10 text-slate-900 dark:text-zinc-100 shadow-md relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-slate-200 dark:border-zinc-700 border-b-4 border-b-brand-yellow transition-colors duration-300">
         {/* Subtle decorative logo outline in the background of the banner */}
         <div className="absolute right-[-25px] bottom-[-25px] opacity-10 rotate-12 scale-110 pointer-events-none">
-          <ElPatronLogo className="w-64 h-64" variant="icon" color="#0EA5E9" />
+          <ElPatronLogo className="w-64 h-64" variant="icon" color="#E8B800" />
         </div>
         
         {/* Prominent circular badge logo on the banner with object-contain */}
         <div className="w-24 h-24 md:w-28 md:h-28 bg-white dark:bg-zinc-950 rounded-full flex items-center justify-center p-1.5 shadow-md border border-slate-200 dark:border-zinc-700 shrink-0 relative z-10 transition-colors duration-300">
-          <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#0EA5E9" />
+          <ElPatronLogo className="w-full h-full object-contain rounded-full" variant="badge" color="#E8B800" />
         </div>
  
         <div className="absolute top-4 right-4 flex items-center gap-2">

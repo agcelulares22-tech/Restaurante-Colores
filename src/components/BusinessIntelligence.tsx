@@ -62,7 +62,7 @@ function BusinessIntelligence({
     });
 
     const primaryColor = [98, 74, 62]; // #624A3E
-    const goldColor = [232, 184, 0]; // #0EA5E9
+    const goldColor = [232, 184, 0]; // #E8B800
     const textColor = [28, 25, 23]; // #1C1917
     const lightBg = [245, 245, 244]; // #F5F5F4
     const redColor = [239, 68, 68]; // #EF4444

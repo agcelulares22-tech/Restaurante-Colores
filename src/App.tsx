@@ -12,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, Merma, EventoLog, Reserva, Usuario } from './types';
 import { 
@@ -249,25 +248,12 @@ export default function App() {
       if (!client) return;
 
       try {
-        const [
-          dbMesas,
-          dbInsumosData,
-          dbProductsData,
-          dbRecipesData,
-          dbPedidos,
-          dbMermas
-        ] = await Promise.all([
-          dbFetchMesas(),
-          dbFetchInsumos(),
-          dbFetchProductosMenu(),
-          dbFetchRecetas(),
-          dbFetchPedidos(),
-          dbFetchMermas()
-        ]);
-
-        let dbInsumos = dbInsumosData;
-        let dbProducts = dbProductsData;
-        let dbRecipes = dbRecipesData;
+        const dbMesas = await dbFetchMesas();
+        let dbInsumos = await dbFetchInsumos();
+        let dbProducts = await dbFetchProductosMenu();
+        let dbRecipes = await dbFetchRecetas();
+        const dbPedidos = await dbFetchPedidos();
+        const dbMermas = await dbFetchMermas();
 
         if (!active) return;
 
@@ -1168,7 +1154,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-zinc-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
@@ -1191,27 +1177,27 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
       <aside
-        className={`fixed left-4 top-4 bottom-4 z-50 hidden lg:flex flex-col bg-zinc-950/70 border border-zinc-800/80 shadow-2xl rounded-3xl backdrop-blur-md transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'w-20' : 'w-64'
+        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
+          isSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
         id="sidebar-left-panel"
       >
         {/* Logo & Sync Status */}
         <div 
-          className={`flex flex-col border-b border-zinc-900/40 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-4 select-none`}
+          className={`flex flex-col border-b border-zinc-900 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
         >
           <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
-            <div className="w-9 h-9 bg-zinc-900/85 rounded-xl flex items-center justify-center shadow border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
-              <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#0EA5E9" />
-              <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-zinc-950 ${
+            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
+              <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
+              <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
                 isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
               }`} />
             </div>
             {!isSidebarCollapsed && (
               <div className="ml-3 min-w-0">
                 <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
-                <span className="text-[7.5px] uppercase font-black text-zinc-550 tracking-wider block leading-tight mt-0.5">
-                  {isOnline ? '🟢 En línea' : '🔴 Sin conexión'}
+                <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
+                  {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                 </span>
               </div>
             )}
@@ -1224,23 +1210,23 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   e.stopPropagation();
                   handleTriggerSync();
                 }}
-                className="mt-2.5 w-9 h-9 rounded-xl bg-brand-yellow hover:bg-[#0284c7] text-zinc-950 flex items-center justify-center cursor-pointer transition-colors relative glow-yellow shadow-md"
+                className="mt-2 w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center cursor-pointer transition-colors relative"
                 title={`Sincronizar ${syncQueueSize} cambios pendientes`}
               >
-                <RefreshCw className="w-4 h-4 animate-spin text-zinc-950" />
-                <span className="absolute -top-1 -right-1 bg-brand-red text-white font-mono text-[7px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-zinc-950">
+                <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                <span className="absolute -top-1 -right-1 bg-red-650 text-white font-mono text-[7px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-zinc-950">
                   {syncQueueSize}
                 </span>
               </button>
             ) : (
-              <div className="mt-2.5 flex items-center justify-between bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 px-2.5 py-2 rounded-xl text-[10px]">
-                <span className="text-brand-yellow font-bold flex items-center gap-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0 text-brand-yellow" />
-                  <span className="font-semibold">{syncQueueSize} por subir</span>
+              <div className="mt-2 flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2 py-1.5 rounded-md text-[10px]">
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 animate-spin shrink-0 text-amber-400" />
+                  <span>{syncQueueSize} por subir</span>
                 </span>
                 <button 
                   onClick={handleTriggerSync}
-                  className="bg-[#0EA5E9] text-zinc-950 hover:bg-[#0284c7] font-black px-2 py-0.5 rounded-lg cursor-pointer transition-colors text-[9px] uppercase tracking-wider shadow-sm border-0 active:scale-95"
+                  className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
                 >
                   Subir
                 </button>
@@ -1249,8 +1235,9 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
           )}
         </div>
 
+
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto overscroll-contain py-3 sidebar-scroll-hidden">
+        <nav className="flex-1 overflow-y-auto overscroll-contain py-3 min-h-0 sidebar-scrollbar">
           {[
             { id: 'home', label: 'Inicio', icon: '🏠' },
             { id: 'mozo', label: 'Mozo', icon: '📱' },
@@ -1275,24 +1262,20 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 id={`tab-${item.id}`}
                 title={isSidebarCollapsed ? item.label : ''}
                 onClick={() => handleNavigate(item.id as AppView)}
-                className={`mx-3 my-1 px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-3 py-3 transition-colors cursor-pointer ${
                   isSidebarCollapsed ? 'justify-center' : 'justify-start'
                 } ${
                   isActive
-                    ? 'bg-[#0EA5E9] text-zinc-950 font-black glow-yellow shadow-md hover:bg-[#0284c7]'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-brand-yellow text-brand-black font-black'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
                 }`}
               >
                 <span className="text-base shrink-0 leading-none">{item.icon}</span>
                 {!isSidebarCollapsed && (
-                  <span className="text-xs whitespace-nowrap truncate">{item.label}</span>
+                  <span className="text-sm whitespace-nowrap truncate">{item.label}</span>
                 )}
-                {isActive && !isSidebarCollapsed && (
-                  <motion.span 
-                    layoutId="activeIndicator"
-                    className="ml-auto w-2 h-2 rounded-full bg-zinc-950 shrink-0" 
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
+                {!isSidebarCollapsed && isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-black shrink-0" />
                 )}
               </button>
             );
@@ -1300,25 +1283,25 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-zinc-900/40 p-3">
+        <div className="border-t border-zinc-900 p-3">
           <div className="flex items-center justify-center mb-2">
             <ThemeToggle />
           </div>
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? 'Cerrar sesión' : ''}
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-brand-red/10 text-brand-red transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-red-950/20 text-brand-red transition-colors cursor-pointer ${
               isSidebarCollapsed ? 'justify-center' : 'justify-start'
             }`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            {!isSidebarCollapsed && <span className="text-xs font-semibold">Cerrar sesión</span>}
+            {!isSidebarCollapsed && <span className="text-sm">Cerrar sesión</span>}
           </button>
 
           <button
             onClick={() => setIsSidebarCollapsed(c => !c)}
             title={isSidebarCollapsed ? 'Expandir' : 'Colapsar'}
-            className="w-full flex items-center justify-center mt-2.5 p-2 rounded-xl hover:bg-white/5 text-zinc-500 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 transition-colors cursor-pointer"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -1326,240 +1309,114 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-premium-dark ${
-        isSidebarCollapsed ? 'lg:ml-[6.5rem]' : 'lg:ml-[18.5rem]'
+      <main className={`flex-1 overflow-x-hidden overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 pb-24 pt-16 lg:pt-4 max-w-[1600px] mx-auto w-full transition-all duration-300 ease-in-out bg-vintage-beige dark:bg-slate-900 ${
+        isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
       }`}>
         <ToastContainer toasts={toasts} removeToast={removeToast} />
 
         <RetryErrorWrapper>
           <Suspense fallback={<Skeleton count={6} />}>
-            <AnimatePresence mode="wait">
-              {activeView === 'home' && activeUser && (
-                <motion.div
-                  key="home"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <HomeMenuModule 
-                    activeRol={activeUser.rol}
-                    mesas={mesas} pedidos={pedidos} insumos={insumos}
-                    productosMenu={productosMenu} usuarios={usuarios}
-                    allowedViews={allowedViews} canChangeUser={true}
-                    activeMozo={activeMozo} onMozoChange={setActiveMozo}
-                    onNavigate={handleNavigate}
-                    getSimulatedTimeStr={getSimulatedTimeStr}
-                    autoTimerRunning={autoTimerRunning}
-                    onToggleAutoTimer={handleToggleAutoTimer}
-                    onAdvanceTime={handleAdvanceTime}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'mozo' && (
-                <motion.div
-                  key="mozo"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <MozoTerminal 
-                    activeMozo={activeMozo}
-                    mesas={mesas}
-                    insumos={insumos}
-                    productosMenu={productosMenu}
-                    setProductosMenu={setProductosMenu}
-                    recetas={recetas}
-                    usuarios={usuarios}
-                    pedidos={pedidos}
-                    onMozoChange={setActiveMozo}
-                    onCrearPedido={handleCrearPedido}
-                    onFacturarMesa={handleFacturarMesa}
-                    addLog={addLog}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'cocina' && (
-                <motion.div
-                  key="cocina"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <KitchenMonitor 
-                    pedidos={pedidos}
-                    onCambiarEstadoPedido={handleCambiarEstadoPedido}
-                    onProducirPedidoConEscandallo={handleProducirPedidoConEscandallo}
-                    minutosGlobal={minutosGlobal}
-                    productosMenu={productosMenu}
-                    recetas={recetas}
-                    insumos={insumos}
-                    activeMozo={activeMozo}
-                    onCrearPedido={handleCrearPedido}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'caja' && (
-                <motion.div
-                  key="caja"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <CajaModule pedidos={pedidos} productosMenu={productosMenu} onFacturarMesa={handleFacturarMesa} onCambiarEstadoPedido={handleCambiarEstadoPedido} addLog={addLog} />
-                </motion.div>
-              )}
-              {activeView === 'inventario' && (
-                <motion.div
-                  key="inventario"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <InventoryModule insumos={insumos} productosMenu={productosMenu} recetas={recetas} mermas={mermas}
-                    onRegistrarMerma={handleRegistrarMerma}
-                    onRestockInsumo={handleRestockInsumo}
-                    addLog={addLog}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'usuarios' && (
-                <motion.div
-                  key="usuarios"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <UsuariosModule usuarios={usuarios} onUsuariosChange={setUsuarios} addLog={addLog} activeUser={activeUser} />
-                </motion.div>
-              )}
-              {activeView === 'menu' && (
-                <motion.div
-                  key="menu"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <MenuModule productosMenu={productosMenu} onProductosChange={setProductosMenu} recetas={recetas} insumos={insumos} addLog={addLog} />
-                </motion.div>
-              )}
-              {activeView === 'recetas' && (
-                <motion.div
-                  key="recetas"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <RecetasErrorBoundary>
-                    <RecetasModule recetas={recetas} onRecetasChange={setRecetas} productosMenu={productosMenu} onProductosChange={setProductosMenu} insumos={insumos} addLog={addLog} />
-                  </RecetasErrorBoundary>
-                </motion.div>
-              )}
-              {activeView === 'mesas' && (
-                <motion.div
-                  key="mesas"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <DeliveryModule 
-                    pedidos={pedidos}
-                    productosMenu={productosMenu}
-                    onCrearPedido={handleCrearPedido}
-                    onCambiarEstadoPedido={handleCambiarEstadoPedido}
-                    onFacturarMesa={handleFacturarMesa}
-                    addLog={addLog}
-                    activeMozo={activeMozo}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'proveedores' && (
-                <motion.div
-                  key="proveedores"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <ProveedoresModule addLog={addLog} />
-                </motion.div>
-              )}
-              {activeView === 'promociones' && (
-                <motion.div
-                  key="promociones"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <PromocionesModule addLog={addLog} />
-                </motion.div>
-              )}
-              {activeView === 'reservas' && (
-                <motion.div
-                  key="reservas"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <ReservasModule mesas={mesas} onEstadoChange={handleReservaEstadoChange} addLog={addLog} />
-                </motion.div>
-              )}
-              {activeView === 'sistema' && (
-                <motion.div
-                  key="sistema"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <SistemaModule 
-                    insumos={insumos}
-                    productosMenu={productosMenu}
-                    recetas={recetas}
-                    pedidos={pedidos}
-                    mesas={mesas}
-                    addLog={addLog}
-                    onSyncComplete={handleSupabaseSync}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'backups' && (
-                <motion.div
-                  key="backups"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <BackupsModule 
-                    operationalData={{ usuarios, mesas, insumos, productosMenu, recetas, pedidos, mermas, logs }}
-                    onRestoreData={handleRestoreBackupData}
-                    addLog={addLog}
-                  />
-                </motion.div>
-              )}
-              {activeView === 'fichaje' && (
-                <motion.div
-                  key="fichaje"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <FichajeModule activeMozo={activeMozo} usuarios={usuarios} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {activeView === 'home' && activeUser && (
+              <HomeMenuModule 
+                activeRol={activeUser.rol}
+                mesas={mesas} pedidos={pedidos} insumos={insumos}
+                productosMenu={productosMenu} usuarios={usuarios}
+                allowedViews={allowedViews} canChangeUser={true}
+                activeMozo={activeMozo} onMozoChange={setActiveMozo}
+                onNavigate={handleNavigate}
+                getSimulatedTimeStr={getSimulatedTimeStr}
+                autoTimerRunning={autoTimerRunning}
+                onToggleAutoTimer={handleToggleAutoTimer}
+                onAdvanceTime={handleAdvanceTime}
+              />
+            )}
+            {activeView === 'mozo' && (
+              <MozoTerminal 
+                activeMozo={activeMozo}
+                mesas={mesas}
+                insumos={insumos}
+                productosMenu={productosMenu}
+                setProductosMenu={setProductosMenu}
+                recetas={recetas}
+                usuarios={usuarios}
+                pedidos={pedidos}
+                onMozoChange={setActiveMozo}
+                onCrearPedido={handleCrearPedido}
+                onFacturarMesa={handleFacturarMesa}
+                addLog={addLog}
+              />
+            )}
+            {activeView === 'cocina' && (
+              <KitchenMonitor 
+                pedidos={pedidos}
+                onCambiarEstadoPedido={handleCambiarEstadoPedido}
+                onProducirPedidoConEscandallo={handleProducirPedidoConEscandallo}
+                minutosGlobal={minutosGlobal}
+                productosMenu={productosMenu}
+                recetas={recetas}
+                insumos={insumos}
+                activeMozo={activeMozo}
+                onCrearPedido={handleCrearPedido}
+              />
+            )}
+            {activeView === 'caja' && (
+              <CajaModule pedidos={pedidos} productosMenu={productosMenu} onFacturarMesa={handleFacturarMesa} onCambiarEstadoPedido={handleCambiarEstadoPedido} addLog={addLog} />
+            )}
+            {activeView === 'inventario' && (
+              <InventoryModule insumos={insumos} productosMenu={productosMenu} recetas={recetas} mermas={mermas}
+                onRegistrarMerma={handleRegistrarMerma}
+                onRestockInsumo={handleRestockInsumo}
+                addLog={addLog}
+              />
+            )}
+            {activeView === 'usuarios' && (
+              <UsuariosModule usuarios={usuarios} onUsuariosChange={setUsuarios} addLog={addLog} activeUser={activeUser} />
+            )}
+            {activeView === 'menu' && (
+              <MenuModule productosMenu={productosMenu} onProductosChange={setProductosMenu} recetas={recetas} insumos={insumos} addLog={addLog} />
+            )}
+            {activeView === 'recetas' && (
+              <RecetasErrorBoundary>
+                <RecetasModule recetas={recetas} onRecetasChange={setRecetas} productosMenu={productosMenu} onProductosChange={setProductosMenu} insumos={insumos} addLog={addLog} />
+              </RecetasErrorBoundary>
+            )}
+            {activeView === 'mesas' && (
+              <DeliveryModule 
+                pedidos={pedidos}
+                productosMenu={productosMenu}
+                onCrearPedido={handleCrearPedido}
+                onCambiarEstadoPedido={handleCambiarEstadoPedido}
+                onFacturarMesa={handleFacturarMesa}
+                addLog={addLog}
+                activeMozo={activeMozo}
+              />
+            )}
+            {activeView === 'proveedores' && <ProveedoresModule addLog={addLog} />}
+            {activeView === 'promociones' && <PromocionesModule addLog={addLog} />}
+            {activeView === 'reservas' && (
+              <ReservasModule mesas={mesas} onEstadoChange={handleReservaEstadoChange} addLog={addLog} />
+            )}
+            {activeView === 'sistema' && (
+              <SistemaModule 
+                insumos={insumos}
+                productosMenu={productosMenu}
+                recetas={recetas}
+                pedidos={pedidos}
+                mesas={mesas}
+                addLog={addLog}
+                onSyncComplete={handleSupabaseSync}
+              />
+            )}
+            {activeView === 'backups' && (
+              <BackupsModule 
+                operationalData={{ usuarios, mesas, insumos, productosMenu, recetas, pedidos, mermas, logs }}
+                onRestoreData={handleRestoreBackupData}
+                addLog={addLog}
+              />
+            )}
+            {activeView === 'fichaje' && (
+              <FichajeModule activeMozo={activeMozo} usuarios={usuarios} />
+            )}
           </Suspense>
         </RetryErrorWrapper>
       </main>
