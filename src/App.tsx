@@ -249,12 +249,25 @@ export default function App() {
       if (!client) return;
 
       try {
-        const dbMesas = await dbFetchMesas();
-        let dbInsumos = await dbFetchInsumos();
-        let dbProducts = await dbFetchProductosMenu();
-        let dbRecipes = await dbFetchRecetas();
-        const dbPedidos = await dbFetchPedidos();
-        const dbMermas = await dbFetchMermas();
+        const [
+          dbMesas,
+          dbInsumosData,
+          dbProductsData,
+          dbRecipesData,
+          dbPedidos,
+          dbMermas
+        ] = await Promise.all([
+          dbFetchMesas(),
+          dbFetchInsumos(),
+          dbFetchProductosMenu(),
+          dbFetchRecetas(),
+          dbFetchPedidos(),
+          dbFetchMermas()
+        ]);
+
+        let dbInsumos = dbInsumosData;
+        let dbProducts = dbProductsData;
+        let dbRecipes = dbRecipesData;
 
         if (!active) return;
 
