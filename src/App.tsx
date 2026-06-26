@@ -1155,7 +1155,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-[#090d16] flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-zinc-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav

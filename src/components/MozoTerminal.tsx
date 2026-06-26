@@ -529,7 +529,7 @@ function MozoTerminal({
             </div>
           ) : (
             /* Plano 2D View */
-            <div className="relative w-full h-[520px] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center bg-[radial-gradient(#384152_1.2px,transparent_1.2px)] [background-size:20px_20px]">
+            <div className="relative w-full h-[520px] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center bg-[radial-gradient(#2a3b5c_1.2px,transparent_1.2px)] [background-size:20px_20px]">
               {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
                 const isSelected = m.id_mesa === selectedMesaId;
                 const isOcupada = m.estado === 'ocupada';
@@ -537,7 +537,7 @@ function MozoTerminal({
                 const isReservada = m.estado === 'reservada';
 
                 // Determine visual theme according to state
-                let stateBg = "bg-[#1E293B] border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-650";
+                let stateBg = "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:border-slate-600";
                 let dotColor = "bg-emerald-500";
                 let label = "Libre";
 
