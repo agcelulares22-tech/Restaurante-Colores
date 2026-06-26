@@ -28,6 +28,7 @@ import {
 import ErrorBoundary from './components/ErrorBoundary';
 import { useToast, ToastContainer } from './components/ToastContainer';
 import PythonStreamlitLogin from './components/PythonStreamlitLogin';
+import RestaurantCover from './components/RestaurantCover';
 import ElPatronLogo from './components/ElPatronLogo';
 import BottomNavigation from './components/BottomNavigation';
 import MobileNav from './components/MobileNav';
@@ -97,6 +98,7 @@ export default function App() {
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
     typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
   ));
+  const [showCover, setShowCover] = useState<boolean>(true);
   const [permitirVentaSinStock, setPermitirVentaSinStock] = useState<boolean>(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(INITIAL_USUARIOS);
   const [mesas, setMesas] = useState<Mesa[]>(INITIAL_MESAS);
@@ -1158,10 +1160,21 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     return () => { if (interval) clearInterval(interval); };
   }, [autoTimerRunning]);
 
+  if (!isStreamlitLoggedIn && showCover) {
+    return (
+      <ErrorBoundary>
+        <RestaurantCover onEnterSystem={() => setShowCover(false)} />
+      </ErrorBoundary>
+    );
+  }
+
   if (!isStreamlitLoggedIn) {
     return (
       <ErrorBoundary>
-        <PythonStreamlitLogin onLoginSuccess={handleLoginSuccess} />
+        <PythonStreamlitLogin 
+          onLoginSuccess={handleLoginSuccess} 
+          onBackToCover={() => setShowCover(true)} 
+        />
       </ErrorBoundary>
     );
   }
