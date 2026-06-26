@@ -227,7 +227,7 @@ export default function PanelDashboard({
   }, [topProducts]);
 
   const colorsMap: Record<string, string> = {
-    efectivo: '#E8B800',
+    efectivo: '#0EA5E9',
     debito: '#E85D00',
     tarjeta: '#D42B2B',
     transferencia: '#8C6239',
@@ -360,7 +360,7 @@ export default function PanelDashboard({
   const mermasColorsMap: Record<string, string> = {
     vencimiento: '#D42B2B',
     rotura: '#E85D00',
-    error_cocina: '#E8B800',
+    error_cocina: '#0EA5E9',
     otro: '#A8A29E'
   };
 
@@ -582,7 +582,7 @@ export default function PanelDashboard({
                                           width={barWidth}
                                           height={barHeight}
                                           rx="4"
-                                          fill={i === 6 ? '#E85D00' : '#E8B800'}
+                                          fill={i === 6 ? '#E85D00' : '#0EA5E9'}
                                           className="transition-all duration-300 hover:opacity-85"
                                       />
                                       {/* Value label on top of bar */}
@@ -864,7 +864,7 @@ export default function PanelDashboard({
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col font-sans">
                   <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-[#E8B800]" />
+                          <Users className="w-4 h-4 text-[#0EA5E9]" />
                           <h4 className="text-xs font-black text-stone-700 uppercase tracking-wider">Productividad de Mozos</h4>
                       </div>
                       <span className="text-[9px] uppercase font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">Atención en Salón</span>
@@ -890,7 +890,7 @@ export default function PanelDashboard({
                                               {/* Bar Background */}
                                               <rect x="0" y={y + 16} width="320" height="6" rx="3" fill="#F5F0E6" />
                                               {/* Bar Active */}
-                                              <rect x="0" y={y + 16} width={barWidth} height="6" rx="3" fill="#E8B800" />
+                                              <rect x="0" y={y + 16} width={barWidth} height="6" rx="3" fill="#0EA5E9" />
                                           </g>
                                       );
                                   })}

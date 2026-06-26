@@ -1189,7 +1189,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
         >
           <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
             <div className="w-9 h-9 bg-zinc-900/85 rounded-xl flex items-center justify-center shadow border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
-              <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#E8B800" />
+              <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#0EA5E9" />
               <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-zinc-950 ${
                 isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
               }`} />
@@ -1211,7 +1211,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   e.stopPropagation();
                   handleTriggerSync();
                 }}
-                className="mt-2.5 w-9 h-9 rounded-xl bg-brand-yellow hover:bg-[#D4A700] text-zinc-950 flex items-center justify-center cursor-pointer transition-colors relative glow-yellow shadow-md"
+                className="mt-2.5 w-9 h-9 rounded-xl bg-brand-yellow hover:bg-[#0284c7] text-zinc-950 flex items-center justify-center cursor-pointer transition-colors relative glow-yellow shadow-md"
                 title={`Sincronizar ${syncQueueSize} cambios pendientes`}
               >
                 <RefreshCw className="w-4 h-4 animate-spin text-zinc-950" />
@@ -1220,14 +1220,14 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 </span>
               </button>
             ) : (
-              <div className="mt-2.5 flex items-center justify-between bg-[#E8B800]/10 border border-[#E8B800]/20 px-2.5 py-2 rounded-xl text-[10px]">
+              <div className="mt-2.5 flex items-center justify-between bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 px-2.5 py-2 rounded-xl text-[10px]">
                 <span className="text-brand-yellow font-bold flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0 text-brand-yellow" />
                   <span className="font-semibold">{syncQueueSize} por subir</span>
                 </span>
                 <button 
                   onClick={handleTriggerSync}
-                  className="bg-[#E8B800] text-zinc-950 hover:bg-[#D4A700] font-black px-2 py-0.5 rounded-lg cursor-pointer transition-colors text-[9px] uppercase tracking-wider shadow-sm border-0 active:scale-95"
+                  className="bg-[#0EA5E9] text-zinc-950 hover:bg-[#0284c7] font-black px-2 py-0.5 rounded-lg cursor-pointer transition-colors text-[9px] uppercase tracking-wider shadow-sm border-0 active:scale-95"
                 >
                   Subir
                 </button>
@@ -1266,7 +1266,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                   isSidebarCollapsed ? 'justify-center' : 'justify-start'
                 } ${
                   isActive
-                    ? 'bg-[#E8B800] text-zinc-950 font-black glow-yellow shadow-md hover:bg-[#D4A700]'
+                    ? 'bg-[#0EA5E9] text-zinc-950 font-black glow-yellow shadow-md hover:bg-[#0284c7]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >

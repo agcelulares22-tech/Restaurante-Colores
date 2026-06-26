@@ -737,7 +737,7 @@ function MozoTerminal({
          {/* Search and Filters */}
         <div className="glass-panel-light dark:glass-panel rounded-2xl p-3 sm:p-4 shadow-sm space-y-3 text-slate-800 dark:text-slate-100">
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-            <h3 className="font-extrabold text-sm md:text-base text-slate-850 dark:text-[#E8B800] tracking-wider uppercase">Categorías</h3>
+            <h3 className="font-extrabold text-sm md:text-base text-slate-850 dark:text-[#0EA5E9] tracking-wider uppercase">Categorías</h3>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative w-full sm:w-56">
                 <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -844,7 +844,7 @@ function MozoTerminal({
                     ? 'opacity-50 border-rose-950/20 pointer-events-none' 
                     : currentInCart > 0 
                       ? 'border-brand-yellow dark:border-brand-yellow bg-brand-yellow/5 ring-1 ring-brand-yellow/20 scale-[1.01] glow-yellow' 
-                      : 'border-stone-200/50 dark:border-white/5 hover:-translate-y-1 hover:border-[#E8B800]/50'
+                      : 'border-stone-200/50 dark:border-white/5 hover:-translate-y-1 hover:border-[#0EA5E9]/50'
                 }`}
                 style={{ contentVisibility: 'auto' }}
               >
@@ -934,7 +934,7 @@ function MozoTerminal({
                             setSelectedToppings([]);
                             setShowToppingsModal(true);
                           }}
-                          className="touch-target px-2 h-8 sm:h-9 rounded-lg bg-brand-yellow text-brand-black hover:bg-[#D4A700] border border-brand-yellow active:scale-90 transition-all text-[10px] font-black cursor-pointer flex items-center justify-center gap-1 mr-1 shadow-sm"
+                          className="touch-target px-2 h-8 sm:h-9 rounded-lg bg-brand-yellow text-brand-black hover:bg-[#0284c7] border border-brand-yellow active:scale-90 transition-all text-[10px] font-black cursor-pointer flex items-center justify-center gap-1 mr-1 shadow-sm"
                           title="Adicionales de pizza"
                         >
                           🍕 +Extras
@@ -1505,7 +1505,7 @@ function MozoTerminal({
                 onClick={() => transferTargetTableId && handleTransferTable(transferTargetTableId)}
                 className={`flex-1 min-h-11 text-zinc-950 text-xs font-black rounded-xl transition-all ${
                   transferTargetTableId 
-                    ? 'bg-brand-yellow hover:bg-[#D4A700] cursor-pointer shadow-md' 
+                    ? 'bg-brand-yellow hover:bg-[#0284c7] cursor-pointer shadow-md' 
                     : 'bg-zinc-750 text-zinc-500 cursor-not-allowed opacity-50'
                 }`}
               >

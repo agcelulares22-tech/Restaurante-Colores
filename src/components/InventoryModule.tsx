@@ -894,7 +894,7 @@ function InventoryModule({
                 <div className="border-b border-slate-100 flex gap-2 pb-2 mb-3">
                   <button type="button" onClick={() => setAjusteOperacion('sumar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'sumar' ? 'bg-[#624A3E] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Ajustar Stock</button>
                   <button type="button" onClick={() => setAjusteOperacion('restar')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'restar' ? 'bg-[#EF4444] text-white shadow-sm' : 'text-slate-500 bg-slate-50'}`}>Merma manual</button>
-                  <button type="button" onClick={() => setAjusteOperacion('lote')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'lote' ? 'bg-[#E8B800] text-black shadow-sm font-black' : 'text-slate-500 bg-slate-50'}`}>Ingresar Lote</button>
+                  <button type="button" onClick={() => setAjusteOperacion('lote')} className={`text-[10px] font-bold px-2 py-1 rounded cursor-pointer ${ajusteOperacion === 'lote' ? 'bg-[#0EA5E9] text-black shadow-sm font-black' : 'text-slate-500 bg-slate-50'}`}>Ingresar Lote</button>
                 </div>
 
                 {ajusteOperacion === 'sumar' ? (
@@ -1061,7 +1061,7 @@ function InventoryModule({
 
                     <button
                       type="submit"
-                      className="w-full py-2 bg-[#E8B800] hover:bg-[#d0a500] text-black font-extrabold rounded-xl text-xs transition-all cursor-pointer shadow-sm shadow-[#E8B800]/10 border-0"
+                      className="w-full py-2 bg-[#0EA5E9] hover:bg-[#d0a500] text-black font-extrabold rounded-xl text-xs transition-all cursor-pointer shadow-sm shadow-[#0EA5E9]/10 border-0"
                     >
                       Registrar Lote de Fresco
                     </button>
@@ -1355,7 +1355,7 @@ function InventoryModule({
               {/* Órdenes de Compra Sugeridas por Proveedor */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
                 <h4 className="font-extrabold text-sm text-slate-800 font-sans tracking-tight flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#E8B800] animate-pulse" />
+                  <Sparkles className="w-4 h-4 text-[#0EA5E9] animate-pulse" />
                   Órdenes de Compra Sugeridas por Proveedor
                 </h4>
                 <p className="text-[11px] text-slate-400 font-sans leading-normal">

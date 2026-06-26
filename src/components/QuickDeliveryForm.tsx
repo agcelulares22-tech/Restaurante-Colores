@@ -81,15 +81,15 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
   };
 
   return (
-    <div className="bg-[#FFF9E6] rounded-[20px] p-4 border border-[#E8B800]/40 space-y-3 shadow-sm">
+    <div className="bg-[#FFF9E6] rounded-[20px] p-4 border border-[#0EA5E9]/40 space-y-3 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bike className="w-4 h-4 text-[#E8B800]" />
+          <Bike className="w-4 h-4 text-[#0EA5E9]" />
           <span className="text-xs font-black uppercase text-[#4A2D1B] tracking-wider">Pedido de Delivery Rápido</span>
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="text-[10px] font-bold px-3 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+          className="text-[10px] font-bold px-3 py-1.5 bg-[#0EA5E9] hover:bg-[#0284c7] text-[#1A1A1A] rounded-lg flex items-center gap-1 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           {isOpen ? 'Cancelar' : 'Agregar Pedido'}
@@ -109,7 +109,7 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Juan Pérez"
-              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
+              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#0EA5E9]"
             />
           </div>
           <div className="md:col-span-2">
@@ -123,7 +123,7 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
               onChange={(e) => setOrder(e.target.value)}
               placeholder="Ej: 1 Pizza Muzzarella grande, 1 Coca 1.5L"
               rows={2}
-              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800] resize-none"
+              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#0EA5E9] resize-none"
             />
           </div>
           <div className="md:col-span-1">
@@ -137,7 +137,7 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Ej: Alvear 1362"
-              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
+              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#0EA5E9]"
             />
             {zonaResultado?.status === 'success' && (
               <p className="mt-1 text-[10px] font-bold text-emerald-600 flex items-center gap-1">
@@ -159,14 +159,14 @@ export default function QuickDeliveryForm({ activeMozo = 'Sistema', onCrearPedid
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Ej: 3584-123456"
-              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#E8B800]"
+              className="w-full p-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-[#0EA5E9]"
             />
           </div>
           <div className="md:col-span-2 flex gap-2">
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2 bg-[#E8B800] hover:bg-[#D4A700] text-[#1A1A1A] font-extrabold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-60"
+              className="flex-1 py-2 bg-[#0EA5E9] hover:bg-[#0284c7] text-[#1A1A1A] font-extrabold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-60"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bike className="w-3.5 h-3.5" />}
               {saving ? 'Guardando...' : 'Guardar Pedido'}
