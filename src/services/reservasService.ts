@@ -1,4 +1,4 @@
-import { getActiveSupabaseClient } from '../lib/supabaseClient';
+import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Reserva } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -113,48 +113,89 @@ export const __reservasServiceTestables = {
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
+const CACHE_KEY = 'colores_pizzeria_cache_reservas';
+
+const invalidateCache = () => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(CACHE_KEY);
+  }
+};
+
 export const reservasService = {
 
     /** Devuelve todas las reservas ordenadas por fecha y hora. */
     async list(): Promise<Reserva[]> {
-          const supabase = getActiveSupabaseClient();
-          const { data, error } = await supabase
+          const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(CACHE_KEY) : null;
+          const client = tryGetActiveSupabaseClient();
+
+          if (cached) {
+            if (client) {
+              // Stale-While-Revalidate: fetch updated data in background
+              setTimeout(async () => {
+                try {
+                  const { data, error } = await client
+                    .from('reservas')
+                    .select('*')
+                    .order('fecha', { ascending: true })
+                    .order('hora',  { ascending: true });
+                  if (!error && data) {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                  }
+                } catch (e) {
+                  console.warn('Background reservas cache refresh failed:', e);
+                }
+              }, 500);
+            }
+
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) {
+                return parsed.map(mapRowToReserva);
+              }
+            } catch (e) {
+              console.warn('Failed parsing reservas cache:', e);
+            }
+          }
+
+          if (!client) {
+            return [];
+          }
+
+          const { data, error } = await client
             .from('reservas')
             .select('*')
             .order('fecha', { ascending: true })
             .order('hora',  { ascending: true });
+
           if (error) {
                   console.error('reservasService.list:', error);
                   throw error;
           }
+
+          if (typeof localStorage !== 'undefined' && data) {
+            try {
+              localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch {}
+          }
+
           return (data ?? []).map(mapRowToReserva);
     },
 
     /**
-         * Devuelve solo las reservas de una fecha específica (YYYY-MM-DD).
-     * Filtra en cliente para compatibilidad con esquemas sin índice de fecha.
+     * Devuelve solo las reservas de una fecha específica (YYYY-MM-DD).
      */
     async listByFecha(fecha: string): Promise<Reserva[]> {
-          const supabase = getActiveSupabaseClient();
-          const { data, error } = await supabase
-            .from('reservas')
-            .select('*');
-          if (error) {
-                  console.error('reservasService.listByFecha:', error);
-                  throw error;
-          }
-          return (data ?? [])
-            .map(mapRowToReserva)
+          const all = await this.list();
+          return all
             .filter(r => r.fecha === fecha)
             .sort((a, b) => a.hora.localeCompare(b.hora));
     },
 
     /**
-         * Crea una reserva nueva.
-     * Persiste TODOS los campos relevantes: fecha, teléfono, nombre_mesa,
-     * observaciones, email, lista_espera y prioridad_espera.
+     * Crea una reserva nueva.
      */
     async create(res: Reserva): Promise<Reserva> {
+          invalidateCache();
           const supabase = getActiveSupabaseClient();
           const { data, error } = await supabase
             .from('reservas')
@@ -169,13 +210,14 @@ export const reservasService = {
     },
 
     /**
-         * Actualiza campos específicos de una reserva existente.
+     * Actualiza campos específicos de una reserva existente.
      */
     async update(id: string, fields: Partial<Reserva>): Promise<void> {
+          invalidateCache();
           const supabase = getActiveSupabaseClient();
           const payload = toDbPayload(fields);
           // Nunca actualizar el id_reserva vía update
-      delete payload.id_reserva;
+          delete payload.id_reserva;
           const { error } = await supabase
             .from('reservas')
             .update(payload)
@@ -187,9 +229,10 @@ export const reservasService = {
     },
 
     /**
-         * Upsert masivo (usado en sync con Supabase).
+     * Upsert masivo (usado en sync con Supabase).
      */
     async upsert(reservas: Reserva[]): Promise<void> {
+          invalidateCache();
           const supabase = getActiveSupabaseClient();
           const { error } = await supabase
             .from('reservas')
@@ -201,10 +244,10 @@ export const reservasService = {
     },
 
     /**
-         * Elimina una reserva por ID.
-     * Registra en consola para facilitar debugging.
+     * Elimina una reserva por ID.
      */
     async remove(id: string): Promise<boolean> {
+          invalidateCache();
           const supabase = getActiveSupabaseClient();
           console.log(`[reservasService] Eliminando reserva id=${id}`);
           const { error } = await supabase
