@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Outfit', sans-serif;
+  --font-display: 'Lilita One', sans-serif;
   --font-sans: 'Outfit', sans-serif;
   --color-brand-yellow: #E8B800;
   --color-brand-orange: #E85D00;
