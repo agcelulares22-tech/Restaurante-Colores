@@ -1,4 +1,4 @@
-import { getActiveSupabaseClient } from '../lib/supabaseClient';
+import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { CierreCaja, MovimientoCajaChica } from '../types';
 
 const inferFechaApertura = (idCierre: string) => {
@@ -23,40 +23,49 @@ export const cajaService = {
   },
 
   async list(): Promise<CierreCaja[]> {
-    const supabase = getActiveSupabaseClient();
-    try {
-      const { data, error } = await supabase
-        .from('cierres_caja')
-        .select('*')
-        .order('id_cierre', { ascending: false });
-        
-      if (error) {
-        console.warn('Database fetching error, reading localStorage backup:', error);
-        throw error;
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem('colores_pizzeria_historial_cierres') : null;
+    const client = tryGetActiveSupabaseClient();
+
+    if (cached) {
+      if (client) {
+        // Stale-While-Revalidate: fetch updated data in background
+        setTimeout(async () => {
+          try {
+            const { data, error } = await client
+              .from('cierres_caja')
+              .select('*')
+              .order('id_cierre', { ascending: false });
+            if (!error && data) {
+              const mapped = data.map(cc => ({
+                id_cierre: cc.id_cierre,
+                fecha_apertura: cc.fecha_apertura || inferFechaApertura(cc.id_cierre),
+                fecha_cierre: cc.fecha_cierre,
+                monto_apertura: parseFloat(cc.monto_apertura),
+                monto_ventas: parseFloat(cc.monto_ventas),
+                monto_real: cc.monto_real ? parseFloat(cc.monto_real) : null,
+                diferencia: cc.diferencia ? parseFloat(cc.diferencia) : null,
+                observaciones: cc.observaciones || '',
+                usuario_cajero: cc.usuario_cajero || 'Cajero Pro'
+              }));
+              localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(mapped));
+            }
+          } catch (e) {
+            console.warn('Background cierres_caja cache refresh failed:', e);
+          }
+        }, 500);
       }
-      
-      return (data || []).map(cc => ({
-        id_cierre: cc.id_cierre,
-        fecha_apertura: cc.fecha_apertura || inferFechaApertura(cc.id_cierre),
-        fecha_cierre: cc.fecha_cierre,
-        monto_apertura: parseFloat(cc.monto_apertura),
-        monto_ventas: parseFloat(cc.monto_ventas),
-        monto_real: cc.monto_real ? parseFloat(cc.monto_real) : null,
-        diferencia: cc.diferencia ? parseFloat(cc.diferencia) : null,
-        observaciones: cc.observaciones || '',
-        usuario_cajero: cc.usuario_cajero || 'Cajero Pro'
-      }));
-    } catch {
-      // Offline fallback lists historical records
-      const raw = localStorage.getItem('colores_pizzeria_historial_cierres');
-      if (raw) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          return [];
+
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
         }
+      } catch (e) {
+        console.warn('Failed parsing cierres_caja cache:', e);
       }
-      // Populate clean default historical cierres
+    }
+
+    if (!client) {
       const defaults: CierreCaja[] = [
         {
           id_cierre: 'cie_901',
@@ -81,9 +90,41 @@ export const cajaService = {
           usuario_cajero: 'Mariano Closs'
         }
       ];
-      localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(defaults));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(defaults));
+      }
       return defaults;
     }
+
+    const { data, error } = await client
+      .from('cierres_caja')
+      .select('*')
+      .order('id_cierre', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching cierres_caja:', error);
+      throw error;
+    }
+
+    const mapped = (data || []).map(cc => ({
+      id_cierre: cc.id_cierre,
+      fecha_apertura: cc.fecha_apertura || inferFechaApertura(cc.id_cierre),
+      fecha_cierre: cc.fecha_cierre,
+      monto_apertura: parseFloat(cc.monto_apertura),
+      monto_ventas: parseFloat(cc.monto_ventas),
+      monto_real: cc.monto_real ? parseFloat(cc.monto_real) : null,
+      diferencia: cc.diferencia ? parseFloat(cc.diferencia) : null,
+      observaciones: cc.observaciones || '',
+      usuario_cajero: cc.usuario_cajero || 'Cajero Pro'
+    }));
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('colores_pizzeria_historial_cierres', JSON.stringify(mapped));
+      } catch {}
+    }
+
+    return mapped;
   },
 
   async getOpenSessionRemote(idCierre: string): Promise<Partial<CierreCaja> | null> {

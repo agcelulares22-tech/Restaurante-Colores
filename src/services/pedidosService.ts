@@ -107,40 +107,89 @@ export const serializePedidoDetails = (pedido: Pedido) => pedido.items.map((item
   precio_unitario: item.precio_unitario ?? null,
 }));
 
+const CACHE_KEY = 'colores_pizzeria_cache_pedidos';
+
+const invalidateCache = () => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(CACHE_KEY);
+  }
+};
+
+async function fetchAndAssemblePedidosColores(client: any): Promise<Pedido[]> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const { data: headers, error: hError } = await client
+    .from('pedidos_cabecera')
+    .select('*')
+    .or(`fecha_hora.gte.${thirtyDaysAgo.toISOString()},estado_comanda.not.in.("entregado_cobrado","cancelado")`)
+    .order('fecha_hora', { ascending: false });
+    
+  if (hError) {
+    console.error('Error fetching pedidos headers:', hError);
+    throw hError;
+  }
+  
+  if (!headers || headers.length === 0) return [];
+
+  const headerIds = headers.map(h => h.id_pedido);
+  const { data: details, error: dError } = await client
+    .from('pedido_detalle')
+    .select('*')
+    .in('id_pedido', headerIds);
+    
+  if (dError) {
+    console.error('Error fetching pedido details:', dError);
+    throw dError;
+  }
+
+  return headers.map(header => hydratePedido(header, details || []));
+}
+
 export const pedidosService = {
   async list(): Promise<Pedido[]> {
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) return [];
-    
-    // 1. Fetch headers (optimized: active orders + last 30 days of completed/cancelled orders)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const { data: headers, error: hError } = await supabase
-      .from('pedidos_cabecera')
-      .select('*')
-      .or(`fecha_hora.gte.${thirtyDaysAgo.toISOString()},estado_comanda.not.in.("entregado_cobrado","cancelado")`)
-      .order('fecha_hora', { ascending: false });
-      
-    if (hError) {
-      console.error('Error fetching pedidos headers:', hError);
-      throw hError;
-    }
-    
-    if (!headers || headers.length === 0) return [];
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(CACHE_KEY) : null;
+    const client = tryGetActiveSupabaseClient();
 
-    // 2. Fetch details filtered by header IDs only
-    const headerIds = headers.map(h => h.id_pedido);
-    const { data: details, error: dError } = await supabase
-      .from('pedido_detalle')
-      .select('*')
-      .in('id_pedido', headerIds);
-      
-    if (dError) {
-      console.error('Error fetching pedido details:', dError);
-      throw dError;
+    if (cached) {
+      if (client) {
+        // Stale-While-Revalidate: fetch updated data in background
+        setTimeout(async () => {
+          try {
+            const assembled = await fetchAndAssemblePedidosColores(client);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+          } catch (e) {
+            console.warn('Background pedidos cache refresh failed:', e);
+          }
+        }, 500);
+      }
+
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          return parsed.map(p => ({
+            ...p,
+            fecha_hora: new Date(p.fecha_hora),
+            fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
+            fecha_inicio_cocina: p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina) : undefined,
+            fecha_listo: p.fecha_listo ? new Date(p.fecha_listo) : undefined
+          }));
+        }
+      } catch (e) {
+        console.warn('Failed parsing pedidos cache:', e);
+      }
     }
 
-    return headers.map(header => hydratePedido(header, details || []));
+    if (!client) {
+      return [];
+    }
+
+    const assembled = await fetchAndAssemblePedidosColores(client);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+      } catch {}
+    }
+    return assembled;
   },
 
   async getById(id: string): Promise<Pedido | null> {
@@ -158,6 +207,7 @@ export const pedidosService = {
   },
 
   async update(id: string, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
+    invalidateCache();
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (!fromSyncQueue) {
@@ -309,6 +359,7 @@ export const pedidosService = {
   },
 
   async upsert(pedidos: Pedido[], fromSyncQueue: boolean = false): Promise<void> {
+    invalidateCache();
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (fromSyncQueue) {
@@ -470,6 +521,7 @@ export const pedidosService = {
   },
 
   async agregarItemsAComandaExistente(idPedido: string, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
+    invalidateCache();
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (!fromSyncQueue) {
@@ -538,6 +590,7 @@ export const pedidosService = {
   },
 
   async remove(id: string): Promise<boolean> {
+    invalidateCache();
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) return false;
     
