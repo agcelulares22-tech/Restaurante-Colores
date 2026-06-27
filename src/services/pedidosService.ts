@@ -192,6 +192,34 @@ export const pedidosService = {
     return assembled;
   },
 
+  async fetchSingle(id: string): Promise<Pedido | null> {
+    const client = tryGetActiveSupabaseClient();
+    if (!client) return null;
+
+    const { data: header, error: hError } = await client
+      .from('pedidos_cabecera')
+      .select('*')
+      .eq('id_pedido', id)
+      .maybeSingle();
+
+    if (hError || !header) {
+      console.warn(`[pedidosService.fetchSingle] Error or no header found for order #${id}:`, hError);
+      return null;
+    }
+
+    const { data: details, error: dError } = await client
+      .from('pedido_detalle')
+      .select('*')
+      .eq('id_pedido', id);
+
+    if (dError) {
+      console.error(`[pedidosService.fetchSingle] Error fetching details for order #${id}:`, dError);
+      return null;
+    }
+
+    return hydratePedido(header, details || []);
+  },
+
   async getById(id: string): Promise<Pedido | null> {
     const list = await this.list();
     return list.find(p => String(p.id_pedido) === String(id)) || null;
