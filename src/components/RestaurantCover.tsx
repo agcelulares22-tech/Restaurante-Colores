@@ -102,7 +102,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
       badge: '🥟 ¡HIERVE DE JUGOSA!',
       headline: 'Lomo Cortado a Cuchillo',
       description: 'Gourmet y tradicionales. Carne de lomo seleccionada y cortada a cuchillo, rehogada en grasa de pella con cebolla de verdeo tierna, huevo de campo rallado y nuestro secreto de especias norteñas. Repulgadas a mano y doradas al horno de barro con aroma a leña.',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1000&auto=format&fit=crop',
       accentColor: 'from-orange-500 to-amber-600',
       ingredients: ['Lomo Cortado a Cuchillo', 'Cebollita de Verdeo', 'Huevo de Campo', 'Especias del Norte']
     },
@@ -111,7 +111,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
       badge: '🥧 ¡HIENAS DE RELLENO!',
       headline: 'Tarta Dorada de Jamón y Queso',
       description: 'Base de hojaldre súper crujiente y casera, rellena de una combinación cremosa de jamón cocido seleccionado y muzzarella fundida de primera calidad, ligada con crema fresca y gratinada con abundante queso parmesano crocante en la superficie.',
-      image: 'https://images.unsplash.com/photo-1519869325930-281384150729?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1621303837873-ee55d28d011f?q=80&w=1000&auto=format&fit=crop',
       accentColor: 'from-yellow-500 to-orange-600',
       ingredients: ['Hojaldre Casero', 'Jamón Premium', 'Muzzarella Hilada', 'Gratinado de Parmesano']
     },
@@ -514,8 +514,16 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
               </div>
             </div>
           </div>
-          <div className="h-64 rounded-3xl border-4 border-black overflow-hidden bg-stone-200 dark:bg-stone-900 flex items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-            <span className="text-xs text-stone-500 font-mono font-bold">📍 Google Maps API Offline</span>
+          <div className="h-64 rounded-3xl border-4 border-black overflow-hidden bg-stone-200 dark:bg-stone-900 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <iframe 
+              src="https://maps.google.com/maps?q=Av.%20de%20Mayo%201420,%20Ramos%20Mej%C3%ADa,%20Buenos%20Aires,%20Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0 }} 
+              allowFullScreen={true} 
+              loading="lazy"
+              title="Mapa de Colores Pizzería"
+            />
           </div>
         </div>
       </section>
