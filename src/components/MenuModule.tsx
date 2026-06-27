@@ -110,8 +110,11 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
     if (norm.includes('pizza')) {
       return 'pizzas';
     }
-    if (norm.includes('bebida') || norm.includes('bodega') || norm.includes('vino') || norm.includes('cerveza') || norm.includes('gaseosa')) {
-      return 'bebidas';
+    if (norm.includes('con-alcohol') || norm.includes('cerveza') || norm.includes('vino') || norm.includes('bodega')) {
+      return 'bebidas-con-alcohol';
+    }
+    if (norm.includes('sin-alcohol') || norm.includes('bebida') || norm.includes('gaseosa') || norm.includes('agua') || norm.includes('jugo')) {
+      return 'bebidas-sin-alcohol';
     }
     if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
       return 'postres';

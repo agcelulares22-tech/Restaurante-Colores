@@ -59,7 +59,7 @@ export function useAppState() {
 
   // --- Global Synced States ---
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
-    typeof window !== 'undefined' && window.sessionStorage.getItem('el_patron_session') === 'active'
+    typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
   ));
   const [showCover, setShowCover] = useState<boolean>(true);
   const [permitirVentaSinStock, setPermitirVentaSinStock] = useState<boolean>(false);
@@ -174,16 +174,16 @@ export function useAppState() {
         const response = await fetch('/api/supabase-config');
         const data = await response.json();
         if (data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
-          const currentUrl = localStorage.getItem('SUPABASE_URL');
-          const currentKey = localStorage.getItem('SUPABASE_ANON_KEY');
+          const currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
+          const currentKey = localStorage.getItem('colores_pizzeria_supabase_anon_key');
           if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
-            localStorage.removeItem('el_patron_cache_menu');
-            localStorage.removeItem('el_patron_cache_categorias');
-            localStorage.removeItem('el_patron_cache_proveedores');
-            localStorage.removeItem('el_patron_cache_insumos');
-            localStorage.removeItem('el_patron_cache_recetas');
-            localStorage.setItem('SUPABASE_URL', data.SUPABASE_URL);
-            localStorage.setItem('SUPABASE_ANON_KEY', data.SUPABASE_ANON_KEY);
+            localStorage.removeItem('colores_pizzeria_cache_menu');
+            localStorage.removeItem('colores_pizzeria_cache_categorias');
+            localStorage.removeItem('colores_pizzeria_cache_proveedores');
+            localStorage.removeItem('colores_pizzeria_cache_insumos');
+            localStorage.removeItem('colores_pizzeria_cache_recetas');
+            localStorage.setItem('colores_pizzeria_supabase_url', data.SUPABASE_URL);
+            localStorage.setItem('colores_pizzeria_supabase_anon_key', data.SUPABASE_ANON_KEY);
             resetSupabaseInstance();
           }
         }
@@ -279,7 +279,7 @@ export function useAppState() {
         if ((dbPedidos ?? []).length > 0) {
           setPedidos(dbPedidos ?? []);
         } else {
-          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('el_patron_pedidos_local') : null;
+          const localPedidos = typeof window !== 'undefined' ? window.localStorage.getItem('colores_pizzeria_pedidos_local') : null;
           if (localPedidos) {
             try {
               const parsed = JSON.parse(localPedidos) as Pedido[];
@@ -574,7 +574,7 @@ export function useAppState() {
     setTimeout(() => {
       const currentPedidos = [{ ...finalPedido, id_pedido: finalPedido.id_pedido }, ...(pedidos.filter(p => p.id_pedido !== finalPedido.id_pedido))];
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(currentPedidos));
+        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(currentPedidos));
       }
     }, 0);
 
@@ -625,7 +625,7 @@ export function useAppState() {
   };
 
   const handleLoginSuccess = (user: Usuario) => {
-    window.sessionStorage.setItem('el_patron_session', 'active');
+    window.sessionStorage.setItem('colores_pizzeria_session', 'active');
     setActiveMozo(user.nombre);
     setActiveView('home');
 
@@ -644,7 +644,7 @@ export function useAppState() {
   };
 
   const handleLogout = () => {
-    window.sessionStorage.removeItem('el_patron_session');
+    window.sessionStorage.removeItem('colores_pizzeria_session');
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
     setIsStreamlitLoggedIn(false);
   };
@@ -765,7 +765,7 @@ export function useAppState() {
     setPedidos(prev => {
       const next = prev.map(p => (p.id_pedido === idPedido ? { ...p, ...updateFields } : p));
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('el_patron_pedidos_local', JSON.stringify(next));
+        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(next));
       }
       return next;
     });

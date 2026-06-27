@@ -62,8 +62,8 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
 
     // Load form overrides if they exist
     if (typeof window !== 'undefined') {
-      setCustomUrl(window.localStorage.getItem('SUPABASE_URL') || '');
-      setCustomKey(window.localStorage.getItem('SUPABASE_ANON_KEY') || '');
+      setCustomUrl(window.localStorage.getItem('colores_pizzeria_supabase_url') || '');
+      setCustomKey(window.localStorage.getItem('colores_pizzeria_supabase_anon_key') || '');
     }
 
     return () => {
@@ -219,15 +219,15 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
     setIsSaving(true);
     try {
       if (customUrl.trim()) {
-        window.localStorage.setItem('SUPABASE_URL', customUrl.trim());
+        window.localStorage.setItem('colores_pizzeria_supabase_url', customUrl.trim());
       } else {
-        window.localStorage.removeItem('SUPABASE_URL');
+        window.localStorage.removeItem('colores_pizzeria_supabase_url');
       }
 
       if (customKey.trim()) {
-        window.localStorage.setItem('SUPABASE_ANON_KEY', customKey.trim());
+        window.localStorage.setItem('colores_pizzeria_supabase_anon_key', customKey.trim());
       } else {
-        window.localStorage.removeItem('SUPABASE_ANON_KEY');
+        window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
       }
 
       resetSupabaseClientCache();
@@ -235,8 +235,8 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
       setConfig(updatedConfig);
       
       // Update form fields with resolved variables
-      setCustomUrl(window.localStorage.getItem('SUPABASE_URL') || '');
-      setCustomKey(window.localStorage.getItem('SUPABASE_ANON_KEY') || '');
+      setCustomUrl(window.localStorage.getItem('colores_pizzeria_supabase_url') || '');
+      setCustomKey(window.localStorage.getItem('colores_pizzeria_supabase_anon_key') || '');
 
       alert('Credenciales actualizadas e instancia de Supabase reiniciada.');
     } catch (err) {
@@ -249,8 +249,8 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
   const handleResetDefaults = () => {
     if (typeof window === 'undefined') return;
     if (confirm('¿Restablecer credenciales al servidor institucional por defecto de Pizzería Colores?')) {
-      window.localStorage.removeItem('SUPABASE_URL');
-      window.localStorage.removeItem('SUPABASE_ANON_KEY');
+      window.localStorage.removeItem('colores_pizzeria_supabase_url');
+      window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
       setCustomUrl('');
       setCustomKey('');
       resetSupabaseClientCache();

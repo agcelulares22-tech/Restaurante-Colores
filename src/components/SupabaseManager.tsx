@@ -136,8 +136,8 @@ export default function SupabaseManager({
 
     if (effectiveUrl !== config.url || effectiveKey !== config.key) {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('SUPABASE_URL', effectiveUrl);
-        localStorage.setItem('SUPABASE_ANON_KEY', effectiveKey);
+        localStorage.setItem('colores_pizzeria_supabase_url', effectiveUrl);
+        localStorage.setItem('colores_pizzeria_supabase_anon_key', effectiveKey);
         localStorage.removeItem('colores_pizzeria_cache_menu');
         localStorage.removeItem('colores_pizzeria_cache_categorias');
         localStorage.removeItem('colores_pizzeria_cache_proveedores');
@@ -242,8 +242,8 @@ export default function SupabaseManager({
 
     try {
       // Temporarily store in local storage to initialize correct client instance.
-      localStorage.setItem('SUPABASE_URL', normalizedUrl);
-      localStorage.setItem('SUPABASE_ANON_KEY', normalizedKey);
+      localStorage.setItem('colores_pizzeria_supabase_url', normalizedUrl);
+      localStorage.setItem('colores_pizzeria_supabase_anon_key', normalizedKey);
       setUrl(normalizedUrl);
       setAnonKey(normalizedKey);
       if (configChanged) resetSupabaseInstance();
@@ -320,8 +320,8 @@ export default function SupabaseManager({
   };
 
   const handleClearConfig = () => {
-    localStorage.removeItem('SUPABASE_URL');
-    localStorage.removeItem('SUPABASE_ANON_KEY');
+    localStorage.removeItem('colores_pizzeria_supabase_url');
+    localStorage.removeItem('colores_pizzeria_supabase_anon_key');
     setUrl('');
     setAnonKey('');
     resetSupabaseInstance();

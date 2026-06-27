@@ -476,35 +476,35 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
                   className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]" required />
               </div>
               <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Celular / WhatsApp</label>
+                <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Celular / WhatsApp</label>
                 <input type="text" value={telefono} onChange={e => setTelefono(e.target.value)}
                   placeholder="Ej. +54 11 9382-3844"
                   className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]" required />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Pax</label>
+                  <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Pax</label>
                   <select value={pax} onChange={e => setPax(e.target.value)}
                     className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none cursor-pointer focus:ring-1 focus:ring-[#624A3E] font-semibold text-stone-700">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Persona' : 'Personas'}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Hora</label>
+                  <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Hora</label>
                   <input type="time" value={hora} onChange={e => setHora(e.target.value)}
                     className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E]" required />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Mesa preferida</label>
+                <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Mesa preferida</label>
                 <select value={nombreMesa} onChange={e => setNombreMesa(e.target.value)}
                   className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none cursor-pointer focus:ring-1 focus:ring-[#624A3E] font-semibold text-stone-700">
                   {mesas.map(m => <option key={m.id_mesa} value={m.numero_mesa}>{m.numero_mesa} ({m.comensales ?? '?'} pax)</option>)}
                 </select>
-                <p className="text-[9px] text-stone-400 mt-1">{disponiblesHoy.length} mesas libres para el dia seleccionado</p>
+                <p className="text-[9px] text-stone-600 dark:text-stone-400 mt-1">{disponiblesHoy.length} mesas libres para el dia seleccionado</p>
               </div>
               <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Observaciones</label>
+                <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Observaciones</label>
                 <textarea value={observaciones} onChange={e => setObservaciones(e.target.value)}
                   placeholder="Ej. Alergia al mani, mesa cerca de ventana..."
                   rows={2}

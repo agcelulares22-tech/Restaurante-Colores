@@ -1,7 +1,7 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { LoteInsumo } from '../types';
 
-const LOCAL_STORAGE_KEY = 'el_patron_lotes_insumo';
+const LOCAL_STORAGE_KEY = 'colores_pizzeria_lotes_insumo';
 
 export const lotesService = {
   async list(): Promise<LoteInsumo[]> {

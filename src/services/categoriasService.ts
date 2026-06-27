@@ -2,11 +2,12 @@ import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Categoria } from '../types';
 
 export const DEFAULT_CATEGORIAS: Categoria[] = [
-  { id: 'cat_bebidas', nombre: 'Bebidas', slug: 'bebidas', orden: 1, activa: true, icono: 'Wine' },
-  { id: 'cat_calzones_empanadas', nombre: 'Calzones y empanadas', slug: 'calzones-y-empanadas', orden: 2, activa: true, icono: 'UtensilsCrossed' },
-  { id: 'cat_pizzas', nombre: 'Pizzas', slug: 'pizzas', orden: 3, activa: true, icono: 'Pizza' },
-  { id: 'cat_postres', nombre: 'Postres', slug: 'postres', orden: 4, activa: true, icono: 'Coffee' },
-  { id: 'cat_sandwiches', nombre: 'Sandwiches', slug: 'sandwiches', orden: 5, activa: true, icono: 'UtensilsCrossed' }
+  { id: 'cat_bebidas_alcohol', nombre: 'Bebidas con Alcohol', slug: 'bebidas-con-alcohol', orden: 1, activa: true, icono: 'Wine' },
+  { id: 'cat_bebidas_sin_alcohol', nombre: 'Bebidas sin Alcohol', slug: 'bebidas-sin-alcohol', orden: 2, activa: true, icono: 'Coffee' },
+  { id: 'cat_calzones_empanadas', nombre: 'Calzones y empanadas', slug: 'calzones-y-empanadas', orden: 3, activa: true, icono: 'UtensilsCrossed' },
+  { id: 'cat_pizzas', nombre: 'Pizzas', slug: 'pizzas', orden: 4, activa: true, icono: 'Pizza' },
+  { id: 'cat_postres', nombre: 'Postres', slug: 'postres', orden: 5, activa: true, icono: 'Coffee' },
+  { id: 'cat_sandwiches', nombre: 'Sandwiches', slug: 'sandwiches', orden: 6, activa: true, icono: 'UtensilsCrossed' }
 ];
 
 export const categoriasService = {

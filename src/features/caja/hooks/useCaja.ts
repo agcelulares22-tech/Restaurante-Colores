@@ -1032,7 +1032,7 @@ export function useCaja({
     addLog('sistema', `CAJA: Cobro finalizado correctamente para Mesa ${selectedPedido.numero_mesa}. Transacción Fiscal ${compiledTicketNo} registrada. `);
 
     try {
-      await pdfService.exportToPDF(dataTicket);
+      await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
       await printerService.sendToPrinter(dataTicket, printerConfig);
     } catch (e: any) {
       toast.warning(`Cobro registrado, pero hubo un error al generar el PDF/impresión: ${e.message}`);
@@ -1217,7 +1217,7 @@ export function useCaja({
       mensajePie: restaurante.mensajePie
     };
 
-    await pdfService.exportToPDF(dataTicket);
+    await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
   };
 
   const downloadFacturaHistorialPdf = async (factura: Factura) => {
@@ -1253,7 +1253,7 @@ export function useCaja({
       cae: factura.afip_cae,
       vto: factura.afip_vto,
       qrData: factura.afip_qr
-    });
+    }, printerConfig.paperWidth === '58mm' ? 58 : 80);
   };
 
   const initAdvancedSplit = (numPartitions: number) => {
@@ -1501,7 +1501,7 @@ export function useCaja({
     }
 
     try {
-      await pdfService.exportToPDF(dataTicket);
+      await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
       await printerService.sendToPrinter(dataTicket, printerConfig);
     } catch (e: any) {
       toast.warning(`Parte cobrada, pero hubo un error al generar el PDF/impresión: ${e.message}`);

@@ -22,6 +22,7 @@ interface UseMozoTerminalProps {
   productosMenu: ProductoMenu[];
   setProductosMenu: (items: ProductoMenu[] | ((prev: ProductoMenu[]) => ProductoMenu[])) => void;
   recetas: RecetaEscandallo[];
+  setRecetas: (items: RecetaEscandallo[] | ((prev: RecetaEscandallo[]) => RecetaEscandallo[])) => void;
   usuarios: Usuario[];
   activeMozo: string;
   onMozoChange: (mozo: string) => void;
@@ -44,6 +45,7 @@ export function useMozoTerminal({
   productosMenu,
   setProductosMenu,
   recetas,
+  setRecetas,
   usuarios,
   activeMozo,
   onMozoChange,
@@ -273,8 +275,11 @@ export function useMozoTerminal({
         if (norm.includes('pizza')) {
           return 'pizzas';
         }
-        if (norm.includes('bebida') || norm.includes('bodega') || norm.includes('vino') || norm.includes('cerveza') || norm.includes('gaseosa')) {
-          return 'bebidas';
+        if (norm.includes('con-alcohol') || norm.includes('cerveza') || norm.includes('vino') || norm.includes('bodega')) {
+          return 'bebidas-con-alcohol';
+        }
+        if (norm.includes('sin-alcohol') || norm.includes('bebida') || norm.includes('gaseosa') || norm.includes('agua') || norm.includes('jugo')) {
+          return 'bebidas-sin-alcohol';
         }
         if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
           return 'postres';
@@ -653,8 +658,10 @@ export function useMozoTerminal({
 
       const recipesA = recetas.filter(r => r.id_producto === prodAId);
       const recipesB = recetas.filter(r => r.id_producto === prodBId);
+      const newRecipes: RecetaEscandallo[] = [];
+
       recipesA.forEach(r => {
-        recetas.push({
+        newRecipes.push({
           id_receta: `esc_${customId}_${r.id_insumo}`,
           id_producto: customId,
           id_insumo: r.id_insumo,
@@ -662,12 +669,13 @@ export function useMozoTerminal({
           unidad_medida: r.unidad_medida
         });
       });
+
       recipesB.forEach(r => {
-        const existing = recetas.find(rec => rec.id_producto === customId && rec.id_insumo === r.id_insumo);
+        const existing = newRecipes.find(rec => rec.id_insumo === r.id_insumo);
         if (existing) {
           existing.cantidad_a_descontar += r.cantidad_a_descontar / 2;
         } else {
-          recetas.push({
+          newRecipes.push({
             id_receta: `esc_${customId}_${r.id_insumo}`,
             id_producto: customId,
             id_insumo: r.id_insumo,
@@ -676,6 +684,8 @@ export function useMozoTerminal({
           });
         }
       });
+
+      setRecetas(prev => [...prev, ...newRecipes]);
     }
 
     handleAddToCart(customId, 1);
@@ -822,3 +832,114 @@ export function useMozoTerminal({
     setDistanciaKm
   };
 }
+
+export interface VoiceCommandResult {
+  mesa: number | null;
+  items: { product: ProductoMenu; quantity: number }[];
+  unrecognized: string[];
+}
+
+export const parseVoiceCommand = (text: string, productosMenu: ProductoMenu[]): VoiceCommandResult => {
+  const lower = text.toLowerCase();
+  
+  // 1. Detect table number
+  let mesa: number | null = null;
+  const mesaMatch = lower.match(/\b(?:mesa|tabla)\s*(\d{1,2})\b/) || lower.match(/\b(?:mesa|tabla)\s*(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\b/);
+  if (mesaMatch) {
+    const rawVal = mesaMatch[1] || mesaMatch[2] || '';
+    if (/^\d+$/.test(rawVal)) {
+      mesa = parseInt(rawVal, 10);
+    } else {
+      const wordsMap: Record<string, number> = {
+        uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10
+      };
+      mesa = wordsMap[rawVal] || null;
+    }
+  }
+
+  // 2. Numbers maps
+  const numbersWordMap: Record<string, number> = {
+    un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10
+  };
+
+  // Split sentence by connector words like "y", "," or "con"
+  const segments = lower.split(/\b(?:y|,|con)\b/);
+  const items: { product: ProductoMenu; quantity: number }[] = [];
+  const unrecognized: string[] = [];
+
+  segments.forEach(segment => {
+    const cleanSegment = segment.trim();
+    if (!cleanSegment || cleanSegment.startsWith('mesa') || cleanSegment.startsWith('tabla')) return;
+
+    // Try to extract quantity at the beginning
+    let qty = 1;
+    const qtyMatch = cleanSegment.match(/^(\d+)\s*(.*)$/) || cleanSegment.match(/^([a-z]+)\s*(.*)$/);
+    let potentialProductName = cleanSegment;
+
+    if (qtyMatch) {
+      const potentialQty = qtyMatch[1];
+      const rest = qtyMatch[2];
+      if (/^\d+$/.test(potentialQty)) {
+        qty = parseInt(potentialQty, 10);
+        potentialProductName = rest;
+      } else if (numbersWordMap[potentialQty]) {
+        qty = numbersWordMap[potentialQty];
+        potentialProductName = rest;
+      }
+    }
+
+    // Clean potential product name (remove plural "s" at the end, etc.)
+    const cleanProdName = potentialProductName.trim().replace(/s$/, '').replace(/s\b/g, '');
+
+    if (!cleanProdName) return;
+
+    // Search for best matching product
+    let bestProduct: ProductoMenu | null = null;
+    let maxMatchScore = 0;
+
+    const segmentTokens = cleanProdName.split(/\s+/).filter(t => t.length > 2);
+
+    productosMenu.forEach(p => {
+      const pNameLower = p.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanSegLower = cleanProdName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      
+      // Direct exact or substring match is highest priority
+      if (pNameLower === cleanSegLower) {
+        bestProduct = p;
+        maxMatchScore = 100;
+        return;
+      }
+      
+      if (pNameLower.includes(cleanSegLower) || cleanSegLower.includes(pNameLower)) {
+        bestProduct = p;
+        maxMatchScore = 90;
+        return;
+      }
+
+      // Token count matching
+      const pTokens = pNameLower.split(/\s+/).filter(t => t.length > 2);
+      let matchCount = 0;
+      segmentTokens.forEach(t => {
+        if (pNameLower.includes(t)) {
+          matchCount++;
+        }
+      });
+
+      if (pTokens.length > 0 && matchCount > 0) {
+        const score = (matchCount / pTokens.length) * 80;
+        if (score > maxMatchScore) {
+          maxMatchScore = score;
+          bestProduct = p;
+        }
+      }
+    });
+
+    if (bestProduct && maxMatchScore >= 40) {
+      items.push({ product: bestProduct, quantity: qty });
+    } else {
+      unrecognized.push(cleanSegment);
+    }
+  });
+
+  return { mesa, items, unrecognized };
+};

@@ -93,20 +93,33 @@ const addLogo = (doc: jsPDF, logo: string | null, x: number, y: number, size: nu
 const sanitizeFile = (value: string) => value.replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
 
 export const pdfService = {
-  async exportToPDF(data: TicketData): Promise<void> {
-    const doc = await this.generateTicketPDF(data);
+  async exportToPDF(data: TicketData, forceWidth?: 58 | 80): Promise<void> {
+    const doc = await this.generateTicketPDF(data, forceWidth);
     const filename = data.tipoComprobante.startsWith('factura')
       ? `factura-pizzeria-colores-${sanitizeFile(data.nroComprobante)}.pdf`
       : `ticket-pizzeria-colores-${sanitizeFile(data.nroComprobante || String(data.idPedido))}.pdf`;
     doc.save(filename);
   },
 
-  async generateTicketPDF(data: TicketData): Promise<jsPDF> {
+  async generateTicketPDF(data: TicketData, forceWidth?: 58 | 80): Promise<jsPDF> {
     const logo = await loadLogoDataUrl();
     const qrImage = await loadQrDataUrl(data.qrData);
 
+    let width: 58 | 80 = forceWidth || 80;
+    if (!forceWidth) {
+      try {
+        const raw = localStorage.getItem('colores_pizzeria_printer_config');
+        if (raw) {
+          const config = JSON.parse(raw);
+          if (config.paperWidth === '58mm') {
+            width = 58;
+          }
+        }
+      } catch (e) {}
+    }
+
     // For Pizzería Colores, they want ONLY thermal tickets for their tiketera
-    return this.generateThermalTicket(data, logo, qrImage);
+    return this.generateThermalTicket(data, logo, qrImage, width);
   },
 
   generateA4Invoice(data: TicketData, logo: string | null, qrImage: string | null): jsPDF {
@@ -377,24 +390,33 @@ export const pdfService = {
     return doc;
   },
 
-  generateThermalTicket(data: TicketData, logo: string | null, qrImage: string | null = null): jsPDF {
+  generateThermalTicket(data: TicketData, logo: string | null, qrImage: string | null = null, forceWidth?: 58 | 80): jsPDF {
+    const width = forceWidth || 80;
+    const is58 = width === 58;
+    const pageWidth = is58 ? 58 : 80;
+    const margin = is58 ? 3 : 5;
+    const centerCol = pageWidth / 2;
+    const rightAlignCol = pageWidth - margin;
+    const descWidth = is58 ? 32 : 48;
+    const fontScale = is58 ? 0.85 : 1.0;
+
     const wrappedRows = data.items.map(item => ({
       item,
-      lines: Math.max(1, Math.ceil(item.descripcion.length / 22))
+      lines: Math.max(1, Math.ceil(item.descripcion.length / (is58 ? 16 : 22)))
     }));
     
     const compType = data.tipoComprobante as string;
     const isFactura = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c';
-    const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * 4.2 + 8, 0);
-    const paymentsHeight = data.metodosPago.length * 5;
+    const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * (is58 ? 3.4 : 4.2) + 8, 0);
+    const paymentsHeight = data.metodosPago.length * (is58 ? 4.0 : 5.0);
     
-    const baseHeight = isFactura ? 190 : 135;
+    const baseHeight = isFactura ? (is58 ? 160 : 190) : (is58 ? 115 : 135);
     const ticketHeight = Math.max(
-      180,
+      is58 ? 150 : 180,
       baseHeight + itemsHeight + paymentsHeight
     );
 
-    const doc = new jsPDF('p', 'mm', [80, ticketHeight]);
+    const doc = new jsPDF('p', 'mm', [pageWidth, ticketHeight]);
     let y = 6;
 
     const center = (text: string, size = 8, bold = false) => {
@@ -402,36 +424,38 @@ export const pdfService = {
       doc.setFontSize(size);
       const lines = String(text).split('\n');
       lines.forEach(lineText => {
-        doc.text(lineText, 40, y, { align: 'center' });
-        y += size * 0.45 + 1.2;
+        doc.text(lineText, centerCol, y, { align: 'center' });
+        y += size * 0.45 + (is58 ? 0.9 : 1.2);
       });
     };
 
     const line = (offset = 0) => {
       doc.setDrawColor(...BRAND.line);
       doc.setLineWidth(0.15);
-      doc.line(5, y + offset, 75, y + offset);
+      doc.line(margin, y + offset, rightAlignCol, y + offset);
       y += 3;
     };
 
     // 1. Logo
     if (logo) {
-      addLogo(doc, logo, 29, y, 22);
-      y += 27;
+      const logoSize = is58 ? 16 : 22;
+      const logoX = centerCol - (logoSize / 2);
+      addLogo(doc, logo, logoX, y, logoSize);
+      y += logoSize + 5;
     } else {
       y += 2;
     }
 
     // 2. Brand details
-    center(data.nombreComercial.toUpperCase(), 11, true);
-    center('SISTEMA DE GESTIÓN GASTRONÓMICA', 6.5, false);
+    center(data.nombreComercial.toUpperCase(), 11 * fontScale, true);
+    center('SISTEMA DE GESTIÓN GASTRONÓMICA', 6.5 * fontScale, false);
     y += 1.5;
 
     doc.setTextColor(...BRAND.dark);
-    center(data.razonSocial, 7);
-    center(`CUIT ${data.cuit}`, 7);
-    center(data.direccion.slice(0, 42), 6.5);
-    center(`Tel: ${data.telefono}`, 6.5);
+    center(data.razonSocial, 7 * fontScale);
+    center(`CUIT ${data.cuit}`, 7 * fontScale);
+    center(data.direccion.slice(0, is58 ? 32 : 42), 6.5 * fontScale);
+    center(`Tel: ${data.telefono}`, 6.5 * fontScale);
     y += 1.5;
     line();
 
@@ -441,28 +465,30 @@ export const pdfService = {
       const codComprobante = compType === 'factura_a' ? 'COD. 001' : (compType === 'factura_c' ? 'COD. 011' : 'COD. 006');
       
       // Draw Letter Badge
+      const badgeSize = is58 ? 10 : 12;
+      const badgeX = rightAlignCol - badgeSize - (is58 ? 2 : 3);
       doc.setFillColor(...BRAND.cream);
-      doc.rect(58, y, 12, 12, 'F');
+      doc.rect(badgeX, y, badgeSize, badgeSize, 'F');
       doc.setDrawColor(...BRAND.brown);
       doc.setLineWidth(0.25);
-      doc.rect(58, y, 12, 12, 'D');
+      doc.rect(badgeX, y, badgeSize, badgeSize, 'D');
 
       doc.setTextColor(...BRAND.brown);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(letter, 64, y + 7, { align: 'center' });
-      doc.setFontSize(5);
-      doc.text(codComprobante, 64, y + 10.5, { align: 'center' });
+      doc.setFontSize(is58 ? 10 : 12);
+      doc.text(letter, badgeX + (badgeSize / 2), y + (badgeSize * 0.58), { align: 'center' });
+      doc.setFontSize(is58 ? 4 : 5);
+      doc.text(codComprobante, badgeX + (badgeSize / 2), y + (badgeSize * 0.85), { align: 'center' });
 
       // Left info
       doc.setTextColor(...BRAND.dark);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.text(`FACTURA ${letter}`, 5, y + 3.5);
+      doc.setFontSize(8 * fontScale);
+      doc.text(`FACTURA ${letter}`, margin, y + 3.5);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.text(`Nº: ${data.nroComprobante}`, 5, y + 7.5);
-      doc.text(`Fecha: ${data.fechaHora}`, 5, y + 11.5);
+      doc.setFontSize(7 * fontScale);
+      doc.text(`Nº: ${data.nroComprobante}`, margin, y + 7.5);
+      doc.text(`Fecha: ${data.fechaHora}`, margin, y + 11.5);
       y += 15;
       line();
 
@@ -472,58 +498,58 @@ export const pdfService = {
       const IVA_cond = compType === 'factura_a' ? 'IVA Responsable Inscripto' : 'IVA Consumidor Final';
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.text('DATOS DEL CLIENTE', 5, y);
+      doc.setFontSize(7.5 * fontScale);
+      doc.text('DATOS DEL CLIENTE', margin, y);
       y += 3.8;
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.text(`Cliente: ${cliente}`, 5, y);
+      doc.setFontSize(7 * fontScale);
+      doc.text(`Cliente: ${cliente.slice(0, is58 ? 24 : 36)}`, margin, y);
       y += 3.5;
-      doc.text(`CUIT/DNI: ${clienteCuit}`, 5, y);
+      doc.text(`CUIT/DNI: ${clienteCuit}`, margin, y);
       y += 3.5;
-      doc.text(IVA_cond, 5, y);
+      doc.text(IVA_cond, margin, y);
       y += 4;
       line();
       
       // Mesa / Mozo info
-      doc.setFontSize(7);
+      doc.setFontSize(7 * fontScale);
       doc.setTextColor(...BRAND.muted);
-      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, 5, y);
-      doc.text(`Mozo: ${data.mozo}`, 75, y, { align: 'right' });
+      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, margin, y);
+      doc.text(`Mozo: ${data.mozo.slice(0, is58 ? 10 : 16)}`, rightAlignCol, y, { align: 'right' });
       y += 3.5;
-      doc.text(`Cajero: ${data.cajero}`, 5, y);
-      doc.text(`Pedido ID: PC-${data.idPedido}`, 75, y, { align: 'right' });
+      doc.text(`Cajero: ${data.cajero.slice(0, is58 ? 10 : 16)}`, margin, y);
+      doc.text(`Pedido ID: PC-${data.idPedido}`, rightAlignCol, y, { align: 'right' });
       y += 4.5;
       line();
 
     } else {
       // Non-factura simple ticket header
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.text('TICKET DE CONSUMO', 5, y);
+      doc.setFontSize(8.5 * fontScale);
+      doc.text('TICKET DE CONSUMO', margin, y);
       y += 4.5;
       
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
+      doc.setFontSize(7 * fontScale);
       doc.setTextColor(...BRAND.muted);
-      doc.text(`Nº: ${data.nroComprobante || 'PREVENTA'}`, 5, y);
-      doc.text(`Fecha: ${data.fechaHora}`, 75, y, { align: 'right' });
+      doc.text(`Nº: ${data.nroComprobante || 'PREVENTA'}`, margin, y);
+      doc.text(`Fecha: ${data.fechaHora}`, rightAlignCol, y, { align: 'right' });
       y += 4;
-      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, 5, y);
-      doc.text(`Mozo: ${data.mozo}`, 75, y, { align: 'right' });
+      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, margin, y);
+      doc.text(`Mozo: ${data.mozo.slice(0, is58 ? 10 : 16)}`, rightAlignCol, y, { align: 'right' });
       y += 4;
-      doc.text(`Cajero: ${data.cajero}`, 5, y);
-      doc.text(`Pedido ID: PC-${data.idPedido}`, 75, y, { align: 'right' });
+      doc.text(`Cajero: ${data.cajero.slice(0, is58 ? 10 : 16)}`, margin, y);
+      doc.text(`Pedido ID: PC-${data.idPedido}`, rightAlignCol, y, { align: 'right' });
       y += 4.5;
       line();
     }
 
     // 4. Table Header
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.5 * fontScale);
     doc.setTextColor(...BRAND.dark);
-    doc.text('Cant.  Producto', 5, y);
-    doc.text('Importe', 75, y, { align: 'right' });
+    doc.text('Cant.  Producto', margin, y);
+    doc.text('Importe', rightAlignCol, y, { align: 'right' });
     y += 3.5;
     line(-1);
 
@@ -535,28 +561,28 @@ export const pdfService = {
       
       // Draw product name
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
+      doc.setFontSize(7.5 * fontScale);
       doc.setTextColor(...BRAND.dark);
       
-      const lines = doc.splitTextToSize(descripcion, 48) as string[];
+      const lines = doc.splitTextToSize(descripcion, descWidth) as string[];
       lines.forEach((text, index) => {
-        doc.text(text, 5, y + index * 3.8);
+        doc.text(text, margin, y + index * 3.8);
       });
       y += (lines.length - 1) * 3.8;
 
       // Draw quantity and price details
       y += 3.8;
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.8);
+      doc.setFontSize(6.8 * fontScale);
       doc.setTextColor(...BRAND.muted);
       
       const priceStr = `   ${cantidad} x ${money(unitPrice)}`;
-      doc.text(priceStr, 5, y);
+      doc.text(priceStr, margin, y);
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
+      doc.setFontSize(7.5 * fontScale);
       doc.setTextColor(...BRAND.dark);
-      doc.text(money(subtotal), 75, y, { align: 'right' });
+      doc.text(money(subtotal), rightAlignCol, y, { align: 'right' });
       
       y += 5;
     });
@@ -567,10 +593,10 @@ export const pdfService = {
     // 6. Totals
     const sum = (label: string, value: string, bold = false) => {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(bold ? 8.5 : 7);
+      doc.setFontSize(bold ? (8.5 * fontScale) : (7 * fontScale));
       doc.setTextColor(bold ? BRAND.brown[0] : BRAND.dark[0], bold ? BRAND.brown[1] : BRAND.dark[1], bold ? BRAND.brown[2] : BRAND.dark[2]);
-      doc.text(label, 5, y);
-      doc.text(value, 75, y, { align: 'right' });
+      doc.text(label, margin, y);
+      doc.text(value, rightAlignCol, y, { align: 'right' });
       y += bold ? 5.5 : 4.5;
     };
 
@@ -582,7 +608,7 @@ export const pdfService = {
     y += 1;
     doc.setDrawColor(...BRAND.brown);
     doc.setLineWidth(0.4);
-    doc.line(5, y, 75, y);
+    doc.line(margin, y, rightAlignCol, y);
     y += 4.5;
     
     sum('TOTAL GENERAL:', money(data.total), true);
@@ -590,12 +616,12 @@ export const pdfService = {
     y += 1;
     doc.setDrawColor(...BRAND.brown);
     doc.setLineWidth(0.4);
-    doc.line(5, y, 75, y);
+    doc.line(margin, y, rightAlignCol, y);
     y += 5;
 
     // 7. Payment Methods
     doc.setTextColor(...BRAND.dark);
-    center('MEDIOS DE PAGO', 7, true);
+    center('MEDIOS DE PAGO', 7 * fontScale, true);
     y += 1;
     
     data.metodosPago.forEach(mp => {
@@ -611,23 +637,25 @@ export const pdfService = {
     // 8. AFIP CAE + QR Code for Facturas
     if (isFactura && qrImage) {
       try {
-        doc.addImage(qrImage, 'PNG', 30, y, 20, 20);
-        y += 22;
+        const qrSize = is58 ? 16 : 20;
+        const qrX = centerCol - (qrSize / 2);
+        doc.addImage(qrImage, 'PNG', qrX, y, qrSize, qrSize);
+        y += qrSize + 2;
         
         doc.setTextColor(...BRAND.muted);
-        doc.setFontSize(7);
+        doc.setFontSize(7 * fontScale);
         doc.setFont('helvetica', 'normal');
-        center(`CAE Nro: ${data.cae || '732049182390'}`, 6.5);
-        center(`Vto CAE: ${data.vto || '15/12/2026'}`, 6.5);
-        center('Comprobante autorizado por AFIP / ARCA', 5.8);
+        center(`CAE Nro: ${data.cae || '732049182390'}`, 6.5 * fontScale);
+        center(`Vto CAE: ${data.vto || '15/12/2026'}`, 6.5 * fontScale);
+        center('Comprobante autorizado por AFIP / ARCA', 5.8 * fontScale);
         y += 1;
       } catch (err) {
         console.warn('Error al insertar QR en ticket térmico:', err);
       }
     }
 
-    center(data.mensajePie || 'Gracias por su visita.', 7);
-    center('Conserve este comprobante', 6.2);
+    center(data.mensajePie || 'Gracias por su visita.', 7 * fontScale);
+    center('Conserve este comprobante', 6.2 * fontScale);
 
     return doc;
   },

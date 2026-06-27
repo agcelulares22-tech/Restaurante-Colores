@@ -40,8 +40,8 @@ export const resolveSupabaseConfig = (
 
 export const getSupabaseConfig = (): SupabaseConfig => {
   const env = (import.meta as any).env || {};
-  let localUrl = readLocalConfig('SUPABASE_URL');
-  let localKey = readLocalConfig('SUPABASE_ANON_KEY');
+  let localUrl = readLocalConfig('colores_pizzeria_supabase_url');
+  let localKey = readLocalConfig('colores_pizzeria_supabase_anon_key');
 
   // Credenciales por defecto para el proyecto Restaurante Colores Pizza
   const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
@@ -50,8 +50,8 @@ export const getSupabaseConfig = (): SupabaseConfig => {
   // Si localUrl es un placeholder o no pertenece al proyecto actual, limpiamos localStorage
   if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://msmaksbtetcmoaiyywto'))) {
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('SUPABASE_URL');
-      window.localStorage.removeItem('SUPABASE_ANON_KEY');
+      window.localStorage.removeItem('colores_pizzeria_supabase_url');
+      window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
     }
     localUrl = '';
     localKey = '';

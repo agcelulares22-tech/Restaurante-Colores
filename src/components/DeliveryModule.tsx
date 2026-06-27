@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Minus, X, Bike, MapPin, Phone, Clock, 
   DollarSign, CheckCircle2, AlertCircle, Trash2, 
-  ShoppingBag, Clipboard, Send, Compass, User, Map as MapIcon, HelpCircle
+  ShoppingBag, Clipboard, Send, Compass, User, Map as MapIcon, HelpCircle,
+  RefreshCw
 } from 'lucide-react';
 import { Pedido, ProductoMenu, PedidoItem, ZonaEnvio, CalleEnvio, TicketData } from '../types';
 import { useToast } from './ToastContainer';
@@ -160,34 +161,83 @@ function DeliveryModule({
     };
   }, []);
 
+  const [mapApiLoaded, setMapApiLoaded] = useState<boolean>(!!(window as any).L);
+  const [mapLoadError, setMapLoadError] = useState<boolean>(false);
+
   // 1. Load Leaflet library dynamically once when the component mounts
   useEffect(() => {
-    if ((window as any).L) return;
+    if ((window as any).L) {
+      setMapApiLoaded(true);
+      return;
+    }
 
     // Stylesheet
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    link.id = 'leaflet-stylesheet';
-    document.head.appendChild(link);
+    if (!document.getElementById('leaflet-stylesheet')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.id = 'leaflet-stylesheet';
+      document.head.appendChild(link);
+    }
 
     // Script
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    document.head.appendChild(script);
+    let script = document.getElementById('leaflet-script') as HTMLScriptElement;
+    let created = false;
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.id = 'leaflet-script';
+      created = true;
+    }
+
+    const handleLoad = () => {
+      setMapApiLoaded(true);
+      setMapLoadError(false);
+    };
+
+    const handleError = () => {
+      setMapLoadError(true);
+    };
+
+    script.addEventListener('load', handleLoad);
+    script.addEventListener('error', handleError);
+
+    if (created) {
+      document.head.appendChild(script);
+    }
+
+    // Timeout of 6 seconds
+    const timeoutId = setTimeout(() => {
+      if (!(window as any).L) {
+        setMapLoadError(true);
+      }
+    }, 6000);
+
+    return () => {
+      script.removeEventListener('load', handleLoad);
+      script.removeEventListener('error', handleError);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // 2. Initialize and destroy map instance for the order creator modal
   useEffect(() => {
     if (showNewOrderModal) {
-      const checkAndInit = () => {
-        if ((window as any).L) {
-          initMap();
-        } else {
-          setTimeout(checkAndInit, 100);
-        }
-      };
-      setTimeout(checkAndInit, 200);
+      if (mapApiLoaded) {
+        initMap();
+      } else if (mapLoadError) {
+        console.warn('Map API failed to load, skipping map initialization.');
+      } else {
+        const checkAndInit = () => {
+          if ((window as any).L) {
+            initMap();
+          } else if (!mapLoadError) {
+            setTimeout(checkAndInit, 200);
+          }
+        };
+        const retryTimeout = setTimeout(checkAndInit, 200);
+        return () => clearTimeout(retryTimeout);
+      }
     } else {
       // Destroy map instance when modal closes
       if (mapRef.current) {
@@ -202,7 +252,7 @@ function DeliveryModule({
       setDeliveryCost(0);
       setCostBreakdown(null);
     }
-  }, [showNewOrderModal]);
+  }, [showNewOrderModal, mapApiLoaded, mapLoadError]);
 
   // Cargar zonas y calles de envío desde Supabase al abrir el modal
   useEffect(() => {
@@ -1717,7 +1767,22 @@ function DeliveryModule({
               {rightPanelTab === 'mapa' ? (
                 /* Map Container and Route Optimizer Panel */
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  <div id="delivery-route-map" className="flex-1 w-full z-0" style={{ minHeight: '320px' }} />
+                  {mapLoadError ? (
+                    <div className="flex-1 w-full min-h-[320px] bg-stone-50 rounded-xl flex flex-col items-center justify-center p-6 text-center border border-stone-200">
+                      <MapPin className="w-8 h-8 text-stone-400 mb-2 animate-bounce" />
+                      <p className="text-xs font-black text-stone-700 uppercase tracking-wider">Mapa no disponible offline</p>
+                      <p className="text-[10px] text-stone-500 mt-1 max-w-[280px]">
+                        Puede continuar ingresando la dirección y gestionar el envío de forma manual.
+                      </p>
+                    </div>
+                  ) : !mapApiLoaded ? (
+                    <div className="flex-1 w-full min-h-[320px] bg-stone-50 rounded-xl flex flex-col items-center justify-center p-6 text-center border border-stone-200">
+                      <RefreshCw className="w-6 h-6 text-[#624A3E] mb-2 animate-spin" />
+                      <p className="text-[10px] font-bold text-stone-500">Cargando mapa interactivo...</p>
+                    </div>
+                  ) : (
+                    <div id="delivery-route-map" className="flex-1 w-full z-0 rounded-xl overflow-hidden border border-stone-200" style={{ minHeight: '320px' }} />
+                  )}
                   
                   {/* Route optimizer controls (Area 4) */}
                   <div className="bg-white border-t border-stone-200 p-4 space-y-3 font-sans shrink-0">
@@ -1950,7 +2015,22 @@ function DeliveryModule({
 
             {/* Map Container */}
             <div className="p-4 bg-white">
-              <div id="live-tracking-map" className="w-full h-[320px] rounded-2xl border border-stone-200 shadow-inner z-0" />
+              {mapLoadError ? (
+                <div className="w-full h-[320px] bg-stone-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-stone-200">
+                  <MapPin className="w-8 h-8 text-stone-400 mb-2 animate-bounce" />
+                  <p className="text-xs font-black text-stone-700 uppercase tracking-wider">Mapa no disponible offline</p>
+                  <p className="text-[10px] text-stone-500 mt-1 max-w-[280px]">
+                    El mapa de seguimiento en vivo no se puede cargar sin internet. El cadete sigue en camino a destino.
+                  </p>
+                </div>
+              ) : !mapApiLoaded ? (
+                <div className="w-full h-[320px] bg-stone-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-stone-200">
+                  <RefreshCw className="w-6 h-6 text-[#624A3E] mb-2 animate-spin" />
+                  <p className="text-[10px] font-bold text-stone-500">Cargando mapa de seguimiento...</p>
+                </div>
+              ) : (
+                <div id="live-tracking-map" className="w-full h-[320px] rounded-2xl border border-stone-200 shadow-inner z-0" />
+              )}
             </div>
 
             {/* Tracking Stats and Info */}

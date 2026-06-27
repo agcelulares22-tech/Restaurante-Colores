@@ -229,7 +229,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             )}
 
             <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Nombre Promoción *</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Nombre Promoción *</label>
               <input
                 type="text"
                 value={nombre}
@@ -240,7 +240,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Descuento % *</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Descuento % *</label>
               <input
                 type="number"
                 min={1}
@@ -253,7 +253,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Tipo</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Tipo</label>
               <select
                 value={tipo}
                 onChange={e => setTipo(e.target.value as Promocion['tipo'])}
@@ -266,7 +266,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Vigencia</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Vigencia</label>
               <input
                 type="text"
                 value={vigencia}
@@ -277,7 +277,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Descripción</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Descripción</label>
               <textarea
                 value={desc}
                 onChange={e => setDesc(e.target.value)}
@@ -300,7 +300,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-3 py-2 text-stone-500 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors"
+                  className="px-3 py-2 text-stone-700 dark:text-stone-300 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors"
                   aria-label="Cancelar edición"
                 >
                   <X className="w-4 h-4" />
@@ -314,7 +314,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
         <div className="lg:col-span-3 space-y-4">
           {/* Barra de búsqueda */}
           <div className="relative">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-stone-500 dark:text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchPromo}
@@ -326,7 +326,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
           </div>
 
           {filteredPromos.length === 0 && (
-            <div className="text-center py-12 text-stone-400">
+            <div className="text-center py-12 text-stone-600 dark:text-stone-400">
               <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">{debouncedSearch ? 'Sin resultados para esa búsqueda.' : 'No hay promociones creadas aún.'}</p>
             </div>
@@ -360,12 +360,12 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                       </span>
                     </div>
                     {p.descripcion && (
-                      <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">{p.descripcion}</p>
+                      <p className="text-xs text-stone-750 dark:text-stone-300 mt-0.5 line-clamp-2">{p.descripcion}</p>
                     )}
                     {p.dias_vigentes && (
                       <div className="flex items-center gap-1 mt-1">
-                        <Calendar className="w-3 h-3 text-stone-400" />
-                        <span className="text-[11px] text-stone-400">{p.dias_vigentes}</span>
+                        <Calendar className="w-3 h-3 text-stone-600 dark:text-stone-400" />
+                        <span className="text-[11px] text-stone-700 dark:text-stone-300">{p.dias_vigentes}</span>
                       </div>
                     )}
                   </div>
@@ -381,7 +381,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                     >
                       {p.activo
                         ? <ToggleRight className="w-5 h-5 text-emerald-600" />
-                        : <ToggleLeft className="w-5 h-5 text-stone-400" />}
+                        : <ToggleLeft className="w-5 h-5 text-stone-600 dark:text-stone-400" />}
                     </button>
                     <button
                       onClick={() => handleEditPromo(p)}
@@ -390,7 +390,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                       aria-label={`Editar promoción ${p.nombre}`}
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4 text-stone-500" />
+                      <Edit2 className="w-4 h-4 text-stone-700 dark:text-stone-300" />
                     </button>
                     {deleteConfirmId === p.id_promo ? (
                       <div className="flex items-center gap-1">
