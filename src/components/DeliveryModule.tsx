@@ -30,7 +30,7 @@ const TARIFA_BASE_DEFAULT = 1000;
 const COSTO_POR_KM_DEFAULT = 500;
 
 function DeliveryModule({
-  pedidos,
+  pedidos: rawPedidos,
   productosMenu,
   onCrearPedido,
   onCambiarEstadoPedido,
@@ -41,6 +41,25 @@ function DeliveryModule({
   insumos = []
 }: DeliveryModuleProps) {
   const { toast } = useToast();
+
+  // Filtrar pedidos para el día gastronómico actual en Córdoba, Argentina (UTC-3, corte a las 03:00 AM)
+  const pedidos = useMemo(() => {
+    const now = new Date();
+    // Córdoba es UTC-3. Restamos 3 horas a la hora UTC absoluta para obtener la hora de Córdoba representada en campos UTC
+    const cordobaNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    const cordobaCutoff = new Date(cordobaNow);
+    cordobaCutoff.setUTCHours(3, 0, 0, 0);
+    if (cordobaNow.getUTCHours() < 3) {
+      cordobaCutoff.setUTCDate(cordobaCutoff.getUTCDate() - 1);
+    }
+    // Convertimos el límite de tiempo de Córdoba de regreso a hora UTC absoluta
+    const cutoffDate = new Date(cordobaCutoff.getTime() + 3 * 60 * 60 * 1000);
+
+    return rawPedidos.filter(p => {
+      const orderDate = p.fecha_hora instanceof Date ? p.fecha_hora : new Date(p.fecha_hora);
+      return orderDate >= cutoffDate;
+    });
+  }, [rawPedidos]);
   
   // State variables
   const [searchQuery, setSearchQuery] = useState('');
