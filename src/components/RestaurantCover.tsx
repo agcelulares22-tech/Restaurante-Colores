@@ -91,20 +91,20 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
     pizzas: {
       title: 'Pizzas de Masa Madre',
       badge: '🔥 ¡MÁS VENDIDA!',
-      headline: 'Margherita Suprema con Búfala',
-      description: 'Salsa de tomates italianos San Marzano seleccionados, muzzarella de búfala premium derretida con hilos cremosos, hojas de albahaca fresca de nuestra huerta y un hilo generoso de aceite de oliva virgen extra. Cocinada a 450°C al calor de la leña para un borde inflado y crocante.',
-      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1000&auto=format&fit=crop',
+      headline: 'Pizza Especial de la Casa',
+      description: 'Nuestra clásica pizza con abundante queso muzzarella fundido al horno de barro, tiras de morrones rojos asados, aceitunas verdes seleccionadas y orégano espolvoreado. El sabor tradicional argentino que nunca falla.',
+      image: '/images/pizza_usuario.jpg',
       accentColor: 'from-amber-500 to-red-650',
-      ingredients: ['Masa Madre de 48 hs', 'Tomates San Marzano', 'Muzzarella de Búfala', 'Albahaca y Oliva']
+      ingredients: ['Masa Madre', 'Muzzarella Cremosa', 'Morrones Asados', 'Aceitunas Verdes y Orégano']
     },
     empanadas: {
       title: 'Empanadas Criollas',
       badge: '🥟 ¡HIERVE DE JUGOSA!',
-      headline: 'Lomo Cortado a Cuchillo',
-      description: 'Gourmet y tradicionales. Carne de lomo seleccionada y cortada a cuchillo, rehogada en grasa de pella con cebolla de verdeo tierna, huevo de campo rallado y nuestro secreto de especias norteñas. Repulgadas a mano y doradas al horno de barro con aroma a leña.',
-      image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1000&auto=format&fit=crop',
+      headline: 'Empanadas Criollas al Horno',
+      description: 'Tradicionales empanadas de carne súper jugosas, preparadas con cebolla, condimentos criollos y huevo picado de campo. Horneadas a la leña para lograr ese dorado y crocancia perfectos que conservan todo el relleno jugoso.',
+      image: '/images/empanadas_usuario.jpg',
       accentColor: 'from-orange-500 to-amber-600',
-      ingredients: ['Lomo Cortado a Cuchillo', 'Cebollita de Verdeo', 'Huevo de Campo', 'Especias del Norte']
+      ingredients: ['Carne de Lomo', 'Cebollitas y Huevo', 'Especias Norteñas', 'Masa Casera Hojaldrada']
     },
     tartas: {
       title: 'Tartas Rústicas',
@@ -118,11 +118,11 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
     calzones: {
       title: 'Calzones Gigantes',
       badge: '🥖 ¡POCKET DE SABOR!',
-      headline: 'Calzone Napolitano Relleno',
-      description: 'Una pizza doblada a la mitad y sellada a mano, rellena generosamente con jamón cocido ahumado, muzzarella cremosa, rodajas de tomates frescos dulces, hojas de albahaca fresca y aceite de ajo. El resultado es un pan dorado, crujiente por fuera y fundido por dentro.',
-      image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=1000&auto=format&fit=crop',
+      headline: 'Calzone Relleno de la Casa',
+      description: 'Nuestra masa de pizza doblada a la mitad y horneada lentamente, rellena generosamente de una combinación de vegetales frescos, cebolla caramelizada, morrones asados y abundante queso muzzarella fundido con un toque de ajo y oliva.',
+      image: '/images/calzone_usuario.jpg',
       accentColor: 'from-red-500 to-yellow-600',
-      ingredients: ['Masa de Pizza Italiana', 'Jamón Ahumado', 'Tomate en Rodajas', 'Aceite de Ajo Casero']
+      ingredients: ['Masa de Pizza Italiana', 'Espinaca y Acelga', 'Queso Muzzarella', 'Vegetales Asados']
     }
   };
 
@@ -242,7 +242,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
           <div className="lg:col-span-5 relative flex justify-center">
             <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] rounded-3xl border-4 border-black bg-white overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform rotate-2 hover:rotate-0 transition-transform duration-300">
               <img 
-                src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1000&auto=format&fit=crop" 
+                src="/images/pizza_usuario.jpg" 
                 alt="Pizza espectacular"
                 className="w-full h-full object-cover scale-105 hover:scale-110 transition-transform duration-700"
               />
