@@ -104,7 +104,9 @@ export default function App() {
   if (!isStreamlitLoggedIn && showCover) {
     return (
       <ErrorBoundary>
-        <RestaurantCover onEnterSystem={() => setShowCover(false)} productosMenu={productosMenu} />
+        <div className="dark bg-[#0B132B] min-h-screen">
+          <RestaurantCover onEnterSystem={() => setShowCover(false)} productosMenu={productosMenu} />
+        </div>
       </ErrorBoundary>
     );
   }
