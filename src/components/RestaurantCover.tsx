@@ -101,10 +101,10 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
   const customPizzaPrice = basePrice + extraToppingsPrice;
 
   return (
-    <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0D0B0A] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#1f1c1a_1px,transparent_1px)]">
+    <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0B132B] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#1b2a47_1px,transparent_1px)]">
       
       {/* 1. BRAND HEADER (McDonald's High Contrast Inspired) */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0D0B0A]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0B132B]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer group">
             <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:translate-y-[-2px] group-hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
@@ -216,7 +216,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
             ].map((p, idx) => (
               <div
                 key={idx}
-                className={`bg-white dark:bg-[#151312] border-4 border-black rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] ${
+                className={`bg-white dark:bg-[#1C2541] border-4 border-black rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] ${
                   idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
                 } flex flex-col h-full group`}
               >
@@ -282,7 +282,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
         </div>
 
         {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" (REDiseño ARCADE / MOBILE POP) */}
-        <div className="bg-[#FFFDF9] dark:bg-[#151312] border-4 border-black rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
+        <div className="bg-[#FFFDF9] dark:bg-[#1C2541] border-4 border-black rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-[#FFC300] border-b-2 border-l-2 border-black text-black text-[9px] font-black px-4 py-2 uppercase tracking-widest rounded-bl-xl shadow-sm">
             🕹️ MULTIPLAYER / FUN MODE
           </div>
@@ -459,7 +459,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
       </section>
 
       {/* 4. BRAND VALUES & HORNO EXPERIENCE */}
-      <section className="py-20 bg-[#FFC300] dark:bg-[#1A1200] border-y-4 border-black text-black dark:text-white relative overflow-hidden">
+      <section className="py-20 bg-[#FFC300] dark:bg-[#0c1530] border-y-4 border-black text-black dark:text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
@@ -554,7 +554,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           ].map((combo, idx) => (
             <div 
               key={idx}
-              className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
+              className="bg-white dark:bg-[#1C2541] border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
             >
               <div className="space-y-4">
                 <span className="inline-block px-2.5 py-1 bg-black text-[#FFC300] text-[9px] font-black uppercase rounded-lg border border-black/10">
@@ -597,7 +597,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
       </section>
 
       {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
-      <section className="py-20 bg-stone-50 dark:bg-[#12100F] border-t-4 border-black text-black dark:text-white relative overflow-hidden">
+      <section className="py-20 bg-stone-50 dark:bg-[#111A34] border-t-4 border-black text-black dark:text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
@@ -640,7 +640,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
             ].map((rev, idx) => (
               <div 
                 key={idx}
-                className="bg-white dark:bg-[#151312] p-8 border-4 border-black rounded-3xl shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6 text-left"
+                className="bg-white dark:bg-[#1C2541] p-8 border-4 border-black rounded-3xl shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6 text-left"
               >
                 <div className="space-y-4">
                   {/* Stars block */}
@@ -693,7 +693,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           </p>
         </div>
 
-        <form onSubmit={handleBookingSubmit} className="bg-white dark:bg-[#151312] p-8 sm:p-10 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
+        <form onSubmit={handleBookingSubmit} className="bg-white dark:bg-[#1C2541] p-8 sm:p-10 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 text-left">
               <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Nombre Completo *</label>
@@ -766,7 +766,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
       </section>
 
       {/* 6. CONTACT & LOCATION INFO */}
-      <section id="contacto" className="py-12 border-t-4 border-black bg-stone-50 dark:bg-[#12100F]">
+      <section id="contacto" className="py-12 border-t-4 border-black bg-stone-50 dark:bg-[#111A34]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-6 text-left">
             <h3 className="font-display text-4xl text-black dark:text-white uppercase leading-none">Ubicación & Contacto</h3>
@@ -797,7 +797,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
               </a>
             </div>
           </div>
-          <div className="flex flex-col justify-center space-y-4 border-4 border-black p-8 rounded-3xl bg-white dark:bg-[#151312] shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left">
+          <div className="flex flex-col justify-center space-y-4 border-4 border-black p-8 rounded-3xl bg-white dark:bg-[#1C2541] shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left">
             <h4 className="font-display text-2xl text-[#D90429] uppercase leading-none">Reservá Hoy</h4>
             <p className="text-xs font-bold text-stone-500 leading-relaxed uppercase">
               Hacé clic en el botón para ingresar al panel de pedidos para mozos o solicitar tu mesa en el salón directamente en segundos.
@@ -807,7 +807,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
       </section>
 
       {/* 7. FOOTER */}
-      <footer className="bg-black text-stone-400 py-12 px-4 border-t-4 border-black text-center space-y-6">
+      <footer className="bg-black dark:bg-[#080E24] text-stone-400 py-12 px-4 border-t-4 border-black text-center space-y-6">
         <div className="flex items-center justify-center gap-2.5">
           <div className="w-8 h-8 bg-[#D90429] rounded-lg flex items-center justify-center border border-white/20">
             <Pizza className="w-5 h-5 text-white" />
@@ -835,7 +835,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-[#151312] p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-5 border-4 border-black"
+              className="bg-white dark:bg-[#1C2541] p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-5 border-4 border-black"
             >
               <div className="w-16 h-16 bg-[#FFC300] rounded-full flex items-center justify-center mx-auto border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                 <Utensils className="w-8 h-8 text-black" />
