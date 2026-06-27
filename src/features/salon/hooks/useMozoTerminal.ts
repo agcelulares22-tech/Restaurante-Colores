@@ -834,7 +834,7 @@ export function useMozoTerminal({
 }
 
 export interface VoiceCommandResult {
-  mesa: number | null;
+  mesa: number | 'delivery' | null;
   items: { product: ProductoMenu; quantity: number }[];
   unrecognized: string[];
 }
@@ -842,18 +842,22 @@ export interface VoiceCommandResult {
 export const parseVoiceCommand = (text: string, productosMenu: ProductoMenu[]): VoiceCommandResult => {
   const lower = text.toLowerCase();
   
-  // 1. Detect table number
-  let mesa: number | null = null;
-  const mesaMatch = lower.match(/\b(?:mesa|tabla)\s*(\d{1,2})\b/) || lower.match(/\b(?:mesa|tabla)\s*(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\b/);
-  if (mesaMatch) {
-    const rawVal = mesaMatch[1] || mesaMatch[2] || '';
-    if (/^\d+$/.test(rawVal)) {
-      mesa = parseInt(rawVal, 10);
-    } else {
-      const wordsMap: Record<string, number> = {
-        uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10
-      };
-      mesa = wordsMap[rawVal] || null;
+  // 1. Detect table number or delivery
+  let mesa: number | 'delivery' | null = null;
+  if (lower.includes('delivery') || lower.includes('envio') || lower.includes('envió') || lower.includes('para llevar')) {
+    mesa = 'delivery';
+  } else {
+    const mesaMatch = lower.match(/\b(?:mesa|tabla)\s*(\d{1,2})\b/) || lower.match(/\b(?:mesa|tabla)\s*(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\b/);
+    if (mesaMatch) {
+      const rawVal = mesaMatch[1] || mesaMatch[2] || '';
+      if (/^\d+$/.test(rawVal)) {
+        mesa = parseInt(rawVal, 10);
+      } else {
+        const wordsMap: Record<string, number> = {
+          uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10
+        };
+        mesa = wordsMap[rawVal] || null;
+      }
     }
   }
 

@@ -279,11 +279,15 @@ function MozoTerminal({
 
     // 1. If mesa is detected, set it as selected
     if (voiceResult.mesa !== null) {
-      const targetMesa = dynamicMesas.find(m => parseInt(m.numero_mesa, 10) === voiceResult.mesa);
-      if (targetMesa) {
-        handleSelectMesa(targetMesa);
+      if (voiceResult.mesa === 'delivery') {
+        handleSelectMesa({ id_mesa: 999, numero_mesa: 'DELIVERY', estado: 'libre' });
       } else {
-        toast.warning(`La Mesa ${voiceResult.mesa} no existe o no está activa.`);
+        const targetMesa = dynamicMesas.find(m => parseInt(m.numero_mesa, 10) === voiceResult.mesa);
+        if (targetMesa) {
+          handleSelectMesa(targetMesa);
+        } else {
+          toast.warning(`La Mesa ${voiceResult.mesa} no existe o no está activa.`);
+        }
       }
     }
 
@@ -1811,7 +1815,11 @@ function MozoTerminal({
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                 <span className="text-xs font-bold text-stone-500">Mesa Detectada:</span>
                 <span className="bg-stone-100 border border-stone-200 text-stone-700 font-extrabold text-xs px-3 py-1 rounded-xl">
-                  {voiceResult.mesa !== null ? `Mesa ${voiceResult.mesa}` : selectedMesaId !== null && selectedMesaId !== 999 ? `Mesa Actual (${dynamicMesas.find(m => m.id_mesa === selectedMesaId)?.numero_mesa})` : 'Ninguna (Se aplicará a mesa seleccionada)'}
+                  {voiceResult.mesa !== null 
+                    ? (voiceResult.mesa === 'delivery' ? 'Pedido Delivery' : `Mesa ${voiceResult.mesa}`) 
+                    : selectedMesaId !== null 
+                      ? (selectedMesaId === 999 ? 'Mesa Actual (DELIVERY)' : `Mesa Actual (${dynamicMesas.find(m => m.id_mesa === selectedMesaId)?.numero_mesa})`) 
+                      : 'Ninguna (Se aplicará a mesa seleccionada)'}
                 </span>
               </div>
 
