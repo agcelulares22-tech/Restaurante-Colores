@@ -151,10 +151,12 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
             <a 
-              href="#reserva" 
+              href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar para realizar un evento en su local. ¿Me podrían dar información? ¡Muchas gracias!')}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full sm:w-auto px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer text-center"
             >
-              ¡Reservar Mesa Ahora!
+              Contactarnos para tu evento
             </a>
             <a 
               href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar la carta y el menú del día. ¿Me lo podrían enviar? ¡Muchas gracias!')}`}
