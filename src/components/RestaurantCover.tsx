@@ -89,7 +89,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
       desc: 'Masa rústica artesanal rellena generosamente de acelga y espinaca fresca salteada, cebollas caramelizadas y abundante queso muzzarella fundido.'
     },
     {
-      src: 'https://images.unsplash.com/photo-1621303837873-ee55d28d011f?q=80&w=1000&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1547058881-aa0edd92aab3?auto=format&fit=crop&w=500&q=80',
       badge: '🥧 ¡CRUJIENTE DE VERDAD!',
       title: 'Tarta de Jamón y Queso Rústica',
       desc: 'Base de hojaldre casero súper crocante, rellena con jamón cocido seleccionado de primera calidad y un gratinado dorado de queso parmesano.'
@@ -137,8 +137,8 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
           </div>
 
           <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-black dark:text-white uppercase tracking-tight">
-            CRUJIENTE, CALIENTE <br />
-            <span className="text-[#D90429] italic underline decoration-wavy decoration-[#FFC300] tracking-wide">Y AL HORNO DE BARRO</span>
+            PIZZERÍA COLORES <br />
+            <span className="text-[#D90429] italic underline decoration-wavy decoration-[#FFC300] tracking-wide">SABOR AL HORNO DE BARRO</span>
           </h1>
 
           <p className="text-stone-850 dark:text-stone-200 text-base sm:text-xl font-bold leading-relaxed max-w-2xl mx-auto pl-4 border-l-4 border-[#D90429]">
