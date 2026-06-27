@@ -11,7 +11,10 @@ import {
   ChefHat, 
   Flame, 
   Pizza,
-  Utensils
+  Utensils,
+  Heart,
+  Star,
+  Award
 } from 'lucide-react';
 
 interface RestaurantCoverProps {
@@ -65,38 +68,52 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
     });
   };
 
-  // The 3 user images: Pizza, Empanadas, Calzone
-  const userImages = [
+  // Real food images (3 user + 1 extra high quality savory tart photo)
+  const menuItems = [
     {
       src: '/images/pizza_usuario.jpg',
-      label: '🍕 ¡HORNEADA CON PASIÓN!',
-      desc: 'El verdadero sabor del horno de barro con queso fundido y aroma a leña natural.'
+      badge: '🔥 ¡NUESTRA ESTRELLA!',
+      title: 'Muzzarella Especial de la Casa',
+      desc: 'Abundante queso muzzarella fundido, tiras gruesas de morrones asados al fuego y aceitunas verdes seleccionadas sobre una base crocante.'
     },
     {
       src: '/images/empanadas_usuario.jpg',
-      label: '🥟 ¡JUGOSAS & RECIÉN HECHAS!',
-      desc: 'Preparadas a mano con el repulgue tradicional, tiernas por dentro y crujientes por fuera.'
+      badge: '🥟 ¡SÚPER JUGOSA!',
+      title: 'Empanadas de Carne Criollas',
+      desc: 'Carne picada de primera calidad, rehogada a mano con cebollita de verdeo dulce y huevo picado. Doradas al horno de barro con aroma a leña.'
     },
     {
       src: '/images/calzone_usuario.jpg',
-      label: '🥖 ¡RELLENO INCREÍBLE!',
-      desc: 'Masa dorada y crujiente repleta de ingredientes seleccionados y gratinado de autor.'
+      badge: '🥖 ¡GIGANTE Y SABROSO!',
+      title: 'Calzone de Verdura y Queso',
+      desc: 'Masa rústica artesanal rellena generosamente de acelga y espinaca fresca salteada, cebollas caramelizadas y abundante queso muzzarella fundido.'
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1621303837873-ee55d28d011f?q=80&w=1000&auto=format&fit=crop',
+      badge: '🥧 ¡CRUJIENTE DE VERDAD!',
+      title: 'Tarta de Jamón y Queso Rústica',
+      desc: 'Base de hojaldre casero súper crocante, rellena con jamón cocido seleccionado de primera calidad y un gratinado dorado de queso parmesano.'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0D0B0A] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12">
+    <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0D0B0A] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#1f1c1a_1px,transparent_1px)]">
       
-      {/* 1. BRAND HEADER */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0D0B0A]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8">
+      {/* 1. BRAND HEADER (McDonald's High Contrast Inspired) */}
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0D0B0A]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer group">
             <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:translate-y-[-2px] group-hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
               <Pizza className="w-7 h-7 text-white animate-pulse" />
             </div>
-            <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#D90429] dark:text-[#FFFDF9] drop-shadow-[2px_2px_0px_rgba(0,0,0,0.15)]">
-              COLORES PIZZERÍA
-            </span>
+            <div className="flex flex-col">
+              <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#D90429] dark:text-[#FFFDF9] leading-none">
+                COLORES
+              </span>
+              <span className="text-[9px] font-black uppercase text-[#FFC300] tracking-widest pl-0.5">
+                Pizzería & Minutas
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -111,72 +128,101 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
         </div>
       </header>
 
-      {/* 2. HERO RENEWED PUBLICITY WALL */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
-        <div className="text-center space-y-6 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#D90429] text-white border-2 border-black rounded-full font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transform -rotate-1">
-            <Sparkles className="w-4 h-4 text-[#FFC300] fill-[#FFC300]" />
-            ¡PUBLICIDAD RENOVADA!
+      {/* 2. HERO COMMERCIAL BOARD */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+        <div className="text-center space-y-6 max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFC300] text-black border-2 border-black rounded-full font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transform -rotate-1">
+            <Sparkles className="w-4 h-4 text-[#D90429] fill-[#D90429]" />
+            ¡EL SABOR QUE TE VUELVE A ENAMORAR!
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl leading-none text-black dark:text-white uppercase drop-shadow-[3px_3px_0px_rgba(255,255,255,1)] dark:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]">
-            Nuestros Platos <br />
-            <span className="text-[#D90429] italic underline decoration-wavy decoration-[#FFD000]">Reales</span>
+          <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-black dark:text-white uppercase tracking-tight">
+            CRUJIENTE, CALIENTE <br />
+            <span className="text-[#D90429] italic underline decoration-wavy decoration-[#FFC300] tracking-wide">Y AL HORNO DE BARRO</span>
           </h1>
 
-          <p className="text-stone-850 dark:text-stone-200 text-sm sm:text-base font-bold leading-relaxed italic max-w-2xl mx-auto">
-            Disfrutá del sabor auténtico del horno de barro y la leña natural. Te mostramos nuestros platos tal cual se sirven en nuestras mesas.
+          <p className="text-stone-850 dark:text-stone-200 text-base sm:text-xl font-bold leading-relaxed max-w-2xl mx-auto pl-4 border-l-4 border-[#D90429]">
+            Masa madre fermentada durante 48 hs, ingredientes frescos seleccionados y el toque único de la leña natural. Una mordida y entendés todo.
           </p>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <a 
+              href="#reserva" 
+              className="px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+            >
+              ¡Reservar Mesa Ahora!
+            </a>
+          </div>
         </div>
 
-        {/* 3. SHINY IMAGE GRID (NO PRODUCT SPECIFIC BUTTONS TO AVOID MISIDENTIFICATION) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
-          {userImages.map((imgData, idx) => (
+        {/* 3. SHOWCASE BOARD OF REAL PLATTER IMAGES */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-4">
+          {menuItems.map((item, idx) => (
             <div 
               key={idx} 
-              className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300 hover:scale-102 flex flex-col h-full"
+              className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300 hover:scale-102 flex flex-col h-full group"
             >
-              <div className="h-80 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
+              {/* Product Image Wrapper */}
+              <div className="h-72 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
                 <img 
-                  src={imgData.src} 
-                  alt="Plato Real" 
-                  className="w-full h-full object-cover"
+                  src={item.src} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <span className="absolute top-4 left-4 px-4 py-2 bg-[#FFC300] text-black border-2 border-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                  {imgData.label}
+                <span className="absolute top-4 left-4 px-4 py-2 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                  {item.badge}
                 </span>
               </div>
-              <div className="p-6 flex-grow flex items-center justify-center text-center">
-                <p className="text-sm font-bold text-stone-700 dark:text-stone-300 italic">
-                  "{imgData.desc}"
-                </p>
+              
+              {/* Appetizing Copy */}
+              <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                <div className="space-y-2 text-left">
+                  <h3 className="font-display text-xl sm:text-2xl text-black dark:text-white uppercase leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed italic">
+                    "{item.desc}"
+                  </p>
+                </div>
+                
+                <div className="pt-3 border-t border-black/10 flex items-center justify-between text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                  <span>Leña Real</span>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-[#FFC300] text-black stroke-[1.5px]" />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 4. HORNO SECTION */}
-      <section className="py-16 bg-[#FFC300] dark:bg-[#1A1200] border-y-4 border-black text-black dark:text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {/* 4. BRAND VALUES & HORNO EXPERIENCE */}
+      <section className="py-20 bg-[#FFC300] dark:bg-[#1A1200] border-y-4 border-black text-black dark:text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
           <div className="space-y-6 text-left">
-            <span className="inline-block px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg">
-              CALIDAD ARTESANAL
+            <span className="inline-block px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              CALIDAD PREMIUM SIN VUELTAS
             </span>
             <h2 className="font-display text-4xl sm:text-6xl text-black dark:text-white uppercase leading-none">
-              Horno de Barro a la Leña
+              El Secreto Está en el Horno
             </h2>
             <p className="text-stone-850 dark:text-stone-200 text-sm sm:text-base font-bold leading-relaxed">
-              El secreto reside en el calor seco y envolvente de nuestro horno de barro artesanal. Calentado únicamente a base de leña seleccionada, alcanza la temperatura ideal para cocinar de forma rápida, logrando dorados inigualables y bordes perfectamente crujientes con rellenos sabrosos.
+              En Colores Pizzería no hacemos milagros, hacemos tradición. Calentamos nuestro horno a más de 400°C usando únicamente leña de espinillo seleccionada. Esto le da a la masa ese dorado rústico inconfundible y funde la muzzarella hasta crear hebras cremosas infinitas.
             </p>
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               <div className="bg-white dark:bg-stone-900 p-4 border-2 border-black rounded-2xl shadow-[3px_3px_0px_rgba(0,0,0,1)] flex gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#D90429] flex items-center justify-center shrink-0 border border-black text-white">
                   <ChefHat className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-black text-xs uppercase text-black dark:text-white">Masa Elaborada</h4>
-                  <p className="text-[10px] text-stone-500 font-semibold">Fermentación cuidada para una ligereza y textura perfectas.</p>
+                  <h4 className="font-black text-xs uppercase text-black dark:text-white">Hecho a Mano</h4>
+                  <p className="text-[10px] text-stone-500 font-semibold">Repulgues manuales y horneado en el acto.</p>
                 </div>
               </div>
               <div className="bg-white dark:bg-stone-900 p-4 border-2 border-black rounded-2xl shadow-[3px_3px_0px_rgba(0,0,0,1)] flex gap-3">
@@ -184,14 +230,16 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
                   <Flame className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-black text-xs uppercase text-black dark:text-white">Fuego de Leña</h4>
-                  <p className="text-[10px] text-stone-500 font-semibold">Toque ahumado distintivo que realza todas nuestras preparaciones.</p>
+                  <h4 className="font-black text-xs uppercase text-black dark:text-white">Fuego & Leña</h4>
+                  <p className="text-[10px] text-stone-500 font-semibold">El inconfundible sabor ahumado del quebracho y espinillo.</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Interactive Map Block */}
           <div className="relative flex justify-center">
-            <div className="w-full h-80 sm:h-96 rounded-3xl border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="w-full h-80 sm:h-96 rounded-3xl border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-stone-100 relative">
               <iframe 
                 src="https://maps.google.com/maps?q=Av.%20de%20Mayo%201420,%20Ramos%20Mej%C3%ADa,%20Buenos%20Aires,%20Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" 
                 width="100%" 
@@ -206,8 +254,8 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
         </div>
       </section>
 
-      {/* 5. BOOKING FORM */}
-      <section id="reserva" className="py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* 5. BOOKING FORM (McDonald's High Contrast Theme) */}
+      <section id="reserva" className="py-20 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-3">
           <span className="text-xs uppercase font-extrabold text-[#D90429] dark:text-[#FFC300] tracking-widest bg-[#D90429]/10 px-4 py-1.5 rounded-full border border-[#D90429]/20">
             ¡COMPARTÍ EL MOMENTO!
@@ -296,7 +344,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
       <section id="contacto" className="py-12 border-t-4 border-black bg-stone-50 dark:bg-[#12100F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-6 text-left">
-            <h3 className="font-display text-4xl text-black dark:text-white uppercase leading-none">Contacto & Horarios</h3>
+            <h3 className="font-display text-4xl text-black dark:text-white uppercase leading-none">Ubicación & Contacto</h3>
             <div className="space-y-4 text-stone-850 dark:text-stone-300 text-sm font-bold">
               <div className="flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
