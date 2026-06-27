@@ -89,7 +89,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
       desc: 'Masa rústica artesanal rellena generosamente de acelga y espinaca fresca salteada, cebollas caramelizadas y abundante queso muzzarella fundido.'
     },
     {
-      src: 'https://images.unsplash.com/photo-1547058881-aa0edd92aab3?auto=format&fit=crop&w=500&q=80',
+      src: '/images/tarta_usuario.jpg',
       badge: '🥧 ¡CRUJIENTE DE VERDAD!',
       title: 'Tarta de Jamón y Queso Rústica',
       desc: 'Base de hojaldre casero súper crocante, rellena con jamón cocido seleccionado de primera calidad y un gratinado dorado de queso parmesano.'
@@ -241,7 +241,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
           <div className="relative flex justify-center">
             <div className="w-full h-80 sm:h-96 rounded-3xl border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-stone-100 relative">
               <iframe 
-                src="https://maps.google.com/maps?q=Av.%20de%20Mayo%201420,%20Ramos%20Mej%C3%ADa,%20Buenos%20Aires,%20Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+                src="https://maps.google.com/maps?q=Alvear%201362,%20R%C3%ADo%20Cuarto,%20C%C3%B3rdoba,%20Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 
@@ -348,7 +348,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
             <div className="space-y-4 text-stone-850 dark:text-stone-300 text-sm font-bold">
               <div className="flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
-                <span>Av. de Mayo 1420, Ramos Mejía, Buenos Aires</span>
+                <span>Alvear 1362, Río Cuarto, Córdoba, X5800</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
