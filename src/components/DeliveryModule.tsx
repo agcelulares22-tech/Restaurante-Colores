@@ -14,7 +14,7 @@ interface DeliveryModuleProps {
   pedidos: Pedido[];
   productosMenu: ProductoMenu[];
   onCrearPedido: (pedido: any) => Promise<void>;
-  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
+  onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda'], extraFields?: Partial<Pedido>) => void;
   onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean) => void;
   addLog: (tipo: any, mensaje: string) => void;
   activeMozo: string;
@@ -1416,7 +1416,7 @@ function DeliveryModule({
                           
                           // Quick hack to attach delivery guy and switch state to 'entregado' (En Viaje)
                           p.observaciones = updatedObs;
-                          onCambiarEstadoPedido(p.id_pedido, 'entregado');
+                          onCambiarEstadoPedido(p.id_pedido, 'entregado', { observaciones: updatedObs });
                           toast.success(`Pedido #${p.id_pedido} despachado con repartidor: ${courier}`);
                           
                           // Auto print dual tickets

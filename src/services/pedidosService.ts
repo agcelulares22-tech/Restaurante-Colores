@@ -222,13 +222,11 @@ export const pedidosService = {
       return;
     }
 
-    // Asegurar que el id sea numérico
-    const numericId = Number(id);
-    if (!Number.isFinite(numericId)) {
-      throw new Error(`[pedidosService.update] ID inválido: ${id}`);
+    if (!id || !id.trim()) {
+      throw new Error(`[pedidosService.update] ID vacío o inválido: ${id}`);
     }
 
-    console.log(`[pedidosService.update] Inicio id=${numericId}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
+    console.log(`[pedidosService.update] Inicio id=${id}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
 
     // Map fields to header columns
     const headerFields: any = {};
@@ -261,21 +259,21 @@ export const pedidosService = {
     if (fields.costo_envio !== undefined) headerFields.costo_envio = fields.costo_envio;
     if (fields.zona_envio_id !== undefined) headerFields.zona_envio_id = fields.zona_envio_id;
 
-    console.log(`[pedidosService.update] headerFields preparados id=${numericId}:`, Object.keys(headerFields));
+    console.log(`[pedidosService.update] headerFields preparados id=${id}:`, Object.keys(headerFields));
 
     try {
       if (Object.keys(headerFields).length > 0) {
-        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${numericId}:`, headerFields);
+        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${id}:`, headerFields);
         let { error, data } = await supabase
           .from('pedidos_cabecera')
           .update(headerFields)
-          .eq('id_pedido', numericId)
+          .eq('id_pedido', id)
           .select();
 
-        console.log(`[pedidosService.update] Respuesta update id=${numericId}:`, { error, data, affectedRows: data?.length });
+        console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data, affectedRows: data?.length });
 
         if (!error && (!data || data.length === 0)) {
-          const errMsg = `[pedidosService.update] El update no afectó ninguna fila. Probablemente el pedido ${numericId} no existe en Supabase.`;
+          const errMsg = `[pedidosService.update] El update no afectó ninguna fila. Probablemente el pedido ${id} no existe en Supabase.`;
           console.warn(errMsg);
           error = { message: errMsg, code: 'ZERO_ROWS_AFFECTED' } as any;
         }
@@ -285,14 +283,14 @@ export const pedidosService = {
           console.warn('idempotency_key column missing in update, retrying without it...');
           const fallbackFields = { ...headerFields };
           delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', numericId).select();
+          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id).select();
           error = res.error;
           data = res.data;
-          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${numericId}:`, { error: res.error, data: res.data });
+          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${id}:`, { error: res.error, data: res.data });
         }
 
         if (error) {
-          console.error(`Error updating header for pedido ${numericId}:`, error);
+          console.error(`Error updating header for pedido ${id}:`, error);
           throw error;
         }
       }

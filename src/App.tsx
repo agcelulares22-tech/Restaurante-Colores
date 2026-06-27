@@ -83,6 +83,15 @@ import { cajaService } from './services/cajaService';
 import { stockEngine } from './services/stock/stockEngine';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
+  const isP1Delivery = String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  const isP2Delivery = String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  
+  if (isP1Delivery || isP2Delivery) {
+    const norm1 = String(p1.numero_mesa || '').toLowerCase().trim();
+    const norm2 = String(p2.numero_mesa || '').toLowerCase().trim();
+    return norm1 !== '' && norm1 === norm2;
+  }
+
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
     if (String(p1.id_mesa) === String(p2.id_mesa)) return true;
   }
@@ -678,8 +687,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   };
 
   // --- Handlers for Kitchen View ---
-  const handleCambiarEstadoPedido = async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
-    console.log(`[handleCambiarEstadoPedido] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
+  const handleCambiarEstadoPedido = async (idPedido: string, nuevoEstado: Pedido['estado_comanda'], extraFields?: Partial<Pedido>) => {
+    console.log(`[handleCambiarEstadoPedido] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}, extraFields:`, extraFields);
 
     const pObj = pedidos.find(p => p.id_pedido === idPedido);
     console.log(`[handleCambiarEstadoPedido] pObj encontrado:`, pObj ? { id_pedido: pObj.id_pedido, estado: pObj.estado_comanda, mesa: pObj.numero_mesa } : null);
@@ -757,7 +766,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     }
 
     // 3) Preparar campos a actualizar en Supabase
-    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado };
+    const updateFields: Partial<Pedido> = { estado_comanda: nuevoEstado, ...extraFields };
     if (nuevoEstado === 'en_cocina') {
       updateFields.stock_descontado = stockDescontadoResult;
       updateFields.fecha_descuento_stock = fechaDescuentoStockResult;
@@ -1338,6 +1347,8 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
                 onFacturarMesa={handleFacturarMesa}
                 addLog={addLog}
                 activeMozo={activeMozo}
+                recetas={recetas}
+                insumos={insumos}
               />
             )}
             {activeView === 'proveedores' && <ProveedoresModule addLog={addLog} />}
