@@ -80,6 +80,7 @@ import {
 import { AppView, canAccessView, getAllowedViews } from './lib/permissions';
 import { createClientPedidoId } from './lib/pedidoIds';
 import { cajaService } from './services/cajaService';
+import { stockEngine } from './services/stock/stockEngine';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
@@ -493,45 +494,37 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
 
     let itemsDescontados: string[] = [];
     let alarmasBajoStock: string[] = [];
-    const stockMovements: Array<{
-      id_insumo: string;
-      tipo_movimiento: 'salida_comanda';
-      cantidad: number;
-      stock_anterior: number;
-      stock_nuevo: number;
-    }> = [];
+    let stockMovements: any[] = [];
+    let updatedInsumos = insumos.map(ins => ({ ...ins }));
 
-    const updatedInsumos = insumos.map(ins => ({ ...ins }));
+    const isAdvancedState = ['en_cocina', 'listo', 'entregado', 'entregado_cobrado'].includes(newPedidoData.estado_comanda || 'pendiente');
 
-    newPedidoData.items.forEach(pItem => {
-      const qtyPlates = pItem.cantidad;
-      const matchingRecetas = recetas.filter(r => r.id_producto === pItem.id_producto);
-
-      matchingRecetas.forEach(rec => {
-        const insIdx = updatedInsumos.findIndex(ins => ins.id_insumo === rec.id_insumo);
-        if (insIdx === -1) return;
-
-        const currentIns = updatedInsumos[insIdx];
-        const discountAmt = parseFloat((rec.cantidad_a_descontar * qtyPlates).toFixed(2));
-        const stockAnterior = currentIns.stock_actual;
-        const updatedStock = parseFloat((Math.max(permitirVentaSinStock ? -999999 : 0, stockAnterior - discountAmt)).toFixed(2));
-
-        updatedInsumos[insIdx].stock_actual = updatedStock;
-        itemsDescontados.push(`${currentIns.nombre} (-${discountAmt} ${currentIns.unidad_medida})`);
-
-        stockMovements.push({
-          id_insumo: currentIns.id_insumo,
-          tipo_movimiento: 'salida_comanda',
-          cantidad: discountAmt,
-          stock_anterior: stockAnterior,
-          stock_nuevo: updatedStock
-        });
-
-        if (updatedStock <= currentIns.stock_minimo) {
-          alarmasBajoStock.push(`${currentIns.nombre} (Stock actual: ${updatedStock}${currentIns.unidad_medida})`);
-        }
-      });
-    });
+    if (isAdvancedState) {
+      try {
+        const dummyPedido: Pedido = {
+          id_pedido: '0',
+          ...newPedidoData,
+          origen: newPedidoData.origen || 'Mozo',
+          items: newPedidoData.items,
+          fecha_hora: new Date(),
+          minutos_transcurridos: 0,
+          estado_comanda: newPedidoData.estado_comanda || 'pendiente'
+        };
+        const stockResult = stockEngine.deductStockForPedido(
+          dummyPedido,
+          insumos,
+          recetas,
+          permitirVentaSinStock
+        );
+        updatedInsumos = stockResult.updatedInsumos;
+        stockMovements = stockResult.stockMovements;
+        itemsDescontados = stockResult.itemsDescontados;
+        alarmasBajoStock = stockResult.alarmasBajoStock;
+      } catch (err: any) {
+        toast.error(err.message || 'Error al descontar stock');
+        return;
+      }
+    }
 
     const stockDescontado = itemsDescontados.length > 0;
     let finalPedido: Pedido;
@@ -713,74 +706,29 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
     let fechaDescuentoStockResult = pObj.fecha_descuento_stock;
 
     if (nuevoEstado === 'en_cocina' && !pObj.stock_descontado) {
-      let canDeduct = true;
-      let errorMsg = '';
+      try {
+        const result = stockEngine.deductStockForPedido(pObj, insumos, recetas, permitirVentaSinStock);
+        updatedInsumos = result.updatedInsumos;
+        itemsDescontados = result.itemsDescontados;
+        alarmasBajoStock = result.alarmasBajoStock;
+        stockDescontadoResult = true;
+        fechaDescuentoStockResult = new Date();
 
-      if (!permitirVentaSinStock) {
-        for (const item of pObj.items) {
-          const qtyPlates = item.cantidad;
-          const matchingRecetas = recetas.filter(r => r.id_producto === item.id_producto);
-          if (matchingRecetas.length === 0) continue;
-
-          for (const rec of matchingRecetas) {
-            const insumo = insumos.find(i => i.id_insumo === rec.id_insumo);
-            if (!insumo) continue;
-            const requiredAmt = rec.cantidad_a_descontar * qtyPlates;
-            if (insumo.stock_actual < requiredAmt) {
-              canDeduct = false;
-              errorMsg = `Insumo crítico agotado para '${insumo.nombre}' (Disponible: ${insumo.stock_actual}${insumo.unidad_medida}, Requerido: ${requiredAmt}${insumo.unidad_medida}).`;
-              break;
-            }
-          }
-          if (!canDeduct) break;
-        }
-      }
-
-      if (!canDeduct) {
-        toast.error(`No es posible iniciar cocción: ${errorMsg}`);
-        addLog('alerta_stock', `RECHAZADO FUEGO: Pedido #${idPedido} bloqueado por falta de stock. ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-
-      // Descontar stock
-      stockDescontadoResult = true;
-      fechaDescuentoStockResult = new Date();
-
-      setInsumos(prevInsumos => {
-        const copy = prevInsumos.map(ins => ({ ...ins }));
-        pObj.items.forEach(item => {
-          const qtyPlates = item.cantidad;
-          const matchingRecetas = recetas.filter(r => r.id_producto === item.id_producto);
-          matchingRecetas.forEach(rec => {
-            const insIdx = copy.findIndex(ins => ins.id_insumo === rec.id_insumo);
-            if (insIdx !== -1) {
-              const currentIns = copy[insIdx];
-              const discountAmt = parseFloat((rec.cantidad_a_descontar * qtyPlates).toFixed(2));
-              const stockAnterior = currentIns.stock_actual;
-              const updatedStock = parseFloat((Math.max(permitirVentaSinStock ? -999999 : 0, stockAnterior - discountAmt)).toFixed(2));
-              copy[insIdx].stock_actual = updatedStock;
-              itemsDescontados.push(`${currentIns.nombre} (-${discountAmt} ${currentIns.unidad_medida})`);
-              if (updatedStock <= currentIns.stock_minimo) {
-                alarmasBajoStock.push(`${currentIns.nombre} (Stock actual: ${updatedStock}${currentIns.unidad_medida})`);
-              }
-              dbRecordMovement({
-                id_insumo: currentIns.id_insumo,
-                tipo_movimiento: 'salida_comanda',
-                cantidad: discountAmt,
-                stock_anterior: stockAnterior,
-                stock_nuevo: updatedStock
-              }).catch(console.error);
-              lotesService.deductFIFO(currentIns.id_insumo, discountAmt).catch(err =>
-                console.error('FIFO deduction failed:', err)
-              );
-            } else {
-              addLog('sistema', `ADVERTENCIA: No existe insumo '${rec.id_insumo}' solicitado por la receta.`);
-            }
-          });
+        // Registrar movimientos
+        result.stockMovements.forEach(m => dbRecordMovement(m).catch(console.error));
+        // Lote FIFO
+        result.stockMovements.forEach(m => {
+          lotesService.deductFIFO(m.id_insumo, m.cantidad).catch(err =>
+            console.error('FIFO deduction failed:', err)
+          );
         });
-        updatedInsumos = copy;
-        return copy;
-      });
+
+        setInsumos(updatedInsumos);
+      } catch (err: any) {
+        toast.error(`No es posible iniciar cocción: ${err.message}`);
+        addLog('alerta_stock', `RECHAZADO FUEGO: Pedido #${idPedido} bloqueado por falta de stock. ${err.message}`);
+        throw err;
+      }
     }
 
     // Revertir stock si se cancela
@@ -788,37 +736,20 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
       stockDescontadoResult = false;
       fechaDescuentoStockResult = undefined;
 
-      let itemsReversados: string[] = [];
-      setInsumos(prevInsumos => {
-        const copy = prevInsumos.map(ins => ({ ...ins }));
-        pObj.items.forEach(pItem => {
-          const qtyPlates = pItem.cantidad;
-          const matchingRecetas = recetas.filter(r => r.id_producto === pItem.id_producto);
-          matchingRecetas.forEach(rec => {
-            const insIdx = copy.findIndex(ins => ins.id_insumo === rec.id_insumo);
-            if (insIdx !== -1) {
-              const currentIns = copy[insIdx];
-              const restoreAmt = parseFloat((rec.cantidad_a_descontar * qtyPlates).toFixed(2));
-              const stockAnterior = currentIns.stock_actual;
-              const updatedStock = parseFloat((stockAnterior + restoreAmt).toFixed(2));
-              copy[insIdx].stock_actual = updatedStock;
-              itemsReversados.push(`${currentIns.nombre} (+${restoreAmt} ${currentIns.unidad_medida})`);
-              dbRecordMovement({
-                id_insumo: currentIns.id_insumo,
-                tipo_movimiento: 'entrada',
-                cantidad: restoreAmt,
-                stock_anterior: stockAnterior,
-                stock_nuevo: updatedStock
-              }).catch(console.error);
-              lotesService.restoreFIFO(currentIns.id_insumo, restoreAmt).catch(err =>
-                console.error('FIFO restoration failed:', err)
-              );
-            }
-          });
-        });
-        updatedInsumos = copy;
-        return copy;
+      const result = stockEngine.reverseStockForPedido(pObj, insumos, recetas);
+      updatedInsumos = result.updatedInsumos;
+      const { itemsReversados } = result;
+
+      // Registrar movimientos
+      result.stockMovements.forEach(m => dbRecordMovement(m).catch(console.error));
+      // Lote FIFO
+      result.stockMovements.forEach(m => {
+        lotesService.restoreFIFO(m.id_insumo, m.cantidad).catch(err =>
+          console.error('FIFO restoration failed:', err)
+        );
       });
+
+      setInsumos(updatedInsumos);
 
       if (itemsReversados.length > 0) {
         addLog('descuento_stock', `REVERSO ESCANDALLO: Pedido #${idPedido} CANCELADO. Reintegro automático de: ${itemsReversados.join(', ')}`);

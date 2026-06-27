@@ -1,6 +1,7 @@
 import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Insumo, PedidoItem, RecetaEscandallo } from '../types';
 import { INITIAL_INSUMOS } from '../data/initialData';
+import { insumoSchema } from '../lib/validations';
 
 export function calcularDescuentosInventario(items: PedidoItem[], recetas: RecetaEscandallo[]): Record<string, number> {
   const descuentos: Record<string, number> = {};
@@ -86,6 +87,7 @@ export const insumosService = {
   },
 
   async create(insumo: Insumo): Promise<Insumo> {
+    insumoSchema.parse(insumo);
     invalidateCache();
     const supabase = getActiveSupabaseClient();
     const { data, error } = await supabase.from('insumos').insert([insumo]).select().single();
@@ -97,6 +99,7 @@ export const insumosService = {
   },
 
   async update(id: string, insumo: Partial<Insumo>): Promise<Insumo> {
+    insumoSchema.partial().parse(insumo);
     invalidateCache();
     const supabase = getActiveSupabaseClient();
     let previousCost = 0;
@@ -141,6 +144,7 @@ export const insumosService = {
   },
 
   async upsert(insumos: Insumo[]): Promise<Insumo[]> {
+    insumos.forEach(i => insumoSchema.parse(i));
     invalidateCache();
     const supabase = getActiveSupabaseClient();
     const existingMap = new Map<string, number>();

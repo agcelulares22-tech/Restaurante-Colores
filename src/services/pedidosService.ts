@@ -198,6 +198,8 @@ export const pedidosService = {
   },
 
   async create(pedido: Pedido): Promise<Pedido> {
+    const { stockEngine } = await import('./stock/stockEngine');
+    pedido.items.forEach(item => stockEngine.validatePedidoItem(item));
     try {
       await this.upsert([pedido]);
     } catch (err) {
@@ -359,6 +361,10 @@ export const pedidosService = {
   },
 
   async upsert(pedidos: Pedido[], fromSyncQueue: boolean = false): Promise<void> {
+    const { stockEngine } = await import('./stock/stockEngine');
+    for (const ped of pedidos) {
+      ped.items.forEach(item => stockEngine.validatePedidoItem(item));
+    }
     invalidateCache();
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {

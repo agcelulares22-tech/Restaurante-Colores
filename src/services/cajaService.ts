@@ -1,5 +1,6 @@
 import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { CierreCaja, MovimientoCajaChica } from '../types';
+import { aperturaCajaSchema } from '../lib/validations';
 
 const inferFechaApertura = (idCierre: string) => {
   const timestamp = Number(idCierre.replace('cie_', ''));
@@ -151,6 +152,7 @@ export const cajaService = {
   },
 
   async open(montoApertura: number, cajero: string): Promise<CierreCaja> {
+    aperturaCajaSchema.parse({ monto_apertura: montoApertura, cajero });
     const session: CierreCaja = {
       id_cierre: `cie_${Date.now()}`,
       fecha_apertura: new Date().toISOString().replace('T', ' ').slice(0, 19),
