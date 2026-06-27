@@ -1150,7 +1150,7 @@ const [minutosGlobal, setMinutosGlobal] = useState<number>(0);
   if (!isStreamlitLoggedIn && showCover) {
     return (
       <ErrorBoundary>
-        <RestaurantCover onEnterSystem={() => setShowCover(false)} />
+        <RestaurantCover onEnterSystem={() => setShowCover(false)} productosMenu={productosMenu} />
       </ErrorBoundary>
     );
   }

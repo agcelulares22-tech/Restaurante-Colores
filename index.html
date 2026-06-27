@@ -7,13 +7,84 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Colores Pizzería | Gestión Gastronómica Pro</title>
+    <title>Colores Pizzería | Pizza al Horno de Barro & Leña en Río Cuarto</title>
+    <meta name="description" content="Pizzería Colores en Río Cuarto, Córdoba. Disfrutá de las mejores pizzas a la leña, empanadas salteñas, calzones gigantes y cerveza artesanal." />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Colores Pizzería | Pizza al Horno de Barro & Leña en Río Cuarto" />
+    <meta property="og:description" content="Las mejores pizzas a la leña, empanadas y cerveza artesanal en Río Cuarto. ¡Pedí online por WhatsApp!" />
+    <meta property="og:image" content="/logo-colores-pizzeria.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Colores Pizzería | Pizza al Horno de Barro & Leña en Río Cuarto" />
+    <meta property="twitter:description" content="Las mejores pizzas a la leña, empanadas y cerveza artesanal en Río Cuarto. ¡Pedí online por WhatsApp!" />
+    <meta property="twitter:image" content="/logo-colores-pizzeria.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/logo-el-patron.png" />
-    <link rel="apple-touch-icon" href="/logo-el-patron-192.png" />
+    <link rel="icon" type="image/png" href="/logo-colores-pizzeria.png" />
+    <link rel="apple-touch-icon" href="/logo-colores-pizzeria.png" />
     <link rel="manifest" href="/manifest.webmanifest" crossorigin="anonymous" />
+
+    <!-- LocalBusiness Schema Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FoodEstablishment",
+      "name": "Colores Pizzería",
+      "image": "/logo-colores-pizzeria.png",
+      "@id": "https://pizzeriacolores.com.ar",
+      "url": "https://pizzeriacolores.com.ar",
+      "telephone": "+5493584024822",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Alvear 1362",
+        "addressLocality": "Río Cuarto",
+        "addressRegion": "Córdoba",
+        "postalCode": "X5800",
+        "addressCountry": "AR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -33.123284,
+        "longitude": -64.349123
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "opens": "12:00",
+          "closes": "16:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "opens": "20:00",
+          "closes": "00:00"
+        }
+      ],
+      "menu": "https://pizzeriacolores.com.ar/#especialidades",
+      "acceptsReservations": "True"
+    }
+    </script>
     <script>
     // Detect chunk load errors and auto-reload BEFORE React mounts
     window.addEventListener('error', function(e) {

@@ -16,14 +16,21 @@ import {
   Star,
   Award,
   MessageSquare,
-  MessageCircle
+  MessageCircle,
+  TrendingUp,
+  ShoppingBag,
+  Layers,
+  ThumbsUp
 } from 'lucide-react';
+import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
+import { ProductoMenu } from '../types';
 
 interface RestaurantCoverProps {
   onEnterSystem: () => void;
+  productosMenu?: ProductoMenu[];
 }
 
-export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps) {
+export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL_PRODUCTOS_MENU }: RestaurantCoverProps) {
   // Booking states
   const [bookingForm, setBookingForm] = useState({
     nombre: '',
@@ -70,33 +77,28 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
     });
   };
 
-  // Real food images (3 user + 1 extra high quality savory tart photo)
-  const menuItems = [
-    {
-      src: '/images/pizza_usuario.jpg',
-      badge: '🔥 ¡NUESTRA ESTRELLA!',
-      title: 'Muzzarella Especial de la Casa',
-      desc: 'Abundante queso muzzarella fundido, tiras gruesas de morrones asados al fuego y aceitunas verdes seleccionadas sobre una base crocante.'
-    },
-    {
-      src: '/images/empanadas_usuario.jpg',
-      badge: '🥟 ¡SÚPER JUGOSA!',
-      title: 'Empanadas de Carne Criollas',
-      desc: 'Carne picada de primera calidad, rehogada a mano con cebollita de verdeo dulce y huevo picado. Doradas al horno de barro con aroma a leña.'
-    },
-    {
-      src: '/images/calzone_usuario.jpg',
-      badge: '🥖 ¡GIGANTE Y SABROSO!',
-      title: 'Calzone de Verdura y Queso',
-      desc: 'Masa rústica artesanal rellena generosamente de acelga y espinaca fresca salteada, cebollas caramelizadas y abundante queso muzzarella fundido.'
-    },
-    {
-      src: '/images/tarta_usuario.jpg',
-      badge: '🥧 ¡CRUJIENTE DE VERDAD!',
-      title: 'Tarta de Jamón y Queso Rústica',
-      desc: 'Base de hojaldre casero súper crocante, rellena con jamón cocido seleccionado de primera calidad y un gratinado dorado de queso parmesano.'
-    }
+  const [activeCategory, setActiveCategory] = useState<string>('Pizzas');
+
+  // Custom Pizza Builder states
+  const [pizzaSize, setPizzaSize] = useState<'individual' | 'grande'>('grande');
+  const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+
+  const TOPPINGS = [
+    { id: 'jamon', name: 'Jamón Cocido', price: 1500, icon: '🍖', color: '#E5989B' },
+    { id: 'morron', name: 'Morrones Asados', price: 1500, icon: '🌶️', color: '#D90429' },
+    { id: 'panceta', name: 'Panceta Crujiente', price: 1800, icon: '🥓', color: '#B5828C' },
+    { id: 'huevo', name: 'Huevo Duro', price: 1000, icon: '🥚', color: '#F1FAEE' },
+    { id: 'aceitunas', name: 'Aceitunas Verdes', price: 1000, icon: '🫒', color: '#52B788' },
+    { id: 'albahaca', name: 'Albahaca Fresca', price: 800, icon: '🌿', color: '#2D6A4F' },
+    { id: 'cebolla', name: 'Cebolla Caramelizada', price: 1000, icon: '🧅', color: '#FFE5EC' },
+    { id: 'provolone', name: 'Queso Provolone', price: 1800, icon: '🧀', color: '#F77F00' }
   ];
+
+  const basePrice = pizzaSize === 'individual' ? 11000 : 22000;
+  // Up to 4 toppings included, each extra topping is $1500
+  const extraToppingsCount = Math.max(0, selectedToppings.length - 4);
+  const extraToppingsPrice = extraToppingsCount * 1500;
+  const customPizzaPrice = basePrice + extraToppingsPrice;
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0D0B0A] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#1f1c1a_1px,transparent_1px)]">
@@ -166,47 +168,270 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
           </div>
         </div>
 
-        {/* 3. SHOWCASE BOARD OF REAL PLATTER IMAGES */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-4">
-          {menuItems.map((item, idx) => (
-            <div 
-              key={idx} 
-              className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300 hover:scale-102 flex flex-col h-full group"
-            >
-              {/* Product Image Wrapper */}
-              <div className="h-72 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
-                <img 
-                  src={item.src} 
-                  alt={item.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <span className="absolute top-4 left-4 px-4 py-2 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                  {item.badge}
-                </span>
-              </div>
-              
-              {/* Appetizing Copy */}
-              <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                <div className="space-y-2 text-left">
-                  <h3 className="font-display text-xl sm:text-2xl text-black dark:text-white uppercase leading-tight">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed italic">
-                    "{item.desc}"
-                  </p>
-                </div>
-                
-                <div className="pt-3 border-t border-black/10 flex items-center justify-between text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  <span>Leña Real</span>
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="w-3.5 h-3.5 fill-[#FFC300] text-black stroke-[1.5px]" />
-                    ))}
+        {/* 3. CARTA DIGITAL INTERACTIVA */}
+        <div id="especialidades" className="space-y-8 pt-8">
+          <div className="text-center space-y-2">
+            <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+              Nuestra Carta
+            </h2>
+            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
+              Productos reales elaborados al horno de barro con leña seleccionada
+            </p>
+            <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+            {[
+              { id: 'Pizzas', label: '🍕 Pizzas', color: '#D90429' },
+              { id: 'Calzones y empanadas', label: '🥟 Empanadas & Calzones', color: '#FFC300' },
+              { id: 'Sandwiches', label: '🥪 Sándwiches', color: '#FF5722' },
+              { id: 'Bebidas', label: '🥤 Bebidas & Pintas', color: '#25D366' },
+              { id: 'Postres', label: '🍰 Postres', color: '#B5828C' }
+            ].map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] cursor-pointer ${
+                  activeCategory === cat.id 
+                    ? 'bg-black text-white' 
+                    : 'bg-white hover:bg-stone-50 text-black'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+            {productosMenu
+              .filter(p => p.categoria === activeCategory && p.activo !== false)
+              .map(p => (
+                <div
+                  key={p.id_producto}
+                  className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col h-full group"
+                >
+                  {/* Image wrapper */}
+                  <div className="h-48 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
+                    <img
+                      src={p.imagen || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'}
+                      alt={p.nombre}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                      onError={e => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80';
+                      }}
+                    />
+                    <span className="absolute bottom-3 right-3 px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-xs font-black rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                      ${p.precio_venta.toLocaleString('es-AR')}
+                    </span>
+                  </div>
+
+                  {/* Body copy */}
+                  <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                    <div className="space-y-2 text-left">
+                      <h3 className="font-display text-lg sm:text-xl text-black dark:text-white uppercase leading-tight group-hover:text-[#D90429] transition-colors">
+                        {p.nombre}
+                      </h3>
+                      {p.descripcion && (
+                        <p className="text-xs font-bold text-stone-500 dark:text-stone-400 leading-relaxed italic">
+                          "{p.descripcion}"
+                        </p>
+                      )}
+                    </div>
+
+                    <a
+                      href={`https://wa.me/5493584024822?text=${encodeURIComponent(
+                        `¡Hola Pizzería Colores! Me gustaría encargar el siguiente producto de la carta:\n` +
+                        `• ${p.nombre} ($${p.precio_venta.toLocaleString('es-AR')})\n\n` +
+                        `¿Está disponible? ¡Muchas gracias!`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-widest text-center shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      Ordenar por WhatsApp
+                    </a>
                   </div>
                 </div>
+              ))}
+          </div>
+        </div>
+
+        {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" */}
+        <div className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl p-6 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16">
+          <div className="text-center space-y-2 max-w-xl mx-auto">
+            <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
+              🍕 ¡SIMULADOR INTERACTIVO!
+            </span>
+            <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+              Armá tu Pizza a Medida
+            </h2>
+            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase">
+              Elegí el tamaño y tus 4 toppings incluidos. ¡Nosotros la horneamos a la leña!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Options Panel (Left Side - 7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* 1. Size Selection */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[#FFC300] border border-black flex items-center justify-center text-[10px] text-black">1</span>
+                  Seleccioná el Tamaño
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { id: 'individual', name: 'Chica / Individual', desc: '4 Porciones', price: 11000, size: 'w-24 h-24' },
+                    { id: 'grande', name: 'Familiar / Grande', desc: '8 Porciones', price: 22000, size: 'w-32 h-32' }
+                  ].map(sz => (
+                    <button
+                      key={sz.id}
+                      type="button"
+                      onClick={() => setPizzaSize(sz.id as any)}
+                      className={`p-4 border-2 border-black rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+                        pizzaSize === sz.id 
+                          ? 'bg-[#FFC300] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px]' 
+                          : 'bg-white hover:bg-stone-50 text-black'
+                      }`}
+                    >
+                      <div>
+                        <span className="block font-black text-sm uppercase leading-tight">{sz.name}</span>
+                        <span className="text-[10px] font-bold text-stone-500 block">{sz.desc}</span>
+                      </div>
+                      <span className="block font-display text-lg mt-3">${sz.price.toLocaleString('es-AR')}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Toppings Selection */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[#FFC300] border border-black flex items-center justify-center text-[10px] text-black">2</span>
+                  Elegí tus Ingredientes (4 incluidos)
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {TOPPINGS.map(top => {
+                    const isSelected = selectedToppings.includes(top.id);
+                    return (
+                      <button
+                        key={top.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedToppings(selectedToppings.filter(t => t !== top.id));
+                          } else {
+                            setSelectedToppings([...selectedToppings, top.id]);
+                          }
+                        }}
+                        className={`p-3 border-2 border-black rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+                          isSelected
+                            ? 'bg-black text-white shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+                            : 'bg-white hover:bg-stone-50 text-black'
+                        }`}
+                      >
+                        <span className="text-2xl">{top.icon}</span>
+                        <span className="text-[10px] font-black uppercase leading-none">{top.name}</span>
+                        {selectedToppings.indexOf(top.id) >= 4 && (
+                          <span className="text-[8px] font-extrabold text-[#FFC300] bg-stone-900 border border-white/20 px-1 rounded-sm">
+                            +$1.500
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Summary and WhatsApp button */}
+              <div className="pt-4 border-t-2 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block">Total Estimado</span>
+                  <span className="font-display text-3xl sm:text-4xl text-[#D90429]">
+                    ${customPizzaPrice.toLocaleString('es-AR')}
+                  </span>
+                  {selectedToppings.length > 4 && (
+                    <span className="text-[9px] font-bold text-stone-500 block uppercase">
+                      Incluye {selectedToppings.length - 4} topping(s) extra(s)
+                    </span>
+                  )}
+                </div>
+                <a
+                  href={`https://wa.me/5493584024822?text=${encodeURIComponent(
+                    `¡Hola Pizzería Colores! Armé una pizza personalizada en el simulador:\n` +
+                    `• Tamaño: Pizza ${pizzaSize === 'individual' ? 'Chica/Individual (4 porciones)' : 'Familiar/Grande (8 porciones)'}\n` +
+                    `• Toppings: ${selectedToppings.length > 0 ? selectedToppings.map(tid => TOPPINGS.find(t => t.id === tid)?.name).join(', ') : 'Solo Queso Muzzarella'}\n` +
+                    `• Total: $${customPizzaPrice.toLocaleString('es-AR')}\n\n` +
+                    `¿Me la podrían preparar y enviar? ¡Muchas gracias!`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-6 py-4 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest text-center shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[2px] transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-5 h-5 stroke-[2.5px]" />
+                  Pedir Pizza Armada
+                </a>
               </div>
             </div>
-          ))}
+
+            {/* Interactive Pizza Visual (Right Side - 5 cols) */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 border-4 border-black rounded-2xl bg-white dark:bg-stone-900 shadow-[4px_4px_0px_rgba(0,0,0,1)] relative h-80 min-h-[300px]">
+              <div className="absolute top-4 left-4 bg-black text-white text-[9px] font-black px-2 py-1 rounded border border-white/20 uppercase tracking-widest">
+                Vista Previa
+              </div>
+
+              {/* Pizza Base */}
+              <div 
+                className={`relative rounded-full border-4 border-amber-900 bg-[#E07A5F] shadow-inner flex items-center justify-center transition-all duration-300 ${
+                  pizzaSize === 'individual' ? 'w-44 h-44' : 'w-60 h-60'
+                }`}
+                style={{ boxShadow: 'inset 0 0 15px rgba(0,0,0,0.3)' }}
+              >
+                {/* Crust edge */}
+                <div className="absolute inset-2 rounded-full border-4 border-[#F4A261] bg-[#FFE0B2]" />
+                
+                {/* Cheese base */}
+                <div className="absolute inset-4 rounded-full bg-[#FFE57F] border border-amber-500/20" />
+
+                {/* Oregano particles (Mockup CSS dots) */}
+                <div className="absolute inset-5 opacity-40 bg-[radial-gradient(#2d6a4f_2px,transparent_2px)] [background-size:12px_12px] rounded-full pointer-events-none" />
+
+                {/* Render toppings visually as CSS elements or emojis */}
+                {selectedToppings.map((topId, index) => {
+                  const topObj = TOPPINGS.find(t => t.id === topId);
+                  if (!topObj) return null;
+                  
+                  // Position emojis around the circle randomly/symmetrically based on index and topping ID
+                  const count = pizzaSize === 'individual' ? 5 : 8;
+                  const elements = [];
+                  for (let i = 0; i < count; i++) {
+                    const radius = pizzaSize === 'individual' ? 35 : 55;
+                    const angle = (i * (360 / count)) + (index * 25);
+                    const rad = (angle * Math.PI) / 180;
+                    const x = Math.round(radius * Math.cos(rad));
+                    const y = Math.round(radius * Math.sin(rad));
+                    elements.push(
+                      <div
+                        key={`${topId}_${i}`}
+                        className="absolute text-lg select-none pointer-events-none transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform duration-200"
+                        style={{
+                          left: `calc(50% + ${x}px)`,
+                          top: `calc(50% + ${y}px)`,
+                          transform: `translate(-50%, -50%) rotate(${angle}deg)`
+                        }}
+                      >
+                        {topObj.icon}
+                      </div>
+                    );
+                  }
+                  return elements;
+                })}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -261,6 +486,172 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
                 title="Ubicación de Colores Pizzería"
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4.2. COMBOS & PROMOCIONES ESPECIALES */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-2">
+          <span className="inline-block px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform rotate-1">
+            🔥 ¡MÁS POR MENOS!
+          </span>
+          <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+            Combos & Promociones
+          </h2>
+          <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
+            Las mejores combinaciones con precios especiales para disfrutar en casa
+          </p>
+          <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Combo Amigos",
+              price: 28000,
+              badge: "MÁS VENDIDO 🏆",
+              desc: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
+              note: "Ideal para 3-4 personas"
+            },
+            {
+              title: "Combo Pareja",
+              price: 23000,
+              badge: "¡DE FIN DE SEMANA! 🍺",
+              desc: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
+              note: "Ideal para 2 personas"
+            },
+            {
+              title: "Combo Familiar",
+              price: 42000,
+              badge: "¡SÚPER PROMO! 🔥",
+              desc: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
+              note: "Ideal para 5-6 personas"
+            }
+          ].map((combo, idx) => (
+            <div 
+              key={idx}
+              className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
+            >
+              <div className="space-y-4">
+                <span className="inline-block px-2.5 py-1 bg-black text-[#FFC300] text-[9px] font-black uppercase rounded-lg border border-black/10">
+                  {combo.badge}
+                </span>
+                <h3 className="font-display text-2xl text-black dark:text-white uppercase leading-none">
+                  {combo.title}
+                </h3>
+                <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-900 p-4 border-2 border-dashed border-black/20 rounded-xl">
+                  {combo.desc}
+                </p>
+                <p className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest italic">
+                  {combo.note}
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-black/10 mt-6 flex items-center justify-between gap-4">
+                <div>
+                  <span className="text-[9px] font-bold text-stone-500 uppercase block">Precio Promo</span>
+                  <span className="font-display text-2xl text-[#D90429]">${combo.price.toLocaleString('es-AR')}</span>
+                </div>
+                <a
+                  href={`https://wa.me/5493584024822?text=${encodeURIComponent(
+                    `¡Hola Pizzería Colores! Me gustaría encargar la siguiente promoción especial:\n` +
+                    `• ${combo.title} ($${combo.price.toLocaleString('es-AR')})\n` +
+                    `• Detalle: ${combo.desc}\n\n` +
+                    `¿Me lo podrían enviar? ¡Muchas gracias!`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-[9px] font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  Pedir Combo
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
+      <section className="py-20 bg-stone-50 dark:bg-[#12100F] border-t-4 border-black text-black dark:text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
+          <div className="text-center space-y-2">
+            <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
+              💬 OPINIONES DEL BARRIO
+            </span>
+            <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+              Lo Que Dicen Nuestros Clientes
+            </h2>
+            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
+              Opiniones reales de vecinos de Río Cuarto que disfrutan de nuestra cocina
+            </p>
+            <div className="w-16 h-1.5 bg-[#FFC300] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Mariela G.",
+                role: "Cliente Frecuente",
+                stars: 5,
+                comment: "La mejor pizza a la leña de Río Cuarto sin dudas. La masa es super liviana y la muzzarella es abundante. Llegó caliente y crocante.",
+                date: "Hace 2 días"
+              },
+              {
+                name: "Carlos F.",
+                role: "Vecino del Barrio",
+                stars: 5,
+                comment: "Los calzones son gigantes, comimos tres personas de uno solo. Excelente relación precio-calidad y la atención por WhatsApp de diez.",
+                date: "Hace 1 semana"
+              },
+              {
+                name: "Laura M.",
+                role: "Amante de las Empanadas",
+                stars: 5,
+                comment: "Las empanadas salteñas son un espectáculo, súper jugosas y con el toque justo de comino y papa. Siempre pedimos acá los fines de semana.",
+                date: "Hace 3 días"
+              }
+            ].map((rev, idx) => (
+              <div 
+                key={idx}
+                className="bg-white dark:bg-[#151312] p-8 border-4 border-black rounded-3xl shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6 text-left"
+              >
+                <div className="space-y-4">
+                  {/* Stars block */}
+                  <div className="flex gap-1">
+                    {Array.from({ length: rev.stars }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#FFC300] text-black stroke-[1.5px]" />
+                    ))}
+                  </div>
+                  <p className="text-xs font-bold text-stone-700 dark:text-stone-300 leading-relaxed italic">
+                    "{rev.comment}"
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-black/10 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-black text-xs uppercase text-black dark:text-white leading-none">{rev.name}</h4>
+                    <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">{rev.role}</span>
+                  </div>
+                  <span className="text-[9px] font-extrabold text-stone-450 dark:text-stone-500 uppercase">{rev.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 text-center">
+            <a
+              href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería dejarles mi opinión sobre el pedido..."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-black text-white hover:bg-[#D90429] hover:text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Dejar una Opinión
+            </a>
           </div>
         </div>
       </section>
