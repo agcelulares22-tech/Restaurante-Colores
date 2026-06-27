@@ -14,7 +14,9 @@ import {
   Utensils,
   Heart,
   Star,
-  Award
+  Award,
+  MessageSquare,
+  MessageCircle
 } from 'lucide-react';
 
 interface RestaurantCoverProps {
@@ -42,7 +44,7 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
     const parts = bookingForm.fecha.split('-');
     const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : bookingForm.fecha;
 
-    const cleanPhone = '5491148029988'; // Colores Pizzería WhatsApp line
+    const cleanPhone = '5493584024822'; // Colores Pizzería WhatsApp line
     const text = `¡Hola Colores Pizzería! Me gustaría solicitar una reserva:\n\n` +
       `• Nombre: ${bookingForm.nombre}\n` +
       `• Teléfono: ${bookingForm.telefono}\n` +
@@ -145,12 +147,21 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
             Masa madre fermentada durante 48 hs, ingredientes frescos seleccionados y el toque único de la leña natural. Una mordida y entendés todo.
           </p>
 
-          <div className="flex justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
             <a 
               href="#reserva" 
-              className="px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+              className="w-full sm:w-auto px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer text-center"
             >
               ¡Reservar Mesa Ahora!
+            </a>
+            <a 
+              href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar la carta y el menú del día. ¿Me lo podrían enviar? ¡Muchas gracias!')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto px-8 py-5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="w-5 h-5 stroke-[2.5px]" />
+              Consultar Carta
             </a>
           </div>
         </div>
@@ -350,18 +361,26 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
                 <MapPin className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
                 <span>Alvear 1362, Río Cuarto, Córdoba, X5800</span>
               </div>
-              <div className="flex items-center gap-3">
+              <a 
+                href="https://wa.me/5493584024822" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 hover:text-[#D90429] transition-colors"
+              >
                 <Phone className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
-                <span>+54 9 11 4802-9988</span>
-              </div>
+                <span>+54 9 358 402-4822 (WhatsApp)</span>
+              </a>
               <div className="flex items-center gap-3">
                 <Clock className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
                 <span>Martes a Domingos: 12:00 a 16:00 hs & 20:00 a 00:00 hs</span>
               </div>
-              <div className="flex items-center gap-3">
+              <a 
+                href="mailto:colores.pizzeria@gmail.com"
+                className="flex items-center gap-3 hover:text-[#D90429] transition-colors"
+              >
                 <Mail className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
-                <span>contacto@colorespizzeria.com.ar</span>
-              </div>
+                <span>colores.pizzeria@gmail.com</span>
+              </a>
             </div>
           </div>
           <div className="flex flex-col justify-center space-y-4 border-4 border-black p-8 rounded-3xl bg-white dark:bg-[#151312] shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left">
@@ -423,6 +442,23 @@ export default function RestaurantCover({ onEnterSystem }: RestaurantCoverProps)
           </div>
         )}
       </AnimatePresence>
+
+      {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group">
+        <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden sm:block">
+          ¿Dudas? Escribinos
+        </div>
+        <a
+          href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería hacerles una consulta..."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 relative cursor-pointer"
+          title="Consultar por WhatsApp"
+        >
+          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
+          <MessageCircle className="w-7 h-7 stroke-[2.5px]" />
+        </a>
+      </div>
 
     </div>
   );
