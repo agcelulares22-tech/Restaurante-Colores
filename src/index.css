@@ -8,9 +8,9 @@
   --color-brand-red: #D42B2B;
   --color-brand-black: #121214;
   --color-brand-white: #FFFFFF;
-  --color-vintage-beige: #F5F0E6;
-  --color-vintage-beige-light: #FAF7F0;
-  --color-vintage-beige-dark: #E8E0D0;
+  --color-vintage-beige: #FEF9C3;
+  --color-vintage-beige-light: #FFFDF0;
+  --color-vintage-beige-dark: #F0E9C0;
   
   /* Soften Tailwind's default dark colors globally */
   --color-zinc-950: #121214;

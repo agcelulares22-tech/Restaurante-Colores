@@ -124,7 +124,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div className="h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-vintage-beige-light dark:bg-slate-950 flex font-sans text-zinc-900 dark:text-zinc-50 antialiased selection:bg-brand-yellow selection:text-brand-black transition-colors duration-300">
 
       {/* MOBILE/TABLET HEADER + DRAWER / RAIL */}
       <MobileNav
