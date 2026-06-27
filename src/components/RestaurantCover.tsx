@@ -168,140 +168,163 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           </div>
         </div>
 
-        {/* 3. CARTA DIGITAL INTERACTIVA */}
-        <div id="especialidades" className="space-y-8 pt-8">
-          <div className="text-center space-y-2">
-            <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
-              Nuestra Carta
+        {/* 3. ESCAPARATE PUBLICITARIO ESTILO POP FAST-FOOD (McDONALD'S / BURGER KING) */}
+        <div id="especialidades" className="space-y-12 pt-8">
+          <div className="text-center space-y-3">
+            <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
+              🍔 ¡LOS PREFERIDOS DE LA CASA!
+            </span>
+            <h2 className="font-display text-4xl sm:text-6xl text-black dark:text-white uppercase leading-none">
+              Nuestras Especialidades
             </h2>
-            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
-              Productos reales elaborados al horno de barro con leña seleccionada
+            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider max-w-lg mx-auto leading-relaxed">
+              No hacemos todo el menú igual, seleccionamos tres productos firma elaborados a la leña con la mejor materia prima. ¡Entran por los ojos!
             </p>
-            <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+            <div className="w-20 h-1.5 bg-[#FFC300] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+          {/* 3 Signature Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-4 max-w-6xl mx-auto">
             {[
-              { id: 'Pizzas', label: '🍕 Pizzas', color: '#D90429' },
-              { id: 'Calzones y empanadas', label: '🥟 Empanadas & Calzones', color: '#FFC300' },
-              { id: 'Sandwiches', label: '🥪 Sándwiches', color: '#FF5722' },
-              { id: 'Bebidas', label: '🥤 Bebidas & Pintas', color: '#25D366' },
-              { id: 'Postres', label: '🍰 Postres', color: '#B5828C' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] cursor-pointer ${
-                  activeCategory === cat.id 
-                    ? 'bg-black text-white' 
-                    : 'bg-white hover:bg-stone-50 text-black'
-                }`}
+              {
+                title: 'Pizza "Mega Colores" Llaxta',
+                src: '/images/pizza_usuario.jpg',
+                badge: '🔥 ¡LA REINA DE LA LEÑA!',
+                badgeColor: '#D90429',
+                price: 24000,
+                desc: 'Masa aireada fermentada por 48hs al carbón activo, doble muzzarella fundida, panceta ahumada caramelizada, morrones al fuego y aceitunas seleccionadas.',
+                tag: '🍕 Pizzas'
+              },
+              {
+                title: 'Empanada "Criolla Explosiva"',
+                src: '/images/empanadas_usuario.jpg',
+                badge: '🥟 ¡SÚPER JUGOSA!',
+                badgeColor: '#FFC300',
+                price: 2300,
+                desc: 'Horneada al barro y leña de espinillo. Rellena de lomo cortado a cuchillo, rehogada a mano con cebolla de verdeo dulce y huevo picado.',
+                tag: '🥟 Empanadas'
+              },
+              {
+                title: 'Calzone "Bastardo"',
+                src: '/images/calzone_usuario.jpg',
+                badge: '🥖 ¡GIGANTE Y SABROSO!',
+                badgeColor: '#FF5722',
+                price: 22000,
+                desc: 'Masa rústica artesanal rellena generosamente con jamón cocido seleccionado, muzzarella, hongos salteados al malbec y gratinado de provolone.',
+                tag: '🥖 Calzones'
+              }
+            ].map((p, idx) => (
+              <div
+                key={idx}
+                className={`bg-white dark:bg-[#151312] border-4 border-black rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] ${
+                  idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
+                } flex flex-col h-full group`}
               >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+                {/* Product Image Wrapper */}
+                <div className="h-64 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
+                  <img
+                    src={p.src}
+                    alt={p.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={e => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+                    }}
+                  />
+                  <span 
+                    className="absolute top-4 left-4 px-4 py-2 text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(0,0,0,1)] transform -rotate-2"
+                    style={{ backgroundColor: p.badgeColor }}
+                  >
+                    {p.badge}
+                  </span>
+                  <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-black text-[#FFC300] border-2 border-black text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
+                    {p.tag}
+                  </span>
+                </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
-            {productosMenu
-              .filter(p => p.categoria === activeCategory && p.activo !== false)
-              .map(p => (
-                <div
-                  key={p.id_producto}
-                  className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col h-full group"
-                >
-                  {/* Image wrapper */}
-                  <div className="h-48 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
-                    <img
-                      src={p.imagen || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'}
-                      alt={p.nombre}
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                      onError={e => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80';
-                      }}
-                    />
-                    <span className="absolute bottom-3 right-3 px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-xs font-black rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                      ${p.precio_venta.toLocaleString('es-AR')}
-                    </span>
+                {/* Appetizing Copy */}
+                <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-display text-2xl text-black dark:text-white uppercase leading-none group-hover:text-[#D90429] transition-colors">
+                        {p.title}
+                      </h3>
+                    </div>
+                    <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed italic">
+                      "{p.desc}"
+                    </p>
                   </div>
 
-                  {/* Body copy */}
-                  <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                    <div className="space-y-2 text-left">
-                      <h3 className="font-display text-lg sm:text-xl text-black dark:text-white uppercase leading-tight group-hover:text-[#D90429] transition-colors">
-                        {p.nombre}
-                      </h3>
-                      {p.descripcion && (
-                        <p className="text-xs font-bold text-stone-500 dark:text-stone-400 leading-relaxed italic">
-                          "{p.descripcion}"
-                        </p>
-                      )}
+                  <div className="pt-4 border-t border-black/10 flex items-center justify-between">
+                    <div>
+                      <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest block">Precio</span>
+                      <span className="font-display text-2xl text-[#D90429]">
+                        ${p.price.toLocaleString('es-AR')}
+                      </span>
                     </div>
-
                     <a
                       href={`https://wa.me/5493584024822?text=${encodeURIComponent(
-                        `¡Hola Pizzería Colores! Me gustaría encargar el siguiente producto de la carta:\n` +
-                        `• ${p.nombre} ($${p.precio_venta.toLocaleString('es-AR')})\n\n` +
-                        `¿Está disponible? ¡Muchas gracias!`
+                        `¡Hola Pizzería Colores! Me gustaría encargar su especialidad:\n` +
+                        `• ${p.title} ($${p.price.toLocaleString('es-AR')})\n\n` +
+                        `¡Muchas gracias!`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-widest text-center shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      className="px-5 py-4 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      Ordenar por WhatsApp
+                      <ShoppingBag className="w-4 h-4" />
+                      Pedir Ahora
                     </a>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" */}
-        <div className="bg-white dark:bg-[#151312] border-4 border-black rounded-3xl p-6 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16">
+        {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" (REDiseño ARCADE / MOBILE POP) */}
+        <div className="bg-[#FFFDF9] dark:bg-[#151312] border-4 border-black rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-[#FFC300] border-b-2 border-l-2 border-black text-black text-[9px] font-black px-4 py-2 uppercase tracking-widest rounded-bl-xl shadow-sm">
+            🕹️ MULTIPLAYER / FUN MODE
+          </div>
+
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
-              🍕 ¡SIMULADOR INTERACTIVO!
+            <span className="inline-block px-3 py-1 bg-black text-[#FFC300] border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(255,255,255,0.1)] transform rotate-1">
+              🍕 ¡SIMULADOR DIGITAL!
             </span>
-            <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
-              Armá tu Pizza a Medida
+            <h2 className="font-display text-4xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+              Crea tu Propia Pizza
             </h2>
-            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase">
-              Elegí el tamaño y tus 4 toppings incluidos. ¡Nosotros la horneamos a la leña!
+            <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wide">
+              ¡Interactiva, rápida y directo al WhatsApp! Elige tu tamaño y hasta 4 toppings incluidos.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4">
             {/* Options Panel (Left Side - 7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               {/* 1. Size Selection */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#FFC300] border border-black flex items-center justify-center text-[10px] text-black">1</span>
-                  Seleccioná el Tamaño
+                  <span className="w-5 h-5 rounded-full bg-[#D90429] text-white border border-black flex items-center justify-center text-[10px] font-bold">1</span>
+                  Elegir Tamaño de Base
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { id: 'individual', name: 'Chica / Individual', desc: '4 Porciones', price: 11000, size: 'w-24 h-24' },
-                    { id: 'grande', name: 'Familiar / Grande', desc: '8 Porciones', price: 22000, size: 'w-32 h-32' }
+                    { id: 'individual', name: 'Individual (4 Porciones)', price: 11000 },
+                    { id: 'grande', name: 'Grande (8 Porciones)', price: 22000 }
                   ].map(sz => (
                     <button
                       key={sz.id}
                       type="button"
                       onClick={() => setPizzaSize(sz.id as any)}
-                      className={`p-4 border-2 border-black rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+                      className={`p-4 border-2 border-black rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
                         pizzaSize === sz.id 
-                          ? 'bg-[#FFC300] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px]' 
+                          ? 'bg-[#D90429] text-white shadow-[5px_5px_0px_rgba(0,0,0,1)] translate-y-[-2px]' 
                           : 'bg-white hover:bg-stone-50 text-black'
                       }`}
                     >
-                      <div>
-                        <span className="block font-black text-sm uppercase leading-tight">{sz.name}</span>
-                        <span className="text-[10px] font-bold text-stone-500 block">{sz.desc}</span>
-                      </div>
-                      <span className="block font-display text-lg mt-3">${sz.price.toLocaleString('es-AR')}</span>
+                      <span className="block font-black text-xs uppercase leading-tight">{sz.name}</span>
+                      <span className="block font-display text-xl mt-2">${sz.price.toLocaleString('es-AR')}</span>
                     </button>
                   ))}
                 </div>
@@ -310,8 +333,8 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
               {/* 2. Toppings Selection */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#FFC300] border border-black flex items-center justify-center text-[10px] text-black">2</span>
-                  Elegí tus Ingredientes (4 incluidos)
+                  <span className="w-5 h-5 rounded-full bg-[#D90429] text-white border border-black flex items-center justify-center text-[10px] font-bold">2</span>
+                  Sumar Toppings (4 gratis, extras $1.500)
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {TOPPINGS.map(top => {
@@ -327,16 +350,16 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
                             setSelectedToppings([...selectedToppings, top.id]);
                           }
                         }}
-                        className={`p-3 border-2 border-black rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+                        className={`p-3 border-2 border-black rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
                           isSelected
-                            ? 'bg-black text-white shadow-[3px_3px_0px_rgba(0,0,0,1)]'
-                            : 'bg-white hover:bg-stone-50 text-black'
+                            ? 'bg-[#FFC300] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] font-extrabold translate-y-[-2px]'
+                            : 'bg-white hover:bg-stone-50 text-black font-semibold'
                         }`}
                       >
                         <span className="text-2xl">{top.icon}</span>
-                        <span className="text-[10px] font-black uppercase leading-none">{top.name}</span>
+                        <span className="text-[10px] uppercase leading-none">{top.name}</span>
                         {selectedToppings.indexOf(top.id) >= 4 && (
-                          <span className="text-[8px] font-extrabold text-[#FFC300] bg-stone-900 border border-white/20 px-1 rounded-sm">
+                          <span className="text-[8px] font-black text-white bg-black px-1.5 py-0.5 rounded border border-white/20">
                             +$1.500
                           </span>
                         )}
@@ -349,12 +372,12 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
               {/* Summary and WhatsApp button */}
               <div className="pt-4 border-t-2 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block">Total Estimado</span>
+                  <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest block">Precio Total Estimado</span>
                   <span className="font-display text-3xl sm:text-4xl text-[#D90429]">
                     ${customPizzaPrice.toLocaleString('es-AR')}
                   </span>
                   {selectedToppings.length > 4 && (
-                    <span className="text-[9px] font-bold text-stone-500 block uppercase">
+                    <span className="text-[9px] font-black text-stone-500 block uppercase">
                       Incluye {selectedToppings.length - 4} topping(s) extra(s)
                     </span>
                   )}
@@ -378,7 +401,7 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
             </div>
 
             {/* Interactive Pizza Visual (Right Side - 5 cols) */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 border-4 border-black rounded-2xl bg-white dark:bg-stone-900 shadow-[4px_4px_0px_rgba(0,0,0,1)] relative h-80 min-h-[300px]">
+            <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 border-4 border-black rounded-[2rem] bg-white dark:bg-stone-900 shadow-[4px_4px_0px_rgba(0,0,0,1)] relative h-80 min-h-[300px]">
               <div className="absolute top-4 left-4 bg-black text-white text-[9px] font-black px-2 py-1 rounded border border-white/20 uppercase tracking-widest">
                 Vista Previa
               </div>
