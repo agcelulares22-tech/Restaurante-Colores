@@ -97,6 +97,7 @@ export default function RestaurantCover({
   const [showDigitalMenu, setShowDigitalMenu] = useState(false);
   const [menuCart, setMenuCart] = useState<{ [id: string]: number }>({});
   const [menuStep, setMenuStep] = useState<1 | 2>(1);
+  const [menuActiveCategory, setMenuActiveCategory] = useState<string>('');
   const [menuForm, setMenuForm] = useState({
     nombre: '',
     telefono: '',
@@ -1066,25 +1067,26 @@ export default function RestaurantCover({
       {/* CARTA DIGITAL / SHOPPING MODAL */}
       <AnimatePresence>
         {showDigitalMenu && (
-          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-[#1C2541] p-6 sm:p-8 rounded-3xl max-w-2xl w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black text-left flex flex-col max-h-[90vh] text-stone-900 dark:text-white"
+              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-2xl w-full shadow-2xl text-left flex flex-col max-h-[90vh] text-stone-100 font-sans"
             >
               {/* Modal Header */}
-              <div className="flex justify-between items-center pb-4 border-b-4 border-black">
+              <div className="flex justify-between items-center pb-4 border-b border-stone-850">
                 <div>
-                  <h3 className="font-display text-2xl sm:text-3xl text-black dark:text-white uppercase leading-none">📖 Carta Digital</h3>
-                  <p className="text-[10px] text-stone-600 dark:text-stone-300 font-bold uppercase tracking-wider mt-1">Pedí por WhatsApp al Horno de Barro</p>
+                  <h3 className="font-display text-2xl sm:text-3xl text-stone-100 uppercase leading-none">📖 Carta Digital</h3>
+                  <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mt-1">Pedí por WhatsApp • Horno de Barro & Leña</p>
                 </div>
                 <button 
                   onClick={() => {
                     setShowDigitalMenu(false);
                     setMenuStep(1);
+                    setMenuActiveCategory('');
                   }}
-                  className="w-10 h-10 bg-[#e0e0e0] dark:bg-stone-700 hover:bg-[#d5d5d5] text-black dark:text-white border-2 border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                  className="w-10 h-10 bg-[#1C1C1E] hover:bg-stone-800 text-stone-300 border border-stone-800 rounded-xl flex items-center justify-center transition-colors cursor-pointer active:scale-95"
                 >
                   ✕
                 </button>
@@ -1092,120 +1094,143 @@ export default function RestaurantCover({
 
               {/* Step 1: Browse Menu and Cart */}
               {menuStep === 1 ? (
-                <div className="flex-1 overflow-y-auto py-6 space-y-6 pr-2">
-                  {['Pizzas', 'Promociones', 'Bebidas'].map((category) => {
-                    const catProducts = (productosMenu || []).filter(p => {
-                      if (category === 'Promociones') {
-                        return p.categoria?.toLowerCase() === 'promos' || p.categoria?.toLowerCase() === 'promociones';
-                      }
-                      if (category === 'Pizzas') {
-                        return p.categoria?.toLowerCase() === 'pizzas' || p.categoria?.toLowerCase() === 'tradicionales';
-                      }
-                      if (category === 'Bebidas') {
-                        return p.categoria?.toLowerCase() === 'bebidas';
-                      }
-                      return false;
-                    });
+                <div className="flex-1 overflow-y-auto py-6 space-y-6 pr-1 flex flex-col min-h-0">
+                  {/* Category Tabs */}
+                  <div className="flex gap-2 overflow-x-auto pb-3 shrink-0 scrollbar-none border-b border-stone-900">
+                    {Array.from(
+                      new Set((productosMenu || []).filter(p => p.activo !== false).map(p => p.categoria))
+                    ).filter(Boolean).map(cat => {
+                      const isActive = menuActiveCategory === cat || (menuActiveCategory === '' && cat === 'Pizzas');
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setMenuActiveCategory(cat)}
+                          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                            isActive
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/20'
+                              : 'bg-[#1C1C1E] text-stone-400 border border-stone-850 hover:text-stone-200'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                    if (catProducts.length === 0) return null;
-
-                    return (
-                      <div key={category} className="space-y-3">
-                        <h4 className="font-display text-lg text-[#D90429] dark:text-[#FFC300] uppercase tracking-wide border-b-2 border-black pb-1">
-                          {category}
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {catProducts.map((p) => {
-                            const qty = menuCart[p.id_producto] || 0;
-                            return (
-                              <div 
-                                key={p.id_producto}
-                                className="bg-[#FFFDF9] dark:bg-stone-900 border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between"
-                              >
-                                <div>
+                  {/* Products Grid */}
+                  <div className="flex-1 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {(productosMenu || [])
+                        .filter(p => {
+                          if (p.activo === false) return false;
+                          const currentCat = menuActiveCategory || 'Pizzas';
+                          return p.categoria === currentCat;
+                        })
+                        .map((p) => {
+                          const qty = menuCart[p.id_producto] || 0;
+                          return (
+                            <div 
+                              key={p.id_producto}
+                              className="bg-[#1C1C1E] border border-stone-850/65 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-md group"
+                            >
+                              <div className="flex gap-4">
+                                {p.imagen && (
+                                  <img 
+                                    src={p.imagen} 
+                                    alt={p.nombre} 
+                                    className="w-16 h-16 rounded-xl object-cover border border-stone-800 shrink-0 group-hover:scale-105 transition-transform duration-300" 
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
                                   <div className="flex justify-between items-start gap-2">
-                                    <h5 className="font-black text-sm text-black dark:text-white">{p.nombre}</h5>
-                                    <span className="font-mono text-xs font-black text-[#D90429] dark:text-[#FFC300]">
+                                    <h5 className="font-extrabold text-sm text-stone-100 group-hover:text-amber-400 transition-colors truncate">{p.nombre}</h5>
+                                    <span className="font-mono text-xs font-black text-amber-400 shrink-0">
                                       ${p.precio_venta.toLocaleString('es-AR')}
                                     </span>
                                   </div>
-                                  <p className="text-[10px] text-stone-600 dark:text-stone-400 mt-1 leading-relaxed line-clamp-2">
-                                    {p.descripcion}
+                                  <p className="text-[10px] text-stone-400 mt-1 leading-relaxed line-clamp-2">
+                                    {p.descripcion || 'Especialidad de la casa elaborada al horno de barro con ingredientes frescos.'}
                                   </p>
                                 </div>
-
-                                <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-black/5">
-                                  {qty > 0 ? (
-                                    <div className="flex items-center bg-black/5 dark:bg-black/20 rounded-xl p-0.5 border border-black/10">
-                                      <button 
-                                        onClick={() => handleRemoveFromCart(p.id_producto)}
-                                        className="w-8 h-8 flex items-center justify-center font-bold text-sm bg-white dark:bg-stone-800 border border-black rounded-lg active:scale-90"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="px-3 font-mono font-bold text-xs">{qty}</span>
-                                      <button 
-                                        onClick={() => handleAddToCart(p.id_producto)}
-                                        className="w-8 h-8 flex items-center justify-center font-bold text-sm bg-[#FFC300] border border-black rounded-lg active:scale-90 text-black"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button 
-                                      onClick={() => handleAddToCart(p.id_producto)}
-                                      className="px-3 py-1.5 bg-[#FFC300] hover:bg-[#FFD000] text-black border border-black rounded-xl text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] cursor-pointer"
-                                    >
-                                      Agregar
-                                    </button>
-                                  )}
-                                </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
+
+                              <div className="flex justify-between items-center mt-4 pt-3 border-t border-stone-900">
+                                <span className="text-[9px] font-bold text-stone-500 uppercase">
+                                  {p.tipo === 'bebida' ? '🥤 Bebida' : '🍕 Plato'}
+                                </span>
+
+                                {qty > 0 ? (
+                                  <div className="flex items-center bg-[#121214] rounded-xl p-0.5 border border-stone-850">
+                                    <button 
+                                      type="button"
+                                      onClick={() => handleRemoveFromCart(p.id_producto)}
+                                      className="w-7 h-7 flex items-center justify-center font-bold text-sm bg-[#1C1C1E] hover:bg-stone-850 border border-stone-800 rounded-lg active:scale-90 text-stone-300 cursor-pointer"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="px-2.5 font-mono font-bold text-xs text-stone-100">{qty}</span>
+                                    <button 
+                                      type="button"
+                                      onClick={() => handleAddToCart(p.id_producto)}
+                                      className="w-7 h-7 flex items-center justify-center font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg active:scale-90 cursor-pointer"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleAddToCart(p.id_producto)}
+                                    className="px-3.5 py-1.5 bg-[#121214] hover:bg-stone-900 text-amber-400 border border-stone-800 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+                                  >
+                                    Agregar
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 /* Step 2: Checkout Form */
-                <form onSubmit={handleMenuSubmit} className="flex-1 overflow-y-auto py-6 space-y-4 pr-2 text-left">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Nombre completo *</label>
+                <form onSubmit={handleMenuSubmit} className="flex-1 overflow-y-auto py-6 space-y-4 pr-1 text-left">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold uppercase text-stone-400">Nombre completo *</label>
                     <input 
                       type="text" 
                       required
                       value={menuForm.nombre}
                       onChange={(e) => setMenuForm(prev => ({ ...prev, nombre: e.target.value }))}
                       placeholder="Ej. Juan Pérez"
-                      className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                      className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Teléfono (WhatsApp) *</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold uppercase text-stone-400">Teléfono (WhatsApp) *</label>
                     <input 
                       type="tel" 
                       required
                       value={menuForm.telefono}
                       onChange={(e) => setMenuForm(prev => ({ ...prev, telefono: e.target.value }))}
                       placeholder="Ej. 3584123456"
-                      className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                      className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Modalidad de entrega *</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold uppercase text-stone-400">Modalidad de entrega *</label>
                     <div className="flex gap-3">
                       <button 
                         type="button" 
                         onClick={() => setMenuForm(prev => ({ ...prev, modalidad: 'delivery' }))}
-                        className={`flex-1 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all ${
+                        className={`flex-1 py-3 border border-stone-800 rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer active:scale-95 transition-all ${
                           menuForm.modalidad === 'delivery' 
-                            ? 'bg-[#D90429] text-white shadow-none translate-y-[1px]' 
-                            : 'bg-[#FFFDF9] dark:bg-stone-800 text-stone-800 dark:text-stone-300'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' 
+                            : 'bg-[#1C1C1E] text-stone-450 border border-stone-850 hover:bg-stone-800'
                         }`}
                       >
                         Delivery 🛵
@@ -1213,10 +1238,10 @@ export default function RestaurantCover({
                       <button 
                         type="button" 
                         onClick={() => setMenuForm(prev => ({ ...prev, modalidad: 'retiro' }))}
-                        className={`flex-1 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all ${
+                        className={`flex-1 py-3 border border-stone-800 rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer active:scale-95 transition-all ${
                           menuForm.modalidad === 'retiro' 
-                            ? 'bg-[#D90429] text-white shadow-none translate-y-[1px]' 
-                            : 'bg-[#FFFDF9] dark:bg-stone-800 text-stone-800 dark:text-stone-300'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' 
+                            : 'bg-[#1C1C1E] text-stone-450 border border-stone-850 hover:bg-stone-800'
                         }`}
                       >
                         Retiro 🏪
@@ -1225,36 +1250,36 @@ export default function RestaurantCover({
                   </div>
 
                   {menuForm.modalidad === 'delivery' && (
-                    <div className="flex flex-col gap-2 animate-fadeIn">
-                      <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Dirección de Entrega *</label>
+                    <div className="flex flex-col gap-1.5 animate-fadeIn">
+                      <label className="text-[10px] font-bold uppercase text-stone-400">Dirección de Entrega *</label>
                       <input 
                         type="text" 
                         required
                         value={menuForm.direccion}
                         onChange={(e) => setMenuForm(prev => ({ ...prev, direccion: e.target.value }))}
                         placeholder="Ej: Alvear 1362, Dpto 3B"
-                        className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                        className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
                       />
                     </div>
                   )}
 
                   {/* Resumen */}
-                  <div className="bg-black/5 dark:bg-black/25 border-2 border-black p-4 rounded-2xl space-y-2 mt-4">
-                    <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider">Detalle del Pedido</span>
-                    <div className="space-y-1 text-xs font-bold">
+                  <div className="bg-[#121214] border border-stone-850 p-4 rounded-2xl space-y-2 mt-4">
+                    <span className="text-[9px] font-black uppercase text-stone-500 tracking-wider">Resumen de Compra</span>
+                    <div className="space-y-1.5 text-xs font-bold text-stone-300">
                       {Object.entries(menuCart).map(([id, qty]) => {
                         const p = productosMenu.find(prod => prod.id_producto === id);
                         if (!p) return null;
                         return (
                           <div key={id} className="flex justify-between">
-                            <span className="text-stone-700 dark:text-stone-300">{qty}x {p.nombre}</span>
-                            <span className="font-mono text-black dark:text-white">${(p.precio_venta * qty).toLocaleString('es-AR')}</span>
+                            <span className="text-stone-400">{qty}x {p.nombre}</span>
+                            <span className="font-mono text-stone-200">${(p.precio_venta * qty).toLocaleString('es-AR')}</span>
                           </div>
                         );
                       })}
-                      <div className="border-t-2 border-black pt-2 flex justify-between font-black text-sm uppercase">
-                        <span>Total</span>
-                        <span className="font-mono text-[#D90429] dark:text-[#FFC300]">
+                      <div className="border-t border-stone-800 pt-2 flex justify-between font-black text-sm uppercase">
+                        <span className="text-stone-100">Total a Pagar</span>
+                        <span className="font-mono text-amber-400">
                           ${Object.entries(menuCart).reduce((sum, [id, qty]) => {
                             const p = productosMenu.find(prod => prod.id_producto === id);
                             return sum + (p ? p.precio_venta * qty : 0);
@@ -1268,10 +1293,10 @@ export default function RestaurantCover({
 
               {/* Modal Footer / Cart Summary */}
               {Object.keys(menuCart).length > 0 && (
-                <div className="pt-4 border-t-4 border-black flex justify-between items-center">
+                <div className="pt-4 border-t border-stone-850 flex justify-between items-center">
                   <div className="text-left">
-                    <span className="text-[10px] font-bold text-stone-500 uppercase block tracking-wider">Tu Pedido:</span>
-                    <span className="font-mono font-black text-lg text-[#D90429] dark:text-[#FFC300]">
+                    <span className="text-[9px] font-bold text-stone-500 uppercase block tracking-wider">Total Pedido:</span>
+                    <span className="font-mono font-black text-lg text-amber-400">
                       ${Object.entries(menuCart).reduce((sum, [id, qty]) => {
                         const p = productosMenu.find(prod => prod.id_producto === id);
                         return sum + (p ? p.precio_venta * qty : 0);
@@ -1282,8 +1307,9 @@ export default function RestaurantCover({
                   <div className="flex gap-2">
                     {menuStep === 1 ? (
                       <button 
+                        type="button"
                         onClick={() => setMenuStep(2)}
-                        className="px-6 py-4 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-1.5"
+                        className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                       >
                         Continuar
                         <ArrowRight className="w-4 h-4" />
@@ -1293,13 +1319,14 @@ export default function RestaurantCover({
                         <button 
                           type="button"
                           onClick={() => setMenuStep(1)}
-                          className="px-5 py-4 bg-[#e0e0e0] dark:bg-stone-700 text-black dark:text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                          className="px-5 py-3.5 bg-[#1C1C1E] border border-stone-800 hover:bg-stone-850 text-stone-300 rounded-2xl text-xs font-black uppercase tracking-wider active:scale-95 cursor-pointer"
                         >
                           Atrás
                         </button>
                         <button 
+                          type="button"
                           onClick={handleMenuSubmit}
-                          className="px-6 py-4 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-1.5"
+                          className="px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-green-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                         >
                           Pedir WhatsApp 🚀
                         </button>
@@ -1312,8 +1339,7 @@ export default function RestaurantCover({
           </div>
         )}
       </AnimatePresence>
-
-      {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
+\n\n      {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
       <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group">
         <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden sm:block">
           ¿Dudas? Escribinos
