@@ -517,6 +517,14 @@ function MozoTerminal({
       .filter((p): p is ProductoMenu => !!p && isProductStockCritical(p.id_producto));
   }, [cart, productosMenu, isProductStockCritical]);
 
+  const selectedTableActiveOrderElapsedMin = activePedidoDeMesa
+    ? Math.max(0, Math.floor((Date.now() - new Date(activePedidoDeMesa.fecha_hora).getTime()) / 60000))
+    : 0;
+
+  const isSelectedTableActiveOrderDelayed = activePedidoDeMesa &&
+    ['pendiente', 'en_cocina'].includes(activePedidoDeMesa.estado_comanda) &&
+    selectedTableActiveOrderElapsedMin > 20;
+
   return (
     <>
     <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6" id="mozo-terminal-container">
@@ -575,7 +583,6 @@ function MozoTerminal({
                   stateClasses = "border-[#2563a0] bg-[#2563a0]/5 text-[#2563a0] hover:bg-[#2563a0]/10";
                   labelText = "Ocupada";
                 }
-
                 const activePedido = isOcupada ? pedidos.find(p => 
                   isSameTable(m, p) && 
                   ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
@@ -584,6 +591,29 @@ function MozoTerminal({
                 const elapsedMin = activePedido 
                   ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
                   : 0;
+
+                const isDelayed = activePedido && 
+                  ['pendiente', 'en_cocina'].includes(activePedido.estado_comanda) && 
+                  elapsedMin > 20;
+
+                if (isSelected) {
+                  stateClasses = "bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.03] ring-4 ring-brand-yellow/20";
+                  labelText = isOcupada ? (isDelayed ? "Demorada ⚠️" : "Ocupada (Sel)") : isInCuenta ? "En Cuenta" : isReservada ? "Reservada" : "Libre";
+                } else if (isReservada) {
+                  stateClasses = "border-[#6d3f9e] bg-[#6d3f9e]/5 text-[#6d3f9e] hover:bg-[#6d3f9e]/10";
+                  labelText = "Reservada";
+                } else if (isInCuenta) {
+                  stateClasses = "border-[#c47f1a] bg-[#c47f1a]/5 text-[#c47f1a] hover:bg-[#c47f1a]/10";
+                  labelText = "En Cuenta";
+                } else if (isOcupada) {
+                  if (isDelayed) {
+                    stateClasses = "border-rose-500 bg-rose-500/5 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 animate-pulse";
+                    labelText = "Demorada ⚠️";
+                  } else {
+                    stateClasses = "border-[#2563a0] bg-[#2563a0]/5 text-[#2563a0] hover:bg-[#2563a0]/10";
+                    labelText = "Ocupada";
+                  }
+                }
 
                 return (
                   <button
@@ -596,11 +626,17 @@ function MozoTerminal({
                     {isOcupada ? (
                       <div className="flex flex-col items-center gap-0.5 mt-1">
                         <div className="flex items-center gap-0.5">
-                          <Users className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-[#2563a0]'}`} />
+                          <Users className={`w-3 h-3 ${isSelected ? 'text-white' : isDelayed ? 'text-rose-500' : 'text-[#2563a0]'}`} />
                           <span className="text-[10px] sm:text-xs font-bold">{m.comensales || 0}</span>
                         </div>
                         {elapsedMin > 0 && (
-                          <span className={`text-[8px] font-mono font-bold ${isSelected ? 'text-white/80' : 'text-[#2563a0]/80 bg-[#2563a0]/5 px-1 rounded'}`}>
+                          <span className={`text-[8px] font-mono font-bold px-1 rounded ${
+                            isSelected 
+                              ? 'text-white/80' 
+                              : isDelayed 
+                                ? 'text-rose-600 dark:text-rose-400 bg-rose-500/10 animate-pulse'
+                                : 'text-[#2563a0]/80 bg-[#2563a0]/5'
+                          }`}>
                             ⏱️ {elapsedMin}m
                           </span>
                         )}
@@ -623,7 +659,19 @@ function MozoTerminal({
                 const isInCuenta = m.estado === 'esperando_cuenta';
                 const isReservada = m.estado === 'reservada';
 
-                // Determine visual theme according to state
+                const activePedido = isOcupada ? pedidos.find(p => 
+                  isSameTable(m, p) && 
+                  ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
+                ) : null;
+
+                const elapsedMin = activePedido 
+                  ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
+                  : 0;
+
+                const isDelayed = activePedido && 
+                  ['pendiente', 'en_cocina'].includes(activePedido.estado_comanda) && 
+                  elapsedMin > 20;
+
                 let stateBg = "bg-[#1E293B] border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-650";
                 let dotColor = "bg-emerald-500";
                 let label = "Libre";
@@ -637,9 +685,15 @@ function MozoTerminal({
                   dotColor = "bg-amber-500";
                   label = "En Cuenta";
                 } else if (isOcupada) {
-                  stateBg = "bg-[#2563a0]/15 border-[#2563a0] text-[#2563a0] hover:bg-[#2563a0]/25";
-                  dotColor = "bg-blue-500 animate-pulse";
-                  label = "Ocupada";
+                  if (isDelayed) {
+                    stateBg = "bg-rose-500/15 border-rose-500 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 animate-pulse";
+                    dotColor = "bg-rose-500 animate-ping";
+                    label = "Demorada";
+                  } else {
+                    stateBg = "bg-[#2563a0]/15 border-[#2563a0] text-[#2563a0] hover:bg-[#2563a0]/25";
+                    dotColor = "bg-blue-500 animate-pulse";
+                    label = "Ocupada";
+                  }
                 }
 
                 if (isSelected) {
@@ -651,15 +705,6 @@ function MozoTerminal({
 
                 const w = m.width || (m.forma === 'rectangular' ? 12 : 8);
                 const h = m.height || (m.forma === 'rectangular' ? 6 : 8);
-
-                const activePedido = isOcupada ? pedidos.find(p => 
-                  isSameTable(m, p) && 
-                  ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
-                ) : null;
-
-                const elapsedMin = activePedido 
-                  ? Math.max(0, Math.floor((Date.now() - new Date(activePedido.fecha_hora).getTime()) / 60000))
-                  : 0;
 
                 return (
                   <button
@@ -682,7 +727,7 @@ function MozoTerminal({
                           👤{m.comensales || 0}
                         </span>
                         {elapsedMin > 0 && (
-                          <span className="text-[8px] font-mono font-bold opacity-80">
+                          <span className={`text-[8px] font-mono font-bold ${isDelayed ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'opacity-80'}`}>
                             ⏱️{elapsedMin}m
                           </span>
                         )}
@@ -743,6 +788,13 @@ function MozoTerminal({
                       {activePedidoDeMesa.estado_comanda === 'en_cocina' ? 'En Fuego 🔥' : activePedidoDeMesa.estado_comanda}
                     </span>
                   </div>
+                  
+                  {isSelectedTableActiveOrderDelayed && (
+                    <div className="mb-3 p-2.5 bg-rose-55 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl text-[10px] sm:text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-2 animate-pulse">
+                      <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span>Comanda demorada: lleva {selectedTableActiveOrderElapsedMin} min en Horno.</span>
+                    </div>
+                  )}
                   
                   <div className="space-y-1 mb-3 max-h-40 overflow-y-auto">
                     {activePedidoDeMesa.items.map((it, idx) => (
@@ -1378,14 +1430,14 @@ function MozoTerminal({
       {/* BILL SPLITTING MODAL (MODO DIVISION DE CUENTAS) */}
       {splittingPedidoId !== null && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-w-md w-full max-h-[92vh] overflow-y-auto text-zinc-150">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl max-w-md w-full max-h-[92vh] overflow-y-auto text-slate-800 dark:text-zinc-150">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="font-extrabold text-base text-zinc-100 font-sans tracking-tight flex items-center gap-2">
+                <h3 className="font-extrabold text-base text-slate-850 dark:text-zinc-100 font-sans tracking-tight flex items-center gap-2">
                   <Receipt className="w-5 h-5 text-brand-yellow" />
                   Divisor de Cuentas Gastronómico
                 </h3>
-                <p className="text-xs text-zinc-400 font-sans mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-zinc-400 font-sans mt-0.5">
                   Mesa {pedidos.find(p => p.id_pedido === splittingPedidoId)?.numero_mesa} • Orden #{splittingPedidoId}
                 </p>
               </div>
@@ -1394,7 +1446,7 @@ function MozoTerminal({
                   setSplittingPedidoId(null);
                   setSplitItemsChecked({});
                 }}
-                className="text-zinc-500 hover:text-zinc-300 text-sm font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 text-sm font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -1430,31 +1482,31 @@ function MozoTerminal({
               return (
                 <div className="space-y-4">
                   {/* Option A: Equitative Split */}
-                  <div className="bg-zinc-950/60 p-3 rounded-xl border border-white/5">
-                    <h4 className="text-xs font-bold text-zinc-300 mb-2 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-zinc-400" />
+                  <div className="bg-slate-50 dark:bg-zinc-950/60 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 mb-2 flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                       A. División Equitativa (Por Comensales)
                     </h4>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center bg-zinc-950 border border-white/10 rounded-xl p-1 gap-2">
+                      <div className="flex items-center bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-xl p-1 gap-2">
                         <button 
                           onClick={() => setSplitCount(c => Math.max(2, c - 1))}
-                          className="touch-target w-8 h-8 rounded bg-zinc-900 border border-white/5 flex items-center justify-center font-bold text-sm text-zinc-450 hover:bg-zinc-800 hover:text-zinc-200 active:scale-90"
+                          className="touch-target w-8 h-8 rounded bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-white/5 flex items-center justify-center font-bold text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-205 active:scale-90"
                         >
                           -
                         </button>
-                        <span className="text-sm font-bold font-mono w-5 text-center text-zinc-100">{splitCount}</span>
+                        <span className="text-sm font-bold font-mono w-5 text-center text-slate-800 dark:text-zinc-100">{splitCount}</span>
                         <button 
                           onClick={() => setSplitCount(c => c + 1)}
-                          className="touch-target w-8 h-8 rounded bg-zinc-900 border border-white/5 flex items-center justify-center font-bold text-sm text-zinc-455 hover:bg-zinc-800 hover:text-zinc-200 active:scale-90"
+                          className="touch-target w-8 h-8 rounded bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-white/5 flex items-center justify-center font-bold text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-205 active:scale-90"
                         >
                           +
                         </button>
-                        <span className="text-[10px] text-zinc-500 mr-1">personas</span>
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 mr-1">personas</span>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] text-zinc-500 font-medium">Equivale a:</p>
-                        <p className="text-sm font-extrabold font-mono text-brand-yellow">
+                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium">Equivale a:</p>
+                        <p className="text-sm font-extrabold font-mono text-[#E8B800]">
                           ${(orderTotal / splitCount).toLocaleString('es-AR', { maximumFractionDigits: 1 })} c/u
                         </p>
                       </div>
@@ -1463,20 +1515,20 @@ function MozoTerminal({
 
                   {/* Option B: Split by Select/Chair consumption */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                      <Receipt className="w-3.5 h-3.5 text-zinc-400" />
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1">
+                      <Receipt className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                       B. Desglose Específico (Silla / Consumo Unitario)
                     </h4>
                     
-                    <p className="text-[10px] text-zinc-500 italic">
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-550 italic">
                       Tilde los platos que pagará este comensal de manera individual:
                     </p>
 
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto border border-white/5 rounded-xl p-2 bg-zinc-950/60 scrollbar-thin">
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-xl p-2 bg-slate-50 dark:bg-zinc-950/60 scrollbar-thin">
                       {expandedItemsList.map(({ item, index, singlePrice }) => (
                         <label 
                           key={index}
-                          className="flex items-center justify-between text-xs p-2 bg-zinc-900/60 border border-white/5 rounded-xl hover:bg-zinc-850 hover:border-white/10 cursor-pointer transition-all"
+                          className="flex items-center justify-between text-xs p-2 bg-white dark:bg-zinc-900/60 border border-slate-100 dark:border-white/5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-850 hover:border-slate-200 dark:hover:border-white/10 cursor-pointer transition-all"
                         >
                           <div className="flex items-center gap-2">
                             <input
@@ -1488,37 +1540,37 @@ function MozoTerminal({
                                   [index]: e.target.checked
                                 }));
                               }}
-                              className="rounded border-white/10 text-brand-yellow focus:ring-brand-yellow/30 bg-zinc-950 w-4 h-4"
+                              className="rounded border-slate-350 dark:border-white/10 text-brand-yellow focus:ring-brand-yellow/30 bg-white dark:bg-zinc-950 w-4 h-4"
                             />
-                            <span className="font-medium text-zinc-200">{item.nombre}</span>
+                            <span className="font-medium text-slate-700 dark:text-zinc-200">{item.nombre}</span>
                           </div>
-                          <span className="font-mono text-[11px] text-zinc-300 font-bold">${singlePrice.toLocaleString('es-AR')}</span>
+                          <span className="font-mono text-[11px] text-slate-600 dark:text-zinc-300 font-bold">${singlePrice.toLocaleString('es-AR')}</span>
                         </label>
                       ))}
                     </div>
 
                     {itemizedTotal > 0 && (
-                      <div className="flex justify-between items-center bg-zinc-950 border border-white/10 text-zinc-100 rounded-xl p-3">
+                      <div className="flex justify-between items-center bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-zinc-100 rounded-xl p-3">
                         <div>
-                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-60">Pago Seleccionado</span>
-                          <h4 className="font-mono font-extrabold text-sm text-brand-yellow">${itemizedTotal.toLocaleString('es-AR')}</h4>
+                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-65 text-slate-500 dark:text-zinc-400">Pago Seleccionado</span>
+                          <h4 className="font-mono font-extrabold text-sm text-[#E8B800]">${itemizedTotal.toLocaleString('es-AR')}</h4>
                         </div>
                         <div className="text-right">
-                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-60">Sobrante Total</span>
-                          <p className="font-mono text-[11px] font-semibold text-zinc-400">${(orderTotal - itemizedTotal).toLocaleString('es-AR')}</p>
+                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-65 text-slate-500 dark:text-zinc-400">Sobrante Total</span>
+                          <p className="font-mono text-[11px] font-semibold text-slate-600 dark:text-zinc-400">${(orderTotal - itemizedTotal).toLocaleString('es-AR')}</p>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Facturar Botonera */}
-                  <div className="pt-3 border-t border-white/5 flex gap-2">
+                  <div className="pt-3 border-t border-slate-200 dark:border-white/5 flex gap-2">
                     <button
                       onClick={() => {
                         setSplittingPedidoId(null);
                         setSplitItemsChecked({});
                       }}
-                      className="flex-1 py-2 text-xs bg-zinc-900 border border-white/5 hover:bg-zinc-800 rounded-xl text-zinc-300 font-bold active:scale-95 transition-all"
+                      className="flex-1 py-2 text-xs bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl text-slate-600 dark:text-zinc-300 font-bold active:scale-95 transition-all"
                     >
                       Volver
                     </button>
@@ -1554,34 +1606,34 @@ function MozoTerminal({
       {/* MODAL TRASPASO DE MESA */}
       {showTransferModal && activePedidoDeMesa && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-zinc-150 font-sans">
-            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-slate-800 dark:text-zinc-150 font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/5">
+              <h3 className="font-extrabold text-slate-850 dark:text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-brand-yellow shrink-0" />
                 Traspasar Mesa {selectedMesa?.numero_mesa}
               </h3>
-              <button onClick={() => setShowTransferModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
+              <button onClick={() => setShowTransferModal(false)} className="text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-zinc-300 cursor-pointer border-0 bg-transparent">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="space-y-4">
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
                 Seleccioná la mesa libre de destino a la cual transferir la orden activa **#{activePedidoDeMesa.id_pedido}** (Total: ${activePedidoDeMesa.items.reduce((sum, it) => sum + (it.cantidad * (it.precio_unitario ?? productosMenu.find(p => p.id_producto === it.id_producto)?.precio_venta ?? 0)), 0).toLocaleString('es-AR')}).
               </p>
               
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">Mesa Libre de Destino:</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase mb-1.5">Mesa Libre de Destino:</label>
                 <select
                   value={transferTargetTableId || ''}
                   onChange={(e) => setTransferTargetTableId(parseInt(e.target.value) || null)}
-                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/10 rounded-xl text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 cursor-pointer"
+                  className="w-full min-h-11 px-3 bg-slate-55 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold text-slate-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 cursor-pointer"
                 >
-                  <option value="" disabled className="text-zinc-500">-- Seleccionar Mesa Libre --</option>
+                  <option value="" disabled className="text-slate-450 dark:text-zinc-500">-- Seleccionar Mesa Libre --</option>
                   {dynamicMesas
                     .filter(m => m.estado === 'libre' && m.id_mesa !== 999)
                     .map(m => (
-                      <option key={m.id_mesa} value={m.id_mesa} className="bg-zinc-950 text-zinc-200">
+                      <option key={m.id_mesa} value={m.id_mesa} className="bg-white dark:bg-zinc-950 text-slate-800 dark:text-zinc-200">
                         {m.numero_mesa} ({m.sector?.toUpperCase() || 'Salón'} - Capacidad: {m.capacidad || 4} pax)
                       </option>
                     ))}
@@ -1589,11 +1641,11 @@ function MozoTerminal({
               </div>
             </div>
 
-            <div className="flex gap-3 pt-3 border-t border-white/5 mt-2">
+            <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-white/5 mt-2">
               <button
                 type="button"
                 onClick={() => setShowTransferModal(false)}
-                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="flex-1 min-h-11 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-400 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-200 dark:border-white/5"
               >
                 Cancelar
               </button>
@@ -1604,7 +1656,7 @@ function MozoTerminal({
                 className={`flex-1 min-h-11 text-zinc-950 text-xs font-black rounded-xl transition-all ${
                   transferTargetTableId 
                     ? 'bg-brand-yellow hover:bg-[#D4A700] cursor-pointer shadow-md' 
-                    : 'bg-zinc-750 text-zinc-500 cursor-not-allowed opacity-50'
+                    : 'bg-slate-100 dark:bg-zinc-750 text-slate-400 dark:text-zinc-500 cursor-not-allowed opacity-50 border border-slate-200 dark:border-transparent'
                 }`}
               >
                 Confirmar Traspaso
