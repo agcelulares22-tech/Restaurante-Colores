@@ -1079,13 +1079,13 @@ export default function RestaurantCover({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-2xl w-full shadow-2xl text-left flex flex-col max-h-[90vh] text-stone-100 font-sans"
+              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-4xl w-full shadow-2xl text-left flex flex-col max-h-[92vh] h-full text-stone-100 font-sans"
             >
               {/* Modal Header */}
               <div className="flex justify-between items-center pb-4 border-b border-stone-850">
                 <div>
-                  <h3 className="font-display text-2xl sm:text-3xl text-stone-100 uppercase leading-none">📖 Carta Digital</h3>
-                  <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mt-1">Pedí por WhatsApp • Horno de Barro & Leña</p>
+                  <h3 className="font-display text-2xl sm:text-4xl text-stone-100 uppercase leading-none">📖 Carta Digital</h3>
+                  <p className="text-xs text-amber-400 font-bold uppercase tracking-wider mt-1">Pedí por WhatsApp • Horno de Barro & Leña</p>
                 </div>
                 <button 
                   onClick={() => {
@@ -1093,7 +1093,7 @@ export default function RestaurantCover({
                     setMenuStep(1);
                     setMenuActiveCategory('');
                   }}
-                  className="w-10 h-10 bg-[#1C1C1E] hover:bg-stone-800 text-stone-300 border border-stone-800 rounded-xl flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                  className="w-11 h-11 bg-[#1C1C1E] hover:bg-stone-800 text-stone-300 border border-stone-800 rounded-xl flex items-center justify-center transition-colors cursor-pointer active:scale-95"
                 >
                   ✕
                 </button>
@@ -1113,7 +1113,7 @@ export default function RestaurantCover({
                           key={cat}
                           type="button"
                           onClick={() => setMenuActiveCategory(cat)}
-                          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                          className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                             isActive
                               ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/20'
                               : 'bg-[#1C1C1E] text-stone-400 border border-stone-850 hover:text-stone-200'
@@ -1127,7 +1127,7 @@ export default function RestaurantCover({
 
                   {/* Products Grid */}
                   <div className="flex-1 overflow-y-auto pr-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       {(productosMenu || [])
                         .filter(p => {
                           if (p.activo === false) return false;
@@ -1139,31 +1139,31 @@ export default function RestaurantCover({
                           return (
                             <div 
                               key={p.id_producto}
-                              className="bg-[#1C1C1E] border border-stone-850/65 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-md group"
+                              className="bg-[#1C1C1E] border border-stone-850/65 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-md group"
                             >
                               <div className="flex gap-4">
                                 {p.imagen && (
                                   <img 
                                     src={p.imagen} 
                                     alt={p.nombre} 
-                                    className="w-16 h-16 rounded-xl object-cover border border-stone-800 shrink-0 group-hover:scale-105 transition-transform duration-300" 
+                                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-stone-800 shrink-0 group-hover:scale-105 transition-transform duration-300" 
                                   />
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex justify-between items-start gap-2">
-                                    <h5 className="font-extrabold text-sm text-stone-100 group-hover:text-amber-400 transition-colors truncate">{p.nombre}</h5>
-                                    <span className="font-mono text-xs font-black text-amber-400 shrink-0">
+                                    <h5 className="font-extrabold text-base sm:text-lg text-stone-100 group-hover:text-amber-400 transition-colors leading-tight">{p.nombre}</h5>
+                                    <span className="font-mono text-sm sm:text-base font-black text-amber-450 shrink-0">
                                       ${p.precio_venta.toLocaleString('es-AR')}
                                     </span>
                                   </div>
-                                  <p className="text-[10px] text-stone-400 mt-1 leading-relaxed line-clamp-2">
+                                  <p className="text-xs sm:text-sm text-stone-300 mt-1.5 leading-relaxed line-clamp-4">
                                     {p.descripcion || 'Especialidad de la casa elaborada al horno de barro con ingredientes frescos.'}
                                   </p>
                                 </div>
                               </div>
 
                               <div className="flex justify-between items-center mt-4 pt-3 border-t border-stone-900">
-                                <span className="text-[9px] font-bold text-stone-500 uppercase">
+                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">
                                   {p.tipo === 'bebida' ? '🥤 Bebida' : '🍕 Plato'}
                                 </span>
 
@@ -1172,15 +1172,15 @@ export default function RestaurantCover({
                                     <button 
                                       type="button"
                                       onClick={() => handleRemoveFromCart(p.id_producto)}
-                                      className="w-7 h-7 flex items-center justify-center font-bold text-sm bg-[#1C1C1E] hover:bg-stone-850 border border-stone-800 rounded-lg active:scale-90 text-stone-300 cursor-pointer"
+                                      className="w-8 h-8 flex items-center justify-center font-bold text-base bg-[#1C1C1E] hover:bg-stone-850 border border-stone-800 rounded-lg active:scale-90 text-stone-300 cursor-pointer"
                                     >
                                       -
                                     </button>
-                                    <span className="px-2.5 font-mono font-bold text-xs text-stone-100">{qty}</span>
+                                    <span className="px-3 font-mono font-bold text-sm text-stone-100">{qty}</span>
                                     <button 
                                       type="button"
                                       onClick={() => handleAddToCart(p.id_producto)}
-                                      className="w-7 h-7 flex items-center justify-center font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg active:scale-90 cursor-pointer"
+                                      className="w-8 h-8 flex items-center justify-center font-bold text-base bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg active:scale-90 cursor-pointer"
                                     >
                                       +
                                     </button>
@@ -1189,7 +1189,7 @@ export default function RestaurantCover({
                                   <button 
                                     type="button"
                                     onClick={() => handleAddToCart(p.id_producto)}
-                                    className="px-3.5 py-1.5 bg-[#121214] hover:bg-stone-900 text-amber-400 border border-stone-800 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+                                    className="px-4 py-2 bg-[#121214] hover:bg-stone-900 text-amber-400 border border-stone-800 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
                                   >
                                     Agregar
                                   </button>
@@ -1201,6 +1201,7 @@ export default function RestaurantCover({
                     </div>
                   </div>
                 </div>
+
               ) : (
                 /* Step 2: Checkout Form */
                 <form onSubmit={handleMenuSubmit} className="flex-1 overflow-y-auto py-6 space-y-4 pr-1 text-left">
