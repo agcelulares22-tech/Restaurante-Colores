@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
 import { ProductoMenu, Insumo } from '../types';
+import { dbSavePedidoComplex } from '../supabase';
 
 interface RestaurantCoverProps {
   onEnterSystem: () => void;
@@ -91,6 +92,100 @@ export default function RestaurantCover({
     fecha: '',
     lugar: ''
   });
+
+  // Digital Menu states
+  const [showDigitalMenu, setShowDigitalMenu] = useState(false);
+  const [menuCart, setMenuCart] = useState<{ [id: string]: number }>({});
+  const [menuStep, setMenuStep] = useState<1 | 2>(1);
+  const [menuForm, setMenuForm] = useState({
+    nombre: '',
+    telefono: '',
+    modalidad: 'delivery' as 'delivery' | 'retiro',
+    direccion: ''
+  });
+
+  const handleAddToCart = (id: string) => {
+    setMenuCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+  };
+
+  const handleRemoveFromCart = (id: string) => {
+    setMenuCart(prev => {
+      const next = { ...prev };
+      if (next[id] > 1) {
+        next[id]--;
+      } else {
+        delete next[id];
+      }
+      return next;
+    });
+  };
+
+  const handleMenuSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!menuForm.nombre || !menuForm.telefono || (menuForm.modalidad === 'delivery' && !menuForm.direccion)) {
+      alert('Por favor complete todos los campos obligatorios para continuar.');
+      return;
+    }
+
+    const cartItems = Object.entries(menuCart).map(([id, qty]) => {
+      const p = productosMenu.find(prod => prod.id_producto === id);
+      return {
+        id_producto: id,
+        nombre: p?.nombre || 'Producto',
+        cantidad: qty,
+        categoria: p?.categoria || 'Pizzas',
+        precio_unitario: p?.precio_venta || 0
+      };
+    });
+
+    const total = cartItems.reduce((sum, it) => sum + it.precio_unitario * it.cantidad, 0);
+    const orderId = `PED_ON_${Date.now()}`;
+
+    const newPedido = {
+      id_pedido: orderId,
+      id_mesa: 0,
+      numero_mesa: menuForm.modalidad === 'delivery' ? 'Delivery Online' : 'Retiro Online',
+      mozo: 'Carta Digital',
+      estado_comanda: 'pendiente' as const,
+      items: cartItems,
+      fecha_hora: new Date(),
+      minutos_transcurridos: 0,
+      origen: 'Rappi' as const,
+      nombre_cliente: menuForm.nombre,
+      telefono_cliente: menuForm.telefono,
+      direccion_cliente: menuForm.modalidad === 'delivery' ? menuForm.direccion : undefined,
+      costo_envio: 0
+    };
+
+    try {
+      await dbSavePedidoComplex(newPedido);
+    } catch (err) {
+      console.warn('Silent DB persistence failed:', err);
+    }
+
+    let itemLines = '';
+    cartItems.forEach(it => {
+      itemLines += `- ${it.cantidad}x *${it.nombre}* ($${(it.precio_unitario * it.cantidad).toLocaleString('es-AR')})\n`;
+    });
+
+    const msg = `¡Hola *Pizzería Colores*! Hice un pedido por la Carta Digital (*ID: #${orderId}*)\n\n` +
+                `*Cliente:* ${menuForm.nombre}\n` +
+                `*Teléfono:* ${menuForm.telefono}\n` +
+                `*Modalidad:* ${menuForm.modalidad === 'delivery' ? '🛵 Envío a domicilio' : '🏪 Retiro en el local'}\n` +
+                (menuForm.modalidad === 'delivery' ? `*Dirección:* ${menuForm.direccion}\n` : '') +
+                `\n*Detalle del Pedido:*\n${itemLines}\n` +
+                `*Total:* *$${total.toLocaleString('es-AR')}*`;
+
+    let cleanPhone = menuForm.telefono.replace(/\D/g, '');
+    let formattedPhone = '5493584024822';
+    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
+
+    setMenuCart({});
+    setMenuStep(1);
+    setShowDigitalMenu(false);
+    
+    window.open(url, '_blank');
+  };
 
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +304,19 @@ export default function RestaurantCover({
               </span>
             </div>
           </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setMenuStep(1);
+                setShowDigitalMenu(true);
+              }}
+              className="px-4 py-2.5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <ShoppingBag className="w-4 h-4 stroke-[2.5px]" />
+              Ver Carta & Pedir
+            </button>
+          </div>
         </div>
       </header>
 
@@ -236,15 +344,16 @@ export default function RestaurantCover({
             >
               Contactarnos para tu evento
             </button>
-            <a 
-              href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar la carta y el menú del día. ¿Me lo podrían enviar? ¡Muchas gracias!')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-8 py-5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-2"
+            <button 
+              onClick={() => {
+                setMenuStep(1);
+                setShowDigitalMenu(true);
+              }}
+              className="w-full sm:w-auto px-8 py-5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
             >
-              <MessageSquare className="w-5 h-5 stroke-[2.5px]" />
-              Consultar Carta
-            </a>
+              <ShoppingBag className="w-5 h-5 stroke-[2.5px]" />
+              Pedir Online & Ver Carta
+            </button>
           </div>
         </div>
 
@@ -949,6 +1058,256 @@ export default function RestaurantCover({
               >
                 ¡Entendido!
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* CARTA DIGITAL / SHOPPING MODAL */}
+      <AnimatePresence>
+        {showDigitalMenu && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-[#1C2541] p-6 sm:p-8 rounded-3xl max-w-2xl w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black text-left flex flex-col max-h-[90vh] text-stone-900 dark:text-white"
+            >
+              {/* Modal Header */}
+              <div className="flex justify-between items-center pb-4 border-b-4 border-black">
+                <div>
+                  <h3 className="font-display text-2xl sm:text-3xl text-black dark:text-white uppercase leading-none">📖 Carta Digital</h3>
+                  <p className="text-[10px] text-stone-600 dark:text-stone-300 font-bold uppercase tracking-wider mt-1">Pedí por WhatsApp al Horno de Barro</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowDigitalMenu(false);
+                    setMenuStep(1);
+                  }}
+                  className="w-10 h-10 bg-[#e0e0e0] dark:bg-stone-700 hover:bg-[#d5d5d5] text-black dark:text-white border-2 border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Step 1: Browse Menu and Cart */}
+              {menuStep === 1 ? (
+                <div className="flex-1 overflow-y-auto py-6 space-y-6 pr-2">
+                  {['Pizzas', 'Promociones', 'Bebidas'].map((category) => {
+                    const catProducts = (productosMenu || []).filter(p => {
+                      if (category === 'Promociones') {
+                        return p.categoria?.toLowerCase() === 'promos' || p.categoria?.toLowerCase() === 'promociones';
+                      }
+                      if (category === 'Pizzas') {
+                        return p.categoria?.toLowerCase() === 'pizzas' || p.categoria?.toLowerCase() === 'tradicionales';
+                      }
+                      if (category === 'Bebidas') {
+                        return p.categoria?.toLowerCase() === 'bebidas';
+                      }
+                      return false;
+                    });
+
+                    if (catProducts.length === 0) return null;
+
+                    return (
+                      <div key={category} className="space-y-3">
+                        <h4 className="font-display text-lg text-[#D90429] dark:text-[#FFC300] uppercase tracking-wide border-b-2 border-black pb-1">
+                          {category}
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {catProducts.map((p) => {
+                            const qty = menuCart[p.id_producto] || 0;
+                            return (
+                              <div 
+                                key={p.id_producto}
+                                className="bg-[#FFFDF9] dark:bg-stone-900 border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between"
+                              >
+                                <div>
+                                  <div className="flex justify-between items-start gap-2">
+                                    <h5 className="font-black text-sm text-black dark:text-white">{p.nombre}</h5>
+                                    <span className="font-mono text-xs font-black text-[#D90429] dark:text-[#FFC300]">
+                                      ${p.precio_venta.toLocaleString('es-AR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-stone-600 dark:text-stone-400 mt-1 leading-relaxed line-clamp-2">
+                                    {p.descripcion}
+                                  </p>
+                                </div>
+
+                                <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-black/5">
+                                  {qty > 0 ? (
+                                    <div className="flex items-center bg-black/5 dark:bg-black/20 rounded-xl p-0.5 border border-black/10">
+                                      <button 
+                                        onClick={() => handleRemoveFromCart(p.id_producto)}
+                                        className="w-8 h-8 flex items-center justify-center font-bold text-sm bg-white dark:bg-stone-800 border border-black rounded-lg active:scale-90"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="px-3 font-mono font-bold text-xs">{qty}</span>
+                                      <button 
+                                        onClick={() => handleAddToCart(p.id_producto)}
+                                        className="w-8 h-8 flex items-center justify-center font-bold text-sm bg-[#FFC300] border border-black rounded-lg active:scale-90 text-black"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button 
+                                      onClick={() => handleAddToCart(p.id_producto)}
+                                      className="px-3 py-1.5 bg-[#FFC300] hover:bg-[#FFD000] text-black border border-black rounded-xl text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] cursor-pointer"
+                                    >
+                                      Agregar
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Step 2: Checkout Form */
+                <form onSubmit={handleMenuSubmit} className="flex-1 overflow-y-auto py-6 space-y-4 pr-2 text-left">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Nombre completo *</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={menuForm.nombre}
+                      onChange={(e) => setMenuForm(prev => ({ ...prev, nombre: e.target.value }))}
+                      placeholder="Ej. Juan Pérez"
+                      className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Teléfono (WhatsApp) *</label>
+                    <input 
+                      type="tel" 
+                      required
+                      value={menuForm.telefono}
+                      onChange={(e) => setMenuForm(prev => ({ ...prev, telefono: e.target.value }))}
+                      placeholder="Ej. 3584123456"
+                      className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Modalidad de entrega *</label>
+                    <div className="flex gap-3">
+                      <button 
+                        type="button" 
+                        onClick={() => setMenuForm(prev => ({ ...prev, modalidad: 'delivery' }))}
+                        className={`flex-1 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all ${
+                          menuForm.modalidad === 'delivery' 
+                            ? 'bg-[#D90429] text-white shadow-none translate-y-[1px]' 
+                            : 'bg-[#FFFDF9] dark:bg-stone-800 text-stone-800 dark:text-stone-300'
+                        }`}
+                      >
+                        Delivery 🛵
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setMenuForm(prev => ({ ...prev, modalidad: 'retiro' }))}
+                        className={`flex-1 py-3 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all ${
+                          menuForm.modalidad === 'retiro' 
+                            ? 'bg-[#D90429] text-white shadow-none translate-y-[1px]' 
+                            : 'bg-[#FFFDF9] dark:bg-stone-800 text-stone-800 dark:text-stone-300'
+                        }`}
+                      >
+                        Retiro 🏪
+                      </button>
+                    </div>
+                  </div>
+
+                  {menuForm.modalidad === 'delivery' && (
+                    <div className="flex flex-col gap-2 animate-fadeIn">
+                      <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Dirección de Entrega *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={menuForm.direccion}
+                        onChange={(e) => setMenuForm(prev => ({ ...prev, direccion: e.target.value }))}
+                        placeholder="Ej: Alvear 1362, Dpto 3B"
+                        className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all text-stone-900 dark:text-white"
+                      />
+                    </div>
+                  )}
+
+                  {/* Resumen */}
+                  <div className="bg-black/5 dark:bg-black/25 border-2 border-black p-4 rounded-2xl space-y-2 mt-4">
+                    <span className="text-[10px] font-black uppercase text-stone-500 tracking-wider">Detalle del Pedido</span>
+                    <div className="space-y-1 text-xs font-bold">
+                      {Object.entries(menuCart).map(([id, qty]) => {
+                        const p = productosMenu.find(prod => prod.id_producto === id);
+                        if (!p) return null;
+                        return (
+                          <div key={id} className="flex justify-between">
+                            <span className="text-stone-700 dark:text-stone-300">{qty}x {p.nombre}</span>
+                            <span className="font-mono text-black dark:text-white">${(p.precio_venta * qty).toLocaleString('es-AR')}</span>
+                          </div>
+                        );
+                      })}
+                      <div className="border-t-2 border-black pt-2 flex justify-between font-black text-sm uppercase">
+                        <span>Total</span>
+                        <span className="font-mono text-[#D90429] dark:text-[#FFC300]">
+                          ${Object.entries(menuCart).reduce((sum, [id, qty]) => {
+                            const p = productosMenu.find(prod => prod.id_producto === id);
+                            return sum + (p ? p.precio_venta * qty : 0);
+                          }, 0).toLocaleString('es-AR')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Modal Footer / Cart Summary */}
+              {Object.keys(menuCart).length > 0 && (
+                <div className="pt-4 border-t-4 border-black flex justify-between items-center">
+                  <div className="text-left">
+                    <span className="text-[10px] font-bold text-stone-500 uppercase block tracking-wider">Tu Pedido:</span>
+                    <span className="font-mono font-black text-lg text-[#D90429] dark:text-[#FFC300]">
+                      ${Object.entries(menuCart).reduce((sum, [id, qty]) => {
+                        const p = productosMenu.find(prod => prod.id_producto === id);
+                        return sum + (p ? p.precio_venta * qty : 0);
+                      }, 0).toLocaleString('es-AR')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    {menuStep === 1 ? (
+                      <button 
+                        onClick={() => setMenuStep(2)}
+                        className="px-6 py-4 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-1.5"
+                      >
+                        Continuar
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={() => setMenuStep(1)}
+                          className="px-5 py-4 bg-[#e0e0e0] dark:bg-stone-700 text-black dark:text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                        >
+                          Atrás
+                        </button>
+                        <button 
+                          onClick={handleMenuSubmit}
+                          className="px-6 py-4 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-1.5"
+                        >
+                          Pedir WhatsApp 🚀
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         )}
