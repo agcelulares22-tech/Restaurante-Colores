@@ -16,7 +16,9 @@ import {
   CircleDot,
   BookOpen,
   Bike,
-  DollarSign
+  DollarSign,
+  Store,
+  MessageSquare
 } from 'lucide-react';
 import { Pedido, ProductoMenu, RecetaEscandallo, Insumo } from '../types';
 import { useKitchenMonitor } from '../features/cocina/hooks/useKitchenMonitor';
@@ -513,6 +515,7 @@ function KitchenMonitor({
     }[estado];
 
     const isDelivery = (p.numero_mesa || '').toUpperCase().startsWith('DELIVERY:');
+    const isRetiro = (p.numero_mesa || '').toUpperCase().startsWith('RETIRO:');
     const subtotalPlatos = p.items
       .filter(it => it.id_producto !== 'prod_costo_envio_delivery')
       .reduce((sum, it) => sum + (it.precio_unitario ?? 0) * it.cantidad, 0);
@@ -570,6 +573,11 @@ function KitchenMonitor({
               <span className="text-[9px] font-black uppercase text-white bg-[#E85D00] px-2 py-0.5 rounded-full border border-[#E85D00] flex items-center gap-1">
                 <Bike className="w-3 h-3" />
                 Delivery
+              </span>
+            ) : isRetiro ? (
+              <span className="text-[9px] font-black uppercase text-white bg-[#198754] px-2 py-0.5 rounded-full border border-[#198754] flex items-center gap-1">
+                <Store className="w-3 h-3" />
+                Retiro
               </span>
             ) : (
               <span className="text-[9px] font-black uppercase text-[#E8B800] bg-[#E8B800]/10 px-2 py-0.5 rounded-full border border-[#E8B800]/30">
@@ -700,16 +708,44 @@ function KitchenMonitor({
           )}
 
           {estado === 'listo' && (
-            <button
-              onClick={() => handleOptimisticStatus(p.id_pedido, 'entregado')}
-              className={`w-full min-h-12 mt-2 py-3 px-3 ${btnTheme} btn-premium rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md`}
-            >
-              {optimisticUpdates.get(p.id_pedido)?.estado === 'entregado' && optimisticUpdates.get(p.id_pedido)?.updating ? (
-                <><RefreshCw className="w-4 h-4 animate-spin" /> Actualizando...</>
-              ) : (
-                <><CheckCircle className="w-4 h-4" /> Entregar a Mesa</>
+            <div className="flex flex-col gap-2 mt-2">
+              <button
+                onClick={() => handleOptimisticStatus(p.id_pedido, 'entregado')}
+                className={`w-full min-h-12 py-3 px-3 ${btnTheme} btn-premium rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md`}
+              >
+                {optimisticUpdates.get(p.id_pedido)?.estado === 'entregado' && optimisticUpdates.get(p.id_pedido)?.updating ? (
+                  <><RefreshCw className="w-4 h-4 animate-spin" /> Actualizando...</>
+                ) : (
+                  <><CheckCircle className="w-4 h-4" /> {isDelivery ? 'Despachar Delivery' : isRetiro ? 'Entregar Pedido' : 'Entregar a Mesa'}</>
+                )}
+              </button>
+
+              {(isDelivery || isRetiro) && p.telefono_cliente && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cleanPhone = p.telefono_cliente!.replace(/\D/g, '');
+                    let formattedPhone = cleanPhone;
+                    if (!formattedPhone.startsWith('54')) {
+                      if (formattedPhone.length === 10) {
+                        formattedPhone = '549' + formattedPhone;
+                      } else {
+                        formattedPhone = '54' + formattedPhone;
+                      }
+                    }
+                    const clientName = p.nombre_cliente || 'Cliente';
+                    const msgText = isRetiro
+                      ? `Hola *${clientName}*, tu pedido en *Pizzería Colores* ya está listo para retirar! 🍕 ¡Te esperamos!`
+                      : `Hola *${clientName}*, tu pedido en *Pizzería Colores* ya está listo y va en camino! 🛵`;
+                    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msgText)}`;
+                    window.open(url, '_blank');
+                  }}
+                  className="w-full min-h-12 py-3 px-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md border border-[#25D366]/20"
+                >
+                  <MessageSquare className="w-4 h-4" /> Notificar WhatsApp 💬
+                </button>
               )}
-            </button>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-3 mt-2">

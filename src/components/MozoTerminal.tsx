@@ -30,7 +30,8 @@ import {
   ArrowRightLeft,
   Mic,
   MicOff,
-  Volume2
+  Volume2,
+  Store
 } from 'lucide-react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog } from '../types';
 import { useMenu, useSalon, useInventario, usePedidos } from '../context/AppContext';
@@ -639,26 +640,40 @@ function MozoTerminal({
                 Distribución de Mesas
               </h3>
               <span className="text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 font-bold shrink-0">
-                {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999).length} Ocupadas
+                {dynamicMesas.filter(m => m.estado === 'ocupada' && m.id_mesa !== 999 && m.id_mesa !== 998).length} Ocupadas
               </span>
             </div>
           </div>
 
-          <button
-            onClick={() => handleSelectMesa({ id_mesa: 999, numero_mesa: 'DELIVERY', estado: 'libre' })}
-            className={`w-full mb-4 min-h-[56px] p-3 sm:p-4 rounded-xl flex items-center justify-center gap-3 transition-all cursor-pointer border font-black text-sm uppercase tracking-wider ${
-              selectedMesaId === 999
-                ? 'bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.01] ring-4 ring-brand-yellow/20'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
-            }`}
-          >
-            <Bike className="w-5 h-5 text-brand-orange" />
-            Tomar Pedido Delivery
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <button
+              onClick={() => handleSelectMesa({ id_mesa: 999, numero_mesa: 'DELIVERY', estado: 'libre' })}
+              className={`min-h-[56px] p-3 sm:p-4 rounded-xl flex items-center justify-center gap-3 transition-all cursor-pointer border font-black text-xs sm:text-sm uppercase tracking-wider ${
+                selectedMesaId === 999
+                  ? 'bg-brand-yellow text-brand-black border-brand-yellow shadow-md scale-[1.01] ring-4 ring-brand-yellow/20'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+              }`}
+            >
+              <Bike className="w-5 h-5 text-brand-orange" />
+              Tomar Delivery
+            </button>
+
+            <button
+              onClick={() => handleSelectMesa({ id_mesa: 998, numero_mesa: 'RETIRO', estado: 'libre' })}
+              className={`min-h-[56px] p-3 sm:p-4 rounded-xl flex items-center justify-center gap-3 transition-all cursor-pointer border font-black text-xs sm:text-sm uppercase tracking-wider ${
+                selectedMesaId === 998
+                  ? 'bg-[#d1e7dd] text-[#0f5132] border-[#badbcc] shadow-md scale-[1.01] ring-4 ring-brand-yellow/20'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+              }`}
+            >
+              <Store className="w-5 h-5 text-[#0f5132]" />
+              Tomar Retiro
+            </button>
+          </div>
 
           {viewMode === 'lista' ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-              {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
+              {dynamicMesas.filter(m => m.id_mesa !== 999 && m.id_mesa !== 998).map(m => {
                 const isSelected = m.id_mesa === selectedMesaId;
                 const isOcupada = m.estado === 'ocupada';
                 const isInCuenta = m.estado === 'esperando_cuenta';
@@ -751,7 +766,7 @@ function MozoTerminal({
           ) : (
             /* Plano 2D View */
             <div className="relative w-full h-[520px] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center bg-[radial-gradient(#384152_1.2px,transparent_1.2px)] [background-size:20px_20px]">
-              {dynamicMesas.filter(m => m.id_mesa !== 999).map(m => {
+              {dynamicMesas.filter(m => m.id_mesa !== 999 && m.id_mesa !== 998).map(m => {
                 const isSelected = m.id_mesa === selectedMesaId;
                 const isOcupada = m.estado === 'ocupada';
                 const isInCuenta = m.estado === 'esperando_cuenta';
@@ -1275,10 +1290,10 @@ function MozoTerminal({
             </div>
           ) : (
             <>
-              {selectedMesaId === 999 && (
+              {(selectedMesaId === 999 || selectedMesaId === 998) && (
                 <div className="p-3 border border-white/5 bg-zinc-950/60 rounded-xl space-y-2.5 mb-2.5">
                   <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider block">
-                    Datos del Cliente (Envío)
+                    {selectedMesaId === 999 ? 'Datos del Cliente (Envío)' : 'Datos del Cliente (Retiro en Local)'}
                   </span>
                   
                   <div className="space-y-1">
@@ -1292,125 +1307,131 @@ function MozoTerminal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={selectedMesaId === 999 ? "grid grid-cols-2 gap-2" : "space-y-1"}>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Teléfono</label>
+                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Teléfono (WhatsApp)</label>
                       <input
                         type="text"
-                        placeholder="Ej: 3584-123456"
+                        placeholder="Ej: 3584123456"
                         value={telefonoCliente}
                         onChange={(e) => setTelefonoCliente(e.target.value)}
                         className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Dirección</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: Alvear 1362"
-                        value={direccionCliente}
-                        onChange={(e) => setDireccionCliente(e.target.value)}
-                        className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowEnvioConfig(!showEnvioConfig)}
-                      className="text-[10px] text-zinc-450 hover:text-zinc-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Settings className="w-3 h-3 text-zinc-500" />
-                      {showEnvioConfig ? 'Ocultar Configuración' : 'Configurar Origen/Tarifas'}
-                    </button>
-                  </div>
-
-                  {showEnvioConfig && (
-                    <div className="p-2.5 bg-zinc-950 border border-white/5 rounded-xl space-y-2 text-left">
-                      <div className="space-y-0.5">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Dirección del Local</label>
+                    {selectedMesaId === 999 && (
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-500 uppercase">Dirección</label>
                         <input
                           type="text"
-                          value={origenDireccion}
-                          placeholder="Ej: Alvear 1362, Río Cuarto"
-                          onChange={(e) => handleUpdateOrigenDireccionLocal(e.target.value)}
-                          className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-medium"
+                          placeholder="Ej: Alvear 1362"
+                          value={direccionCliente}
+                          onChange={(e) => setDireccionCliente(e.target.value)}
+                          className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
                         />
-                        <span className="text-[8px] font-mono text-zinc-500 block">
-                          {isUpdatingOrigenLocal ? 'Buscando coordenadas...' : `Coordenadas: ${origenLat.toFixed(4)}, ${origenLng.toFixed(4)}`}
-                        </span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-0.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Tarifa Base ($)</label>
-                          <input
-                            type="number"
-                            value={tarifaBaseLocal}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value) || 0;
-                              setTarifaBaseLocal(val);
-                              localStorage.setItem('deliv_tarifa_base', String(val));
-                            }}
-                            className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Costo por Km ($)</label>
-                          <input
-                            type="number"
-                            value={costoPorKmLocal}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value) || 0;
-                              setCostoPorKmLocal(val);
-                              localStorage.setItem('deliv_costo_por_km', String(val));
-                            }}
-                            className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  {direccionCliente.trim() && (isCalculatingRoute || distanciaKm !== null || zonaResultado) && (
-                    <div className={`p-2.5 rounded-xl text-[11px] font-medium border ${
-                      isCalculatingRoute 
-                        ? 'bg-amber-950/20 text-amber-400 border-amber-500/20 animate-pulse' 
-                        : 'bg-emerald-950/20 text-emerald-450 border-emerald-500/20'
-                    }`}>
-                      {isCalculatingRoute ? (
-                        <div className="flex items-center gap-1.5 justify-center">
-                          <RefreshCw className="w-3 h-3.5 animate-spin text-amber-500" />
-                          <span>Calculando distancia en Río Cuarto...</span>
+                  {selectedMesaId === 999 && (
+                    <>
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowEnvioConfig(!showEnvioConfig)}
+                          className="text-[10px] text-zinc-450 hover:text-zinc-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <Settings className="w-3 h-3 text-zinc-500" />
+                          {showEnvioConfig ? 'Ocultar Configuración' : 'Configurar Origen/Tarifas'}
+                        </button>
+                      </div>
+
+                      {showEnvioConfig && (
+                        <div className="p-2.5 bg-zinc-950 border border-white/5 rounded-xl space-y-2 text-left">
+                          <div className="space-y-0.5">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Dirección del Local</label>
+                            <input
+                              type="text"
+                              value={origenDireccion}
+                              placeholder="Ej: Alvear 1362, Río Cuarto"
+                              onChange={(e) => handleUpdateOrigenDireccionLocal(e.target.value)}
+                              className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-medium"
+                            />
+                            <span className="text-[8px] font-mono text-zinc-500 block">
+                              {isUpdatingOrigenLocal ? 'Buscando coordenadas...' : `Coordenadas: ${origenLat.toFixed(4)}, ${origenLng.toFixed(4)}`}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Tarifa Base ($)</label>
+                              <input
+                                type="number"
+                                value={tarifaBaseLocal}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0;
+                                  setTarifaBaseLocal(val);
+                                  localStorage.setItem('deliv_tarifa_base', String(val));
+                                }}
+                                className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Costo por Km ($)</label>
+                              <input
+                                type="number"
+                                value={costoPorKmLocal}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0;
+                                  setCostoPorKmLocal(val);
+                                  localStorage.setItem('deliv_costo_por_km', String(val));
+                                }}
+                                className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {distanciaKm !== null ? (
-                            <>
-                              <div className="flex justify-between items-center">
-                                <span className="text-zinc-400 font-bold flex items-center gap-1">
-                                  <Bike className="w-3.5 h-3.5 text-brand-orange" />
-                                  Distancia estimada:
-                                </span>
-                                <span className="font-mono font-black text-zinc-200">{distanciaKm} km</span>
-                              </div>
-                              <div className="flex justify-between items-center pt-1 border-t border-white/5">
-                                <span className="text-zinc-400 font-bold">Costo de Envío:</span>
-                                <span className="font-mono font-black text-emerald-450 text-xs">${costoEnvio}</span>
-                              </div>
-                            </>
-                          ) : zonaResultado?.status === 'success' ? (
-                            <div className="flex justify-between items-center">
-                              <span className="text-zinc-400 font-bold">{zonaResultado.zona}</span>
-                              <span className="font-mono font-bold text-emerald-450">Envío: ${zonaResultado.costo_envio}</span>
+                      )}
+
+                      {direccionCliente.trim() && (isCalculatingRoute || distanciaKm !== null || zonaResultado) && (
+                        <div className={`p-2.5 rounded-xl text-[11px] font-medium border ${
+                          isCalculatingRoute 
+                            ? 'bg-amber-950/20 text-amber-400 border-amber-500/20 animate-pulse' 
+                            : 'bg-emerald-950/20 text-emerald-450 border-emerald-500/20'
+                        }`}>
+                          {isCalculatingRoute ? (
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <RefreshCw className="w-3 h-3.5 animate-spin text-amber-500" />
+                              <span>Calculando distancia en Río Cuarto...</span>
                             </div>
                           ) : (
-                            <span className="text-rose-455">{zonaResultado?.mensaje || 'No se pudo estimar la ruta'}</span>
+                            <div className="space-y-1.5">
+                              {distanciaKm !== null ? (
+                                <>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-zinc-400 font-bold flex items-center gap-1">
+                                      <Bike className="w-3.5 h-3.5 text-brand-orange" />
+                                      Distancia estimada:
+                                    </span>
+                                    <span className="font-mono font-black text-zinc-200">{distanciaKm} km</span>
+                                  </div>
+                                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                                    <span className="text-zinc-400 font-bold">Costo de Envío:</span>
+                                    <span className="font-mono font-black text-emerald-450 text-xs">${costoEnvio}</span>
+                                  </div>
+                                </>
+                              ) : zonaResultado?.status === 'success' ? (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-zinc-400 font-bold">{zonaResultado.zona}</span>
+                                  <span className="font-mono font-bold text-emerald-450">Envío: ${zonaResultado.costo_envio}</span>
+                                </div>
+                              ) : (
+                                <span className="text-rose-455">{zonaResultado?.mensaje || 'No se pudo estimar la ruta'}</span>
+                              )}
+                            </div>
                           )}
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               )}
@@ -1743,7 +1764,7 @@ function MozoTerminal({
                 >
                   <option value="" disabled className="text-slate-450 dark:text-zinc-500">-- Seleccionar Mesa Libre --</option>
                   {dynamicMesas
-                    .filter(m => m.estado === 'libre' && m.id_mesa !== 999)
+                    .filter(m => m.estado === 'libre' && m.id_mesa !== 999 && m.id_mesa !== 998)
                     .map(m => (
                       <option key={m.id_mesa} value={m.id_mesa} className="bg-white dark:bg-zinc-950 text-slate-800 dark:text-zinc-200">
                         {m.numero_mesa} ({m.sector?.toUpperCase() || 'Salón'} - Capacidad: {m.capacidad || 4} pax)
@@ -2184,7 +2205,7 @@ function MozoTerminal({
                   {voiceResult.mesa !== null 
                     ? (voiceResult.mesa === 'delivery' ? 'Pedido Delivery' : `Mesa ${voiceResult.mesa}`) 
                     : selectedMesaId !== null 
-                      ? (selectedMesaId === 999 ? 'Mesa Actual (DELIVERY)' : `Mesa Actual (${dynamicMesas.find(m => m.id_mesa === selectedMesaId)?.numero_mesa})`) 
+                      ? (selectedMesaId === 999 ? 'Mesa Actual (DELIVERY)' : selectedMesaId === 998 ? 'Mesa Actual (RETIRO)' : `Mesa Actual (${dynamicMesas.find(m => m.id_mesa === selectedMesaId)?.numero_mesa})`) 
                       : 'Ninguna (Se aplicará a mesa seleccionada)'}
                 </span>
               </div>

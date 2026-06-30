@@ -136,7 +136,20 @@ export function useMozoTerminal({
       zona: 'salon'
     };
 
-    return [...mapped, virtualDeliveryMesa];
+    const activeRetiroPedido = pedidos.find(p =>
+      p && p.id_mesa === 998 &&
+      ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
+    );
+
+    const virtualRetiroMesa: Mesa = {
+      id_mesa: 998,
+      numero_mesa: 'RETIRO',
+      estado: activeRetiroPedido ? 'ocupada' : 'libre',
+      capacidad: 1,
+      zona: 'salon'
+    };
+
+    return [...mapped, virtualDeliveryMesa, virtualRetiroMesa];
   }, [mesas, pedidos, isSameTable]);
 
   const selectedMesa = useMemo(() => {
@@ -418,8 +431,13 @@ export function useMozoTerminal({
     if (Object.keys(cart).length === 0) return;
 
     const isDelivery = selectedMesaId === 999;
+    const isRetiro = selectedMesaId === 998;
     if (isDelivery && (!nombreCliente.trim() || !telefonoCliente.trim() || !direccionCliente.trim())) {
       toast.error('Completá todos los datos del cliente (nombre, teléfono y dirección) para el envío.');
+      return;
+    }
+    if (isRetiro && (!nombreCliente.trim() || !telefonoCliente.trim())) {
+      toast.error('Completá el nombre y el teléfono del cliente para el retiro.');
       return;
     }
 
@@ -469,11 +487,15 @@ export function useMozoTerminal({
 
     const customObservaciones = isDelivery
       ? `Tel: ${telefonoCliente} | Dir: ${direccionCliente}${distanciaKm ? ' | Distancia: ' + distanciaKm + ' km' : ''}${observaciones.trim() ? ' | Obs: ' + observaciones.trim() : ''}`
-      : observaciones.trim();
+      : isRetiro
+        ? `RETIRO: Tel: ${telefonoCliente}${observaciones.trim() ? ' | Obs: ' + observaciones.trim() : ''}`
+        : observaciones.trim();
 
     const customNumeroMesa = isDelivery
       ? `DELIVERY: ${nombreCliente.toUpperCase()} - ${direccionCliente.toUpperCase()}`
-      : (selectedMesa ? selectedMesa.numero_mesa : `Mesa ${selectedMesaId}`);
+      : isRetiro
+        ? `RETIRO: ${nombreCliente.toUpperCase()}`
+        : (selectedMesa ? selectedMesa.numero_mesa : `Mesa ${selectedMesaId}`);
 
     try {
       await withCheckoutTimeout(Promise.resolve(onCrearPedido({
@@ -484,8 +506,8 @@ export function useMozoTerminal({
         estado_comanda: 'pendiente',
         items,
         observaciones: customObservaciones || undefined,
-        nombre_cliente: isDelivery ? nombreCliente : undefined,
-        telefono_cliente: isDelivery ? telefonoCliente : undefined,
+        nombre_cliente: (isDelivery || isRetiro) ? nombreCliente : undefined,
+        telefono_cliente: (isDelivery || isRetiro) ? telefonoCliente : undefined,
         direccion_cliente: isDelivery ? direccionCliente : undefined,
         costo_envio: isDelivery ? costoEnvio : undefined,
         zona_envio_id: isDelivery ? (zonaEnvioId ?? undefined) : undefined
