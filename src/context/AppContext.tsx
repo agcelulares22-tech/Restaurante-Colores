@@ -43,6 +43,7 @@ import {
     INITIAL_PEDIDOS,
 } from '../data/initialData';
 import { createClientPedidoId } from '../lib/pedidoIds';
+import { dbSavePedidoComplex, dbUpsertMesas } from '../supabase';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -375,10 +376,8 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
 
                             setTimeout(() => {
                                       if (updatedPedido) {
-                                                import('../supabase').then(({ dbSavePedidoComplex }) => {
-                                                          dbSavePedidoComplex(updatedPedido).catch(err => {
-                                                                    console.warn('Background save from context failed:', err);
-                                                          });
+                                                dbSavePedidoComplex(updatedPedido).catch(err => {
+                                                          console.warn('Background save from context failed:', err);
                                                 });
                                       }
                             }, 50);
@@ -412,10 +411,8 @@ export function PedidosProvider({ children }: { children: ReactNode }) {
                   });
 
                   setTimeout(() => {
-                            import('../supabase').then(({ dbSavePedidoComplex, dbUpsertMesas }) => {
-                                      dbSavePedidoComplex({ ...pedido, estado_comanda: 'entregado_cobrado' }).catch(console.error);
-                                      dbUpsertMesas(updatedMesas).catch(console.error);
-                            });
+                            dbSavePedidoComplex({ ...pedido, estado_comanda: 'entregado_cobrado' }).catch(console.error);
+                            dbUpsertMesas(updatedMesas).catch(console.error);
                   }, 50);
 
                   addLog('sistema', `Mesa ${pedido.numero_mesa} facturada y liberada (pedido #${idPedido} y comandas asociadas)`);
