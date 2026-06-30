@@ -166,16 +166,23 @@ export default function RestaurantCover({
 
     let itemLines = '';
     cartItems.forEach(it => {
-      itemLines += `- ${it.cantidad}x *${it.nombre}* ($${(it.precio_unitario * it.cantidad).toLocaleString('es-AR')})\n`;
+      itemLines += `• *${it.cantidad}x ${it.nombre}* ─── $${(it.precio_unitario * it.cantidad).toLocaleString('es-AR')}\n`;
     });
 
-    const msg = `¡Hola *Pizzería Colores*! Hice un pedido por la Carta Digital (*ID: #${orderId}*)\n\n` +
-                `*Cliente:* ${menuForm.nombre}\n` +
-                `*Teléfono:* ${menuForm.telefono}\n` +
-                `*Modalidad:* ${menuForm.modalidad === 'delivery' ? '🛵 Envío a domicilio' : '🏪 Retiro en el local'}\n` +
-                (menuForm.modalidad === 'delivery' ? `*Dirección:* ${menuForm.direccion}\n` : '') +
-                `\n*Detalle del Pedido:*\n${itemLines}\n` +
-                `*Total:* *$${total.toLocaleString('es-AR')}*`;
+    const msg = `🍕 *NUEVO PEDIDO - PIZZERÍA COLORES* 🍕\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📋 *Pedido N°:* #${orderId}\n` +
+                `👤 *Cliente:* ${menuForm.nombre}\n` +
+                `📞 *Teléfono:* ${menuForm.telefono}\n` +
+                `🛵 *Modalidad:* ${menuForm.modalidad === 'delivery' ? 'Envío a Domicilio 🛵' : 'Retiro en el Local 🏪'}\n` +
+                (menuForm.modalidad === 'delivery' ? `📍 *Dirección:* ${menuForm.direccion}\n` : '') +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `📦 *DETALLE DEL PEDIDO:*\n` +
+                itemLines + `\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `💵 *TOTAL A PAGAR:* *$${total.toLocaleString('es-AR')}*\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `¡Muchas gracias! Aguardo confirmación del pedido.`;
 
     let cleanPhone = menuForm.telefono.replace(/\D/g, '');
     let formattedPhone = '5493584024822';
