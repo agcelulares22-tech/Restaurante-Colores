@@ -46,6 +46,7 @@ export default function ProveedoresModule({ addLog }: ProveedoresModuleProps) {
   const [historyModalProv, setHistoryModalProv] = useState<Proveedor | null>(null);
   const [requisitionModalProv, setRequisitionModalProv] = useState<Proveedor | null>(null);
   const [requisitionText, setRequisitionText] = useState('');
+  const [selectedInsumoFilter, setSelectedInsumoFilter] = useState<string>('todos');
   const [isCopied, setIsCopied] = useState(false);
 
   // Load suppliers, insumos and movements
@@ -382,7 +383,10 @@ Administración de "Pizzería Colores"`;
                       </button>
 
                       <button
-                        onClick={() => setHistoryModalProv(p)}
+                        onClick={() => {
+                          setSelectedInsumoFilter('todos');
+                          setHistoryModalProv(p);
+                        }}
                         className="text-[10px] text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1 cursor-pointer"
                       >
                         <FileText className="w-3 h-3" />
@@ -507,72 +511,103 @@ Administración de "Pizzería Colores"`;
       </div>
     )}
 
-    {/* MODAL 2: LINKED PURCHASE HISTORY */}
-    {historyModalProv && (
-      <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]">
-          <div className="p-5 border-b border-stone-100 flex justify-between items-center bg-[#F5F1E9]/40">
-            <div>
-              <span className="text-[9px] uppercase font-black tracking-widest text-[#624A3E] block">Historial de Órdenes</span>
-              <h3 className="text-sm font-black text-stone-950 font-sans leading-none mt-1">
-                Órdenes del Proveedor: {historyModalProv.nombre}
-              </h3>
-            </div>
-            <button 
-              onClick={() => setHistoryModalProv(null)}
-              className="p-1.5 text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full cursor-pointer transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+    {historyModalProv && (() => {
+      const supplierInsumos = insumos.filter(
+        ins => ins.proveedor === historyModalProv.nombre || 
+        (ins.categoria === 'bodega' && historyModalProv.categoria === 'bebidas') || 
+        (ins.categoria === 'frescos' && historyModalProv.categoria === 'carnes') || 
+        (ins.categoria === 'frescos' && historyModalProv.categoria === 'verduras') || 
+        (ins.categoria === 'secos' && historyModalProv.categoria === 'viveres')
+      );
 
-          <div className="p-5 overflow-y-auto space-y-3 flex-1">
-            {movements.filter(
-              mov => mov.tipo_movimiento === 'entrada' && 
-              (mov.id_insumo && insumos.find(i => i.id_insumo === mov.id_insumo)?.proveedor === historyModalProv.nombre)
-            ).length === 0 ? (
-              <div className="text-center py-8 text-stone-400 text-xs italic space-y-2">
-                <p>No se registran entregas completadas de este proveedor en la base de datos.</p>
-                <div className="bg-amber-50 text-amber-800 text-[10px] p-3 rounded-lg border border-amber-200 not-italic">
-                  💡 Registre nuevas compras ingresando insumos desde el panel de inventario compras para ver las transacciones reales.
-                </div>
+      const filteredMovements = movements.filter(
+        mov => mov.tipo_movimiento === 'entrada' && 
+        (mov.id_insumo && insumos.find(i => i.id_insumo === mov.id_insumo)?.proveedor === historyModalProv.nombre) &&
+        (selectedInsumoFilter === 'todos' || mov.id_insumo === selectedInsumoFilter)
+      );
+
+      return (
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-stone-100 flex justify-between items-center bg-[#F5F1E9]/40">
+              <div>
+                <span className="text-[9px] uppercase font-black tracking-widest text-[#624A3E] block">Historial de Órdenes</span>
+                <h3 className="text-sm font-black text-stone-950 font-sans leading-none mt-1">
+                  Órdenes del Proveedor: {historyModalProv.nombre}
+                </h3>
               </div>
-            ) : (
-              movements.filter(
-                mov => mov.tipo_movimiento === 'entrada' && 
-                (mov.id_insumo && insumos.find(i => i.id_insumo === mov.id_insumo)?.proveedor === historyModalProv.nombre)
-              ).map((mov, idx) => {
-                const insName = insumos.find(i => i.id_insumo === mov.id_insumo)?.nombre || mov.id_insumo;
-                return (
-                  <div key={mov.id_movimiento || idx} className="p-3 bg-stone-50 border border-stone-150/60 rounded-xl flex justify-between items-center text-xs">
-                    <div>
-                      <p className="font-bold text-stone-900">{insName}</p>
-                      <p className="text-[10px] text-stone-400">Cantidad ingresada: <strong className="text-stone-700">+{mov.cantidad}</strong></p>
+              <button 
+                onClick={() => setHistoryModalProv(null)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Filter Insumo Dropdown */}
+            <div className="p-4 bg-stone-50 border-b border-stone-100 flex gap-2 items-center">
+              <span className="text-[10px] font-black uppercase text-stone-500 shrink-0">Filtrar Insumo:</span>
+              <select
+                value={selectedInsumoFilter}
+                onChange={e => setSelectedInsumoFilter(e.target.value)}
+                className="flex-1 text-xs p-1.5 border border-stone-200 rounded-xl bg-white focus:outline-none text-stone-750 font-bold cursor-pointer"
+              >
+                <option value="todos">Todos los insumos suministrados</option>
+                {supplierInsumos.map(i => (
+                  <option key={i.id_insumo} value={i.id_insumo}>{i.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="p-5 overflow-y-auto space-y-3 flex-1">
+              {filteredMovements.length === 0 ? (
+                <div className="text-center py-8 text-stone-400 text-xs italic space-y-2">
+                  <p>No se registran entregas del insumo seleccionado de este proveedor.</p>
+                </div>
+              ) : (
+                filteredMovements.map((mov, idx) => {
+                  const ins = insumos.find(i => i.id_insumo === mov.id_insumo);
+                  const insName = ins?.nombre || mov.id_insumo;
+                  const unitCost = ins?.costo_unitario || 0;
+                  const totalCost = mov.cantidad * unitCost;
+                  return (
+                    <div key={mov.id_movimiento || idx} className="p-3 bg-stone-50 border border-stone-150/60 rounded-xl flex justify-between items-center text-xs">
+                      <div>
+                        <p className="font-bold text-stone-900">{insName}</p>
+                        <p className="text-[10px] text-stone-400">
+                          Cantidad: <strong className="text-stone-750">+{mov.cantidad}</strong> {ins?.unidad_medida}
+                          {unitCost > 0 && ` • Precio unitario: $${unitCost.toLocaleString('es-AR')}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        {totalCost > 0 ? (
+                          <p className="text-xs font-black text-[#E85D00] font-mono">
+                            Total: ${totalCost.toLocaleString('es-AR')}
+                          </p>
+                        ) : (
+                          <span className="text-[10px] text-stone-400 font-mono italic">Sin costo cargado</span>
+                        )}
+                        <span className="text-[9px] font-mono text-stone-500 block mt-0.5">
+                          {new Date(mov.fecha).toLocaleDateString('es-AR')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-mono text-stone-500 block">
-                        {new Date(mov.fecha).toLocaleDateString('es-AR')}
-                      </span>
-                      <span className="bg-emerald-50 text-emerald-800 text-[8px] font-bold px-2 py-0.5 rounded-full inline-block mt-1">
-                        Ingresado ✓
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <div className="p-4 border-t border-stone-100 bg-stone-50 flex justify-end">
-            <button 
-              onClick={() => setHistoryModalProv(null)}
-              className="px-4 py-2 bg-stone-900 hover:bg-stone-850 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
-            >
-              Cerrar Historial
-            </button>
+                  );
+                })
+              )}
+            </div>
+            <div className="p-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+              <button 
+                onClick={() => setHistoryModalProv(null)}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-850 text-white rounded-xl text-xs font-bold transition-all cursor-pointer border-0"
+              >
+                Cerrar Historial
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      );
+    })()}
 
     {/* MODAL 3: REQUISITION DRAFT & SUBMISSION */}
     {requisitionModalProv && (
