@@ -23,14 +23,19 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
-import { ProductoMenu } from '../types';
+import { ProductoMenu, Insumo } from '../types';
 
 interface RestaurantCoverProps {
   onEnterSystem: () => void;
   productosMenu?: ProductoMenu[];
+  insumos?: Insumo[];
 }
 
-export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL_PRODUCTOS_MENU }: RestaurantCoverProps) {
+export default function RestaurantCover({ 
+  onEnterSystem, 
+  productosMenu = INITIAL_PRODUCTOS_MENU,
+  insumos = []
+}: RestaurantCoverProps) {
   // Booking states
   const [bookingForm, setBookingForm] = useState({
     nombre: '',
@@ -79,26 +84,108 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
 
   const [activeCategory, setActiveCategory] = useState<string>('Pizzas');
 
+  // Event modal states
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    personas: '',
+    fecha: '',
+    lugar: ''
+  });
+
+  const handleEventSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eventForm.personas || !eventForm.fecha) {
+      alert('Por favor complete los campos obligatorios para cotizar su evento.');
+      return;
+    }
+
+    const parts = eventForm.fecha.split('-');
+    const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : eventForm.fecha;
+    const lugarText = eventForm.lugar.trim() || 'No especificado';
+
+    const cleanPhone = '5493584024822'; // Colores Pizzería WhatsApp line
+    const text = `¡Hola Pizzería Colores! Me gustaría cotizar un evento. Datos:\n\n` +
+      `• Cantidad de personas: ${eventForm.personas}\n` +
+      `• Fecha aproximada: ${formattedDate}\n` +
+      `• Lugar/Localidad: ${lugarText}\n\n` +
+      `¡Muchas gracias!`;
+
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+
+    setShowEventModal(false);
+    setEventForm({ personas: '', fecha: '', lugar: '' });
+  };
+
   // Custom Pizza Builder states
   const [pizzaSize, setPizzaSize] = useState<'individual' | 'grande'>('grande');
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
 
   const TOPPINGS = [
-    { id: 'jamon', name: 'Jamón Cocido', price: 1500, icon: '🍖', color: '#E5989B' },
-    { id: 'morron', name: 'Morrones Asados', price: 1500, icon: '🌶️', color: '#D90429' },
-    { id: 'panceta', name: 'Panceta Crujiente', price: 1800, icon: '🥓', color: '#B5828C' },
-    { id: 'huevo', name: 'Huevo Duro', price: 1000, icon: '🥚', color: '#F1FAEE' },
-    { id: 'aceitunas', name: 'Aceitunas Verdes', price: 1000, icon: '🫒', color: '#52B788' },
-    { id: 'albahaca', name: 'Albahaca Fresca', price: 800, icon: '🌿', color: '#2D6A4F' },
-    { id: 'cebolla', name: 'Cebolla Caramelizada', price: 1000, icon: '🧅', color: '#FFE5EC' },
-    { id: 'provolone', name: 'Queso Provolone', price: 1800, icon: '🧀', color: '#F77F00' }
+    { id: 'ins_jamon_cocido', name: 'Jamón Cocido', price: 1500, icon: '🍖', color: '#E5989B' },
+    { id: 'ins_morrones', name: 'Morrones Asados', price: 1500, icon: '🌶️', color: '#D90429' },
+    { id: 'ins_panceta', name: 'Panceta Ahumada', price: 1800, icon: '🥓', color: '#B5828C' },
+    { id: 'ins_huevo_fresco', name: 'Huevo Duro', price: 1000, icon: '🥚', color: '#F1FAEE' },
+    { id: 'ins_aceitunas', name: 'Aceitunas', price: 1000, icon: '🟢', color: '#52B788' },
+    { id: 'ins_albahaca', name: 'Albahaca Fresca', price: 800, icon: '🌿', color: '#2D6A4F' },
+    { id: 'ins_cebolla', name: 'Cebolla Caramelizada', price: 1000, icon: '🧅', color: '#FFE5EC' },
+    { id: 'ins_provolone', name: 'Queso Provolone', price: 1800, icon: '🧀', color: '#F77F00' }
   ];
+
+  const getStock = (idInsumo: string) => {
+    if (!insumos || insumos.length === 0) return 5000;
+    const ins = insumos.find(i => i.id_insumo === idInsumo);
+    return ins ? ins.stock_actual : 0;
+  };
 
   const basePrice = pizzaSize === 'individual' ? 11000 : 22000;
   // Up to 4 toppings included, each extra topping is $1500
   const extraToppingsCount = Math.max(0, selectedToppings.length - 4);
   const extraToppingsPrice = extraToppingsCount * 1500;
   const customPizzaPrice = basePrice + extraToppingsPrice;
+
+  // Dynamic Promos list from database, fallback to initial/hardcoded combos if none found
+  const promos = (productosMenu || []).filter(p => 
+    p.activo && (
+      p.categoria?.toLowerCase().includes('promo') ||
+      p.categoria?.toLowerCase().includes('combo') ||
+      p.categoria?.toLowerCase().includes('extras') ||
+      p.id_producto.includes('promo') ||
+      p.id_producto.includes('combo') ||
+      p.id_producto.startsWith('prod_ext_')
+    )
+  );
+
+  const displayPromos = promos.length > 0 ? promos.map(p => ({
+    title: p.nombre,
+    price: p.precio_venta,
+    badge: p.categoria || "PROMO 🔥",
+    desc: p.descripcion || "Disfrutá de esta promoción especial en casa.",
+    note: p.requiere_cocina ? "Elaboración en el acto" : "Listo para consumir",
+    id: p.id_producto
+  })) : [
+    {
+      title: "Combo Amigos",
+      price: 28000,
+      badge: "MÁS VENDIDO 🏆",
+      desc: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
+      note: "Ideal para 3-4 personas"
+    },
+    {
+      title: "Combo Pareja",
+      price: 23000,
+      badge: "¡DE FIN DE SEMANA! 🍺",
+      desc: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
+      note: "Ideal para 2 personas"
+    },
+    {
+      title: "Combo Familiar",
+      price: 42000,
+      badge: "¡SÚPER PROMO! 🔥",
+      desc: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
+      note: "Ideal para 5-6 personas"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] dark:bg-[#0B132B] text-stone-900 dark:text-[#FFFDF9] font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#1b2a47_1px,transparent_1px)]">
@@ -121,6 +208,12 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowEventModal(true)}
+              className="px-5 py-3 bg-[#e63946] hover:bg-[#ff4d5a] text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 cursor-pointer flex items-center gap-2"
+            >
+              Cotizar Evento
+            </button>
             <button
               onClick={onEnterSystem}
               className="px-5 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 cursor-pointer flex items-center gap-2"
@@ -150,14 +243,12 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
-            <a 
-              href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar para realizar un evento en su local. ¿Me podrían dar información? ¡Muchas gracias!')}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button 
+              onClick={() => setShowEventModal(true)}
               className="w-full sm:w-auto px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer text-center"
             >
               Contactarnos para tu evento
-            </a>
+            </button>
             <a 
               href={`https://wa.me/5493584024822?text=${encodeURIComponent('¡Hola Pizzería Colores! Me gustaría consultar la carta y el menú del día. ¿Me lo podrían enviar? ¡Muchas gracias!')}`}
               target="_blank"
@@ -336,36 +427,59 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-[#D90429] text-white border border-black flex items-center justify-center text-[10px] font-bold">2</span>
-                  Sumar Toppings (4 gratis, extras $1.500)
+                  Sumar Toppings (Máx. 5 Toppings)
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {TOPPINGS.map(top => {
+                    const stock = getStock(top.id);
+                    const isSinStock = stock <= 0;
                     const isSelected = selectedToppings.includes(top.id);
+                    const isLimitReached = selectedToppings.length >= 5 && !isSelected;
+                    const isDisabled = isSinStock || isLimitReached;
+
                     return (
-                      <button
+                      <div
                         key={top.id}
-                        type="button"
                         onClick={() => {
+                          if (isDisabled) return;
                           if (isSelected) {
                             setSelectedToppings(selectedToppings.filter(t => t !== top.id));
                           } else {
                             setSelectedToppings([...selectedToppings, top.id]);
                           }
                         }}
-                        className={`p-3 border-2 border-black rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+                        className={`relative p-3 border-2 border-black rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] select-none ${
+                          isSinStock ? 'opacity-40 filter grayscale pointer-events-none' : ''
+                        } ${
                           isSelected
                             ? 'bg-[#FFC300] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] font-extrabold translate-y-[-2px]'
                             : 'bg-white hover:bg-stone-50 text-black font-semibold'
-                        }`}
+                        } ${isLimitReached ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
+                        {isSinStock && (
+                          <span className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-[#D90429] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border border-black shadow-sm">
+                            SIN STOCK
+                          </span>
+                        )}
                         <span className="text-2xl">{top.icon}</span>
                         <span className="text-[10px] uppercase leading-none">{top.name}</span>
+                        
+                        <div className="flex items-center gap-1 mt-1">
+                          <input 
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            onChange={() => {}}
+                            className="w-3.5 h-3.5 accent-[#D90429] cursor-pointer"
+                          />
+                        </div>
+
                         {selectedToppings.indexOf(top.id) >= 4 && (
-                          <span className="text-[8px] font-black text-white bg-black px-1.5 py-0.5 rounded border border-white/20">
+                          <span className="text-[8px] font-black text-white bg-black px-1.5 py-0.5 rounded border border-white/20 mt-1">
                             +$1.500
                           </span>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -516,44 +630,22 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
       </section>
 
       {/* 4.2. COMBOS & PROMOCIONES ESPECIALES */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+      <section id="seccion-carta" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-2">
           <span className="inline-block px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform rotate-1">
             🔥 ¡MÁS POR MENOS!
           </span>
           <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
-            Combos & Promociones
+            NUESTRAS PROMOS
           </h2>
           <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
-            Las mejores combinaciones con precios especiales para disfrutar en casa
+            Elegí entre nuestras combinaciones más elegidas.
           </p>
           <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Combo Amigos",
-              price: 28000,
-              badge: "MÁS VENDIDO 🏆",
-              desc: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
-              note: "Ideal para 3-4 personas"
-            },
-            {
-              title: "Combo Pareja",
-              price: 23000,
-              badge: "¡DE FIN DE SEMANA! 🍺",
-              desc: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
-              note: "Ideal para 2 personas"
-            },
-            {
-              title: "Combo Familiar",
-              price: 42000,
-              badge: "¡SÚPER PROMO! 🔥",
-              desc: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
-              note: "Ideal para 5-6 personas"
-            }
-          ].map((combo, idx) => (
+          {displayPromos.map((combo, idx) => (
             <div 
               key={idx}
               className="bg-white dark:bg-[#1C2541] border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
@@ -828,6 +920,81 @@ export default function RestaurantCover({ onEnterSystem, productosMenu = INITIAL
           </button>
         </div>
       </footer>
+
+      {/* EVENT BOOKING DIALOG */}
+      <AnimatePresence>
+        {showEventModal && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-[#1C2541] p-8 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-5 border-4 border-black text-left"
+            >
+              <h3 className="font-display text-3xl text-black dark:text-white uppercase leading-none">Cotizá tu Evento 🎉</h3>
+              <p className="text-xs text-stone-600 dark:text-stone-300 font-bold leading-relaxed">
+                Completá los datos y coordinamos el menú de forma directa por WhatsApp.
+              </p>
+              
+              <form onSubmit={handleEventSubmit} className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Cantidad de personas aproximada *</label>
+                  <input 
+                    type="number" 
+                    required
+                    min="1"
+                    value={eventForm.personas}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, personas: e.target.value }))}
+                    placeholder="Ej. 30"
+                    className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Fecha aproximada *</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={eventForm.fecha}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, fecha: e.target.value }))}
+                    className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-black uppercase text-stone-600 dark:text-stone-400">Lugar / Localidad (Opcional)</label>
+                  <input 
+                    type="text" 
+                    value={eventForm.lugar}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, lugar: e.target.value }))}
+                    placeholder="Ej: Quincho, Club, Domicilio..."
+                    className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] dark:bg-stone-900 text-sm font-bold focus:outline-none"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-4 border-t border-black/10">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowEventModal(false);
+                      setEventForm({ personas: '', fecha: '', lugar: '' });
+                    }} 
+                    className="px-5 py-3 bg-[#e0e0e0] dark:bg-stone-700 text-black dark:text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-5 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+                  >
+                    Enviar a WhatsApp 🚀
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* 8. BOOKING SUCCESS DIALOG */}
       <AnimatePresence>

@@ -105,7 +105,11 @@ export default function App() {
     return (
       <ErrorBoundary>
         <div className="dark bg-[#0B132B] min-h-screen">
-          <RestaurantCover onEnterSystem={() => setShowCover(false)} productosMenu={productosMenu} />
+          <RestaurantCover 
+            onEnterSystem={() => setShowCover(false)} 
+            productosMenu={productosMenu} 
+            insumos={insumos} 
+          />
         </div>
       </ErrorBoundary>
     );
