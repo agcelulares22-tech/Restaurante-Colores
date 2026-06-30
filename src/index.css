@@ -18,6 +18,8 @@
   --color-zinc-900: var(--zinc-900);
   --color-zinc-800: var(--zinc-800);
   --color-zinc-700: var(--zinc-700);
+  --color-zinc-150: var(--zinc-150);
+  --color-zinc-100: var(--zinc-100);
   
   --color-slate-950: var(--slate-950);
   --color-slate-900: var(--slate-900);
@@ -50,6 +52,8 @@
   --zinc-900: #1E293B;              /* Slate-800 */
   --zinc-800: #334155;              /* Slate-700 */
   --zinc-700: #475569;              /* Slate-600 */
+  --zinc-150: #1E293B;              /* Slate-800 */
+  --zinc-100: #0F172A;              /* Slate-900 */
   
   --slate-950: #0F172A;
   --slate-900: #1E293B;
@@ -82,6 +86,8 @@
   --zinc-900: #0F172A;              /* Slate-900 */
   --zinc-800: #1E293B;              /* Slate-800 */
   --zinc-700: #334155;              /* Slate-700 */
+  --zinc-150: #F1F5F9;              /* Slate-100 */
+  --zinc-100: #F8FAFC;              /* Slate-50 */
   
   --slate-950: #0B0F19;
   --slate-900: #0F172A;
@@ -291,4 +297,35 @@ canvas {
 .dark .hover\:bg-stone-100:hover {
   background-color: #1E293B !important; /* Hover background */
 }
+
+/* Glass Card styling */
+.glass-card {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  border-width: 1px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .glass-card {
+  background-color: #131B2E !important;
+  border-color: #1E293B !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
+
+/* Light mode overrides for transparent Tailwind colors in Kitchen Monitor and lists */
+html:not(.dark) .bg-white\/5 {
+  background-color: #F1F5F9 !important; /* Slate-100 */
+}
+
+html:not(.dark) .bg-white\/10 {
+  background-color: #E2E8F0 !important; /* Slate-200 */
+}
+
+html:not(.dark) .border-white\/5,
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/15 {
+  border-color: #E2E8F0 !important; /* Slate-200 */
+}
+
 

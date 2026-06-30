@@ -737,8 +737,8 @@ function KitchenMonitor({
                 En Horno Activas ({activeCount})
               </div>
               {ovenActive.length === 0 ? (
-                <div className="h-24 border-2 border-dashed border-zinc-600 bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs">
-                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Horno Vacío</p>
+                <div className="h-24 border-2 border-dashed border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs transition-colors duration-300">
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-wider">Horno Vacío</p>
                 </div>
               ) : (
                 ovenActive.map(p => (
@@ -779,19 +779,19 @@ function KitchenMonitor({
             {icon}
             {title}
           </h4>
-          <span className={`text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border ${isEmpty ? 'bg-zinc-900 text-zinc-400 border-zinc-700' : 'bg-[#E8B800] text-black border-[#E8B800]'}`}>
+          <span className={`text-[11px] font-black font-mono w-6 h-6 rounded-full flex items-center justify-center shadow-sm border transition-colors duration-300 ${isEmpty ? 'bg-slate-100 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-zinc-700' : 'bg-[#E8B800] text-black border-[#E8B800]'}`}>
             {orders.length}
           </span>
         </div>
 
         <div className="space-y-4 max-h-[700px] overflow-y-auto pr-1">
           {isEmpty ? (
-            <div className="h-40 border-2 border-dashed border-zinc-650 border-dashed border-zinc-600 bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs">
+            <div className="h-40 border-2 border-dashed border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 rounded-[20px] flex flex-col justify-center items-center text-center p-4 shadow-xs transition-colors duration-300">
               {(() => {
                 const { Icon } = emptyMessages[estado];
                 return <Icon className="w-12 h-12 text-[#E8B800] mb-3 animate-pulse-soft" />;
               })()}
-              <p className="text-xs text-zinc-300 font-bold uppercase tracking-wide">{emptyMessages[estado].text}</p>
+              <p className="text-xs text-slate-700 dark:text-zinc-300 font-bold uppercase tracking-wide transition-colors duration-300">{emptyMessages[estado].text}</p>
             </div>
           ) : (
             orders.map(p => (
