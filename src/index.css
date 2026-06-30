@@ -2,23 +2,64 @@
 
 @theme {
   --font-display: 'Lilita One', sans-serif;
-  --font-sans: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --color-brand-yellow: #E8B800;
   --color-brand-orange: #E85D00;
   --color-brand-red: #D42B2B;
   --color-brand-black: #121214;
   --color-brand-white: #FFFFFF;
-  --color-vintage-beige: #FEF9C3;
-  --color-vintage-beige-light: #FFFDF0;
-  --color-vintage-beige-dark: #F0E9C0;
   
-  /* Soften Tailwind's default dark colors globally */
-  --color-zinc-950: #121214;
-  --color-zinc-900: #1c1c1f;
-  --color-zinc-800: #27272a;
-  --color-slate-950: #0d111c;
-  --color-slate-900: #151c2c;
-  --color-black: #121214;
+  --color-vintage-beige: var(--vintage-beige);
+  --color-vintage-beige-light: var(--vintage-beige-light);
+  --color-vintage-beige-dark: var(--vintage-beige-dark);
+  
+  /* Soften Tailwind's default dark colors globally using CSS variables */
+  --color-zinc-950: var(--zinc-950);
+  --color-zinc-900: var(--zinc-900);
+  --color-zinc-800: var(--zinc-800);
+  --color-zinc-700: var(--zinc-700);
+  
+  --color-slate-950: var(--slate-950);
+  --color-slate-900: var(--slate-900);
+  --color-slate-800: var(--slate-800);
+  
+  --color-black: var(--black-bg);
+}
+
+:root {
+  /* Light Mode - Slate / White */
+  --vintage-beige: #F1F5F9;         /* Slate-100 */
+  --vintage-beige-light: #F8FAFC;   /* Slate-50 */
+  --vintage-beige-dark: #E2E8F0;    /* Slate-200 */
+  
+  --zinc-950: #0F172A;              /* Slate-900 */
+  --zinc-900: #1E293B;              /* Slate-800 */
+  --zinc-800: #334155;              /* Slate-700 */
+  --zinc-700: #475569;              /* Slate-600 */
+  
+  --slate-950: #0F172A;
+  --slate-900: #1E293B;
+  --slate-800: #334155;
+  
+  --black-bg: #FFFFFF;
+}
+
+.dark {
+  /* Dark Mode - Soft Sapphire / Navy Blue */
+  --vintage-beige: #0F172A;         /* Slate-900 */
+  --vintage-beige-light: #0B0F19;   /* Dark Navy */
+  --vintage-beige-dark: #1E293B;    /* Slate-800 */
+  
+  --zinc-950: #0B0F19;              /* Dark Navy */
+  --zinc-900: #0F172A;              /* Slate-900 */
+  --zinc-800: #1E293B;              /* Slate-800 */
+  --zinc-700: #334155;              /* Slate-700 */
+  
+  --slate-950: #0B0F19;
+  --slate-900: #0F172A;
+  --slate-800: #1E293B;
+  
+  --black-bg: #0B0F19;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -98,8 +139,14 @@ canvas {
   box-shadow: 0 0 15px rgba(14, 165, 233, 0.45);
 }
 
-/* Fondo zafiro oscuro y borde para el Sidebar de escritorio */
+/* Fondo dinámico y borde para el Sidebar de escritorio */
 #sidebar-left-panel {
-  background-color: #050914 !important;
-  border-right-color: #0c1328 !important;
+  background-color: #FFFFFF !important;
+  border-right-color: #E2E8F0 !important;
+  transition: all 0.3s ease-in-out;
+}
+
+.dark #sidebar-left-panel {
+  background-color: #0B0F19 !important;
+  border-right-color: #1E293B !important;
 }

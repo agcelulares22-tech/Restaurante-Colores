@@ -84,6 +84,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
   const [tiempoPreparacion, setTiempoPreparacion] = useState('12');
   const [requiereCocina, setRequiereCocina] = useState(true);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const [isEspecialidad, setIsEspecialidad] = useState(false);
+  const [detalleMasa, setDetalleMasa] = useState('');
 
   // Form states for editing an existing menu item
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,6 +97,11 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
   const [editTiempoPreparacion, setEditTiempoPreparacion] = useState('12');
   const [editRequiereCocina, setEditRequiereCocina] = useState(true);
   const [editSelectedAllergens, setEditSelectedAllergens] = useState<string[]>([]);
+  const [editIsEspecialidad, setEditIsEspecialidad] = useState(false);
+  const [editDetalleMasa, setEditDetalleMasa] = useState('');
+
+  // Sorting state for the catalog
+  const [sortBy, setSortBy] = useState<'nombre' | 'precio_asc' | 'precio_desc' | 'margen_desc'>('nombre');
 
 
   const normalizeCategorySlug = (categoria: string): string => {
@@ -146,6 +153,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
     setTiempoPreparacion('12');
     setRequiereCocina(true);
     setSelectedAllergens([]);
+    setIsEspecialidad(false);
+    setDetalleMasa('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -159,6 +168,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
     setEditTiempoPreparacion('12');
     setEditRequiereCocina(true);
     setEditSelectedAllergens([]);
+    setEditIsEspecialidad(false);
+    setEditDetalleMasa('');
     if (editFileInputRef.current) editFileInputRef.current.value = '';
   };
 
@@ -254,6 +265,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
       requiereCocina: boolean;
       alergenos: string[];
       activo?: boolean;
+      isEspecialidad?: boolean;
+      detalleMasa?: string;
     }
   ): ProductoMenu | null => {
     const parsedPrice = Number.parseFloat(values.precio);
@@ -284,7 +297,9 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
       tipo,
       requiere_cocina: reqCocina,
       tiempo_preparacion_estimado: reqCocina ? (Number(values.tiempoPreparacion) || 12) : undefined,
-      alergenos: values.alergenos
+      alergenos: values.alergenos,
+      subcategoria: values.isEspecialidad ? 'especialidad' : undefined,
+      consejo_emplatado: values.detalleMasa?.trim() || undefined
     };
   };
 
@@ -301,7 +316,9 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
       imagen: imagenUrl,
       tiempoPreparacion,
       requiereCocina,
-      alergenos: selectedAllergens
+      alergenos: selectedAllergens,
+      isEspecialidad,
+      detalleMasa
     });
     if (!newItem) return;
     if (hasDuplicateName(newItem.nombre)) {
@@ -363,6 +380,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
     setEditTiempoPreparacion(item.tiempo_preparacion_estimado?.toString() || '12');
     setEditRequiereCocina(item.requiere_cocina ?? true);
     setEditSelectedAllergens(item.alergenos || []);
+    setEditIsEspecialidad(item.subcategoria === 'especialidad');
+    setEditDetalleMasa(item.consejo_emplatado || '');
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -379,7 +398,9 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
       tiempoPreparacion: editTiempoPreparacion,
       requiereCocina: editRequiereCocina,
       alergenos: editSelectedAllergens,
-      activo: target.activo
+      activo: target.activo,
+      isEspecialidad: editIsEspecialidad,
+      detalleMasa: editDetalleMasa
     });
     if (!updated) return;
     if (hasDuplicateName(updated.nombre, id)) {
@@ -441,11 +462,30 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
     syncItems(next);
   };
 
-  const filtered = useMemo(() => items.filter(item => {
-    const matchesSearch = item.nombre.toLowerCase().includes(debouncedSearch.toLowerCase());
-    const matchesCat = selectedCategoria === 'todos' || getCategorySlug(item.categoria) === selectedCategoria;
-    return matchesSearch && matchesCat;
-  }), [items, debouncedSearch, selectedCategoria, categories]);
+  const filtered = useMemo(() => {
+    const list = items.filter(item => {
+      const matchesSearch = item.nombre.toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchesCat = selectedCategoria === 'todos' || getCategorySlug(item.categoria) === selectedCategoria;
+      return matchesSearch && matchesCat;
+    });
+
+    return [...list].sort((a, b) => {
+      if (sortBy === 'precio_asc') return a.precio_venta - b.precio_venta;
+      if (sortBy === 'precio_desc') return b.precio_venta - a.precio_venta;
+      if (sortBy === 'margen_desc') {
+        const matchedRecipesA = recetas.filter(r => r.id_producto === a.id_producto);
+        const costA = matchedRecipesA.length > 0 ? calculateRecipeCost(matchedRecipesA, insumos) : 0;
+        const marginA = costA > 0 ? calculateMarginPct(a, costA) : -999;
+
+        const matchedRecipesB = recetas.filter(r => r.id_producto === b.id_producto);
+        const costB = matchedRecipesB.length > 0 ? calculateRecipeCost(matchedRecipesB, insumos) : 0;
+        const marginB = costB > 0 ? calculateMarginPct(b, costB) : -999;
+
+        return marginB - marginA;
+      }
+      return a.nombre.localeCompare(b.nombre);
+    });
+  }, [items, debouncedSearch, selectedCategoria, categories, sortBy, recetas, insumos]);
 
   const toggleAllergen = (allergenId: string, isEdit: boolean) => {
     if (isEdit) {
@@ -534,7 +574,7 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
               </select>
             </div>
             
-            {/* Extended attributes: cooking time and kitchen requirement */}
+            {/* Extended attributes: cooking time, kitchen requirement, and signature status */}
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-black text-stone-500 uppercase tracking-wider block mb-1">Min. Prep.</label>
@@ -547,8 +587,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                   disabled={isBusy || !requiereCocina}
                 />
               </div>
-              <div className="flex flex-col justify-end">
-                <label className="flex items-center gap-1.5 min-h-11 cursor-pointer select-none font-bold text-stone-700 text-xs">
+              <div className="flex flex-col justify-center space-y-1.5 bg-stone-50/50 p-2.5 rounded-xl border border-stone-200/50">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none font-bold text-stone-700 text-xs">
                   <input
                     type="checkbox"
                     checked={requiereCocina}
@@ -557,6 +597,16 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                     disabled={isBusy}
                   />
                   Cocina
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none font-bold text-stone-700 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={isEspecialidad}
+                    onChange={e => setIsEspecialidad(e.target.checked)}
+                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-550 focus:border-amber-550"
+                    disabled={isBusy}
+                  />
+                  👑 Especialidad
                 </label>
               </div>
             </div>
@@ -583,6 +633,19 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                   );
                 })}
               </div>
+            </div>
+
+            {/* Pizza Dough details input */}
+            <div>
+              <label className="text-[10px] font-black text-stone-500 uppercase tracking-wider block mb-1">Detalles de Masa / Fermentación (Pizzería)</label>
+              <input
+                type="text"
+                value={detalleMasa}
+                onChange={e => setDetalleMasa(e.target.value)}
+                placeholder="Ej. Masa madre, 48 hs de maduración en frío"
+                className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30"
+                disabled={isBusy}
+              />
             </div>
 
             {/* Canvas express image resize and uploader */}
@@ -680,15 +743,29 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
             </div>
           </div>
 
-          <div className="relative">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar platillo, vino o postre..."
-              className="w-full min-h-11 text-sm pl-9 pr-4 py-3 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30"
-            />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar platillo, vino o postre..."
+                className="w-full min-h-11 text-sm pl-9 pr-4 py-3 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30"
+              />
+            </div>
+            <div className="w-full sm:w-48 shrink-0">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                className="w-full min-h-11 text-xs px-3 rounded-xl border border-stone-200 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 font-bold text-stone-605 cursor-pointer"
+              >
+                <option value="nombre">Ordenar por: Nombre (A-Z)</option>
+                <option value="precio_asc">Ordenar por: Menor Precio ($)</option>
+                <option value="precio_desc">Ordenar por: Mayor Precio ($)</option>
+                <option value="margen_desc">Ordenar por: Mayor Margen (%)</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
@@ -707,8 +784,10 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
               return (
               <div
                 key={item.id_producto}
-                className={`p-3 bg-[#F5F1E9]/30 border rounded-2xl flex flex-col justify-between gap-3 transition-colors hover:bg-[#F5F1E9]/60 ${
-                  item.activo ? 'border-stone-150' : 'border-rose-105 bg-rose-50/10 opacity-70'
+                className={`p-3 bg-white dark:bg-slate-800/40 border rounded-2xl flex flex-col justify-between gap-3 transition-all duration-300 hover:bg-slate-50/60 dark:hover:bg-slate-800/60 ${
+                  !item.activo ? 'border-rose-105 bg-rose-50/10 opacity-70' :
+                  item.subcategoria === 'especialidad' ? 'border-[#E8B800] bg-[#E8B800]/5 ring-1 ring-[#E8B800]/10 shadow-[0_0_12px_rgba(232,184,0,0.12)]' :
+                  'border-slate-200/65 dark:border-white/5'
                 } ${itemBusy ? 'ring-2 ring-[#624A3E]/20' : ''}`}
               >
                 <div className="flex gap-3">
@@ -723,7 +802,14 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                   <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div className="space-y-0.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[8px] font-black uppercase text-[#624A3E]">{item.categoria}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[8px] font-black uppercase text-[#624A3E]">{item.categoria}</span>
+                          {item.subcategoria === 'especialidad' && (
+                            <span className="px-1.5 py-0.5 bg-[#E8B800] text-zinc-950 text-[7px] font-black uppercase rounded tracking-wider flex items-center gap-0.5 shadow-xs">
+                              👑 Especialidad
+                            </span>
+                          )}
+                        </div>
                         {item.tiempo_preparacion_estimado && (
                           <span className="text-[8px] font-black text-stone-500 uppercase tracking-tight">⏱️ {item.tiempo_preparacion_estimado} min</span>
                         )}
@@ -733,6 +819,16 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                         <p className="text-[10px] sm:text-xs text-stone-500 leading-snug line-clamp-2 mt-0.5" title={item.descripcion}>
                           {item.descripcion}
                         </p>
+                      )}
+
+                      {/* Pizza Dough details if any */}
+                      {item.consejo_emplatado && (
+                        <div className="pt-0.5">
+                          <p className="text-[9px] font-bold text-amber-700 bg-amber-500/10 border border-amber-500/20 p-1 px-1.5 rounded-lg inline-flex items-center gap-1 leading-none select-none">
+                            <span>🌾 Masa:</span>
+                            <span className="font-normal text-stone-600">{item.consejo_emplatado}</span>
+                          </p>
+                        </div>
                       )}
 
                       {/* Display allergen badges if any */}
@@ -770,11 +866,26 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
                               disabled={isBusy || !editRequiereCocina} placeholder="Minutos"
                               className="w-full text-xs p-1.5 border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
                           </div>
-                          <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-1 text-[10px] font-bold text-stone-650 cursor-pointer">
+                          <div className="flex items-center justify-between gap-2 border border-stone-200/40 p-1.5 rounded-lg bg-stone-50/50">
+                            <label className="flex items-center gap-1 text-[10px] font-bold text-stone-650 cursor-pointer select-none">
                               <input type="checkbox" checked={editRequiereCocina} onChange={e => setEditRequiereCocina(e.target.checked)}
                                 className="w-3.5 h-3.5 rounded text-[#624A3E]" /> Cocina
                             </label>
+                            <label className="flex items-center gap-1 text-[10px] font-bold text-amber-600 cursor-pointer select-none">
+                              <input type="checkbox" checked={editIsEspecialidad} onChange={e => setEditIsEspecialidad(e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-amber-500" /> 👑 Especial
+                            </label>
+                          </div>
+
+                          {/* Edit Pizza Dough details input */}
+                          <div>
+                            <input
+                              type="text"
+                              value={editDetalleMasa}
+                              onChange={e => setEditDetalleMasa(e.target.value)}
+                              placeholder="Masa (Ej. 48hs / 350g)"
+                              className="w-full text-xs p-1.5 border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
+                            />
                           </div>
                           
                           {/* Edit allergen tags */}
@@ -858,16 +969,24 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
 
                 {/* Recipe escandallo margin visual flags */}
                 {!editingId && (
-                  <div className="mt-2 p-2 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center justify-between text-[9px] sm:text-[10px] font-bold">
+                  <div className={`mt-2 p-2 rounded-xl border flex items-center justify-between text-[9px] sm:text-[10px] font-bold ${
+                    hasRecipe && marginPct !== null && marginPct < 45
+                      ? 'bg-rose-50 border-rose-200 text-rose-700'
+                      : 'bg-stone-50 border-stone-200/60 text-stone-500'
+                  }`}>
                     {hasRecipe ? (
                       <>
-                        <span className="text-stone-500">Costo: <strong className="font-mono">${recipeCost.toFixed(1)}</strong></span>
+                        <span className={marginPct !== null && marginPct < 45 ? 'text-rose-700 font-extrabold' : 'text-stone-500'}>
+                          Costo: <strong className="font-mono">${recipeCost.toFixed(1)}</strong>
+                        </span>
                         {marginPct !== null && (
-                          <span className={`px-1.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase ${
+                          <span className={`px-1.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase flex items-center gap-0.5 ${
+                            marginPct < 45 ? 'bg-rose-600 text-white shadow-xs animate-pulse' :
                             marginLevel === 'high' ? 'bg-emerald-100 text-emerald-700' :
                             marginLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                           }`}>
-                            Margen {marginPct.toFixed(0)}%
+                            {marginPct < 45 && <AlertTriangle className="w-3 h-3 text-white shrink-0" />}
+                            Margen {marginPct.toFixed(0)}% {marginPct < 45 && 'CRÍTICO'}
                           </span>
                         )}
                       </>

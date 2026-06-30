@@ -279,7 +279,7 @@ export default function HomeMenuModule({
     <div className="space-y-8 animate-fadeIn bg-white/80 dark:bg-slate-950/30 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none transition-colors duration-300" id="home-operational-menu">
       
       {/* 1. Impact Brand Header Block */}
-      <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-white dark:from-amber-500/10 dark:via-orange-500/5 dark:to-transparent rounded-3xl p-8 md:p-10 text-slate-900 dark:text-zinc-100 shadow-md relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-slate-200 dark:border-zinc-700 border-b-4 border-b-brand-yellow transition-colors duration-300">
+      <div className="bg-gradient-to-br from-slate-100/70 via-slate-50 to-white dark:from-slate-800/20 dark:via-slate-900/10 dark:to-transparent rounded-3xl p-8 md:p-10 text-slate-900 dark:text-zinc-100 shadow-md relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-slate-200 dark:border-zinc-700 border-b-4 border-b-slate-200 dark:border-b-brand-yellow transition-colors duration-300">
         {/* Subtle decorative logo outline in the background of the banner */}
         <div className="absolute right-[-25px] bottom-[-25px] opacity-10 rotate-12 scale-110 pointer-events-none">
           <ElPatronLogo className="w-64 h-64" variant="icon" color="#E8B800" />
@@ -327,9 +327,9 @@ export default function HomeMenuModule({
  
       {/* Live Action Center - Notifications bell */}
       {activeAlerts.length > 0 && (
-        <div className="bg-amber-50 dark:bg-zinc-900/40 backdrop-blur-md border border-amber-200 dark:border-white/5 rounded-3xl p-5 max-w-7xl mx-auto space-y-3 shadow-lg transition-colors duration-300">
-          <h4 className="text-xs font-bold text-amber-800 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 font-sans transition-colors duration-300">
-            <Bell className="w-4 h-4 text-amber-600 dark:text-amber-500 animate-bounce" />
+        <div className="bg-slate-50 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-3xl p-5 max-w-7xl mx-auto space-y-3 shadow-lg transition-colors duration-300">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 font-sans transition-colors duration-300">
+            <Bell className="w-4 h-4 text-slate-500 dark:text-[#E8B800] animate-bounce" />
             Centro de Mensajes y Alertas en Vivo
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -340,7 +340,7 @@ export default function HomeMenuModule({
                 className={`p-3 rounded-xl border flex justify-between items-center text-xs font-medium cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md transition-colors duration-300 ${
                   alert.type === 'danger' 
                     ? 'border-red-300 hover:border-red-400 text-red-800 bg-red-50 dark:border-red-500/20 dark:hover:border-red-500/40 dark:text-red-200 dark:bg-red-950/15' 
-                    : 'border-amber-300 hover:border-amber-400 text-amber-900 bg-amber-50 dark:border-amber-500/20 dark:hover:border-amber-500/40 dark:text-amber-200 dark:bg-amber-950/15'
+                    : 'border-amber-200 hover:border-amber-300 text-amber-800 bg-amber-500/5 dark:border-amber-500/20 dark:hover:border-amber-500/40 dark:text-amber-200 dark:bg-amber-950/15'
                 }`}
               >
                 <div className="flex items-center gap-2">

@@ -205,6 +205,55 @@ function CajaModule({
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showManualBilling, setShowManualBilling] = useState(false);
 
+  // Mercado Pago QR Simulator State
+  const [showMpQrSimulator, setShowMpQrSimulator] = useState(false);
+  const [mpQrStep, setMpQrStep] = useState<'scan' | 'success'>('scan');
+
+  const playSuccessBeep = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+      gain1.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start();
+      osc1.stop(ctx.currentTime + 0.12);
+
+      setTimeout(() => {
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+        gain2.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start();
+        osc2.stop(ctx.currentTime + 0.22);
+      }, 90);
+    } catch (err) {
+      console.warn('AudioContext not supported or blocked:', err);
+    }
+  };
+
+  const simulateMpQrPayment = () => {
+    playSuccessBeep();
+    setMpQrStep('success');
+    
+    setTimeout(async () => {
+      setShowMpQrSimulator(false);
+      setMpQrStep('scan');
+      await handleConfirmCheckout();
+    }, 1500);
+  };
+
   useEffect(() => {
     if (selectedPedidoId) {
       setShowManualBilling(false);
@@ -232,6 +281,37 @@ function CajaModule({
       return matchesSearch && matchesMetodo && matchesEstado;
     });
   }, [allFacturas, archiveSearchQuery, archiveMetodoFilter, archiveEstadoFilter]);
+
+  const categoryStats = useMemo(() => {
+    if (!cajaSession) return [];
+    try {
+      const breakdown = getShiftProductBreakdown(
+        pedidos,
+        cajaSession.id_cierre,
+        cajaSession.fecha_apertura,
+        null
+      );
+      
+      const categoriesMap: Record<string, number> = {};
+      let grandTotal = 0;
+      
+      Object.values(breakdown).forEach((item: any) => {
+        const prod = productosMenu.find(p => p.nombre === item.nombre);
+        const cat = prod?.categoria || 'Otros';
+        categoriesMap[cat] = (categoriesMap[cat] || 0) + item.total;
+        grandTotal += item.total;
+      });
+
+      return Object.entries(categoriesMap).map(([name, total]) => ({
+        name,
+        total,
+        percentage: grandTotal > 0 ? Math.round((total / grandTotal) * 100) : 0
+      })).sort((a, b) => b.total - a.total);
+    } catch (err) {
+      console.error('Error calculating category stats:', err);
+      return [];
+    }
+  }, [cajaSession, pedidos, productosMenu, getShiftProductBreakdown]);
 
   const handleAnularFactura = async (idFactura: string) => {
     if (!window.confirm('¿Está seguro de que desea anular este comprobante y registrar una Nota de Crédito en Supabase?')) {
@@ -320,7 +400,7 @@ function CajaModule({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] uppercase font-extrabold cursor-pointer transition-colors ${
               showManualBilling 
                 ? 'bg-[#E8B800] border-[#E8B800] text-zinc-950 font-black' 
-                : 'border-[#624A3E]/30 bg-[#F5F1E9] text-[#624A3E] hover:bg-[#ebdfd8]'
+                : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-slate-700/50'
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -329,9 +409,9 @@ function CajaModule({
 
           <button
             onClick={() => setShowArchiveModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#624A3E]/30 bg-[#F5F1E9] text-[10px] uppercase font-extrabold text-[#624A3E] hover:bg-[#ebdfd8] cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-[10px] uppercase font-extrabold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
           >
-            <FolderOpen className="w-3.5 h-3.5 text-[#624A3E]" />
+            <FolderOpen className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
             Archivos
           </button>
 
@@ -355,7 +435,7 @@ function CajaModule({
 
       {/* RESTAURANTE EDIT FORM */}
       {editRestauranteMode && (
-        <div className="bg-[#F5F1E9]/80 border border-stone-200 p-5 rounded-2xl animate-fadeIn space-y-4">
+        <div className="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 p-5 rounded-2xl animate-fadeIn space-y-4">
           <h3 className="text-xs font-black text-[#624A3E] uppercase flex items-center gap-1.5">
             <Settings className="w-4 h-4" /> Editorial de Datos de Emisión (Cambios en Comprobantes)
           </h3>
@@ -1672,6 +1752,133 @@ function CajaModule({
                         </select>
                       </div>
                     </div>
+
+                    {/* Ajustes Rápidos */}
+                    <div className="border-t border-white/5 pt-2 mt-1 space-y-2">
+                      <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block">Ajustes Rápidos</span>
+                      
+                      <div className="flex flex-col gap-2">
+                        {/* Fila Descuentos / Recargos */}
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('porcentaje');
+                              setDescuentoMonto(0);
+                              setDescuentoPorcentaje(0);
+                              toast.info('Sin descuento manual.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 0
+                                ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            Sin Desc.
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('porcentaje');
+                              setDescuentoMonto(0);
+                              setDescuentoPorcentaje(10);
+                              toast.success('Descuento de 10% aplicado.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 10
+                                ? 'bg-emerald-650 text-white border-emerald-600'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            10% Off
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('porcentaje');
+                              setDescuentoMonto(0);
+                              setDescuentoPorcentaje(15);
+                              toast.success('Descuento de 15% aplicado.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 15
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            15% Off
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('porcentaje');
+                              setDescuentoMonto(0);
+                              setDescuentoPorcentaje(-10);
+                              toast.warning('Recargo de 10% por Tarjeta aplicado.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === -10
+                                ? 'bg-rose-700 text-white border-rose-700'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                            title="Recargo por pago con tarjeta"
+                          >
+                            +10% Tarjeta
+                          </button>
+                        </div>
+
+                        {/* Fila Propinas */}
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPropinaPorcentaje(0);
+                              toast.info('Propina removida.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              propinaPorcentaje === 0
+                                ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            Sin Propina
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPropinaPorcentaje(10);
+                              toast.success('Propina del 10% aplicada.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              propinaPorcentaje === 10
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            10% Propina
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPropinaPorcentaje(15);
+                              toast.success('Propina del 15% aplicada.');
+                            }}
+                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
+                              propinaPorcentaje === 15
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                            }`}
+                          >
+                            15% Propina
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1761,29 +1968,76 @@ function CajaModule({
 
                   {/* Dynamic Fields for Payment Method details */}
                   {metodoPago === 'efectivo' && (
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                      <div>
-                        <label className="text-[9px] font-bold text-[#E8B800] block uppercase">Monto Entregado en Efectivo</label>
-                        <p className="text-[10px] text-zinc-400 font-medium">Ayuda vuelto rápido cajero</p>
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg flex flex-col gap-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                          <label className="text-[9px] font-bold text-[#E8B800] block uppercase">Monto Entregado en Efectivo</label>
+                          <p className="text-[10px] text-zinc-400 font-medium">Ayuda vuelto rápido cajero</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                          <input 
+                            type="number"
+                            inputMode="decimal"
+                            value={montoEntregadoEfectivo}
+                            onChange={e => setMontoEntregadoEfectivo(e.target.value)}
+                            placeholder="Monto entregado"
+                            className="min-h-11 p-2 bg-zinc-950 border border-white/10 rounded-lg text-sm font-mono font-black text-zinc-100 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                          />
+                          {calculatedChange > 0 && (
+                            <div className="text-right pl-2 border-l border-white/10">
+                              <span className="text-[8px] text-zinc-400 block font-bold uppercase">Entregar Vuelto</span>
+                              <span className="text-[11px] text-[#22C55E] font-black font-mono">
+                                ${calculatedChange.toLocaleString('es-AR')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                        <input 
-                          type="number"
-                          inputMode="decimal"
-                          value={montoEntregadoEfectivo}
-                          onChange={e => setMontoEntregadoEfectivo(e.target.value)}
-                          placeholder="Monto entregado"
-                          className="min-h-11 p-2 bg-zinc-950 border border-white/10 rounded-lg text-sm font-mono font-black text-zinc-100 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
-                        />
-                        {calculatedChange > 0 && (
-                          <div className="text-right pl-2 border-l border-white/10">
-                            <span className="text-[8px] text-zinc-400 block font-bold uppercase">Entregar Vuelto</span>
-                            <span className="text-[11px] text-[#22C55E] font-black font-mono">
-                              ${calculatedChange.toLocaleString('es-AR')}
-                            </span>
-                          </div>
-                        )}
+
+                      {/* Billetes Rápidos */}
+                      <div className="border-t border-white/5 pt-2">
+                        <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block mb-1.5">Billetes Rápidos (Pesos AR)</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { value: 1000, color: 'bg-amber-950/40 text-amber-400 border-amber-500/20 hover:bg-amber-950/60' },
+                            { value: 2000, color: 'bg-rose-950/40 text-rose-450 border-rose-500/20 hover:bg-rose-950/60' },
+                            { value: 5000, color: 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20 hover:bg-emerald-950/60' },
+                            { value: 10000, color: 'bg-sky-950/40 text-sky-400 border-sky-500/20 hover:bg-sky-950/60' },
+                            { value: 20000, color: 'bg-purple-950/40 text-purple-400 border-purple-500/20 hover:bg-purple-950/60' }
+                          ].map(bill => (
+                            <button
+                              key={bill.value}
+                              type="button"
+                              onClick={() => {
+                                const current = parseFloat(montoEntregadoEfectivo) || 0;
+                                setMontoEntregadoEfectivo(String(current + bill.value));
+                              }}
+                              className={`px-2.5 py-1.5 border rounded-lg text-xs font-black font-mono transition-all hover:scale-105 active:scale-95 cursor-pointer ${bill.color}`}
+                            >
+                              ${bill.value.toLocaleString('es-AR')}
+                            </button>
+                          ))}
+                          <button
+                            key="exact"
+                            type="button"
+                            onClick={() => {
+                              const targetVal = (metodoPago as any) === 'mixto' ? rawRemainingMixedBalance : orderBreakdowns.finalTotal;
+                              setMontoEntregadoEfectivo(String(Math.ceil(targetVal)));
+                            }}
+                            className="px-2.5 py-1.5 border border-[#E8B800]/30 bg-[#E8B800]/10 text-[#E8B800] rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-[#E8B800]/20 cursor-pointer"
+                          >
+                            Exacto
+                          </button>
+                          <button
+                            key="clear"
+                            type="button"
+                            onClick={() => setMontoEntregadoEfectivo('')}
+                            className="px-2.5 py-1.5 border border-white/10 bg-zinc-900 text-zinc-400 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-zinc-800 cursor-pointer"
+                          >
+                            Limpiar
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1894,7 +2148,12 @@ function CajaModule({
                       onClick={async () => {
                         toast.success(`Cobro de la parte #${activePayerIndex + 1} procesado por ${(orderBreakdowns.finalTotal / splitPayerCount).toLocaleString('es-AR')}`);
                         if (activePayerIndex + 1 >= splitPayerCount) {
-                          await handleConfirmCheckout();
+                          if (metodoPago === 'mp_qr') {
+                            setMpQrStep('scan');
+                            setShowMpQrSimulator(true);
+                          } else {
+                            await handleConfirmCheckout();
+                          }
                         } else {
                           setActivePayerIndex(prev => prev + 1);
                         }
@@ -1906,7 +2165,14 @@ function CajaModule({
                     </button>
                   ) : (
                     <button
-                      onClick={handleConfirmCheckout}
+                      onClick={() => {
+                        if (metodoPago === 'mp_qr') {
+                          setMpQrStep('scan');
+                          setShowMpQrSimulator(true);
+                        } else {
+                          handleConfirmCheckout();
+                        }
+                      }}
                       className="w-full min-h-11 py-3 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 text-sm uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 btn-premium glow-yellow"
                     >
                       <CheckCircle className="w-5 h-5 text-zinc-950" />
@@ -2205,6 +2471,29 @@ function CajaModule({
                 <div className="flex justify-between font-bold text-white pt-1 border-t border-white/10 border-dotted text-xs font-sans">
                   <span>Total Esperado:</span>
                   <span>${cajaEsperadaTotal.toLocaleString('es-AR')}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Rendimiento por Categorías */}
+            {cajaSession && categoryStats.length > 0 && (
+              <div className="bg-zinc-950/60 p-3 rounded-xl border border-white/5 space-y-2 text-[10px] font-sans">
+                <span className="text-[9px] font-bold text-zinc-450 uppercase tracking-widest block border-b border-white/5 pb-1">Ventas por Categoría</span>
+                <div className="space-y-2 max-h-28 overflow-y-auto pr-1">
+                  {categoryStats.map((cat, idx) => (
+                    <div key={idx} className="space-y-0.5">
+                      <div className="flex justify-between text-zinc-300 font-medium">
+                        <span className="truncate pr-2">{cat.name}</span>
+                        <span className="font-mono text-zinc-150 font-bold">${cat.total.toLocaleString('es-AR')} ({cat.percentage}%)</span>
+                      </div>
+                      <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#E8B800] rounded-full transition-all duration-300" 
+                          style={{ width: `${cat.percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -2737,6 +3026,133 @@ function CajaModule({
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mercado Pago QR Simulator Modal */}
+      {showMpQrSimulator && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#009EE3] text-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-white/10 flex flex-col items-center p-6 text-center space-y-6 animate-fade-in animate-duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between w-full border-b border-white/10 pb-3">
+              <span className="font-black tracking-wider text-xs uppercase text-white/90">Mercado Pago POS</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  setShowMpQrSimulator(false);
+                  setMpQrStep('scan');
+                }}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors border-none"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+
+            {mpQrStep === 'scan' ? (
+              <>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest block">Monto a Cobrar</span>
+                  <span className="text-3xl font-black font-mono tracking-tight">${orderBreakdowns.finalTotal.toLocaleString('es-AR')}</span>
+                  <span className="text-[9px] font-bold text-white/50 block">Pedido #{selectedPedido?.id_pedido} - Mesa {selectedPedido?.numero_mesa}</span>
+                </div>
+
+                {/* QR Container with Line Laser Scanner */}
+                <div className="w-48 h-48 bg-white p-3 rounded-2xl border-4 border-black/10 shadow-lg relative flex items-center justify-center overflow-hidden">
+                  <div 
+                    className="absolute left-0 right-0 h-1 bg-[#009EE3] shadow-[0_0_8px_#009EE3] z-10"
+                    style={{
+                      animation: 'scanLine 2.5s infinite ease-in-out',
+                      top: '0%'
+                    }}
+                  />
+                  <style>{`
+                    @keyframes scanLine {
+                      0% { top: 0%; }
+                      50% { top: 100%; }
+                      100% { top: 0%; }
+                    }
+                  `}</style>
+                  {/* Mock QR SVG */}
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-zinc-950 fill-current">
+                    <path d="M5,5 h20 v10 h-10 v10 h-10 z M5,95 h20 v-10 h-10 v-10 h-10 z M95,5 h-20 v10 h10 v10 h10 z M95,95 h-20 v-10 h10 v-10 h-10 z" />
+                    <path d="M12,12 h16 v16 h-16 z M16,16 h8 v8 h-8 z" />
+                    <path d="M72,12 h16 v16 h-16 z M76,16 h8 v8 h-8 z" />
+                    <path d="M12,72 h16 v16 h-16 z M16,76 h8 v8 h-8 z" />
+                    <rect x="36" y="12" width="4" height="4" />
+                    <rect x="44" y="12" width="8" height="4" />
+                    <rect x="56" y="12" width="4" height="8" />
+                    <rect x="36" y="24" width="12" height="4" />
+                    <rect x="52" y="24" width="4" height="4" />
+                    <rect x="12" y="36" width="4" height="12" />
+                    <rect x="24" y="36" width="8" height="4" />
+                    <rect x="40" y="36" width="4" height="8" />
+                    <rect x="52" y="36" width="12" height="4" />
+                    <rect x="72" y="36" width="16" height="4" />
+                    <rect x="12" y="52" width="4" height="4" />
+                    <rect x="20" y="52" width="8" height="8" />
+                    <rect x="36" y="48" width="12" height="4" />
+                    <rect x="52" y="48" width="4" height="8" />
+                    <rect x="64" y="48" width="8" height="4" />
+                    <rect x="80" y="48" width="4" height="12" />
+                    <rect x="36" y="60" width="4" height="4" />
+                    <rect x="44" y="60" width="8" height="8" />
+                    <rect x="56" y="60" width="12" height="4" />
+                    <rect x="72" y="60" width="4" height="4" />
+                    <rect x="36" y="76" width="4" height="12" />
+                    <rect x="44" y="76" width="12" height="4" />
+                    <rect x="60" y="76" width="4" height="8" />
+                    <rect x="68" y="76" width="16" height="4" />
+                    <rect x="44" y="88" width="8" height="4" />
+                    <rect x="64" y="88" width="4" height="4" />
+                    <rect x="80" y="88" width="8" height="4" />
+                  </svg>
+                </div>
+
+                <div className="space-y-4 w-full">
+                  <p className="text-xs text-white/70 leading-relaxed max-w-[240px] mx-auto font-medium">
+                    Pedile al cliente que escanee el código QR desde la app de Mercado Pago o Cuenta DNI.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={simulateMpQrPayment}
+                    className="w-full min-h-11 bg-white text-[#009EE3] hover:bg-white/95 text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 border-none"
+                  >
+                    Simular Pago de Cliente
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Success tick */}
+                <div className="py-8 flex flex-col items-center space-y-4">
+                  <div 
+                    className="w-20 h-20 bg-emerald-550 rounded-full flex items-center justify-center border-4 border-white shadow-lg animate-pulse"
+                    style={{
+                      animation: 'successPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
+                      backgroundColor: '#10B981'
+                    }}
+                  >
+                    <CheckCircle className="w-12 h-12 text-white fill-none stroke-[3px]" />
+                  </div>
+                  <style>{`
+                    @keyframes successPop {
+                      0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+                      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                    }
+                  `}</style>
+                  <div className="space-y-1">
+                    <h4 className="text-xl font-black uppercase tracking-wide">¡Pago Aprobado!</h4>
+                    <p className="text-[10px] text-white/70 font-semibold uppercase font-mono">ID Operación: MP-QR-{Math.floor(Math.random() * 9000000 + 1000000)}</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-white/80 leading-relaxed font-semibold">
+                  El pago fue acreditado al instante en la cuenta. Confirmando pedido...
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
