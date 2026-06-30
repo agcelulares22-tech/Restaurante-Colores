@@ -93,3 +93,20 @@ def test_confirmar_pago_no_existente():
     response = client.put("/api/admin/pedidos/uuid-inexistente-1234/confirmar-pago")
     assert response.status_code == 404
     assert "No se encontró" in response.json()["detail"]
+
+def test_get_delivery_quote_exito():
+    payload = {
+        "address": "Alvear 1000",
+        "tarifa_base": 1000.0,
+        "costo_por_km": 500.0
+    }
+    response = client.post("/api/delivery/quote", json=payload)
+    # Since Nominatim is a public third-party service, we allow 200 (success),
+    # 404 (not found) or 502 (temporary connection rate-limiting/timeouts) as correct app behaviors.
+    assert response.status_code in [200, 404, 502]
+    if response.status_code == 200:
+        data = response.json()
+        assert "origen" in data
+        assert "distancia_km" in data
+        assert "total" in data
+        assert "route_geojson" in data

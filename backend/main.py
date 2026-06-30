@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.models import init_db
-from backend.controllers import catalogo, pedidos, admin
+from backend.controllers import catalogo, pedidos, admin, delivery
 
 app = FastAPI(
     title="Pizzería Colores - Backend de Carta Digital & Pedidos",
@@ -23,6 +23,7 @@ app.add_middleware(
 app.include_router(catalogo.router)
 app.include_router(pedidos.router)
 app.include_router(admin.router)
+app.include_router(delivery.router)
 
 @app.on_event("startup")
 def startup_db():
