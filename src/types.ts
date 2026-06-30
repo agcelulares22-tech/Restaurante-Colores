@@ -15,6 +15,7 @@ export interface Usuario {
     password: string;
     rol: 'superadmin' | 'administrador' | 'mozo' | 'cocina';
     activo?: boolean;
+    ultimo_login?: string;
 }
 
 export interface ZonaEnvio {

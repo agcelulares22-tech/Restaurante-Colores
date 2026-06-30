@@ -56,6 +56,10 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
 
 
   const completeLogin = async (user: Usuario) => {
+    const lastLogins = JSON.parse(localStorage.getItem('colores_last_logins') || '{}');
+    lastLogins[user.username] = new Date().toISOString();
+    localStorage.setItem('colores_last_logins', JSON.stringify(lastLogins));
+
     await new Promise(resolve => setTimeout(resolve, 300));
     onLoginSuccess(user);
   };

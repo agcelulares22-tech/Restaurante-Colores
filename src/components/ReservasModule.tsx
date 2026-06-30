@@ -136,6 +136,7 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
     return d;
   });
   const [tab, setTab] = useState<'reservas' | 'espera'>('reservas');
+  const [overbookingConfirmData, setOverbookingConfirmData] = useState<any | null>(null);
 
   const reservasDelDia = useMemo(() => (
     reservas.filter(r => r.fecha === selectedDate && r.estado !== 'cancelada' && !r.lista_espera)
@@ -187,42 +188,21 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
     setDeleteConfirmId(null);
   };
 
-  const handleCreateReserva = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pendingActionRef.current) return;
-
-    const validation = reservaSchema.safeParse({ nombre_cliente: nombre, telefono, pax: parseInt(pax, 10) || 2, hora, observaciones });
-    if (!validation.success) {
-      const msgs = validation.error.issues.map(i => i.message).join('. ');
-      addLog('sistema', 'RESERVAS: Error de validacion: ' + msgs);
-      toast.error(msgs);
-      return;
-    }
-
-    const capPax = parseInt(pax, 10) || 2;
-    const selectedMesa = mesas.find(m => m.numero_mesa === nombreMesa);
-    let idMesaAsignada = selectedMesa?.id_mesa;
-    let nombreMesaAsignada = nombreMesa;
-    let enviarEspera = forceEspera;
-
-    if (!forceEspera && selectedMesa) {
-      const disponibles = mesasDisponiblesEnFechaHora(formularioDate, hora, capPax, editingId ?? undefined);
-      if (!disponibles.some(m => m.id_mesa === selectedMesa.id_mesa)) {
-        enviarEspera = true;
-        toast.warning('La mesa elegida ya esta reservada u ocupada. Se enviara a lista de espera.');
-      }
-    } else if (!forceEspera) {
-      const disponibles = mesasDisponiblesEnFechaHora(formularioDate, hora, capPax, editingId ?? undefined);
-      if (disponibles.length === 0) {
-        enviarEspera = true;
-        toast.info('No hay mesas disponibles para esa fecha y hora. Se enviara a lista de espera.');
-      } else {
-        idMesaAsignada = disponibles[0].id_mesa;
-        nombreMesaAsignada = disponibles[0].numero_mesa;
-      }
-    }
-
-    if (editingId) {
+  const saveReserva = async (data: {
+    isEditing: boolean;
+    nombre: string;
+    telefono: string;
+    capPax: number;
+    nombreMesaAsignada: string;
+    idMesaAsignada: number | null;
+    hora: string;
+    observaciones: string;
+    formularioDate: string;
+    enviarEspera: boolean;
+  }) => {
+    const { isEditing, nombre, telefono, capPax, nombreMesaAsignada, idMesaAsignada, hora, observaciones, formularioDate, enviarEspera } = data;
+    
+    if (isEditing && editingId) {
       const current = reservas.find(r => r.id_reserva === editingId);
       if (!current) return;
 
@@ -233,7 +213,7 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
         pax: capPax,
         nombre_mesa: enviarEspera ? 'En espera' : nombreMesaAsignada,
         id_mesa: enviarEspera ? null : idMesaAsignada,
-        hora: `${hora} hs`,
+        hora: hora.includes('hs') ? hora : `${hora} hs`,
         observaciones: observaciones.trim() || undefined,
         fecha: formularioDate,
         estado: enviarEspera ? 'pendiente' : (current.estado === 'pendiente' ? 'confirmada' : current.estado),
@@ -262,45 +242,99 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
       } finally {
         finishAction();
       }
+    } else {
+      const newRes: Reserva = {
+        id_reserva: `r_${Date.now()}`,
+        nombre_cliente: nombre,
+        telefono,
+        pax: capPax,
+        nombre_mesa: enviarEspera ? 'En espera' : nombreMesaAsignada,
+        id_mesa: enviarEspera ? null : idMesaAsignada,
+        hora: hora.includes('hs') ? hora : `${hora} hs`,
+        estado: enviarEspera ? 'pendiente' : 'confirmada',
+        fecha: formularioDate,
+        observaciones: observaciones.trim() || undefined,
+        lista_espera: enviarEspera,
+        prioridad_espera: enviarEspera ? Date.now() : undefined,
+        entrada_lista_espera: enviarEspera ? new Date().toISOString() : undefined,
+      };
+
+      if (!beginAction('create')) return;
+      const previous = reservas;
+      setReservas(prev => [...prev, newRes].sort(sortReservas));
+      resetForm();
+
+      try {
+        const saved = await withTimeout(reservasService.create(newRes));
+        void fetchReservasDelDia(selectedDate);
+        addLog('sistema', `RESERVAS: Creada reserva de '${saved.nombre_cliente}' para el ${saved.fecha} a las ${saved.hora}`);
+        toast.success('Reserva creada y guardada.');
+        if (!enviarEspera && saved.id_mesa) onEstadoChange(saved, 'confirmada');
+        if (enviarWhatsApp && saved.telefono) {
+          const url = getWhatsAppLink(saved.nombre_cliente, saved.telefono, saved.fecha, saved.hora, saved.pax);
+          window.open(url, '_blank');
+        }
+      } catch {
+        setReservas(previous);
+        addLog('sistema', `RESERVAS: Error al crear reserva de '${newRes.nombre_cliente}'`);
+        toast.error('No se pudo crear la reserva. Se revirtio el cambio.');
+      } finally {
+        finishAction();
+      }
+    }
+  };
+
+  const handleCreateReserva = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pendingActionRef.current) return;
+
+    const validation = reservaSchema.safeParse({ nombre_cliente: nombre, telefono, pax: parseInt(pax, 10) || 2, hora, observaciones });
+    if (!validation.success) {
+      const msgs = validation.error.issues.map(i => i.message).join('. ');
+      addLog('sistema', 'RESERVAS: Error de validacion: ' + msgs);
+      toast.error(msgs);
       return;
     }
 
-    const newRes: Reserva = {
-      id_reserva: `r_${Date.now()}`,
-      nombre_cliente: nombre,
+    const capPax = parseInt(pax, 10) || 2;
+    const selectedMesa = mesas.find(m => m.numero_mesa === nombreMesa);
+    let idMesaAsignada = selectedMesa?.id_mesa || null;
+    let nombreMesaAsignada = nombreMesa;
+    let enviarEspera = forceEspera;
+    let hasConflict = false;
+
+    if (!forceEspera && selectedMesa) {
+      const disponibles = mesasDisponiblesEnFechaHora(formularioDate, hora, capPax, editingId ?? undefined);
+      if (!disponibles.some(m => m.id_mesa === selectedMesa.id_mesa)) {
+        hasConflict = true;
+      }
+    } else if (!forceEspera) {
+      const disponibles = mesasDisponiblesEnFechaHora(formularioDate, hora, capPax, editingId ?? undefined);
+      if (disponibles.length === 0) {
+        enviarEspera = true;
+      } else {
+        idMesaAsignada = disponibles[0].id_mesa;
+        nombreMesaAsignada = disponibles[0].numero_mesa;
+      }
+    }
+
+    const saveData = {
+      isEditing: !!editingId,
+      nombre,
       telefono,
-      pax: capPax,
-      nombre_mesa: enviarEspera ? 'En espera' : nombreMesaAsignada,
-      id_mesa: enviarEspera ? null : idMesaAsignada,
-      hora: `${hora} hs`,
-      estado: enviarEspera ? 'pendiente' : 'confirmada',
-      fecha: formularioDate,
-      observaciones: observaciones.trim() || undefined,
-      lista_espera: enviarEspera,
-      prioridad_espera: enviarEspera ? Date.now() : undefined,
-      entrada_lista_espera: enviarEspera ? new Date().toISOString() : undefined,
+      capPax,
+      nombreMesaAsignada,
+      idMesaAsignada,
+      hora,
+      observaciones,
+      formularioDate,
+      enviarEspera
     };
 
-    if (!beginAction('create')) return;
-    setReservas(prev => [...prev, newRes]);
-
-    try {
-      const saved = await withTimeout(reservasService.create(newRes));
-      setReservas(prev => prev.map(r => r.id_reserva === newRes.id_reserva ? saved : r));
-      void fetchReservasDelDia(formularioDate);
-      addLog('sistema', `RESERVAS: Registrada nueva reserva para '${saved.nombre_cliente}' para ${saved.pax} personas el ${saved.fecha} a las ${saved.hora}`);
-      if (!enviarEspera && saved.id_mesa) onEstadoChange(saved, 'confirmada');
-      if (enviarWhatsApp && saved.telefono) {
-        const url = getWhatsAppLink(saved.nombre_cliente, saved.telefono, saved.fecha, saved.hora, saved.pax);
-        window.open(url, '_blank');
-      }
-      resetForm();
-      toast.success(enviarEspera ? 'Cliente agregado a la lista de espera.' : 'Reserva confirmada exitosamente.');
-    } catch {
-      setReservas(prev => prev.filter(r => r.id_reserva !== newRes.id_reserva));
-      toast.error('No se pudo crear la reserva. Se revirtio el cambio.');
-    } finally {
-      finishAction();
+    if (hasConflict) {
+      setOverbookingConfirmData(saveData);
+    } else {
+      await saveReserva(saveData);
     }
   };
 
@@ -552,17 +586,28 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
                 <span className="font-bold text-amber-600">{listaEsperaGlobal.length}</span>
               </div>
             )}
-            <div className="pt-2 border-t border-stone-100 flex flex-wrap gap-1">
+            <div className="pt-2 border-t border-stone-100 flex flex-wrap gap-1.5">
               {mesas.map(m => {
                 const estaLibre = disponiblesHoy.some(d => d.id_mesa === m.id_mesa);
-                const estaReservada = reservas.some(
-                  r => r.fecha === selectedDate && r.id_mesa === m.id_mesa && r.estado !== 'cancelada' && !r.lista_espera
-                );
-                let bg = 'bg-stone-100 text-stone-400';
-                if (estaLibre) bg = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-                else if (estaReservada) bg = 'bg-amber-50 text-amber-700 border border-amber-200';
+                const tableReservations = reservas
+                  .filter(r => r.fecha === selectedDate && r.id_mesa === m.id_mesa && r.estado !== 'cancelada' && !r.lista_espera)
+                  .sort((a, b) => parseTimeToMin(a.hora) - parseTimeToMin(b.hora));
+                
+                let bg = 'bg-stone-100 text-stone-450 border border-stone-200/60 dark:bg-zinc-950 dark:border-zinc-800';
+                if (estaLibre) bg = 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50';
+                if (tableReservations.length > 0) bg = 'bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50 font-black';
+
+                const label = tableReservations.length > 0
+                  ? ` (${tableReservations.map(r => r.hora.replace(' hs', '')).join(', ')})`
+                  : '';
                 return (
-                  <span key={m.id_mesa} className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${bg}`}>{m.numero_mesa}</span>
+                  <span
+                    key={m.id_mesa}
+                    className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${bg}`}
+                    title={tableReservations.length > 0 ? `Reservas: ${tableReservations.map(r => `${r.nombre_cliente} a las ${r.hora}`).join(' | ')}` : 'Libre'}
+                  >
+                    {m.numero_mesa}{label}
+                  </span>
                 );
               })}
             </div>
@@ -955,6 +1000,62 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
 
         </div>
       </div>
+
+      {overbookingConfirmData && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in font-sans">
+          <div className="absolute inset-0" onClick={() => setOverbookingConfirmData(null)} />
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-sm w-full relative z-10 p-6 space-y-4 text-stone-800">
+            <div className="flex items-center gap-2 text-amber-600">
+              <AlertCircle className="w-6 h-6 animate-pulse" />
+              <h3 className="text-sm font-black uppercase tracking-tight leading-none">
+                Conflicto de Reserva (Sobre-reserva)
+              </h3>
+            </div>
+            
+            <p className="text-xs text-stone-500 leading-relaxed">
+              La <strong>{overbookingConfirmData.nombreMesaAsignada}</strong> ya se encuentra asignada o reservada en el rango de 2 horas para la hora elegida (<strong>{overbookingConfirmData.hora}</strong>).
+            </p>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-150 text-[11px] space-y-1">
+              <p>👤 <strong>Cliente:</strong> {overbookingConfirmData.nombre}</p>
+              <p>🕒 <strong>Fecha/Hora:</strong> {overbookingConfirmData.formularioDate} a las {overbookingConfirmData.hora}</p>
+              <p>👥 <strong>Personas:</strong> {overbookingConfirmData.capPax} pax</p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const data = { ...overbookingConfirmData, enviarEspera: false };
+                  setOverbookingConfirmData(null);
+                  await saveReserva(data);
+                }}
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0 shadow-md"
+              >
+                Forzar Sobre-reserva (Overbooking)
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const data = { ...overbookingConfirmData, enviarEspera: true, idMesaAsignada: null, nombreMesaAsignada: 'En espera' };
+                  setOverbookingConfirmData(null);
+                  await saveReserva(data);
+                }}
+                className="w-full py-2.5 bg-stone-900 hover:bg-stone-850 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+              >
+                Enviar a Lista de Espera
+              </button>
+              <button
+                type="button"
+                onClick={() => setOverbookingConfirmData(null)}
+                className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer border-0"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>

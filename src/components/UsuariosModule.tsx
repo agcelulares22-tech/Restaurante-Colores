@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
-import { Users, Plus, Trash, Edit2, Check, X, Search } from 'lucide-react';
+import { Users, Plus, Trash, Edit2, Check, X, Search, Clock, Shield, Key, Sparkles } from 'lucide-react';
 import { Usuario, EventoLog } from '../types';
 import { usuariosService } from '../services/usuariosService';
 import { ToastContainer, useToast } from './ToastContainer';
@@ -37,6 +37,14 @@ export default function UsuariosModule({ usuarios, onUsuariosChange, addLog, act
   // Delete confirm
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const debouncedSearch = useDebounce(search, 300);
+
+  const lastLoginsMap = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('colores_last_logins') || '{}');
+    } catch {
+      return {};
+    }
+  }, [usuarios]);
 
   const filtered = useMemo(() => {
     let result = usuarios;
@@ -228,24 +236,62 @@ export default function UsuariosModule({ usuarios, onUsuariosChange, addLog, act
             {loading ? (
               <div className="col-span-2"><ListSkeleton count={4} /></div>
             ) : filtered.map(u => {
-              let badgeColor = 'bg-stone-100 text-stone-700 border-stone-205';
-              let desc = 'Soporte de salón y comandas táctiles';
-              if (u.rol === 'superadmin') { badgeColor = 'bg-purple-50 text-purple-800 border-purple-100'; desc = 'Acceso total al sistema'; }
-              else if (u.rol === 'administrador') { badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-100'; desc = 'Operaciones del negocio'; }
+              let badgeElement = null;
+              let desc = '';
+              
+              if (u.rol === 'superadmin') {
+                badgeElement = (
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full border bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/50 flex items-center gap-1 shadow-xs animate-pulse">
+                    <Shield className="w-2.5 h-2.5" /> Super Admin
+                  </span>
+                );
+                desc = 'Acceso total a la administración general';
+              } else if (u.rol === 'administrador') {
+                badgeElement = (
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full border bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50 flex items-center gap-1 shadow-xs">
+                    <Key className="w-2.5 h-2.5" /> Administrador
+                  </span>
+                );
+                desc = 'Operaciones y gestión diaria del local';
+              } else if (u.rol === 'mozo') {
+                badgeElement = (
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center gap-1 shadow-xs">
+                    <Users className="w-2.5 h-2.5" /> Mozo
+                  </span>
+                );
+                desc = 'Atención de mesas y comandas táctiles';
+              } else {
+                badgeElement = (
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full border bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50 flex items-center gap-1 shadow-xs">
+                    <Sparkles className="w-2.5 h-2.5" /> Cocina
+                  </span>
+                );
+                desc = 'Control de horno y preparación de platos';
+              }
 
               const isEditing = editingId === u.id_usuario;
+              const userLastLogin = lastLoginsMap[u.username];
+              const formattedLastLogin = userLastLogin
+                ? new Date(userLastLogin).toLocaleString('es-AR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) + ' hs'
+                : 'Nunca';
 
               return (
-                <div key={u.id_usuario} className={`p-4 bg-[#F5F1E9]/40 border rounded-2xl flex flex-col justify-between transition-colors ${u.activo === false ? 'border-rose-200 opacity-70' : 'border-stone-150 hover:bg-[#F5F1E9]/70'}`}>
+                <div key={u.id_usuario} className={`p-4 bg-[#F5F1E9]/40 dark:bg-zinc-950/40 border rounded-2xl flex flex-col justify-between transition-colors ${u.activo === false ? 'border-rose-200 dark:border-rose-900/30 opacity-70' : 'border-stone-150 dark:border-zinc-800 hover:bg-[#F5F1E9]/70 dark:hover:bg-zinc-900/30'}`}>
                   <div className="space-y-1">
                     {isEditing ? (
                       <div className="space-y-2">
                         <input type="text" value={editNombre} onChange={e => setEditNombre(e.target.value)}
-                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
+                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
                         <input type="text" value={editApellido} onChange={e => setEditApellido(e.target.value)}
-                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
+                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
                         <select value={editRol} onChange={e => setEditRol(e.target.value as any)}
-                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]">
+                          className="w-full text-xs p-2 rounded-xl border border-stone-200 bg-white dark:bg-zinc-900 dark:text-zinc-150 focus:outline-none focus:ring-1 focus:ring-[#624A3E]">
                           <option value="administrador">Administrador</option>
                           {activeUser?.rol === 'superadmin' && (
                             <option value="superadmin">Super Admin</option>
@@ -262,11 +308,16 @@ export default function UsuariosModule({ usuarios, onUsuariosChange, addLog, act
                       </div>
                     ) : (
                       <>
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-extrabold text-stone-900 text-sm tracking-tight">{u.nombre} {u.apellido}</h4>
-                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${badgeColor}`}>{u.rol}</span>
+                        <div className="flex justify-between items-start gap-1">
+                          <h4 className="font-extrabold text-stone-900 dark:text-zinc-150 text-sm tracking-tight">{u.nombre} {u.apellido}</h4>
+                          {badgeElement}
                         </div>
-                        <p className="text-[11px] text-stone-500 font-medium leading-snug">{desc}</p>
+                        <p className="text-[11px] text-stone-500 dark:text-zinc-400 font-medium leading-snug">{desc}</p>
+                        
+                        <div className="flex items-center gap-1 mt-2 text-[9px] text-stone-450 dark:text-stone-400 font-bold uppercase tracking-wide">
+                          <Clock className="w-3 h-3 text-stone-400" />
+                          <span>Acceso: <strong className="text-stone-700 dark:text-zinc-300 font-extrabold">{formattedLastLogin}</strong></span>
+                        </div>
                       </>
                     )}
                   </div>

@@ -9,7 +9,8 @@ import {
   Calendar,
   ExternalLink,
   Filter,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { RegistroAsistencia, Usuario } from '../types';
 import { asistenciaService } from '../services/asistenciaService';
@@ -31,6 +32,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
   const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
   const [gpsErrorMsg, setGpsErrorMsg] = useState('');
   const [direccionResolvida, setDireccionResolvida] = useState<string>('');
+  const [selectedFichajeForMap, setSelectedFichajeForMap] = useState<RegistroAsistencia | null>(null);
 
   // Helper function to convert lat/lng to street address using Nominatim (OpenStreetMap)
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
@@ -509,6 +511,13 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                     )}
                     <p className="font-mono text-[9px] text-slate-400">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
                     <p className="text-[9px] text-slate-400">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
+                    <iframe
+                      title="Georreferenciación en vivo"
+                      width="100%"
+                      height="120"
+                      src={`https://maps.google.com/maps?q=${coords.latitude},${coords.longitude}&z=16&output=embed`}
+                      className="rounded-lg border border-emerald-150 mt-2 shadow-xs shrink-0"
+                    />
                   </div>
                 ) : locationStatus === 'requesting' ? (
                   <p className="text-xs text-slate-600 font-medium">Obteniendo coordenadas satelitales...</p>
@@ -734,20 +743,31 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                             <td className="py-3 px-3 max-w-[240px]">
                               <div className="flex flex-col gap-1">
                                 {googleMapsUrl ? (
-                                  <>
-                                    <a
-                                      href={googleMapsUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-brand-orange font-bold flex items-center gap-1 hover:underline text-[10px] cursor-pointer"
-                                      title={`Ver en mapa: ${f.latitud}, ${f.longitud}`}
-                                    >
-                                      <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
-                                      <span className="truncate max-w-[150px]">{f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}</span>
-                                      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                                    </a>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedFichajeForMap(f)}
+                                        className="text-[#624A3E] font-extrabold flex items-center gap-1 hover:underline text-[10px] cursor-pointer bg-amber-50 hover:bg-amber-100/85 px-1.5 py-0.5 rounded border border-amber-200/50"
+                                      >
+                                        <MapPin className="w-3 h-3 text-[#624A3E]" />
+                                        Ver Mapa
+                                      </button>
+                                      <a
+                                        href={googleMapsUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-stone-400 hover:text-stone-600 cursor-pointer"
+                                        title="Abrir en Google Maps"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    </div>
+                                    <span className="truncate max-w-[160px] text-[10px] text-stone-500 font-medium block">
+                                      {f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}
+                                    </span>
                                     {renderGeofenceBadge(f.latitud, f.longitud)}
-                                  </>
+                                  </div>
                                 ) : (
                                   <span className="text-slate-400 italic">Sin GPS</span>
                                 )}
@@ -802,15 +822,14 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           </span>
                           
                           {googleMapsUrl ? (
-                            <a
-                              href={googleMapsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-brand-orange font-bold flex items-center gap-1 hover:underline text-[10px] cursor-pointer"
+                            <button
+                              type="button"
+                              onClick={() => setSelectedFichajeForMap(f)}
+                              className="text-[#624A3E] font-black flex items-center gap-1 hover:underline text-[10px] cursor-pointer bg-amber-50 px-2 py-0.5 rounded border border-amber-250/50"
                             >
                               <MapPin className="w-3 h-3" />
-                              Ver Mapa
-                            </a>
+                              Validar Ubicación
+                            </button>
                           ) : (
                             <span className="text-slate-400 italic text-[9px]">Sin GPS</span>
                           )}
@@ -827,6 +846,56 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
         </div>
 
       </div>
+
+      {selectedFichajeForMap && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in font-sans">
+          <div className="absolute inset-0" onClick={() => setSelectedFichajeForMap(null)} />
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-sm w-full relative z-10 p-5 space-y-4 text-stone-850">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-brand-orange animate-bounce" />
+                <h3 className="text-sm font-black uppercase tracking-tight text-stone-800">Validación GPS</h3>
+              </div>
+              <button 
+                onClick={() => setSelectedFichajeForMap(null)}
+                className="p-1 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-stone-600 transition-colors cursor-pointer border-0 bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <div className="bg-stone-50 p-3 rounded-xl border border-stone-150 text-[11px] space-y-1 text-left text-stone-700">
+                <p>👤 <strong>Empleado:</strong> {selectedFichajeForMap.nombre_empleado}</p>
+                <p>🕒 <strong>Fichaje:</strong> {selectedFichajeForMap.tipo.toUpperCase()} &middot; {new Date(selectedFichajeForMap.fecha_hora).toLocaleString('es-AR')}</p>
+                <p>📍 <strong>Dirección:</strong> {selectedFichajeForMap.direccion || 'No resuelta'}</p>
+              </div>
+
+              {selectedFichajeForMap.latitud && selectedFichajeForMap.longitud ? (
+                <iframe
+                  title="Georreferenciación Fichaje"
+                  width="100%"
+                  height="220"
+                  src={`https://maps.google.com/maps?q=${selectedFichajeForMap.latitud},${selectedFichajeForMap.longitud}&z=16&output=embed`}
+                  className="rounded-xl border border-stone-200 shadow-xs"
+                />
+              ) : (
+                <p className="text-xs text-stone-450 italic text-center py-8">Este registro no cuenta con coordenadas de Geolocalización.</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedFichajeForMap(null)}
+              className="w-full py-2 bg-stone-900 hover:bg-stone-850 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   );
 }

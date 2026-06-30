@@ -21,6 +21,7 @@ import SupabaseManager from './SupabaseManager';
 import ElPatronLogo from './ElPatronLogo';
 import { useToast, ToastContainer } from './ToastContainer';
 import { saveArcaCredentials, deleteArcaCredentials, testArcaConnection } from '../services/arcaService';
+import { printerService } from '../services/printerService';
 
 
 interface SistemaModuleProps {
@@ -55,6 +56,15 @@ export default function SistemaModule({
   const [dbPingStatus, setDbPingStatus] = useState<'idle' | 'testing' | 'ready'>('idle');
   const [dbPingMs, setDbPingMs] = useState<number>(0);
   const [activeDbEngine, setActiveDbEngine] = useState<'SQLite Local (.db)' | 'PostgreSQL / Supabase (Cloud)'>('PostgreSQL / Supabase (Cloud)');
+
+  // Real Speed/Latency states
+  const [realPingMs, setRealPingMs] = useState<number | null>(null);
+  const [realMbps, setRealMbps] = useState<number | null>(null);
+  const [realNetStatus, setRealNetStatus] = useState<'idle' | 'testing' | 'ready' | 'error'>('idle');
+
+  // Printer diagnostics states
+  const [printerDiagnosticStatus, setPrinterDiagnosticStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle');
+  const [printerTestResult, setPrinterTestResult] = useState<string>('');
 
   // ARCA (AFIP) Credentials Setup States
   const [arcaCuit, setArcaCuit] = useState<string>(() => {
@@ -125,6 +135,87 @@ export default function SistemaModule({
   const ingredientsBelowMin = useMemo(() => {
     return insumos.filter(i => i.stock_actual <= i.stock_minimo);
   }, [insumos]);
+
+  // Real Speed/Latency test
+  const runRealNetworkTest = async () => {
+    setRealNetStatus('testing');
+    const start = Date.now();
+    try {
+      const res = await fetch('https://api.cdnjs.com/libraries?limit=1', { cache: 'no-store' });
+      const end = Date.now();
+      const latency = end - start;
+      setRealPingMs(latency);
+
+      const speedStart = Date.now();
+      const speedRes = await fetch('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js', { cache: 'no-store' });
+      const blob = await speedRes.blob();
+      const speedEnd = Date.now();
+      
+      const durationSecs = (speedEnd - speedStart) / 1000;
+      const sizeBits = blob.size * 8;
+      const mbps = (sizeBits / 1000000) / (durationSecs || 0.1);
+      setRealMbps(parseFloat(mbps.toFixed(2)));
+      setRealNetStatus('ready');
+      addLog('sistema', `DIAGNOSTICO: Test de red. Latencia: ${latency}ms, Velocidad: ${mbps.toFixed(2)} Mbps`);
+      toast.success('Test de red completado.');
+    } catch {
+      setRealNetStatus('error');
+      toast.error('Error al medir la velocidad de red.');
+    }
+  };
+
+  const runPrinterTest = async () => {
+    setPrinterDiagnosticStatus('testing');
+    setPrinterTestResult('');
+    const config = printerService.getDefaultConfig();
+    
+    // Simulate printing dummy ESC/POS ticket
+    const dummyTicket: any = {
+      nombreComercial: 'Pizzería Colores',
+      razonSocial: 'COLORES S.A.S.',
+      cuit: '30-71829384-9',
+      direccion: 'Av. Corrientes 1234, CABA',
+      telefono: '+54 11 9876-5432',
+      email: 'impresion@pizzeriacolores.com',
+      nroComprobante: 'TEST-0001',
+      tipoComprobante: 'ticket_consumo',
+      fechaHora: new Date().toLocaleString('es-AR'),
+      mesa: 'Test',
+      mozo: 'Sistema',
+      cajero: 'Diagnóstico',
+      idPedido: '9999',
+      items: [
+        { descripcion: 'Test de Impresión ESC/POS', cantidad: 1, precio_unitario: 0, precioUnitario: 0, subtotal: 0 }
+      ],
+      subtotal: 0,
+      descuento: 0,
+      propina: 0,
+      iva: 0,
+      total: 0,
+      metodosPago: [{ metodo: 'efectivo', monto: 0 }],
+      vuelto: 0,
+      mensajePie: 'DIAGNOSTICO DE IMPRESION EXITOSO'
+    };
+
+    try {
+      const outcome = await printerService.sendToPrinter(dummyTicket, config);
+      if (outcome.success) {
+        setPrinterDiagnosticStatus('online');
+        setPrinterTestResult(outcome.message);
+        toast.success('Impresión de prueba enviada con éxito.');
+        addLog('sistema', `DIAGNOSTICO: Impresora enlazada y en línea (${config.printerName})`);
+      } else {
+        setPrinterDiagnosticStatus('offline');
+        setPrinterTestResult(outcome.message);
+        toast.warning('Impresora no detectada. Se usará el PDF de respaldo.');
+        addLog('sistema', `DIAGNOSTICO: Impresora fuera de línea (${config.printerName})`);
+      }
+    } catch (err: any) {
+      setPrinterDiagnosticStatus('offline');
+      setPrinterTestResult(err.message || 'Error desconocido.');
+      toast.error('Fallo en la comunicación con el bridge de impresión.');
+    }
+  };
 
   // Simulate active latencies speed test
   const triggerSpeedTest = () => {
@@ -266,30 +357,80 @@ export default function SistemaModule({
               </button>
             </div>
 
-          {/* Test Performance block */}
-          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold">Diagnóstico de Latencia de Red</span>
-              <p className="text-[11px] text-slate-500 mt-0.5">Frecuencia de respuesta de transacciones escandallo de stock síncronos.</p>
-            </div>
+          {/* Double diagnostics block */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* Speed Test Panel */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Test de Velocidad de Red</span>
+                <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 leading-normal">
+                  Mide la latencia real y la velocidad de descarga en vivo de la conexión a internet.
+                </p>
+              </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-              {dbPingStatus === 'ready' && (
-                <div className="text-right shrink-0">
-                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Velocidad Ping</span>
-                  <span className={`font-mono text-xs font-extrabold ${dbPingMs < 50 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {dbPingMs} ms {dbPingMs < 50 ? '(Ultra-Rápido ⚡)' : '(Estable)'}
-                  </span>
+              {realNetStatus !== 'idle' && (
+                <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-850 text-[11px] font-mono space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-450 dark:text-zinc-400">Latencia (Ping):</span>
+                    <span className={`font-black ${realPingMs && realPingMs < 80 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {realPingMs ? `${realPingMs} ms` : 'Midiendo...'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-450 dark:text-zinc-400">Velocidad:</span>
+                    <span className="font-black text-blue-600">
+                      {realMbps ? `${realMbps} Mbps` : 'Calculando...'}
+                    </span>
+                  </div>
                 </div>
               )}
-              
+
               <button
-                onClick={triggerSpeedTest}
-                disabled={dbPingStatus === 'testing'}
-                className="py-1.5 px-3 bg-slate-900 shrink-0 hover:bg-slate-800 text-white rounded-lg text-[10px] font-extrabold flex items-center gap-1.5 transition-all shadow-sm"
+                type="button"
+                onClick={runRealNetworkTest}
+                disabled={realNetStatus === 'testing'}
+                className="w-full py-2 bg-slate-900 dark:bg-zinc-800 text-white text-[10px] font-black uppercase rounded-lg hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0"
               >
-                <Activity className="w-3.5 h-3.5 text-amber-500" />
-                {dbPingStatus === 'testing' ? 'Testeando...' : 'Test Speed'}
+                <Activity className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                {realNetStatus === 'testing' ? 'Analizando Red...' : 'Ejecutar Test de Velocidad'}
+              </button>
+            </div>
+
+            {/* Printer Test Panel */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Diagnóstico de Impresora Térmica</span>
+                <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 leading-normal">
+                  Verifica el enlace local con el bridge de la ticketera física (Puerto 8012).
+                </p>
+              </div>
+
+              {printerDiagnosticStatus !== 'idle' && (
+                <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-850 text-[11px] font-mono space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-450 dark:text-zinc-400">Estado:</span>
+                    <span className={`font-black uppercase ${
+                      printerDiagnosticStatus === 'online' ? 'text-emerald-600' :
+                      printerDiagnosticStatus === 'testing' ? 'text-amber-500' : 'text-rose-600'
+                    }`}>
+                      {printerDiagnosticStatus === 'testing' ? 'Probando...' :
+                       printerDiagnosticStatus === 'online' ? 'En Línea 🟢' : 'Fuera de Línea 🔴'}
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-stone-400 dark:text-zinc-400 leading-snug truncate mt-0.5" title={printerTestResult}>
+                    {printerTestResult}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={runPrinterTest}
+                disabled={printerDiagnosticStatus === 'testing'}
+                className="w-full py-2 bg-slate-900 dark:bg-zinc-800 text-white text-[10px] font-black uppercase rounded-lg hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-500" />
+                {printerDiagnosticStatus === 'testing' ? 'Probando Impresión...' : 'Imprimir Ticket de Prueba'}
               </button>
             </div>
           </div>
