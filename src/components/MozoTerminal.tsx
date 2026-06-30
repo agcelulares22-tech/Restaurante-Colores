@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { 
   Users, 
   Plus, 
@@ -66,6 +66,16 @@ const renderCategoryIcon = (categoriaName: string, categories: any[]) => {
   if (iconName === 'Pizza') return <Pizza className="w-3.5 h-3.5 text-brand-orange" />;
   return <UtensilsCrossed className="w-3.5 h-3.5 text-brand-orange" />;
 };
+
+const CUSTOM_PIZZA_TOPPINGS = [
+  { id: 'top_zanahoria', name: 'Zanahoria', price: 1000, insumoId: 'ins_cebolla', category: 'Verduras', icon: '🥕' },
+  { id: 'top_repollo', name: 'Repollo', price: 1000, insumoId: 'ins_albahaca', category: 'Verduras', icon: '🥬' },
+  { id: 'top_4quesos', name: '4 Quesos', price: 1800, insumoId: 'ins_mozzarella', category: 'Quesos', icon: '🧀' },
+  { id: 'top_roquefort', name: 'Roquefort', price: 1800, insumoId: 'ins_queso_azul', category: 'Quesos', icon: '🧀' },
+  { id: 'top_jamon', name: 'Jamón Ahumado', price: 1500, insumoId: 'ins_jamon_cocido', category: 'Fiambres', icon: '🍖' },
+  { id: 'top_salame', name: 'Salame', price: 1500, insumoId: 'ins_cantimpalo', category: 'Fiambres', icon: '🥓' },
+  { id: 'top_champis', name: 'Champiñones', price: 1500, insumoId: 'ins_morrones', category: 'Hongos', icon: '🍄' },
+];
 
 function MozoTerminal({
   mesas: propMesas,
@@ -500,12 +510,100 @@ function MozoTerminal({
   const [halfPizzaA, setHalfPizzaA] = React.useState<string>('');
   const [halfPizzaB, setHalfPizzaB] = React.useState<string>('');
 
+  const [showCustomPizzaModal, setShowCustomPizzaModal] = React.useState(false);
+  const [customPizzaSize, setCustomPizzaSize] = React.useState<'8 porciones' | '4 porciones'>('8 porciones');
+  const [customPizzaColor, setCustomPizzaColor] = React.useState<string>('Masa tradicional');
+  const [customPizzaSalsa, setCustomPizzaSalsa] = React.useState<string>('Salsa de tomate');
+  const [customSelectedToppings, setCustomSelectedToppings] = React.useState<string[]>([]);
+
   const [showTransferModal, setShowTransferModal] = React.useState(false);
   const [transferTargetTableId, setTransferTargetTableId] = React.useState<number | null>(null);
 
   const [showToppingsModal, setShowToppingsModal] = React.useState(false);
   const [toppingsBaseProduct, setToppingsBaseProduct] = React.useState<any>(null);
   const [selectedToppings, setSelectedToppings] = React.useState<string[]>([]);
+
+  const getToppingStock = useCallback((insumoId: string) => {
+    const ins = insumos.find(i => i.id_insumo === insumoId);
+    return ins ? ins.stock_actual : 0;
+  }, [insumos]);
+
+  const handleCreateCustomPizza = useCallback((
+    size: '8 porciones' | '4 porciones',
+    color: string,
+    salsa: string,
+    selectedToppingIds: string[]
+  ) => {
+    const baseProdId = size === '8 porciones' 
+      ? 'prod_pizz_arma_tu_pizza_grande' 
+      : 'prod_pizz_arma_tu_pizza_individual';
+
+    const baseProd = productosMenu.find(p => p.id_producto === baseProdId);
+    if (!baseProd) {
+      toast.error('No se encontró el producto base para armar la pizza.');
+      return;
+    }
+
+    const selectedTops = CUSTOM_PIZZA_TOPPINGS.filter(t => selectedToppingIds.includes(t.id));
+    const toppingsName = selectedTops.map(t => t.name).join(', ');
+    
+    const customName = `${baseProd.nombre} (${color}, ${salsa}${toppingsName ? ', con ' + toppingsName : ''})`;
+    const toppingsTotal = selectedTops.reduce((sum, t) => sum + t.price, 0);
+    const customPrice = baseProd.precio_venta + toppingsTotal;
+
+    const sortedIds = [...selectedToppingIds].sort().join('_');
+    const customId = `custom_pizza_${baseProd.id_producto}_${color.replace(/\s+/g, '_')}_${salsa.replace(/\s+/g, '_')}_${sortedIds}`;
+
+    if (!productosMenu.some(p => p.id_producto === customId)) {
+      const newProduct: ProductoMenu = {
+        id_producto: customId,
+        nombre: customName,
+        descripcion: `Pizza armada a medida: Masa ${color}, ${salsa}. Adicionales: ${toppingsName || 'Ninguno'}.`,
+        precio_venta: customPrice,
+        categoria: 'Pizzas',
+        activo: true,
+        imagen: baseProd.imagen,
+        tipo: 'plato',
+        tiempo_preparacion_estimado: baseProd.tiempo_preparacion_estimado || 15,
+        requiere_cocina: baseProd.requiere_cocina
+      };
+      
+      setProductosMenu(prev => [...prev, newProduct]);
+
+      const baseRecipes = recetas.filter(r => r.id_producto === baseProdId);
+      const newRecipes: RecetaEscandallo[] = [];
+
+      baseRecipes.forEach(r => {
+        newRecipes.push({
+          id_receta: `esc_${customId}_${r.id_insumo}`,
+          id_producto: customId,
+          id_insumo: r.id_insumo,
+          cantidad_a_descontar: r.cantidad_a_descontar,
+          indigo_key: `custom_${customId}`,
+          unidad_medida: r.unidad_medida
+        } as any);
+      });
+
+      selectedTops.forEach(t => {
+        const existing = newRecipes.find(rec => rec.id_insumo === t.insumoId);
+        if (existing) {
+          existing.cantidad_a_descontar += 50; 
+        } else {
+          newRecipes.push({
+            id_receta: `esc_${customId}_${t.id}`,
+            id_producto: customId,
+            id_insumo: t.insumoId,
+            cantidad_a_descontar: 50, 
+            unidad_medida: 'g'
+          });
+        }
+      });
+
+      newRecipes.forEach(rec => recetas.push(rec));
+    }
+
+    handleAddToCart(customId, 1);
+  }, [productosMenu, recetas, setProductosMenu, handleAddToCart, toast]);
 
   const pizzaProducts = useMemo(() => {
     return productosMenu.filter(p => p.activo && p.categoria.toLowerCase().includes('pizza') && !p.id_producto.startsWith('half_') && !p.id_producto.includes('_with_'));
@@ -917,6 +1015,20 @@ function MozoTerminal({
               >
                 <Pizza className="w-3.5 h-3.5" />
                 Mitad y Mitad
+              </button>
+
+              <button
+                onClick={() => {
+                  setCustomPizzaSize('8 porciones');
+                  setCustomPizzaColor('Masa tradicional');
+                  setCustomPizzaSalsa('Salsa de tomate');
+                  setCustomSelectedToppings([]);
+                  setShowCustomPizzaModal(true);
+                }}
+                className="min-h-11 py-2 px-4 rounded-xl text-xs font-black bg-[#fff3cd] hover:bg-[#ffda6a] text-[#664d03] border border-[#ffda6a] cursor-pointer transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                title="Armar Pizza Personalizada"
+              >
+                🍕 Armá tu Pizza
               </button>
             </div>
           </div>
@@ -1741,6 +1853,208 @@ function MozoTerminal({
               >
                 <Plus className="w-4 h-4" />
                 Agregar Pizza
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ARMÁ TU PIZZA */}
+      {showCustomPizzaModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl flex flex-col gap-4 text-zinc-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-white/5">
+              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+                🍕 Armar Pizza Personalizada
+              </h3>
+              <button onClick={() => setShowCustomPizzaModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* A) Tamaño de la Pizza */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">A) Tamaño de la Pizza</label>
+                <div className="flex gap-3">
+                  {[
+                    { id: '8 porciones', label: '8 porciones (Grande)' },
+                    { id: '4 porciones', label: '4 porciones (Individual)' }
+                  ].map(size => (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={() => setCustomPizzaSize(size.id as any)}
+                      className={`flex-1 py-2.5 px-4 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                        customPizzaSize === size.id
+                          ? 'bg-[#0ea5e9] text-zinc-950 border-[#0ea5e9]'
+                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                      }`}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* B) Color / Tipo de Masa */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">B) Color / Tipo de Masa</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'Masa tradicional', label: 'Tradicional' },
+                    { id: 'Morado', label: 'Morado 💜' },
+                    { id: 'Rojo', label: 'Rojo ❤️' },
+                    { id: 'Negra', label: 'Negra 🖤' }
+                  ].map(color => (
+                    <button
+                      key={color.id}
+                      type="button"
+                      onClick={() => setCustomPizzaColor(color.id)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                        customPizzaColor === color.id
+                          ? 'bg-[#2a9d8f] text-white border-[#2a9d8f]'
+                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                      }`}
+                    >
+                      {color.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* C) Salsa de Base */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">C) Salsa de Base</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'Salsa de tomate', label: 'Tomate 🍅' },
+                    { id: 'Salsa de hongos', label: 'Hongos 🍄' },
+                    { id: 'Sin salsa', label: 'Sin Salsa' }
+                  ].map(salsa => (
+                    <button
+                      key={salsa.id}
+                      type="button"
+                      onClick={() => setCustomPizzaSalsa(salsa.id)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                        customPizzaSalsa === salsa.id
+                          ? 'bg-[#2a9d8f] text-white border-[#2a9d8f]'
+                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                      }`}
+                    >
+                      {salsa.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* D) Toppings Seleccionados */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">D) Toppings Seleccionados</label>
+                  <span className={`text-xs font-mono font-bold ${
+                    customSelectedToppings.length >= 5 ? 'text-brand-orange animate-pulse' : 'text-zinc-500'
+                  }`}>
+                    ({customSelectedToppings.length}/5)
+                  </span>
+                </div>
+
+                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  {['Verduras', 'Quesos', 'Fiambres', 'Hongos'].map(cat => {
+                    const topsInCat = CUSTOM_PIZZA_TOPPINGS.filter(t => t.category === cat);
+                    return (
+                      <div key={cat} className="bg-zinc-950/30 border border-white/5 rounded-2xl p-3 space-y-2">
+                        <span className="text-[10px] font-black tracking-wider text-zinc-500 uppercase block">{cat}</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          {topsInCat.map(topping => {
+                            const isChecked = customSelectedToppings.includes(topping.id);
+                            const stock = getToppingStock(topping.insumoId);
+                            const isOutOfStock = stock <= 0;
+                            const isDisabled = isOutOfStock && !permitirVentaSinStock;
+                            
+                            const isMaxReached = customSelectedToppings.length >= 5 && !isChecked;
+
+                            return (
+                              <label
+                                key={topping.id}
+                                className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                                  isDisabled 
+                                    ? 'opacity-40 cursor-not-allowed border-dashed border-white/5 bg-zinc-950/10'
+                                    : isChecked 
+                                      ? 'border-[#2a9d8f] bg-[#2a9d8f]/10 text-zinc-100 font-bold cursor-pointer' 
+                                      : 'border-white/5 bg-zinc-950/40 text-zinc-400 hover:bg-zinc-950/80 hover:text-zinc-300 cursor-pointer'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    disabled={isDisabled || (isMaxReached && !isChecked)}
+                                    onChange={() => {
+                                      if (isChecked) {
+                                        setCustomSelectedToppings(prev => prev.filter(id => id !== topping.id));
+                                      } else {
+                                        setCustomSelectedToppings(prev => [...prev, topping.id]);
+                                      }
+                                    }}
+                                    className="w-4 h-4 rounded text-[#2a9d8f] focus:ring-[#2a9d8f]/30 bg-zinc-950"
+                                  />
+                                  <span className="text-xs truncate">{topping.icon} {topping.name}</span>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="font-mono text-[10px] text-brand-yellow font-black block">+${topping.price}</span>
+                                  {isOutOfStock && (
+                                    <span className="text-[8px] bg-red-950/40 text-red-400 border border-red-900/30 px-1 rounded-sm block">SIN STOCK</span>
+                                  )}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Total calculations */}
+              {(() => {
+                const basePrice = customPizzaSize === '8 porciones' ? 22000 : 11000;
+                const toppingsPrice = CUSTOM_PIZZA_TOPPINGS
+                  .filter(t => customSelectedToppings.includes(t.id))
+                  .reduce((sum, t) => sum + t.price, 0);
+                const totalPrice = basePrice + toppingsPrice;
+                return (
+                  <div className="bg-zinc-950 text-white rounded-xl p-3 flex justify-between items-center border border-white/5">
+                    <div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase block">Total Estimado:</span>
+                      <span className="font-mono text-base font-black text-brand-yellow">${totalPrice.toLocaleString('es-AR')}</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-450 font-bold">Base: ${basePrice.toLocaleString('es-AR')}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex gap-3 pt-2 border-t border-white/5 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowCustomPizzaModal(false)}
+                className="flex-1 min-h-11 bg-zinc-950/60 hover:bg-zinc-900 text-zinc-400 rounded-xl text-sm cursor-pointer transition-colors border border-white/5 active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleCreateCustomPizza(customPizzaSize, customPizzaColor, customPizzaSalsa, customSelectedToppings);
+                  setShowCustomPizzaModal(false);
+                  toast.success('Pizza personalizada agregada a la bolsa.');
+                }}
+                className="flex-1 min-h-11 bg-brand-yellow text-brand-black hover:bg-brand-yellow/90 font-black rounded-xl text-sm cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg glow-yellow"
+              >
+                <Plus className="w-4 h-4" />
+                Confirmar Agregar
               </button>
             </div>
           </div>
