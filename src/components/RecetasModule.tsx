@@ -269,10 +269,18 @@ function RecetasModule({
 
   useEffect(() => { setLocalRecetas(recetas); }, [recetas]);
   
+  const [insumoSearch, setInsumoSearch] = useState('');
+
   // Limpiar imagen pendiente al cambiar de plato
   useEffect(() => {
     setPendingImage(null);
   }, [activeTabRecipe]);
+
+  const filteredInsumos = useMemo(() => {
+    if (!insumoSearch.trim()) return insumos;
+    const term = insumoSearch.toLowerCase();
+    return insumos.filter(i => i.nombre.toLowerCase().includes(term));
+  }, [insumos, insumoSearch]);
 
   // Asegura que el tab activo siga siendo válido si cambia el menú
   useEffect(() => {
@@ -342,6 +350,7 @@ function RecetasModule({
         setCantidadUsar('');
         setRendimientoUsar('100');
         setSelectedInsumoId('');
+        setInsumoSearch('');
 
                                               try {
                                                       await recetasService.create(newRec);
@@ -597,7 +606,9 @@ function RecetasModule({
                                             const isBusy     = !!pendingAction;
                           
                                             return (
-                                                                  <div key={rec.id_receta} className="px-5 py-3 flex items-center gap-3 hover:bg-stone-50/50 transition-colors">
+                                                                  <div key={rec.id_receta} className={`px-5 py-3 flex items-center gap-3 hover:bg-stone-50/50 transition-colors ${
+                                                                    !stockOk ? 'bg-rose-500/5 border-l-4 border-rose-500' : ''
+                                                                  }`}>
                                                                     {/* Indicador de stock */}
                                                                                         <div className={`w-2 h-2 rounded-full shrink-0 ${ins ? (stockOk ? 'bg-emerald-500' : 'bg-red-400') : 'bg-stone-300'}`}
                                                                                                                      title={ins ? (stockOk ? 'Stock OK' : 'Stock insuficiente') : 'Insumo no encontrado'} />
@@ -605,9 +616,14 @@ function RecetasModule({
                                                                                         <div className="flex-1 min-w-0">
                                                                                                                 <p className="text-sm font-semibold text-stone-800 truncate">{ins?.nombre ?? rec.id_insumo}</p>
                                                                                           {ins && (
-                                                                                              <p className="text-[11px] text-stone-400">
-                                                                                                                          Stock: {ins.stock_actual} {ins.unidad_medida}
-                                                                                                {ins.costo_unitario ? ` · $${ins.costo_unitario}/u` : ''}
+                                                                                              <p className="text-[11px] text-stone-400 flex items-center flex-wrap gap-1.5">
+                                                                                                                          <span>Stock: {ins.stock_actual} {ins.unidad_medida}</span>
+                                                                                                {!stockOk && (
+                                                                                                  <span className="px-1.5 py-0.5 bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 text-[8px] font-black uppercase rounded animate-pulse">
+                                                                                                    ¡Insuficiente!
+                                                                                                  </span>
+                                                                                                )}
+                                                                                                {ins.costo_unitario ? <span className="opacity-60">· ${ins.costo_unitario}/u</span> : ''}
                                                                                                 </p>
                                                                                                                 )}
                                                                                           </div>
@@ -708,16 +724,26 @@ function RecetasModule({
                                                           <Plus className="w-3.5 h-3.5" /> Agregar ingrediente
                                             </h4>
                                             <form onSubmit={handleAddIngredient} className="flex flex-wrap gap-2 items-end">
-                                                          <div className="flex-1 min-w-[160px]">
+                                                          <div className="flex-1 min-w-[180px] space-y-1">
                                                                           <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Insumo</label>
+                                                                          <div className="relative">
+                                                                            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                                                                            <input
+                                                                              type="text"
+                                                                              placeholder="Buscar insumo..."
+                                                                              value={insumoSearch}
+                                                                              onChange={e => setInsumoSearch(e.target.value)}
+                                                                              className="w-full pl-8 pr-2.5 py-1.5 text-xs border border-stone-205 border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#624A3E] bg-stone-50/50 mb-1"
+                                                                            />
+                                                                          </div>
                                                                           <select
                                                                                               value={selectedInsumoId}
                                                                                               onChange={e => setSelectedInsumoId(e.target.value)}
-                                                                                              className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 cursor-pointer"
+                                                                                              className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 cursor-pointer text-stone-700 font-bold"
                                                                                               aria-label="Seleccionar insumo"
                                                                                             >
                                                                                             <option value="">Seleccionar insumo…</option>
-                                                                            {insumos.map(ins => (
+                                                                            {filteredInsumos.map(ins => (
                                                                                                                   <option key={ins.id_insumo} value={ins.id_insumo}>
                                                                                                                     {ins.nombre} ({ins.stock_actual} {ins.unidad_medida} disponibles)
                                                                                                                     </option>
