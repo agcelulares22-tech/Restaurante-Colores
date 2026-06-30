@@ -1061,7 +1061,11 @@ function DeliveryModule({
     const cleanPhone = clientPhoneVal.replace(/\D/g, '');
     let formattedPhone = cleanPhone;
     if (formattedPhone.length > 0 && !formattedPhone.startsWith('54')) {
-      formattedPhone = '54' + formattedPhone;
+      if (formattedPhone.length === 10) {
+        formattedPhone = '549' + formattedPhone;
+      } else {
+        formattedPhone = '54' + formattedPhone;
+      }
     }
     
     const trackingLink = `https://colores.menu/track/${pedido.id_pedido}`;
