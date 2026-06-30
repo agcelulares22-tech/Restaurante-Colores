@@ -438,7 +438,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Personal Activo Ahora</span>
+              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-400">Personal Activo Ahora</span>
               <h3 className="text-2xl font-black text-stone-850 dark:text-zinc-100 mt-0.5">{stats.activos.length}</h3>
               <p className="text-[10px] text-stone-500 dark:text-zinc-400 leading-tight mt-0.5 truncate max-w-[300px]">
                 {stats.activos.length > 0 ? stats.activos.join(', ') : 'Ningún empleado ha fichado ingreso hoy'}
@@ -451,7 +451,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Total Fichajes Hoy</span>
+              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-400">Total Fichajes Hoy</span>
               <h3 className="text-2xl font-black text-stone-850 dark:text-zinc-100 mt-0.5">{stats.fichajesHoy}</h3>
               <p className="text-[10px] text-stone-500 dark:text-zinc-400 leading-tight mt-0.5">Fichajes totales registrados durante la jornada de hoy</p>
             </div>
@@ -466,7 +466,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
           
           {/* Live Clock Card */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-stone-200 dark:border-slate-800 shadow-sm text-center space-y-5">
-            <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500 block">Reloj de Control</span>
+            <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-400 block">Reloj de Control</span>
             
             <div className="space-y-1">
               <h1 className="text-4xl sm:text-5xl font-black font-mono text-stone-850 dark:text-zinc-100 tracking-tight">
@@ -483,7 +483,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
             </div>
 
             {/* GPS Diagnostics Widget */}
-            <div className={`p-4 rounded-xl border text-left flex items-start gap-3 ${
+            <div className={`p-4 rounded-2xl border transition-all ${
               locationStatus === 'success' ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900' :
               locationStatus === 'requesting' ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900' : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900'
             }`}>
@@ -492,7 +492,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 locationStatus === 'requesting' ? 'text-amber-500 animate-bounce' : 'text-rose-500 dark:text-rose-400'
               }`} />
               <div className="space-y-1 min-w-0">
-                <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Geolocalización GPS</span>
+                <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-400">Geolocalización GPS</span>
                  {locationStatus === 'success' && coords ? (
                   <div className="text-xs text-slate-700 dark:text-zinc-300 space-y-0.5">
                     <div className="flex items-center gap-2">
@@ -509,8 +509,8 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                     {direccionResolvida && (
                       <p className="font-extrabold text-stone-850 dark:text-zinc-100 text-sm py-0.5">📍 {direccionResolvida}</p>
                     )}
-                    <p className="font-mono text-[9px] text-slate-400 dark:text-zinc-500">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
-                    <p className="text-[9px] text-slate-400 dark:text-zinc-500">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
+                    <p className="font-mono text-[9px] text-slate-400 dark:text-zinc-400">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
+                    <p className="text-[9px] text-slate-400 dark:text-zinc-400">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
                     <iframe
                       title="Georreferenciación en vivo"
                       width="100%"
@@ -610,7 +610,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                   <Calendar className="w-5 h-5 text-brand-orange" />
                   {isAdmin ? 'Panel de Control del Dueño - Fichajes de Personal' : 'Mi Historial de Asistencia Reciente'}
                 </h3>
-                <p className="text-[10px] text-stone-400 dark:text-zinc-500 mt-0.5">
+                <p className="text-[10px] text-stone-400 dark:text-zinc-400 mt-0.5">
                   {isAdmin ? 'Reporte consolidado e historial de toda la nómina de trabajadores.' : 'Visualización de tus últimos ingresos y salidas registrados.'}
                 </p>
               </div>
@@ -632,7 +632,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 
                 {/* Employee Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-400 tracking-wider flex items-center gap-1">
                     <Users className="w-3 h-3" /> Empleado
                   </label>
                   <select
@@ -649,7 +649,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
                 {/* Type Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-400 tracking-wider flex items-center gap-1">
                     <Filter className="w-3 h-3" /> Tipo de registro
                   </label>
                   <select
@@ -665,7 +665,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
                 {/* Date Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-400 tracking-wider flex items-center gap-1">
                     <Calendar className="w-3 h-3" /> Rango temporal
                   </label>
                   <select
@@ -699,7 +699,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 <div className="overflow-x-auto hidden md:block">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-stone-150 dark:border-slate-800 text-[10px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-wider bg-stone-50 dark:bg-slate-900">
+                      <tr className="border-b border-stone-150 dark:border-slate-800 text-[10px] font-black text-stone-400 dark:text-zinc-400 uppercase tracking-wider bg-stone-50 dark:bg-slate-900">
                         {isAdmin && <th className="py-2.5 px-3">Empleado</th>}
                         <th className="py-2.5 px-3">Tipo</th>
                         <th className="py-2.5 px-3">Día</th>
@@ -748,22 +748,22 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                                       <button
                                         type="button"
                                         onClick={() => setSelectedFichajeForMap(f)}
-                                        className="text-[#624A3E] font-extrabold flex items-center gap-1 hover:underline text-[10px] cursor-pointer bg-amber-50 hover:bg-amber-100/85 px-1.5 py-0.5 rounded border border-amber-200/50"
+                                        className="text-[#624A3E] dark:text-amber-300 font-extrabold flex items-center gap-1 hover:underline text-[10px] cursor-pointer bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/85 dark:hover:bg-amber-900/40 px-1.5 py-0.5 rounded border border-amber-200/50 dark:border-amber-900/50"
                                       >
-                                        <MapPin className="w-3 h-3 text-[#624A3E]" />
+                                        <MapPin className="w-3 h-3 text-[#624A3E] dark:text-amber-300" />
                                         Ver Mapa
                                       </button>
                                       <a
                                         href={googleMapsUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-stone-400 hover:text-stone-600 cursor-pointer"
+                                        className="text-stone-400 hover:text-stone-600 dark:text-zinc-400 dark:hover:text-zinc-300 cursor-pointer"
                                         title="Abrir en Google Maps"
                                       >
                                         <ExternalLink className="w-3 h-3" />
                                       </a>
                                     </div>
-                                    <span className="truncate max-w-[160px] text-[10px] text-stone-500 font-medium block">
+                                    <span className="truncate max-w-[160px] text-[10px] text-stone-500 dark:text-zinc-300 font-medium block">
                                       {f.direccion || `${f.latitud.toFixed(5)}, ${f.longitud.toFixed(5)}`}
                                     </span>
                                     {renderGeofenceBadge(f.latitud, f.longitud)}
