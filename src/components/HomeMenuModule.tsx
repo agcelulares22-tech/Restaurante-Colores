@@ -22,7 +22,8 @@ import {
   AlertTriangle,
   Truck,
   Percent,
-  ExternalLink
+  ExternalLink,
+  BarChart3
 } from 'lucide-react';
 import { Mesa, Pedido, Insumo, ProductoMenu, Usuario } from '../types';
 import { AppView } from '../lib/permissions';
@@ -95,6 +96,65 @@ export default function HomeMenuModule({
   // Ticket Promedio
   const ticketCount = pedidos.filter(p => p.estado_comanda === 'entregado_cobrado').length;
   const averageTicket = ticketCount > 0 ? Math.round(totalSales / ticketCount) : 0;
+
+  // Pedidos cobrados para análisis gráfico
+  const pedidosCobrados = useMemo(
+    () => pedidos.filter(p => p.estado_comanda === 'entregado_cobrado'),
+    [pedidos]
+  );
+
+  // Tendencia de ventas de los últimos 7 días
+  const dailyTrend = useMemo(() => {
+    const trend: { label: string; total: number }[] = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
+      
+      const daySales = pedidosCobrados.reduce((acc, p) => {
+        const pDateStr = new Date(p.fecha_hora).toISOString().split('T')[0];
+        if (pDateStr === dateStr) {
+          const subtotal = p.items.reduce((s, item) => {
+            const precio = item.precio_unitario ?? precioMap.get(item.id_producto) ?? 0;
+            return s + precio * item.cantidad;
+          }, 0);
+          return acc + subtotal;
+        }
+        return acc;
+      }, 0);
+      
+      trend.push({ label, total: daySales });
+    }
+    return trend;
+  }, [pedidosCobrados, precioMap]);
+
+  const maxSales = useMemo(() => {
+    return Math.max(...dailyTrend.map(d => d.total), 1000);
+  }, [dailyTrend]);
+
+  // Top 5 productos vendidos
+  const topProducts = useMemo(() => {
+    const counts = new Map<string, { nombre: string; cantidad: number }>();
+    pedidosCobrados.forEach(p => {
+      p.items.forEach(item => {
+        if (item.id_producto === 'prod_costo_envio_delivery') return;
+        const prev = counts.get(item.id_producto) ?? { nombre: item.nombre, cantidad: 0 };
+        counts.set(item.id_producto, {
+          nombre: item.nombre,
+          cantidad: prev.cantidad + item.cantidad
+        });
+      });
+    });
+    return Array.from(counts.values())
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+  }, [pedidosCobrados]);
+
+  const maxQty = useMemo(() => {
+    return Math.max(...topProducts.map(p => p.cantidad), 1);
+  }, [topProducts]);
 
   // Operational Shift detection
   const shiftInfo = useMemo(() => {
@@ -442,6 +502,110 @@ export default function HomeMenuModule({
         </div>
  
       </div>
+
+      {/* 2.5 Admin Insights & Charts */}
+      {(activeRol === 'administrador' || activeRol === 'superadmin') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+          {/* Daily Sales Bar Chart */}
+          <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md backdrop-blur-md flex flex-col justify-between transition-colors duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-4 h-4 text-brand-orange" />
+              <h4 className="text-xs font-black text-slate-700 dark:text-zinc-300 uppercase tracking-wider">Tendencia de Ventas Diarias (7d)</h4>
+            </div>
+            <div className="flex-1 flex items-center justify-center min-h-[160px]">
+              <svg viewBox="0 0 320 140" className="w-full h-auto">
+                <line x1="20" y1="20" x2="300" y2="20" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="1" strokeDasharray="4 4" />
+                <line x1="20" y1="60" x2="300" y2="60" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="1" strokeDasharray="4 4" />
+                <line x1="20" y1="100" x2="300" y2="100" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="1" />
+                
+                {dailyTrend.map((d, i) => {
+                  const barWidth = 24;
+                  const spacing = 40;
+                  const x = 20 + i * spacing + (spacing - barWidth) / 2;
+                  const barHeight = maxSales > 0 ? (d.total / maxSales) * 80 : 0;
+                  const y = 100 - barHeight;
+                  
+                  return (
+                    <g key={i} className="group cursor-pointer">
+                      <title>{`${d.label}: $${d.total.toLocaleString('es-AR')}`}</title>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={barWidth}
+                        height={barHeight}
+                        rx="4"
+                        fill={i === 6 ? '#E85D00' : '#E8B800'}
+                        className="transition-all duration-300 hover:opacity-80"
+                      />
+                      {d.total > 0 && (
+                        <text
+                          x={x + barWidth / 2}
+                          y={y - 6}
+                          textAnchor="middle"
+                          className="fill-slate-700 dark:fill-zinc-300 font-mono font-bold text-[8px]"
+                        >
+                          {d.total >= 1000 ? `$${Math.round(d.total / 1000)}k` : `$${d.total}`}
+                        </text>
+                      )}
+                      <text
+                        x={x + barWidth / 2}
+                        y="118"
+                        textAnchor="middle"
+                        className="fill-slate-400 dark:fill-zinc-500 font-sans font-semibold text-[8px] uppercase"
+                      >
+                        {d.label.split(' ')[0]}
+                      </text>
+                      <text
+                        x={x + barWidth / 2}
+                        y="128"
+                        textAnchor="middle"
+                        className="fill-slate-500 dark:fill-zinc-400 font-mono text-[7px]"
+                      >
+                        {d.label.split(' ')[1] || ''}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
+
+          {/* Top 5 Products Horizontal Progress Bars */}
+          <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md backdrop-blur-md flex flex-col justify-between transition-colors duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-4 h-4 text-brand-yellow" />
+              <h4 className="text-xs font-black text-slate-700 dark:text-zinc-300 uppercase tracking-wider">Top 5 Productos Vendidos</h4>
+            </div>
+            <div className="flex-1 flex flex-col justify-center min-h-[160px]">
+              {topProducts.length > 0 ? (
+                <div className="space-y-3">
+                  {topProducts.map((p, i) => {
+                    const widthPct = maxQty > 0 ? (p.cantidad / maxQty) * 100 : 0;
+                    return (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-xs font-bold text-slate-750 dark:text-zinc-200">
+                          <span className="truncate max-w-[200px]">{p.nombre}</span>
+                          <span className="font-mono text-slate-500 dark:text-zinc-400">{p.cantidad} u.</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-brand-yellow h-full rounded-full transition-all duration-550"
+                            style={{ width: `${widthPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                  No hay ventas registradas en el turno actual
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Shortcuts Panel */}
       <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-zinc-700 rounded-3xl p-5 max-w-7xl mx-auto space-y-4 shadow-lg transition-colors duration-300">
