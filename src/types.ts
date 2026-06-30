@@ -329,6 +329,7 @@ export interface Promocion {
   descuento_porcentaje: number;
   activo: boolean;
   dias_vigentes?: string;
+  fecha_vencimiento?: string;
 }
 
 export interface Reserva {

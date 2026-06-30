@@ -30,6 +30,7 @@ import {
   Tag
 } from 'lucide-react';
 import { facturacionService } from '../services/facturacionService';
+import { promocionesService, Promocion } from '../services/promocionesService';
 import { 
   Pedido, 
   ProductoMenu, 
@@ -208,6 +209,25 @@ function CajaModule({
   // Mercado Pago QR Simulator State
   const [showMpQrSimulator, setShowMpQrSimulator] = useState(false);
   const [mpQrStep, setMpQrStep] = useState<'scan' | 'success'>('scan');
+
+  const [activePromos, setActivePromos] = useState<Promocion[]>([]);
+
+  useEffect(() => {
+    promocionesService.list()
+      .then(data => {
+        const now = Date.now();
+        const activeAndNotExpired = (data || []).filter(p => {
+          if (!p.activo) return false;
+          if (p.fecha_vencimiento) {
+            const expiry = new Date(p.fecha_vencimiento + 'T23:59:59').getTime();
+            return expiry >= now;
+          }
+          return true;
+        });
+        setActivePromos(activeAndNotExpired);
+      })
+      .catch(console.error);
+  }, [showSuccessModal, selectedPedidoId]);
 
   const playSuccessBeep = () => {
     try {
@@ -1878,6 +1898,39 @@ function CajaModule({
                             15% Propina
                           </button>
                         </div>
+
+                        {/* Fila Promociones Vigentes */}
+                        {activePromos.length > 0 && (
+                          <div className="border-t border-white/5 pt-2 mt-1 space-y-1">
+                            <span className="text-[8px] font-bold text-emerald-450 dark:text-emerald-400 uppercase tracking-widest block">Campañas Activas (Aplicar)</span>
+                            <div className="flex flex-wrap gap-1">
+                              {activePromos.map(promo => {
+                                const isApplied = tipoDescuento === 'porcentaje' && descuentoPorcentaje === promo.descuento_porcentaje;
+                                return (
+                                  <button
+                                    key={promo.id_promo}
+                                    type="button"
+                                    onClick={() => {
+                                      setTipoDescuento('porcentaje');
+                                      setDescuentoMonto(0);
+                                      setDescuentoPorcentaje(promo.descuento_porcentaje);
+                                      toast.success(`Campaña "${promo.nombre}" (-${promo.descuento_porcentaje}%) aplicada.`);
+                                    }}
+                                    className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer flex items-center gap-1 ${
+                                      isApplied
+                                        ? 'bg-emerald-650 text-white border-emerald-600 shadow-md animate-pulse'
+                                        : 'bg-zinc-900 border-white/10 text-emerald-400 hover:text-emerald-300'
+                                    }`}
+                                    title={promo.descripcion}
+                                  >
+                                    <Tag className="w-2.5 h-2.5" />
+                                    {promo.nombre.split(' ')[0]} (-{promo.descuento_porcentaje}%)
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

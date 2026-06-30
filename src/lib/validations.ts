@@ -39,13 +39,13 @@ export const reservaSchema = z.object({
     fecha:          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha en formato YYYY-MM-DD').optional(),
 });
 
-// ── Promociones ───────────────────────────────────────────────────────────────
 export const promocionSchema = z.object({
     nombre:               z.string().trim().min(2, 'Nombre de promoción requerido').max(100),
     descuento_porcentaje: z.number().int().min(1, 'Mínimo 1%').max(100, 'Máximo 100%'),
     tipo:                 z.enum(['happy_hour', 'combo', 'descuento_directo']),
     vigencia:             z.string().max(100).optional(),
     descripcion:          z.string().max(300).optional(),
+    fecha_vencimiento:    z.string().max(30).optional().nullable(),
 });
 
 // ── Items del menú ────────────────────────────────────────────────────────────

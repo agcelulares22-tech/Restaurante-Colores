@@ -17,10 +17,10 @@ const TIPO_LABELS: Record<Promocion['tipo'], string> = {
 };
 
 const DEFAULT_PROMOS: Promocion[] = [
-  { id_promo: 'p_1', nombre: 'Happy Hour 2x1 Tragos & Cervezas', descuento_porcentaje: 50, tipo: 'happy_hour', dias_vigentes: 'Lun a Vie - 18 a 21hs', activo: true, descripcion: 'Aplica a vinos seleccionados y bebidas de línea comercial' },
-  { id_promo: 'p_2', nombre: 'Combo Ejecutivo Pizzería Colores', descuento_porcentaje: 20, tipo: 'combo', dias_vigentes: 'Lun a Sab - Almuerzo', activo: true, descripcion: 'Pizza grande de la casa + bebida sin alcohol con descuento integrado' },
+  { id_promo: 'p_1', nombre: 'Happy Hour 2x1 Tragos & Cervezas', descuento_porcentaje: 50, tipo: 'happy_hour', dias_vigentes: 'Lun a Vie - 18 a 21hs', activo: true, descripcion: 'Aplica a vinos seleccionados y bebidas de línea comercial', fecha_vencimiento: '2026-07-10' },
+  { id_promo: 'p_2', nombre: 'Combo Ejecutivo Pizzería Colores', descuento_porcentaje: 20, tipo: 'combo', dias_vigentes: 'Lun a Sab - Almuerzo', activo: true, descripcion: 'Pizza grande de la casa + bebida sin alcohol con descuento integrado', fecha_vencimiento: '2026-07-25' },
   { id_promo: 'p_3', nombre: '15% Off Pago Efectivo / Arqueo', descuento_porcentaje: 15, tipo: 'descuento_directo', dias_vigentes: 'Todos los días - Completo', activo: true, descripcion: 'Descuento directo que aplica el cajero al cobrar en mostrador' },
-  { id_promo: 'p_4', nombre: '25% Especial Cumpleañeros', descuento_porcentaje: 25, tipo: 'descuento_directo', dias_vigentes: 'Todos los días', activo: false, descripcion: 'Presentando documentación al mesero encargado' },
+  { id_promo: 'p_4', nombre: '25% Especial Cumpleañeros', descuento_porcentaje: 25, tipo: 'descuento_directo', dias_vigentes: 'Todos los días', activo: false, descripcion: 'Presentando documentación al mesero encargado', fecha_vencimiento: '2026-06-25' },
 ];
 
 export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
@@ -57,11 +57,12 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
   const [tipo, setTipo] = useState<Promocion['tipo']>('descuento_directo');
   const [vigencia, setVigencia] = useState('');
   const [desc, setDesc] = useState('');
+  const [fechaVencimiento, setFechaVencimiento] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
   const resetForm = () => {
     setNombre(''); setDescuento(''); setTipo('descuento_directo');
-    setVigencia(''); setDesc(''); setFormErrors([]); setEditingId(null);
+    setVigencia(''); setDesc(''); setFechaVencimiento(''); setFormErrors([]); setEditingId(null);
   };
 
   // ── Validar con Zod ──────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       tipo,
       vigencia: vigencia || undefined,
       descripcion: desc || undefined,
+      fecha_vencimiento: fechaVencimiento || undefined,
     });
     if (!result.success) {
       setFormErrors(result.error.issues.map(i => i.message));
@@ -95,6 +97,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       dias_vigentes: vigencia.trim() || 'Todos los días',
       activo: true,
       descripcion: desc.trim() || 'Precios promocionales y combos especiales',
+      fecha_vencimiento: fechaVencimiento || undefined,
     };
 
     const previous = promos;
@@ -122,6 +125,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
     setTipo(p.tipo);
     setVigencia(p.dias_vigentes ?? '');
     setDesc(p.descripcion ?? '');
+    setFechaVencimiento(p.fecha_vencimiento || '');
     setFormErrors([]);
   };
 
@@ -138,6 +142,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       dias_vigentes: vigencia.trim() || 'Todos los días',
       activo: promos.find(p => p.id_promo === editingId)?.activo ?? true,
       descripcion: desc.trim(),
+      fecha_vencimiento: fechaVencimiento || undefined,
     };
 
     const previous = promos;
@@ -276,7 +281,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
               />
             </div>
 
-            <div>
+             <div>
               <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Descripción</label>
               <textarea
                 value={desc}
@@ -284,6 +289,16 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                 rows={2}
                 className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 resize-none"
                 placeholder="Condiciones y alcance..."
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Fecha de Vencimiento (Opcional)</label>
+              <input
+                type="date"
+                value={fechaVencimiento}
+                onChange={e => setFechaVencimiento(e.target.value)}
+                className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 text-stone-750 dark:text-zinc-200"
               />
             </div>
 
@@ -335,6 +350,9 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
           <div className="space-y-3">
             {filteredPromos.map(p => {
               const isBusy = !!pendingAction;
+              const isExpired = p.fecha_vencimiento && new Date(p.fecha_vencimiento + 'T23:59:59').getTime() < Date.now();
+              const isCloseToExpiration = p.fecha_vencimiento && !isExpired && (new Date(p.fecha_vencimiento + 'T23:59:59').getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000);
+
               return (
                 <div
                   key={p.id_promo}
@@ -362,12 +380,24 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                     {p.descripcion && (
                       <p className="text-xs text-stone-750 dark:text-stone-300 mt-0.5 line-clamp-2">{p.descripcion}</p>
                     )}
-                    {p.dias_vigentes && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Calendar className="w-3 h-3 text-stone-600 dark:text-stone-400" />
-                        <span className="text-[11px] text-stone-700 dark:text-stone-300">{p.dias_vigentes}</span>
-                      </div>
-                    )}
+                    
+                    <div className="flex gap-3 items-center flex-wrap mt-1">
+                      {p.dias_vigentes && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-stone-600 dark:text-stone-400" />
+                          <span className="text-[11px] text-stone-700 dark:text-stone-300">{p.dias_vigentes}</span>
+                        </div>
+                      )}
+                      {p.fecha_vencimiento && (
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          isExpired ? 'bg-red-100 text-red-800 border border-red-250 animate-pulse' :
+                          isCloseToExpiration ? 'bg-amber-100 text-amber-850 border border-amber-250 animate-pulse' :
+                          'bg-stone-100 text-stone-700 border border-stone-200'
+                        }`}>
+                          Vence: {new Date(p.fecha_vencimiento + 'T00:00:00').toLocaleDateString('es-AR')} {isExpired ? ' (VENCIDA)' : isCloseToExpiration ? ' (PRÓXIMA A VENCER ⚠️)' : ''}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Acciones */}
