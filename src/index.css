@@ -236,3 +236,59 @@ canvas {
   background-color: #0B0F19 !important;
   border-right-color: #1E293B !important;
 }
+
+/* Dynamic dark mode selector overrides to automatically map light utilities to dark navy palette */
+.dark .bg-white:not(.keep-white) {
+  background-color: #131B2E !important; /* Dark Navy card background */
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-stone-100,
+.dark .border-stone-150,
+.dark .border-stone-200,
+.dark .border-stone-350,
+.dark .border-stone-300 {
+  border-color: #1E293B !important; /* Dark slate border */
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-zinc-900,
+.dark .text-zinc-800,
+.dark .text-stone-900,
+.dark .text-stone-800 {
+  color: #F8FAFC !important; /* White text */
+}
+
+.dark .text-slate-700,
+.dark .text-zinc-700,
+.dark .text-stone-700 {
+  color: #E2E8F0 !important; /* Light gray text */
+}
+
+.dark .text-slate-600,
+.dark .text-zinc-600,
+.dark .text-stone-600 {
+  color: #CBD5E1 !important; /* Slate-300 text */
+}
+
+.dark .text-slate-500,
+.dark .text-zinc-500,
+.dark .text-stone-500 {
+  color: #94A3B8 !important; /* Muted text */
+}
+
+.dark .bg-slate-50,
+.dark .bg-stone-50,
+.dark .bg-stone-100 {
+  background-color: #0F172A !important; /* Dark Slate inner container background */
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-stone-50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-stone-100:hover {
+  background-color: #1E293B !important; /* Hover background */
+}
+

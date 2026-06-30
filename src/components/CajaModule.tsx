@@ -2219,7 +2219,7 @@ function CajaModule({
                   <Printer className="w-3.5 h-3.5" /> Simulación Salida Térmica (80mm)
                 </span>
 
-                <div className="w-full bg-white text-zinc-950 p-3 sm:p-4 shadow-sm font-mono text-[9px] sm:text-[10px] leading-relaxed border border-stone-200 relative">
+                <div className="w-full bg-white keep-white text-zinc-950 p-3 sm:p-4 shadow-sm font-mono text-[9px] sm:text-[10px] leading-relaxed border border-stone-200 relative">
                   
                   <div className="absolute top-0 inset-x-0 h-1 bg-stone-300 flex overflow-hidden">
                     {Array.from({ length: 40 }).map((_, i) => (
@@ -2936,7 +2936,7 @@ function CajaModule({
               </div>
 
               {/* MOCK QR CODE SVG */}
-              <div className="flex justify-center p-3 bg-white border border-white/10 rounded-xl max-w-[160px] mx-auto">
+              <div className="flex justify-center p-3 bg-white keep-white border border-white/10 rounded-xl max-w-[160px] mx-auto">
                 <svg className="w-32 h-32 text-stone-900" viewBox="0 0 100 100" fill="currentColor">
                   {/* Outer boundaries */}
                   <rect x="0" y="0" width="20" height="20" />
