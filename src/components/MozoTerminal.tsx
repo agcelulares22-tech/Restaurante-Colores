@@ -69,13 +69,15 @@ const renderCategoryIcon = (categoriaName: string, categories: any[]) => {
 };
 
 const CUSTOM_PIZZA_TOPPINGS = [
-  { id: 'top_zanahoria', name: 'Zanahoria', price: 1000, insumoId: 'ins_cebolla', category: 'Verduras', icon: '🥕' },
-  { id: 'top_repollo', name: 'Repollo', price: 1000, insumoId: 'ins_albahaca', category: 'Verduras', icon: '🥬' },
-  { id: 'top_4quesos', name: '4 Quesos', price: 1800, insumoId: 'ins_mozzarella', category: 'Quesos', icon: '🧀' },
-  { id: 'top_roquefort', name: 'Roquefort', price: 1800, insumoId: 'ins_queso_azul', category: 'Quesos', icon: '🧀' },
+  { id: 'top_cebolla', name: 'Cebolla', price: 1000, insumoId: 'ins_cebolla', category: 'Verduras', icon: '🧅' },
+  { id: 'top_albahaca', name: 'Albahaca', price: 1000, insumoId: 'ins_albahaca', category: 'Verduras', icon: '🌿' },
+  { id: 'top_aceitunas', name: 'Aceitunas', price: 1200, insumoId: 'ins_aceitunas', category: 'Verduras', icon: '🫒' },
+  { id: 'top_provolone', name: 'Provolone', price: 1800, insumoId: 'ins_provolone', category: 'Quesos', icon: '🧀' },
+  { id: 'top_roquefort', name: 'Queso Azul', price: 1800, insumoId: 'ins_queso_azul', category: 'Quesos', icon: '🧀' },
   { id: 'top_jamon', name: 'Jamón Ahumado', price: 1500, insumoId: 'ins_jamon_cocido', category: 'Fiambres', icon: '🍖' },
   { id: 'top_salame', name: 'Salame', price: 1500, insumoId: 'ins_cantimpalo', category: 'Fiambres', icon: '🥓' },
-  { id: 'top_champis', name: 'Champiñones', price: 1500, insumoId: 'ins_morrones', category: 'Hongos', icon: '🍄' },
+  { id: 'top_panceta', name: 'Panceta Ahumada', price: 1800, insumoId: 'ins_panceta', category: 'Fiambres', icon: '🥓' },
+  { id: 'top_morrones', name: 'Morrones', price: 1500, insumoId: 'ins_morrones', category: 'Hongos', icon: '🍄' },
 ];
 
 function MozoTerminal({
