@@ -44,6 +44,37 @@ function InventoryModule({
   onRestockInsumo,
   addLog
 }: InventoryModuleProps) {
+  const getInsumoAutonomy = React.useCallback((idInsumo: string, stockActual: number, stockMinimo: number) => {
+    try {
+      const raw = localStorage.getItem('colores_pizzeria_pedidos_local');
+      if (!raw) {
+        const dailyRate = Math.max(0.1, stockMinimo / 10);
+        return { days: Math.round(stockActual / dailyRate), rate: dailyRate, isSimulated: true };
+      }
+      const allPedidos = JSON.parse(raw) as any[];
+      
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recentPedidos = allPedidos.filter(p => new Date(p.fecha_hora).getTime() >= sevenDaysAgo);
+      
+      let totalConsumed = 0;
+      recentPedidos.forEach(p => {
+        p.items.forEach((item: any) => {
+          const matchedRecipes = recetas.filter(r => r.id_producto === item.id_producto && r.id_insumo === idInsumo);
+          matchedRecipes.forEach(r => {
+            totalConsumed += r.cantidad_a_descontar * item.cantidad;
+          });
+        });
+      });
+
+      const dailyRate = totalConsumed > 0 ? (totalConsumed / 7) : Math.max(0.1, stockMinimo / 10);
+      const days = stockActual / dailyRate;
+      return { days: Math.round(days), rate: dailyRate, isSimulated: totalConsumed === 0 };
+    } catch (e) {
+      const dailyRate = Math.max(0.1, stockMinimo / 10);
+      return { days: Math.round(stockActual / dailyRate), rate: dailyRate, isSimulated: true };
+    }
+  }, [recetas]);
+
   const { toasts, toast, dismissToast } = useToast();
   const [proveedores, setProveedores] = React.useState<Proveedor[]>([]);
   const [visibleInsumosCount, setVisibleInsumosCount] = React.useState(20);
@@ -715,6 +746,7 @@ function InventoryModule({
                       
                       const maxHealthyCap = ins.unidad_medida === 'g' ? 15000 : (ins.unidad_medida === 'ml' ? 8000 : 80);
                       const currentPct = Math.min(100, (ins.stock_actual / maxHealthyCap) * 100);
+                      const autonomy = getInsumoAutonomy(ins.id_insumo, ins.stock_actual, ins.stock_minimo);
 
                       return (
                         <tr key={ins.id_insumo} className="hover:bg-slate-50/50 transition-colors">
@@ -734,19 +766,29 @@ function InventoryModule({
                             </div>
                           </td>
                           <td className="p-3">
-                            {isZero ? (
-                              <span className="bg-rose-100 text-rose-800 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
-                                AGOTADO 🚫
-                              </span>
-                            ) : isLow ? (
-                              <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                                CRÍTICO ⚠️
-                              </span>
-                            ) : (
-                              <span className="bg-emerald-100 text-emerald-800 text-[9px] font-medium px-2 py-0.5 rounded-full">
-                                Saludable
-                              </span>
-                            )}
+                            <div className="flex flex-col gap-1 items-start">
+                              {isZero ? (
+                                <span className="bg-rose-100 text-rose-800 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
+                                  AGOTADO 🚫
+                                </span>
+                              ) : isLow ? (
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                  CRÍTICO ⚠️
+                                </span>
+                              ) : (
+                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-medium px-2 py-0.5 rounded-full">
+                                  Saludable
+                                </span>
+                              )}
+                              {!isZero && (
+                                <span className={`text-[9px] font-bold ${
+                                  autonomy.days <= 2 ? 'text-rose-600 animate-pulse font-black' :
+                                  autonomy.days <= 5 ? 'text-amber-600 font-extrabold' : 'text-slate-500'
+                                }`}>
+                                  Autonomía: ~{autonomy.days} {autonomy.days === 1 ? 'día' : 'días'}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3 text-right">
                             <button
