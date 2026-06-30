@@ -193,9 +193,12 @@ export default function RestaurantCover({
       {/* 1. BRAND HEADER (McDonald's High Contrast Inspired) */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0B132B]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group">
-            <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:translate-y-[-2px] group-hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
-              <Pizza className="w-7 h-7 text-white animate-pulse" />
+          <div 
+            onClick={onEnterSystem}
+            className="flex items-center gap-3 cursor-default select-none"
+          >
+            <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
+              <Pizza className="w-7 h-7 text-white" />
             </div>
             <div className="flex flex-col">
               <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#D90429] dark:text-[#FFFDF9] leading-none">
@@ -205,22 +208,6 @@ export default function RestaurantCover({
                 Pizzería & Minutas
               </span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowEventModal(true)}
-              className="px-5 py-3 bg-[#e63946] hover:bg-[#ff4d5a] text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 cursor-pointer flex items-center gap-2"
-            >
-              Cotizar Evento
-            </button>
-            <button
-              onClick={onEnterSystem}
-              className="px-5 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 cursor-pointer flex items-center gap-2"
-            >
-              Acceder al Sistema
-              <ArrowRight className="w-4 h-4 stroke-[3px]" />
-            </button>
           </div>
         </div>
       </header>
@@ -268,7 +255,7 @@ export default function RestaurantCover({
               🍔 ¡LOS PREFERIDOS DE LA CASA!
             </span>
             <h2 className="font-display text-4xl sm:text-6xl text-black dark:text-white uppercase leading-none">
-              Nuestras Especialidades
+              Nuestras Promociones
             </h2>
             <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider max-w-lg mx-auto leading-relaxed">
               No hacemos todo el menú igual, seleccionamos tres productos firma elaborados a la leña con la mejor materia prima. ¡Entran por los ojos!
@@ -629,66 +616,7 @@ export default function RestaurantCover({
         </div>
       </section>
 
-      {/* 4.2. COMBOS & PROMOCIONES ESPECIALES */}
-      <section id="seccion-carta" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
-        <div className="text-center space-y-2">
-          <span className="inline-block px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform rotate-1">
-            🔥 ¡MÁS POR MENOS!
-          </span>
-          <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
-            NUESTRAS PROMOS
-          </h2>
-          <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
-            Elegí entre nuestras combinaciones más elegidas.
-          </p>
-          <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {displayPromos.map((combo, idx) => (
-            <div 
-              key={idx}
-              className="bg-white dark:bg-[#1C2541] border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
-            >
-              <div className="space-y-4">
-                <span className="inline-block px-2.5 py-1 bg-black text-[#FFC300] text-[9px] font-black uppercase rounded-lg border border-black/10">
-                  {combo.badge}
-                </span>
-                <h3 className="font-display text-2xl text-black dark:text-white uppercase leading-none">
-                  {combo.title}
-                </h3>
-                <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-900 p-4 border-2 border-dashed border-black/20 rounded-xl">
-                  {combo.desc}
-                </p>
-                <p className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest italic">
-                  {combo.note}
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-black/10 mt-6 flex items-center justify-between gap-4">
-                <div>
-                  <span className="text-[9px] font-bold text-stone-500 uppercase block">Precio Promo</span>
-                  <span className="font-display text-2xl text-[#D90429]">${combo.price.toLocaleString('es-AR')}</span>
-                </div>
-                <a
-                  href={`https://wa.me/5493584024822?text=${encodeURIComponent(
-                    `¡Hola Pizzería Colores! Me gustaría encargar la siguiente promoción especial:\n` +
-                    `• ${combo.title} ($${combo.price.toLocaleString('es-AR')})\n` +
-                    `• Detalle: ${combo.desc}\n\n` +
-                    `¿Me lo podrían enviar? ¡Muchas gracias!`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-[9px] font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all cursor-pointer flex items-center gap-1"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Pedir Combo
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* 4.2. COMBOS & PROMOCIONES ESPECIALES REMOVED */}
 
       {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
       <section className="py-20 bg-stone-50 dark:bg-[#111A34] border-t-4 border-black text-black dark:text-white relative overflow-hidden">
