@@ -144,10 +144,12 @@ function DeliveryModule({
   // Route Optimizer States
   const [selectedCourierForRoute, setSelectedCourierForRoute] = useState<string>('Todos');
   const [optimizedRoute, setOptimizedRoute] = useState<any[]>([]);
+  const [courierAssigningPedido, setCourierAssigningPedido] = useState<Pedido | null>(null);
 
   // Cadet Live Tracking simulation states
   const [trackingPedido, setTrackingPedido] = useState<Pedido | null>(null);
   const [trackingEta, setTrackingEta] = useState<number>(0);
+  const [trackingDispatchTime, setTrackingDispatchTime] = useState<string | null>(null);
   const [trackingProgress, setTrackingProgress] = useState<number>(0);
   const trackingMapRef = useRef<any>(null);
   const trackingIntervalRef = useRef<any>(null);
@@ -592,6 +594,7 @@ function DeliveryModule({
   // Cadet Live Tracking Simulation functions
   const handleStartTracking = async (pedido: Pedido) => {
     setTrackingPedido(pedido);
+    setTrackingDispatchTime(new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
     setTrackingProgress(0);
     const clientAddressVal = pedido.direccion_cliente || parseClientInfo(pedido.numero_mesa).address;
     
@@ -1129,6 +1132,31 @@ function DeliveryModule({
     toast.success('Doble ticket enviado a la impresora.');
   };
 
+  const handleConfirmDispatch = async (pedido: Pedido, courier: string) => {
+    setCourierAssigningPedido(null);
+    if (!courier) return;
+
+    const updatedObs = [pedido.observaciones, `Repartidor: ${courier}`]
+      .filter(Boolean)
+      .join(' | ');
+
+    pedido.observaciones = updatedObs;
+    onCambiarEstadoPedido(pedido.id_pedido, 'entregado', { observaciones: updatedObs });
+    toast.success(`Pedido #${pedido.id_pedido} despachado con repartidor: ${courier}`);
+
+    await handlePrintDualTickets(pedido);
+    handleStartTracking(pedido);
+  };
+
+  const getEstimatedArrival = () => {
+    if (!trackingDispatchTime) return '';
+    const [h, m] = trackingDispatchTime.split(':').map(Number);
+    const totalMin = h * 60 + m + trackingEta;
+    const arrH = Math.floor(totalMin / 60) % 24;
+    const arrM = totalMin % 60;
+    return `${arrH.toString().padStart(2, '0')}:${arrM.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="space-y-6" id="delivery-module-root">
       
@@ -1455,26 +1483,7 @@ function DeliveryModule({
                     )}
                     {p.estado_comanda === 'listo' && (
                       <button
-                        onClick={async () => {
-                          const courier = prompt("Nombre del Repartidor asignado:", "Repartidor 1");
-                          if (courier === null) return;
-                          
-                          // Update order observations with Courier
-                          const updatedObs = [p.observaciones, courier ? `Repartidor: ${courier}` : '']
-                            .filter(Boolean)
-                            .join(' | ');
-                          
-                          // Quick hack to attach delivery guy and switch state to 'entregado' (En Viaje)
-                          p.observaciones = updatedObs;
-                          onCambiarEstadoPedido(p.id_pedido, 'entregado', { observaciones: updatedObs });
-                          toast.success(`Pedido #${p.id_pedido} despachado con repartidor: ${courier}`);
-                          
-                          // Auto print dual tickets
-                          await handlePrintDualTickets(p);
-
-                          // Auto start tracking simulation
-                          handleStartTracking(p);
-                        }}
+                        onClick={() => setCourierAssigningPedido(p)}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all active:scale-95 flex items-center gap-1 border-0"
                       >
                         <Bike className="w-3.5 h-3.5 fill-current" />
@@ -2047,10 +2056,17 @@ function DeliveryModule({
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-stone-400 block font-bold uppercase tracking-wider">Tiempo Estimado</span>
-                    <span className="text-sm font-black text-emerald-700 font-mono flex items-center gap-1 justify-end animate-pulse">
-                      <Clock className="w-4 h-4" />
-                      {trackingEta > 0 ? `Llegada en ${trackingEta} min` : '¡Llegando ahora!'}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-black text-emerald-750 dark:text-emerald-400 font-mono flex items-center gap-1 justify-end animate-pulse">
+                        <Clock className="w-4 h-4" />
+                        {trackingEta > 0 ? `Llegada en ${trackingEta} min` : '¡Llegando ahora!'}
+                      </span>
+                      {trackingDispatchTime && (
+                        <span className="text-[9px] text-stone-500 dark:text-zinc-400 font-bold mt-0.5">
+                          Despacho: {trackingDispatchTime}hs • Arribo: {getEstimatedArrival()}hs
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -2118,6 +2134,68 @@ function DeliveryModule({
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {courierAssigningPedido && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 font-sans bg-black/60 backdrop-blur-xs">
+          <div className="absolute inset-0" onClick={() => setCourierAssigningPedido(null)} />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-zinc-700 max-w-sm w-full rounded-2xl shadow-2xl relative z-10 animate-scaleIn p-5 space-y-4 text-stone-850 dark:text-zinc-150">
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-stone-900 dark:text-white">
+                <Bike className="w-4 h-4 text-blue-500 fill-current" />
+                Asignar Repartidor - Pedido #{courierAssigningPedido.id_pedido}
+              </h4>
+              <button
+                onClick={() => setCourierAssigningPedido(null)}
+                className="p-1 rounded-lg bg-stone-100 dark:bg-zinc-950 text-stone-500 hover:bg-stone-200 dark:hover:bg-zinc-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <p className="text-[11px] text-stone-500 dark:text-zinc-400 leading-relaxed">
+              Seleccione un repartidor de la lista o ingrese un nombre personalizado para despachar el pedido:
+            </p>
+
+            <div className="grid grid-cols-2 gap-2">
+              {['Repartidor 1', 'Repartidor 2', 'Cadete Colores', 'PedidosYa'].map(rider => (
+                <button
+                  key={rider}
+                  onClick={() => handleConfirmDispatch(courierAssigningPedido, rider)}
+                  className="py-2.5 px-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-xs font-extrabold rounded-xl transition-all cursor-pointer text-center text-stone-800 dark:text-zinc-300"
+                >
+                  {rider}
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-slate-100 dark:border-zinc-800 pt-3.5 space-y-2">
+              <label className="text-[9px] font-black uppercase text-stone-500 block mb-1">Nombre Personalizado</label>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const customRider = fd.get('customRider') as string;
+                if (customRider?.trim()) {
+                  handleConfirmDispatch(courierAssigningPedido, customRider.trim());
+                }
+              }} className="flex gap-2">
+                <input
+                  type="text"
+                  name="customRider"
+                  placeholder="Ej: Juan Perez"
+                  required
+                  className="flex-1 text-xs p-2 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-stone-800 dark:text-zinc-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+                >
+                  Asignar
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}
