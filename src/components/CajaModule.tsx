@@ -605,17 +605,17 @@ function CajaModule({
         <div className="lg:col-span-4 space-y-4 lg:space-y-6">
           
           {/* DAILY DRAWER SHIFT COMPONENT (Rule 1) */}
-          <div className="glass-card border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+          <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-4 transition-colors duration-300">
             <div className="flex justify-between items-start">
               <div className="min-w-0">
-                <span className="text-[9px] uppercase font-black text-zinc-400 block tracking-wider">Flujo Contable Diario</span>
-                <h3 className="font-extrabold text-white text-sm md:text-base tracking-tight font-sans">Estado de Caja Diaria</h3>
+                <span className="text-[9px] uppercase font-black text-slate-500 dark:text-zinc-400 block tracking-wider">Flujo Contable Diario</span>
+                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm md:text-base tracking-tight font-sans transition-colors duration-300">Estado de Caja Diaria</h3>
               </div>
               
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1 border ${
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1 border transition-colors duration-300 ${
                 cajaSession 
                   ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20 animate-pulse' 
-                  : 'bg-zinc-800 text-zinc-400 border-white/5'
+                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-white/5'
               }`}>
                 {cajaSession ? <Unlock className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
                 {cajaSession ? 'Abierta' : 'Cerrada'}
@@ -737,9 +737,9 @@ function CajaModule({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="p-4 rounded-xl border border-dashed border-white/15 text-center bg-zinc-950/40">
-                  <span className="text-zinc-400 text-[11px] block font-medium">No se registran turnos fiscales abiertos</span>
-                  <span className="text-zinc-400 text-[9px] block font-normal mt-0.5">Es indispensable abrir el turno para facturar a las mesas.</span>
+                 <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-white/15 text-center bg-slate-50/80 dark:bg-zinc-950/40 transition-colors duration-300">
+                  <span className="text-slate-600 dark:text-zinc-400 text-[11px] block font-semibold transition-colors duration-300">No se registran turnos fiscales abiertos</span>
+                  <span className="text-slate-400 dark:text-zinc-500 text-[9px] block font-normal mt-0.5 transition-colors duration-300">Es indispensable abrir el turno para facturar a las mesas.</span>
                 </div>
                 
                 <button
@@ -850,23 +850,23 @@ function CajaModule({
           )}
 
           {/* ACTIVE UNBILLED COMMANDS LIST (Rule 2) */}
-          <div className="glass-card border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <h4 className="font-black text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5">
+          <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-xl space-y-4 transition-colors duration-300">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5 transition-colors duration-300">
+              <h4 className="font-black text-slate-800 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5 transition-colors duration-300">
                 <Receipt className="w-4 h-4 text-[#E8B800]" />
                 Comandas en Salón
               </h4>
-              <span className="text-[9px] font-bold bg-[#E8B800]/10 text-[#E8B800] border border-white/5 rounded-full px-2 py-0.5 font-mono">
+              <span className="text-[9px] font-bold bg-[#E8B800]/10 text-amber-600 dark:text-[#E8B800] border border-amber-200/50 dark:border-white/5 rounded-full px-2 py-0.5 font-mono transition-colors duration-300">
                 {activeBills.length} pendientes
               </span>
             </div>
 
             <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
               {activeBills.length === 0 ? (
-                <div className="text-center p-8 border border-dashed border-white/10 rounded-xl bg-zinc-950/40">
+                <div className="text-center p-8 border border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-zinc-950/40 transition-colors duration-300">
                   <CheckCircle className="w-7 h-7 text-emerald-500 mx-auto mb-2" />
-                  <p className="text-[11px] text-zinc-300 font-black uppercase">¡Todo liquidado!</p>
-                  <p className="text-[9px] text-zinc-450 mt-0.5">No hay comandos de mesas pendientes de liquidación.</p>
+                  <p className="text-[11px] text-slate-700 dark:text-zinc-300 font-black uppercase transition-colors duration-300">¡Todo liquidado!</p>
+                  <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 transition-colors duration-300">No hay comandos de mesas pendientes de liquidación.</p>
                 </div>
               ) : (
                 activeBills.map(b => {
@@ -2337,14 +2337,14 @@ function CajaModule({
 
             </div>
           ) : (
-            <div className="bg-zinc-950/40 rounded-2xl p-10 border border-white/5 text-center flex flex-col justify-center items-center min-h-[450px]">
-              <div className="p-4 bg-zinc-900/60 rounded-2xl text-[#E8B800] border border-white/5 mb-4 shadow-lg">
+            <div className="bg-white dark:bg-zinc-900/30 rounded-2xl p-10 border border-slate-200 dark:border-white/5 text-center flex flex-col justify-center items-center min-h-[450px] shadow-sm dark:shadow-none transition-colors duration-300">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-900/60 rounded-2xl text-slate-500 dark:text-[#E8B800] border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm dark:shadow-lg transition-colors duration-300">
                 <Receipt className="w-10 h-10" />
               </div>
-              <h3 className="font-black text-white text-lg uppercase tracking-tight">
+              <h3 className="font-black text-slate-800 dark:text-white text-lg uppercase tracking-tight transition-colors duration-300">
                 Terminal de Cobro Pizzería Colores Pro
               </h3>
-              <p className="text-zinc-400 text-xs mt-2 max-w-md leading-relaxed font-semibold">
+              <p className="text-slate-500 dark:text-zinc-400 text-xs mt-2 max-w-md leading-relaxed font-semibold transition-colors duration-300">
                 Seleccione una mesa ocupada desde la lista lateral. Se iniciará el panel interactivo de check-out, permitiéndole coordinar pagos mixtos, aplicar deducciones manuales, configurar datos de CUIT, fraccionar saldos por comensales u artículos indivisos, y emitir comprobantes en PDF y thermal roll.
               </p>
 
@@ -2359,11 +2359,11 @@ function CajaModule({
               )}
               
               {!cajaSession && (
-                <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[11px] text-amber-400 max-w-sm flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-250 dark:border-amber-500/25 rounded-xl text-[11px] text-amber-700 dark:text-amber-400 max-w-sm flex items-start gap-2.5 transition-colors duration-300">
+                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
                   <div className="text-left">
                     <p className="font-bold uppercase tracking-wide">Caja Cerrada</p>
-                    <p className="mt-0.5 text-zinc-300 font-medium leading-relaxed">Tenga a bien iniciar el turno con el botón <strong>"Abrir Caja Diaria"</strong> izquierdo antes de realizar operaciones de facturación.</p>
+                    <p className="mt-0.5 text-slate-600 dark:text-zinc-300 font-medium leading-relaxed transition-colors duration-300">Tenga a bien iniciar el turno con el botón <strong>"Abrir Caja Diaria"</strong> izquierdo antes de realizar operaciones de facturación.</p>
                   </div>
                 </div>
               )}
