@@ -160,6 +160,34 @@ function KitchenMonitor({
     insumos
   });
 
+  const audioUnlockedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const unlock = () => {
+      if (audioUnlockedRef.current) return;
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
+          audioUnlockedRef.current = true;
+          window.removeEventListener('click', unlock);
+          window.removeEventListener('touchstart', unlock);
+        }
+      } catch (e) {
+        console.warn('Unlock audio context failed:', e);
+      }
+    };
+    window.addEventListener('click', unlock);
+    window.addEventListener('touchstart', unlock);
+    return () => {
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+  }, []);
+
   const prevPendingIdsRef = React.useRef<string[]>([]);
 
   React.useEffect(() => {
@@ -473,9 +501,9 @@ function KitchenMonitor({
     const holdMinutes = estado === 'listo' ? Math.floor((p.segundos_en_listo ?? 0) / 60) : 0;
 
     const headerTheme = {
-      pendiente: 'bg-zinc-900/40 text-zinc-100 border-b border-white/5',
-      en_cocina: 'bg-[#E85D00]/10 text-zinc-100 border-b border-white/5',
-      listo: 'bg-emerald-500/10 text-zinc-100 border-b border-white/5'
+      pendiente: 'bg-slate-50/80 dark:bg-zinc-900/40 text-zinc-100 border-b border-slate-100 dark:border-white/5',
+      en_cocina: 'bg-[#E85D00]/5 dark:bg-[#E85D00]/10 text-zinc-100 border-b border-slate-100 dark:border-white/5',
+      listo: 'bg-emerald-500/5 dark:bg-emerald-500/10 text-zinc-100 border-b border-slate-100 dark:border-white/5'
     }[estado];
 
     const btnTheme = {
@@ -502,7 +530,7 @@ function KitchenMonitor({
         key={p.id_pedido}
         draggable
         onDragStart={(e) => handleDragStart(e, p.id_pedido)}
-        className={`rounded-[20px] border bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || 'border-zinc-700'} border-l-4 transition-all duration-300 hover:border-zinc-600 cursor-grab active:cursor-grabbing ${
+        className={`rounded-[20px] border bg-white dark:bg-zinc-950 shadow-md overflow-hidden relative ${sem?.border || 'border-slate-200 dark:border-zinc-700'} border-l-4 transition-all duration-300 hover:border-slate-350 dark:hover:border-zinc-600 cursor-grab active:cursor-grabbing ${
           isRecentlyCreated ? 'ring-2 ring-amber-400 animate-pulse shadow-amber-500/20 shadow-lg' : ''
         } ${
           isDelayCritical ? 'border-rose-600 ring-2 ring-rose-500/40 animate-pulse shadow-rose-900/30 shadow-lg' : ''
@@ -548,7 +576,7 @@ function KitchenMonitor({
                 {p.origen || 'MOZO'}
               </span>
             )}
-            <div className="flex items-center gap-1.5 text-xs font-mono bg-zinc-900 border border-zinc-700 px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-1.5 text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-full">
               <Clock className="w-3 h-3 text-[#E8B800]" />
               <span className={`text-sm font-black ${sem?.timeText || 'text-zinc-200'}`}>{p.minutos_transcurridos}m</span>
               {sem && <span className={`w-1.5 h-1.5 rounded-full ${sem.timeDot}`} />}
@@ -561,7 +589,7 @@ function KitchenMonitor({
             {p.items.map((it, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 py-2.5 border-b border-dashed border-zinc-750 last:border-0"
+                className="flex items-center gap-3 py-2.5 border-b border-dashed border-slate-200 dark:border-zinc-750 last:border-0"
               >
                 <span className="text-lg font-black text-[#E8B800] font-mono shrink-0">
                   {it.cantidad}x
@@ -570,7 +598,7 @@ function KitchenMonitor({
                   {it.nombre}
                 </span>
                 {(it.precio_unitario ?? 0) > 0 && (
-                  <span className="text-xs font-mono font-black text-zinc-300 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-700 shrink-0">
+                  <span className="text-xs font-mono font-black text-zinc-300 bg-slate-50 dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-zinc-700 shrink-0">
                     ${(it.precio_unitario! * it.cantidad).toLocaleString('es-AR')}
                   </span>
                 )}
@@ -595,7 +623,7 @@ function KitchenMonitor({
           </div>
 
           {(subtotalPlatos > 0 || costoDelivery > 0) && (
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 space-y-1.5">
+            <div className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 space-y-1.5">
               {subtotalPlatos > 0 && (
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-zinc-400 font-semibold">Subtotal platos</span>
@@ -611,7 +639,7 @@ function KitchenMonitor({
                   <span className="font-mono font-bold text-[#E85D00]">${costoDelivery.toLocaleString('es-AR')}</span>
                 </div>
               )}
-              <div className="border-t border-zinc-705 border-zinc-700 pt-1.5 flex justify-between items-center">
+              <div className="border-t border-slate-200 dark:border-zinc-700 pt-1.5 flex justify-between items-center">
                 <span className="text-[10px] font-black uppercase tracking-wider text-zinc-300">Total</span>
                 <span className="text-sm font-black font-mono text-[#E8B800]">${totalPedido.toLocaleString('es-AR')}</span>
               </div>
@@ -619,15 +647,15 @@ function KitchenMonitor({
           )}
 
           {estado === 'en_cocina' && (
-            <div className="pt-2 border-t border-zinc-700">
+            <div className="pt-2 border-t border-slate-200 dark:border-zinc-700">
               {isActiveInOven ? (
                 renderCircularTimer(p)
               ) : (
-                <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-700 px-3 py-2 rounded-xl text-zinc-400">
-                  <Clock className="w-4.5 h-4.5 text-zinc-500 animate-pulse" />
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-3 py-2 rounded-xl text-zinc-450 dark:text-zinc-400">
+                  <Clock className="w-4.5 h-4.5 text-zinc-450 dark:text-zinc-500 animate-pulse" />
                   <div className="flex flex-col leading-none">
-                    <span className="text-[9px] font-black uppercase text-zinc-500">Cola de Espera</span>
-                    <span className="text-xs font-bold text-zinc-400">En fila (Horno lleno)...</span>
+                    <span className="text-[9px] font-black uppercase text-zinc-550 dark:text-zinc-500">Cola de Espera</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-400">En fila (Horno lleno)...</span>
                   </div>
                 </div>
               )}
