@@ -85,14 +85,14 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
   const getGeofenceStatus = (lat?: number, lon?: number) => {
     if (lat === undefined || lon === undefined || lat === null || lon === null) {
-      return { isLocal: false, distance: 0, text: 'Sin GPS', badgeClass: 'bg-stone-100 text-stone-600 border-stone-200' };
+      return { isLocal: false, distance: 0, text: 'Sin GPS', badgeClass: 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-slate-800 dark:text-slate-350 dark:border-slate-700' };
     }
     const dist = calculateDistance(lat, lon, -33.12356, -64.34882);
     const roundedDist = Math.round(dist);
     if (dist <= 120) {
-      return { isLocal: true, distance: roundedDist, text: 'En Local ✓', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { isLocal: true, distance: roundedDist, text: 'En Local ✓', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-350 dark:border-emerald-900/50' };
     } else {
-      return { isLocal: false, distance: roundedDist, text: `Fuera de Rango (${roundedDist}m) ⚠️`, badgeClass: 'bg-amber-100 text-amber-800 border-amber-200' };
+      return { isLocal: false, distance: roundedDist, text: `Fuera de Rango (${roundedDist}m) ⚠️`, badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-350 dark:border-amber-900/50' };
     }
   };
 
@@ -390,14 +390,14 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       
       {/* Brand Header */}
-      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm flex flex-col md:flex-row items-center gap-5 justify-between">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-stone-200 dark:border-slate-800/80 shadow-sm flex flex-col md:flex-row items-center gap-5 justify-between">
         <div className="flex items-center gap-4 text-left">
-          <div className="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center p-1 border border-yellow-200 shadow-sm shrink-0">
+          <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-950/40 rounded-2xl flex items-center justify-center p-1 border border-yellow-200 dark:border-yellow-900/50 shadow-sm shrink-0">
             <Clock className="w-6 h-6 text-brand-orange" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-stone-800 tracking-tight">Registro de Asistencia del Personal</h2>
-            <p className="text-xs text-stone-500 mt-0.5">Control de jornada operativa y geolocalización de seguridad</p>
+            <h2 className="text-xl font-bold text-stone-800 dark:text-zinc-100 tracking-tight">Registro de Asistencia del Personal</h2>
+            <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">Control de jornada operativa y geolocalización de seguridad</p>
           </div>
         </div>
 
@@ -433,27 +433,27 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
       {/* ADMIN METRICS DASHBOARD */}
       {isAdmin && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-stone-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400">Personal Activo Ahora</span>
-              <h3 className="text-2xl font-black text-stone-850 mt-0.5">{stats.activos.length}</h3>
-              <p className="text-[10px] text-stone-500 leading-tight mt-0.5 truncate max-w-[300px]">
+              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Personal Activo Ahora</span>
+              <h3 className="text-2xl font-black text-stone-850 dark:text-zinc-100 mt-0.5">{stats.activos.length}</h3>
+              <p className="text-[10px] text-stone-500 dark:text-zinc-400 leading-tight mt-0.5 truncate max-w-[300px]">
                 {stats.activos.length > 0 ? stats.activos.join(', ') : 'Ningún empleado ha fichado ingreso hoy'}
               </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-stone-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
               <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400">Total Fichajes Hoy</span>
-              <h3 className="text-2xl font-black text-stone-850 mt-0.5">{stats.fichajesHoy}</h3>
-              <p className="text-[10px] text-stone-500 leading-tight mt-0.5">Fichajes totales registrados durante la jornada de hoy</p>
+              <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Total Fichajes Hoy</span>
+              <h3 className="text-2xl font-black text-stone-850 dark:text-zinc-100 mt-0.5">{stats.fichajesHoy}</h3>
+              <p className="text-[10px] text-stone-500 dark:text-zinc-400 leading-tight mt-0.5">Fichajes totales registrados durante la jornada de hoy</p>
             </div>
           </div>
         </div>
@@ -465,38 +465,38 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
         <div className="lg:col-span-5 space-y-6">
           
           {/* Live Clock Card */}
-          <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm text-center space-y-5">
-            <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 block">Reloj de Control</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-stone-200 dark:border-slate-800 shadow-sm text-center space-y-5">
+            <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500 block">Reloj de Control</span>
             
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-5xl font-black font-mono text-stone-850 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-black font-mono text-stone-850 dark:text-zinc-100 tracking-tight">
                 {currentTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </h1>
-              <p className="text-sm font-bold text-stone-500 capitalize">
+              <p className="text-sm font-bold text-stone-500 dark:text-zinc-400 capitalize">
                 {currentTime.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100/80 inline-flex items-center gap-2">
+            <div className="p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100/80 dark:border-slate-800 inline-flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-brand-orange" />
-              <span className="text-xs text-slate-600">Empleado activo: <strong className="text-stone-850">{activeUser ? `${activeUser.nombre} ${activeUser.apellido || ''}` : activeMozo}</strong></span>
+              <span className="text-xs text-slate-600 dark:text-zinc-350">Empleado activo: <strong className="text-stone-850 dark:text-zinc-100">{activeUser ? `${activeUser.nombre} ${activeUser.apellido || ''}` : activeMozo}</strong></span>
             </div>
 
             {/* GPS Diagnostics Widget */}
             <div className={`p-4 rounded-xl border text-left flex items-start gap-3 ${
-              locationStatus === 'success' ? 'bg-emerald-50/50 border-emerald-100' :
-              locationStatus === 'requesting' ? 'bg-amber-50/50 border-amber-100' : 'bg-rose-50/50 border-rose-100'
+              locationStatus === 'success' ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900' :
+              locationStatus === 'requesting' ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900' : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900'
             }`}>
               <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${
-                locationStatus === 'success' ? 'text-emerald-600' :
-                locationStatus === 'requesting' ? 'text-amber-500 animate-bounce' : 'text-rose-500'
+                locationStatus === 'success' ? 'text-emerald-600 dark:text-emerald-400' :
+                locationStatus === 'requesting' ? 'text-amber-500 animate-bounce' : 'text-rose-500 dark:text-rose-400'
               }`} />
               <div className="space-y-1 min-w-0">
-                <span className="text-[10px] uppercase font-black tracking-wider text-stone-400">Geolocalización GPS</span>
+                <span className="text-[10px] uppercase font-black tracking-wider text-stone-400 dark:text-zinc-500">Geolocalización GPS</span>
                  {locationStatus === 'success' && coords ? (
-                  <div className="text-xs text-slate-700 space-y-0.5">
+                  <div className="text-xs text-slate-700 dark:text-zinc-300 space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-emerald-800">Ubicación capturada correctamente ✓</p>
+                      <p className="font-semibold text-emerald-800 dark:text-emerald-400">Ubicación capturada correctamente ✓</p>
                       {(() => {
                         const status = getGeofenceStatus(coords.latitude, coords.longitude);
                         return (
@@ -507,29 +507,29 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                       })()}
                     </div>
                     {direccionResolvida && (
-                      <p className="font-extrabold text-stone-850 text-sm py-0.5">📍 {direccionResolvida}</p>
+                      <p className="font-extrabold text-stone-850 dark:text-zinc-100 text-sm py-0.5">📍 {direccionResolvida}</p>
                     )}
-                    <p className="font-mono text-[9px] text-slate-400">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
-                    <p className="text-[9px] text-slate-400">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
+                    <p className="font-mono text-[9px] text-slate-400 dark:text-zinc-500">Lat: {coords.latitude.toFixed(6)}, Lng: {coords.longitude.toFixed(6)}</p>
+                    <p className="text-[9px] text-slate-400 dark:text-zinc-500">Precisión estimada: ±{coords.accuracy.toFixed(1)} metros</p>
                     <iframe
                       title="Georreferenciación en vivo"
                       width="100%"
                       height="120"
                       src={`https://maps.google.com/maps?q=${coords.latitude},${coords.longitude}&z=16&output=embed`}
-                      className="rounded-lg border border-emerald-150 mt-2 shadow-xs shrink-0"
+                      className="rounded-lg border border-emerald-150 dark:border-emerald-900/50 mt-2 shadow-xs shrink-0"
                     />
                   </div>
                 ) : locationStatus === 'requesting' ? (
-                  <p className="text-xs text-slate-600 font-medium">Obteniendo coordenadas satelitales...</p>
+                  <p className="text-xs text-slate-600 dark:text-zinc-300 font-medium">Obteniendo coordenadas satelitales...</p>
                 ) : (
-                  <div className="text-xs text-rose-800 space-y-2">
+                  <div className="text-xs text-rose-800 dark:text-rose-300 space-y-2">
                     <p className="font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 shrink-0" /> Error de Geolocalización</p>
                     <p className="text-[10px] mt-0.5 opacity-90">{gpsErrorMsg}</p>
                     
                     {gpsErrorMsg.includes('denegado') && (
-                      <div className="mt-2 p-2.5 bg-rose-100/60 rounded-lg border border-rose-200/50 text-[10px] leading-normal text-rose-950 space-y-1">
-                        <p className="font-extrabold uppercase tracking-wider text-[8px] text-rose-800">💡 ¿Cómo activar el GPS en tu navegador?</p>
-                        <ol className="list-decimal list-inside space-y-1 text-stone-700">
+                      <div className="mt-2 p-2.5 bg-rose-100/60 dark:bg-rose-950/40 rounded-lg border border-rose-200/50 dark:border-rose-800 text-[10px] leading-normal text-rose-950 dark:text-rose-200 space-y-1">
+                        <p className="font-extrabold uppercase tracking-wider text-[8px] text-rose-800 dark:text-rose-400">💡 ¿Cómo activar el GPS en tu navegador?</p>
+                        <ol className="list-decimal list-inside space-y-1 text-stone-700 dark:text-rose-200">
                           <li>Toca el candado 🔒 o ícono de ajustes a la izquierda de <strong>restaurante-colores.vercel.app</strong> en la barra superior.</li>
                           <li>Busca la opción <strong>Ubicación</strong> (Location) y cámbiala a <strong>Permitir</strong> (Allow).</li>
                           <li>Toca el botón <strong>"Reintentar conexión GPS"</strong> abajo o recarga el sitio.</li>
@@ -540,7 +540,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                     <div className="flex flex-wrap gap-x-3 gap-y-1">
                       <button 
                         onClick={requestLocation}
-                        className="mt-2 text-[10px] font-bold text-rose-600 underline hover:text-rose-850 cursor-pointer bg-transparent border-0 p-0"
+                        className="mt-2 text-[10px] font-bold text-rose-600 dark:text-rose-400 underline hover:text-rose-850 cursor-pointer bg-transparent border-0 p-0"
                       >
                         Reintentar conexión GPS
                       </button>
@@ -555,7 +555,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           setLocationStatus('success');
                           toast.success('GPS simulado con éxito (Alvear 1362, Cba) 📍');
                         }}
-                        className="mt-2 text-[10px] font-bold text-amber-600 underline hover:text-amber-850 cursor-pointer bg-transparent border-0 p-0"
+                        className="mt-2 text-[10px] font-bold text-amber-600 dark:text-amber-400 underline hover:text-amber-850 cursor-pointer bg-transparent border-0 p-0"
                         title="Simular coordenadas de prueba para demostración"
                       >
                         Simular GPS (Demo)
@@ -568,7 +568,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
             {/* Warning when GPS failed but clock-in is still allowed */}
             {locationStatus === 'error' && (
-              <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-[10px] text-amber-800 font-semibold text-center leading-normal">
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-900/40 text-[10px] text-amber-800 dark:text-amber-300 font-semibold text-center leading-normal">
                 ⚠️ Geolocalización inactiva. Fichajes permitidos sin GPS. Las coordenadas se registrarán como vacías.
               </div>
             )}
@@ -578,7 +578,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               <button
                 onClick={() => handleFichar('ingreso')}
                 disabled={locationStatus === 'requesting'}
-                className="py-4 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-emerald-700/10 cursor-pointer active:scale-95 transition-all"
+                className="py-4 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-100 dark:disabled:bg-slate-800 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-emerald-700/10 cursor-pointer active:scale-95 transition-all"
               >
                 <span className="text-2xl">📥</span>
                 Fichar Ingreso
@@ -587,7 +587,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               <button
                 onClick={() => handleFichar('egreso')}
                 disabled={locationStatus === 'requesting'}
-                className="py-4 px-3 bg-rose-600 hover:bg-rose-700 disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-rose-700/10 cursor-pointer active:scale-95 transition-all"
+                className="py-4 px-3 bg-rose-600 hover:bg-rose-700 disabled:bg-stone-100 dark:disabled:bg-slate-800 disabled:text-stone-400 disabled:border-stone-200 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm flex flex-col items-center justify-center gap-2 shadow-sm border border-rose-700/10 cursor-pointer active:scale-95 transition-all"
               >
                 <span className="text-2xl">📤</span>
                 Fichar Egreso
@@ -601,16 +601,16 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
         {/* RIGHT COLUMN: Attendances logs & Admin reports */}
         <div className="lg:col-span-7 space-y-6">
           
-          <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-stone-200 dark:border-slate-800/80 shadow-sm space-y-4">
             
             {/* Header & CSV export button */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-stone-100 dark:border-slate-800">
               <div>
-                <h3 className="font-bold text-stone-850 text-sm md:text-base font-sans flex items-center gap-2">
+                <h3 className="font-bold text-stone-850 dark:text-zinc-100 text-sm md:text-base font-sans flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-brand-orange" />
                   {isAdmin ? 'Panel de Control del Dueño - Fichajes de Personal' : 'Mi Historial de Asistencia Reciente'}
                 </h3>
-                <p className="text-[10px] text-stone-400 mt-0.5">
+                <p className="text-[10px] text-stone-400 dark:text-zinc-500 mt-0.5">
                   {isAdmin ? 'Reporte consolidado e historial de toda la nómina de trabajadores.' : 'Visualización de tus últimos ingresos y salidas registrados.'}
                 </p>
               </div>
@@ -618,9 +618,9 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               {isAdmin && (
                 <button
                   onClick={handleExportCsv}
-                  className="py-2 px-3 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors shadow active:scale-95 cursor-pointer"
+                  className="py-2 px-3 bg-stone-900 hover:bg-stone-800 text-white dark:bg-brand-yellow dark:text-brand-black dark:hover:bg-amber-400 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors shadow active:scale-95 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-brand-yellow" />
+                  <Download className="w-3.5 h-3.5 text-brand-yellow dark:text-brand-black" />
                   Exportar Filtrado (.csv)
                 </button>
               )}
@@ -628,17 +628,17 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
             {/* ADVANCED FILTERS (Admin only) */}
             {isAdmin && (
-              <div className="bg-stone-50 rounded-xl p-3 border border-stone-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+              <div className="bg-stone-50 dark:bg-slate-850 rounded-xl p-3 border border-stone-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
                 
                 {/* Employee Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
                     <Users className="w-3 h-3" /> Empleado
                   </label>
                   <select
                     value={filterEmpleado}
                     onChange={(e) => setFilterEmpleado(e.target.value)}
-                    className="w-full bg-white border border-stone-200 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750"
+                    className="w-full bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750 dark:text-zinc-250"
                   >
                     <option value="todos">Todos los empleados</option>
                     {uniqueEmpleados.map((nombre, i) => (
@@ -649,13 +649,13 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
                 {/* Type Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
                     <Filter className="w-3 h-3" /> Tipo de registro
                   </label>
                   <select
                     value={filterTipo}
                     onChange={(e) => setFilterTipo(e.target.value)}
-                    className="w-full bg-white border border-stone-200 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750"
+                    className="w-full bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750 dark:text-zinc-250"
                   >
                     <option value="todos">Todos los tipos</option>
                     <option value="ingreso">Ingresos (📥)</option>
@@ -665,13 +665,13 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
                 {/* Date Filter */}
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider flex items-center gap-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 dark:text-zinc-500 tracking-wider flex items-center gap-1">
                     <Calendar className="w-3 h-3" /> Rango temporal
                   </label>
                   <select
                     value={filterFecha}
                     onChange={(e) => setFilterFecha(e.target.value as any)}
-                    className="w-full bg-white border border-stone-200 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750"
+                    className="w-full bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-orange text-stone-750 dark:text-zinc-250"
                   >
                     <option value="todos">Todo el historial</option>
                     <option value="hoy">Sólo hoy</option>
@@ -684,12 +684,12 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
 
             {/* RENDER LOGS LIST */}
             {loading ? (
-              <div className="text-center py-12 text-slate-400 text-sm">
+              <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-sm">
                 <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400" />
                 Cargando registros...
               </div>
             ) : filteredFichajes.length === 0 ? (
-              <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-sm italic">
+              <div className="text-center py-12 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-sm italic">
                 No hay fichajes registrados con los criterios seleccionados.
               </div>
             ) : (
@@ -699,7 +699,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                 <div className="overflow-x-auto hidden md:block">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-stone-150 text-[10px] font-black text-stone-400 uppercase tracking-wider bg-stone-50">
+                      <tr className="border-b border-stone-150 dark:border-slate-800 text-[10px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-wider bg-stone-50 dark:bg-slate-900">
                         {isAdmin && <th className="py-2.5 px-3">Empleado</th>}
                         <th className="py-2.5 px-3">Tipo</th>
                         <th className="py-2.5 px-3">Día</th>
@@ -716,28 +716,28 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                           : null;
 
                         return (
-                          <tr key={idx} className="border-b border-stone-100 hover:bg-slate-50/50 transition-colors">
+                          <tr key={idx} className="border-b border-stone-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-colors">
                             {isAdmin && (
-                              <td className="py-3 px-3 font-bold text-stone-800">
+                              <td className="py-3 px-3 font-bold text-stone-800 dark:text-zinc-100">
                                 {f.nombre_empleado}
                               </td>
                             )}
                             <td className="py-3 px-3">
                               <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                                 f.tipo === 'ingreso' 
-                                  ? 'bg-emerald-100 text-emerald-800' 
-                                  : 'bg-rose-100 text-rose-800'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-350' 
+                                  : 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-350'
                               }`}>
                                 {f.tipo}
                               </span>
                             </td>
-                            <td className="py-3 px-3 font-medium text-slate-500 capitalize">
+                            <td className="py-3 px-3 font-medium text-slate-500 dark:text-zinc-400 capitalize">
                               {dia}
                             </td>
-                            <td className="py-3 px-3 text-slate-600 font-mono">
+                            <td className="py-3 px-3 text-slate-600 dark:text-zinc-400 font-mono">
                               {fecha}
                             </td>
-                            <td className="py-3 px-3 font-extrabold text-stone-850 font-mono">
+                            <td className="py-3 px-3 font-extrabold text-stone-850 dark:text-zinc-100 font-mono">
                               {hora} hs
                             </td>
                             <td className="py-3 px-3 max-w-[240px]">
@@ -789,15 +789,15 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
                       : null;
 
                     return (
-                      <div key={idx} className="bg-stone-50 rounded-xl p-3.5 border border-stone-200 space-y-2 text-left">
+                      <div key={idx} className="bg-stone-50 dark:bg-slate-850 rounded-xl p-3.5 border border-stone-200 dark:border-slate-800 space-y-2 text-left">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-stone-850 text-xs">
+                          <span className="font-bold text-stone-850 dark:text-zinc-150 text-xs">
                             {f.nombre_empleado}
                           </span>
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                             f.tipo === 'ingreso' 
-                              ? 'bg-emerald-100 text-emerald-800' 
-                              : 'bg-rose-100 text-rose-800'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-350' 
+                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-350'
                           }`}>
                             {f.tipo}
                           </span>

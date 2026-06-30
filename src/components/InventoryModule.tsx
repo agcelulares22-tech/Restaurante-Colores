@@ -1538,7 +1538,7 @@ function InventoryModule({
                       <div className="flex gap-2">
                         <button
                           onClick={handleExportPurchaseOrderPDF}
-                          className="py-2.5 px-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1.5"
+                          className="py-2.5 px-3.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-brand-yellow dark:text-brand-black dark:hover:bg-amber-400 font-bold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1.5"
                         >
                           <Download className="w-4 h-4" />
                           Exportar PDF

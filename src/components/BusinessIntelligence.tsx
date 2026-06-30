@@ -927,16 +927,16 @@ function BusinessIntelligence({
           )}
           <button
             onClick={handleDownloadBIReport}
-            className="text-[10px] uppercase font-black px-3.5 py-2 bg-[#624A3E] hover:bg-[#4d3a30] text-amber-300 rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm"
+            className="text-[10px] uppercase font-black px-3.5 py-2 bg-[#624A3E] hover:bg-[#4d3a30] text-amber-300 dark:bg-[#624A3E]/80 dark:hover:bg-[#4d3a30]/80 rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm"
           >
             <FileDown className="w-3.5 h-3.5 text-amber-300" />
             <span>Exportar PDF</span>
           </button>
           <button
             onClick={handleDownloadCSVReport}
-            className="text-[10px] uppercase font-black px-3.5 py-2 bg-stone-900 hover:bg-stone-850 text-white rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm border border-stone-800"
+            className="text-[10px] uppercase font-black px-3.5 py-2 bg-stone-900 hover:bg-stone-850 text-white dark:bg-brand-yellow dark:text-brand-black dark:hover:bg-amber-400 rounded-lg cursor-pointer transition-colors w-full sm:w-auto text-center flex items-center justify-center gap-1.5 shadow-sm border border-stone-800 dark:border-brand-yellow/20"
           >
-            <FileDown className="w-3.5 h-3.5 text-brand-yellow" />
+            <FileDown className="w-3.5 h-3.5 text-brand-yellow dark:text-brand-black" />
             <span>Exportar CSV</span>
           </button>
         </div>
