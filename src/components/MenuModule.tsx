@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
-import { UtensilsCrossed, Plus, Search, Edit2, Check, Copy, X, DollarSign, Image, AlertTriangle } from 'lucide-react';
+import { UtensilsCrossed, Plus, Search, Edit2, Check, Copy, X, DollarSign, Image, AlertTriangle, Percent } from 'lucide-react';
 import BulkPriceEditor from './BulkPriceEditor';
 import { CardSkeleton } from './Skeleton';
 import { ProductoMenu, EventoLog, RecetaEscandallo, Insumo } from '../types';
@@ -781,6 +781,11 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
               const marginPct = hasRecipe ? calculateMarginPct(item, recipeCost) : null;
               const marginLevel = getMarginLevel(marginPct);
 
+              const tempPrice = parseFloat(editPrecio);
+              const dynamicMarginPct = (hasRecipe && !isNaN(tempPrice) && tempPrice > 0)
+                ? ((tempPrice - recipeCost) / tempPrice) * 100
+                : null;
+
               return (
               <div
                 key={item.id_producto}
@@ -844,12 +849,27 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
 
                       {editingId === item.id_producto ? (
                         <div className="space-y-2 mt-1.5 border-t border-stone-250/20 pt-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-stone-700">$</span>
-                            <input type="number" inputMode="decimal" value={editPrecio} onChange={e => setEditPrecio(e.target.value)}
-                              disabled={isBusy}
-                              className="w-20 text-sm p-1.5 border border-stone-300 rounded bg-white text-stone-800 font-mono font-bold focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
-                          </div>
+                           <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                             <div className="flex items-center gap-1">
+                               <span className="text-xs font-bold text-stone-700">$</span>
+                               <input type="number" inputMode="decimal" value={editPrecio} onChange={e => setEditPrecio(e.target.value)}
+                                 disabled={isBusy}
+                                 className="w-20 text-sm p-1.5 border border-stone-300 rounded bg-white text-stone-800 font-mono font-bold focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
+                             </div>
+                             {hasRecipe && dynamicMarginPct !== null && (
+                               <div className={`text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 border transition-all ${
+                                 dynamicMarginPct < 40 
+                                   ? 'bg-rose-50 border-rose-200 text-rose-700 font-extrabold shadow-sm animate-pulse' 
+                                   : dynamicMarginPct < 50
+                                   ? 'bg-amber-100 border-amber-300 text-amber-700'
+                                   : 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                               }`}>
+                                 {dynamicMarginPct < 40 ? <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0 animate-bounce" /> : <Percent className="w-3 h-3 shrink-0" />}
+                                 <span>Margen: {dynamicMarginPct.toFixed(0)}%</span>
+                                 {dynamicMarginPct < 40 && <span className="text-[8px] font-black uppercase tracking-wider bg-rose-600 text-white px-1 rounded-sm ml-1">CRÍTICO</span>}
+                               </div>
+                             )}
+                           </div>
                           <input type="text" value={editNombre} onChange={e => setEditNombre(e.target.value)}
                             disabled={isBusy}
                             className="w-full text-xs p-1.5 border border-stone-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#624A3E]" />
