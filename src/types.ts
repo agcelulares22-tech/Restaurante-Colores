@@ -196,6 +196,7 @@ export interface MovimientoCajaChica {
     monto: number;
     concepto: string;
     fecha: string;
+    responsable?: string;
 }
 
 /** Sesión de caja (apertura → cierre de turno) */

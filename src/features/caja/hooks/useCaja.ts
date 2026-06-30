@@ -311,7 +311,8 @@ export function useCaja({
         tipo: movimientoTipo,
         monto: montoNum,
         concepto: movimientoConcepto.trim(),
-        fecha: new Date().toISOString()
+        fecha: new Date().toISOString(),
+        responsable: cajaSession.usuario_cajero
       };
 
       await cajaService.addMovimientoCajaChica(nuevoMov);

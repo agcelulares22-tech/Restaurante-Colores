@@ -831,8 +831,9 @@ function CajaModule({
                               }`} />
                               <span className="font-black text-zinc-200 capitalize">{mov.concepto || 'Sin concepto'}</span>
                             </div>
-                            <span className="text-[9px] text-zinc-500 font-mono">
-                              {new Date(mov.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            <span className="text-[9px] text-slate-500 dark:text-zinc-500 font-mono">
+                              {new Date(mov.fecha || (mov as any).fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}hs
+                              {mov.responsable && ` • Cajero: ${mov.responsable.toUpperCase()}`}
                             </span>
                           </div>
                           <span className={`font-mono font-black ${

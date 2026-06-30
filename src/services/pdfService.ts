@@ -863,7 +863,10 @@ export const pdfService = {
 
         const timeStr = new Date(m.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs';
         doc.text(timeStr, margin + 4, y);
-        doc.text(m.concepto.slice(0, 45), margin + 45, y);
+        const descriptionStr = m.responsable 
+          ? `${m.concepto.slice(0, 32)} (${m.responsable.toUpperCase()})` 
+          : m.concepto.slice(0, 45);
+        doc.text(descriptionStr, margin + 45, y);
         doc.text(m.tipo.toUpperCase(), margin + 130, y);
         doc.text(money(m.monto), margin + 178, y, { align: 'right' });
         y += rowHeight;
