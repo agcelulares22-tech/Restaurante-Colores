@@ -966,7 +966,10 @@ export default function RestaurantCover({
 
       {/* 7. FOOTER */}
       <footer className="bg-black dark:bg-[#080E24] text-stone-400 py-12 px-4 border-t-4 border-black text-center space-y-6">
-        <div className="flex items-center justify-center gap-2.5">
+        <div 
+          className="flex items-center justify-center gap-2.5 cursor-pointer select-none" 
+          onDoubleClick={onEnterSystem}
+        >
           <div className="w-8 h-8 bg-[#D90429] rounded-lg flex items-center justify-center border border-white/20">
             <Pizza className="w-5 h-5 text-white" />
           </div>
@@ -975,14 +978,6 @@ export default function RestaurantCover({
         <p className="text-[10px] font-bold tracking-widest max-w-sm mx-auto uppercase">
           © {new Date().getFullYear()} Colores Pizzería. Todos los derechos reservados. Hecho con pasión criolla e italiana.
         </p>
-        <div className="pt-2">
-          <button 
-            onClick={onEnterSystem}
-            className="text-[10px] uppercase font-black text-stone-500 hover:text-white border-2 border-stone-800 hover:border-[#FFC300] rounded-xl px-4 py-2 transition-all cursor-pointer"
-          >
-            🔑 Acceso Administrativo
-          </button>
-        </div>
       </footer>
 
       {/* EVENT BOOKING DIALOG */}

@@ -61,7 +61,13 @@ export function useAppState() {
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
     typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
   ));
-  const [showCover, setShowCover] = useState<boolean>(true);
+  const [showCover, setShowCover] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('admin') === 'true' ? false : true;
+    }
+    return true;
+  });
   const [permitirVentaSinStock, setPermitirVentaSinStock] = useState<boolean>(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(INITIAL_USUARIOS);
   const [mesas, setMesas] = useState<Mesa[]>(INITIAL_MESAS);
