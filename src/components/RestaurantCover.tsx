@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
@@ -104,6 +104,19 @@ export default function RestaurantCover({
     modalidad: 'delivery' as 'delivery' | 'retiro',
     direccion: ''
   });
+
+  // Scroll active category tab into view in Digital Menu modal
+  useEffect(() => {
+    if (showDigitalMenu) {
+      const timer = setTimeout(() => {
+        const activeEl = document.querySelector('.active-category-tab');
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showDigitalMenu, menuActiveCategory]);
 
   const handleAddToCart = (id: string) => {
     setMenuCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
@@ -1079,7 +1092,7 @@ export default function RestaurantCover({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-4xl w-full shadow-2xl text-left flex flex-col max-h-[92vh] h-full text-stone-100 font-sans"
+              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-5xl w-full shadow-2xl text-left flex flex-col max-h-[95vh] h-full text-stone-100 font-sans"
             >
               {/* Modal Header */}
               <div className="flex justify-between items-center pb-4 border-b border-stone-850">
@@ -1113,9 +1126,9 @@ export default function RestaurantCover({
                           key={cat}
                           type="button"
                           onClick={() => setMenuActiveCategory(cat)}
-                          className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                          className={`shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                             isActive
-                              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/20'
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 active-category-tab'
                               : 'bg-[#1C1C1E] text-stone-400 border border-stone-850 hover:text-stone-200'
                           }`}
                         >
