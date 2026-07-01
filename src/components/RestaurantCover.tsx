@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
@@ -25,7 +25,7 @@ import {
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
 import { ProductoMenu, Insumo } from '../types';
 
-const Spline = lazy(() => import('@splinetool/react-spline'));
+
 import { dbSavePedidoComplex } from '../supabase';
 
 interface RestaurantCoverProps {
@@ -108,6 +108,23 @@ export default function RestaurantCover({
     modalidad: 'delivery' as 'delivery' | 'retiro',
     direccion: ''
   });
+
+  // State for dynamic Spline loading to avoid crashes
+  const [SplineComponent, setSplineComponent] = useState<any>(null);
+  const [splineError, setSplineError] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (showDigitalMenu && !SplineComponent && !splineError) {
+      import('@splinetool/react-spline')
+        .then((module) => {
+          setSplineComponent(() => module.default);
+        })
+        .catch((err) => {
+          console.error("Error loading Spline:", err);
+          setSplineError(true);
+        });
+    }
+  }, [showDigitalMenu, SplineComponent, splineError]);
 
   // Scroll active category tab into view in Digital Menu modal
   useEffect(() => {
@@ -1094,15 +1111,19 @@ export default function RestaurantCover({
           <>
             {/* Escenario 3D Inmersivo en el Fondo (Spline) */}
             <div className="fixed inset-0 z-[40] bg-[#0c0c0d] overflow-hidden pointer-events-auto">
-              <Suspense fallback={
+              {SplineComponent ? (
+                <SplineComponent scene={splineSceneUrl} className="w-full h-full object-cover" />
+              ) : splineError ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0c0c0d] opacity-50">
+                  <span className="text-stone-500 text-xs font-bold uppercase tracking-wider">Fondo 3D no disponible</span>
+                </div>
+              ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-amber-400 font-bold uppercase tracking-widest text-xs animate-pulse">
                     Cargando experiencia 3D...
                   </div>
                 </div>
-              }>
-                <Spline scene={splineSceneUrl} className="w-full h-full object-cover" />
-              </Suspense>
+              )}
               {/* Degradado oscuro overlay para garantizar contraste con el texto */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0d] via-transparent to-[#0c0c0d] opacity-80 pointer-events-none" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0c0c0d_90%)] opacity-60 pointer-events-none" />
