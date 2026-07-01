@@ -32,14 +32,12 @@ interface RestaurantCoverProps {
   onEnterSystem: () => void;
   productosMenu?: ProductoMenu[];
   insumos?: Insumo[];
-  splineSceneUrl?: string;
 }
 
 export default function RestaurantCover({ 
   onEnterSystem, 
   productosMenu = INITIAL_PRODUCTOS_MENU,
-  insumos = [],
-  splineSceneUrl = 'https://prod.spline.design/6Wq1Q7YGySpRjZ7S/scene.splinecode'
+  insumos = []
 }: RestaurantCoverProps) {
   // Booking states
   const [bookingForm, setBookingForm] = useState({
@@ -109,22 +107,7 @@ export default function RestaurantCover({
     direccion: ''
   });
 
-  // State for dynamic Spline loading to avoid crashes
-  const [SplineComponent, setSplineComponent] = useState<any>(null);
-  const [splineError, setSplineError] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (showDigitalMenu && !SplineComponent && !splineError) {
-      import('@splinetool/react-spline')
-        .then((module) => {
-          setSplineComponent(() => module.default);
-        })
-        .catch((err) => {
-          console.error("Error loading Spline:", err);
-          setSplineError(true);
-        });
-    }
-  }, [showDigitalMenu, SplineComponent, splineError]);
 
   // Scroll active category tab into view in Digital Menu modal
   useEffect(() => {
@@ -1108,35 +1091,13 @@ export default function RestaurantCover({
       {/* CARTA DIGITAL / SHOPPING MODAL */}
       <AnimatePresence>
         {showDigitalMenu && (
-          <>
-            {/* Escenario 3D Inmersivo en el Fondo (Spline) */}
-            <div className="fixed inset-0 z-[40] bg-[#0c0c0d] overflow-hidden pointer-events-auto">
-              {SplineComponent ? (
-                <SplineComponent scene={splineSceneUrl} className="w-full h-full object-cover" />
-              ) : splineError ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0c0c0d] opacity-50">
-                  <span className="text-stone-500 text-xs font-bold uppercase tracking-wider">Fondo 3D no disponible</span>
-                </div>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-amber-400 font-bold uppercase tracking-widest text-xs animate-pulse">
-                    Cargando experiencia 3D...
-                  </div>
-                </div>
-              )}
-              {/* Degradado oscuro overlay para garantizar contraste con el texto */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0d] via-transparent to-[#0c0c0d] opacity-80 pointer-events-none" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0c0c0d_90%)] opacity-60 pointer-events-none" />
-            </div>
-
-            {/* Contenedor Intermedio del Modal (Invisible y atraviesa clics) */}
-            <div className="fixed inset-0 z-[50] flex items-center justify-center p-4 sm:p-6 overflow-y-auto pointer-events-none">
-              <motion.div 
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-[#121214]/95 border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-5xl w-full shadow-2xl text-left flex flex-col max-h-[95vh] h-full text-stone-100 font-sans pointer-events-auto backdrop-blur-sm"
-              >
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-5xl w-full shadow-2xl text-left flex flex-col max-h-[95vh] h-full text-stone-100 font-sans"
+            >
               {/* Modal Header */}
               <div className="flex justify-between items-center pb-4 border-b border-stone-850">
                 <div>
@@ -1401,8 +1362,7 @@ export default function RestaurantCover({
               )}
             </motion.div>
           </div>
-        </>
-      )}
+        )}
       </AnimatePresence>
 \n\n      {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
       <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group">
