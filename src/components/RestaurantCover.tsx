@@ -413,98 +413,10 @@ export default function RestaurantCover({
           {/* 3 Signature Products Grid -> replaced dynamically with Active Database Promos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-4 max-w-6xl mx-auto">
             {promocionesList.length === 0 ? (
-              // Fallback default signature promos if DB list is empty
-              [
-                {
-                  title: 'Pizza "Mega Colores" Llaxta',
-                  src: '/images/pizza_usuario.jpg',
-                  badge: '🔥 ¡LA REINA DE LA LEÑA!',
-                  badgeColor: '#D90429',
-                  price: 24000,
-                  desc: 'Masa aireada fermentada por 48hs al carbón activo, doble muzzarella fundida, panceta ahumada caramelizada, morrones al fuego y aceitunas seleccionadas.',
-                  tag: '🍕 Pizzas'
-                },
-                {
-                  title: 'Empanada "Criolla Explosiva"',
-                  src: '/images/empanadas_usuario.jpg',
-                  badge: '🥟 ¡SÚPER JUGOSA!',
-                  badgeColor: '#FFC300',
-                  price: 2300,
-                  desc: 'Horneada al barro y leña de espinillo. Rellena de lomo cortado a cuchillo, rehogada a mano con cebolla de verdeo dulce y huevo picado.',
-                  tag: '🥟 Empanadas'
-                },
-                {
-                  title: 'Calzone "Bastardo"',
-                  src: '/images/calzone_usuario.jpg',
-                  badge: '🥖 ¡GIGANTE Y SABROSO!',
-                  badgeColor: '#FF5722',
-                  price: 22000,
-                  desc: 'Masa rústica artesanal rellena generosamente con jamón cocido seleccionado, muzzarella, hongos salteados al malbec y gratinado de provolone.',
-                  tag: '🥖 Calzones'
-                }
-              ].map((p, idx) => (
-                <div
-                  key={idx}
-                  className={`bg-white dark:bg-[#1C2541] border-4 border-black rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] ${
-                    idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
-                  } flex flex-col h-full group`}
-                >
-                  <div className="h-64 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
-                    <img
-                      src={p.src}
-                      alt={p.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={e => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
-                      }}
-                    />
-                    <span 
-                      className="absolute top-4 left-4 px-4 py-2 text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(0,0,0,1)] transform -rotate-2"
-                      style={{ backgroundColor: p.badgeColor }}
-                    >
-                      {p.badge}
-                    </span>
-                    <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-black text-[#FFC300] border-2 border-black text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
-                      {p.tag}
-                    </span>
-                  </div>
-
-                  <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-display text-2xl text-black dark:text-white uppercase leading-none group-hover:text-[#D90429] transition-colors">
-                          {p.title}
-                        </h3>
-                      </div>
-                      <p className="text-xs font-bold text-stone-600 dark:text-stone-300 leading-relaxed italic">
-                        "{p.desc}"
-                      </p>
-                    </div>
-
-                    <div className="pt-4 border-t border-black/10 flex items-center justify-between">
-                      <div>
-                        <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest block">Precio</span>
-                        <span className="font-display text-2xl text-[#D90429]">
-                          ${p.price.toLocaleString('es-AR')}
-                        </span>
-                      </div>
-                      <a
-                        href={`https://wa.me/5493584024822?text=${encodeURIComponent(
-                          `¡Hola Pizzería Colores! Me gustaría encargar su especialidad:\n` +
-                          `• ${p.title} ($${p.price.toLocaleString('es-AR')})\n\n` +
-                          `¡Muchas gracias!`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-5 py-4 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <ShoppingBag className="w-4 h-4" />
-                        Pedir Ahora
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div className="col-span-3 text-center py-12 text-stone-500 dark:text-stone-400">
+                <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#FFC300]" />
+                <p className="text-sm uppercase font-black text-stone-600 dark:text-stone-300">No hay promociones activas registradas en el sistema</p>
+              </div>
             ) : (
               promocionesList.map((p, idx) => {
                 const labelUpper = p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO';
