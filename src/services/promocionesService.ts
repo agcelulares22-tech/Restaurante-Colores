@@ -9,6 +9,7 @@ export interface Promocion {
   activo: boolean;
   descripcion: string;
   fecha_vencimiento?: string;
+  imagen_url?: string;
 }
 
 export const promocionesService = {
@@ -28,7 +29,8 @@ export const promocionesService = {
       dias_vigentes: p.dias_vigentes || p.días_vigentes || 'Todos los días',
       activo: p.activa !== undefined ? p.activa : (p.activo !== undefined ? p.activo : true),
       descripcion: p.descripcion || '',
-      fecha_vencimiento: p.fecha_vencimiento || p.vencimiento || localVencimientos[p.id_promo] || undefined
+      fecha_vencimiento: p.fecha_vencimiento || p.vencimiento || localVencimientos[p.id_promo] || undefined,
+      imagen_url: p.imagen_url || ''
     }));
   },
 
@@ -39,7 +41,8 @@ export const promocionesService = {
       nombre: promo.nombre,
       descuento: promo.descuento_porcentaje,
       activa: promo.activo,
-      descripcion: promo.descripcion
+      descripcion: promo.descripcion,
+      imagen_url: promo.imagen_url
     };
     if (promo.fecha_vencimiento) {
       dbPayload.fecha_vencimiento = promo.fecha_vencimiento;
@@ -56,7 +59,8 @@ export const promocionesService = {
         dias_vigentes: 'Todos los dias',
         activo: data.activa,
         descripcion: data.descripcion,
-        fecha_vencimiento: data.fecha_vencimiento
+        fecha_vencimiento: data.fecha_vencimiento,
+        imagen_url: data.imagen_url || ''
       };
     } catch (err) {
       console.warn("Failed inserting with fecha_vencimiento, retrying without it:", err);
@@ -76,7 +80,8 @@ export const promocionesService = {
         dias_vigentes: 'Todos los dias',
         activo: data.activa,
         descripcion: data.descripcion,
-        fecha_vencimiento: promo.fecha_vencimiento
+        fecha_vencimiento: promo.fecha_vencimiento,
+        imagen_url: data.imagen_url || ''
       };
     }
   },
@@ -88,6 +93,7 @@ export const promocionesService = {
     if (fields.descuento_porcentaje !== undefined) dbPayload.descuento = fields.descuento_porcentaje;
     if (fields.activo !== undefined) dbPayload.activa = fields.activo;
     if (fields.descripcion !== undefined) dbPayload.descripcion = fields.descripcion;
+    if (fields.imagen_url !== undefined) dbPayload.imagen_url = fields.imagen_url;
     if (fields.fecha_vencimiento !== undefined) {
       dbPayload.fecha_vencimiento = fields.fecha_vencimiento;
       const localVencimientos = JSON.parse(localStorage.getItem('local_promos_vencimientos') || '{}');
@@ -122,7 +128,8 @@ export const promocionesService = {
         nombre: p.nombre,
         descuento: p.descuento_porcentaje,
         activa: p.activo,
-        descripcion: p.descripcion
+        descripcion: p.descripcion,
+        imagen_url: p.imagen_url
       };
       if (p.fecha_vencimiento) {
         payload.fecha_vencimiento = p.fecha_vencimiento;

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
 import { ProductoMenu, Insumo } from '../types';
-
+import { promocionesService, Promocion } from '../services/promocionesService';
 
 import { dbSavePedidoComplex } from '../supabase';
 
@@ -48,6 +48,18 @@ export default function RestaurantCover({
     hora: '21:00'
   });
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+
+  const [promocionesList, setPromocionesList] = useState<Promocion[]>([]);
+
+  useEffect(() => {
+    promocionesService.list()
+      .then(data => {
+        setPromocionesList((data || []).filter(p => p.activo !== false));
+      })
+      .catch(err => {
+        console.warn("Falla al cargar promociones para la portada:", err);
+      });
+  }, []);
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -750,7 +762,96 @@ export default function RestaurantCover({
         </div>
       </section>
 
-      {/* 4.2. COMBOS & PROMOCIONES ESPECIALES REMOVED */}
+      {/* 4.2. COMBOS & PROMOCIONES ESPECIALES (DINÁMICO) */}
+      <section id="promociones" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-2">
+          <span className="inline-block px-3 py-1 bg-[#FFC300] text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform rotate-1">
+            🔥 ¡MÁS POR MENOS!
+          </span>
+          <h2 className="font-display text-3xl sm:text-5xl text-black dark:text-white uppercase leading-none">
+            Combos & Promociones
+          </h2>
+          <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
+            Las mejores combinaciones con precios especiales para disfrutar en casa
+          </p>
+          <div className="w-16 h-1.5 bg-[#D90429] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+        </div>
+
+        {promocionesList.length === 0 ? (
+          <div className="text-center py-12 text-stone-500 dark:text-stone-400">
+            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#FFC300]" />
+            <p className="text-sm uppercase font-black">No hay promociones activas en este momento</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {promocionesList.map((p) => {
+              const labelUpper = p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO DIRECTO';
+              const cleanImage = p.imagen_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+              
+              return (
+                <div 
+                  key={p.id_promo}
+                  className="bg-white dark:bg-[#1C2541] border-4 border-black rounded-3xl overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-4px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full group text-left"
+                >
+                  <div className="h-48 relative overflow-hidden bg-stone-100 dark:bg-stone-900 border-b-4 border-black">
+                    <img 
+                      src={cleanImage} 
+                      alt={p.nombre} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={e => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+                      }}
+                    />
+                    <span className="absolute top-3 left-3 px-3 py-1.5 bg-black text-[#FFC300] border-2 border-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                      {labelUpper}
+                    </span>
+                    <span className="absolute bottom-3 right-3 px-3 py-1.5 bg-[#D90429] text-white border-2 border-black text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                      -{p.descuento_porcentaje}% OFF
+                    </span>
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="font-display text-2xl text-black dark:text-white uppercase leading-none group-hover:text-[#D90429] transition-colors">
+                        {p.nombre}
+                      </h3>
+                      <p className="text-xs font-bold text-stone-650 dark:text-stone-300 leading-relaxed min-h-[40px] line-clamp-3">
+                        {p.descripcion || 'Disfrutá de esta promoción especial en nuestro salón o a domicilio.'}
+                      </p>
+                      {p.dias_vigentes && (
+                        <span className="inline-block text-[9px] font-extrabold text-[#D90429] dark:text-[#FFC300] uppercase tracking-wider bg-stone-50 dark:bg-stone-900 px-2 py-1 rounded border border-black/10">
+                          🗓️ {p.dias_vigentes}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-4 border-t border-black/10 flex items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[9px] font-bold text-stone-500 uppercase block">Descuento</span>
+                        <span className="font-display text-2xl text-[#D90429]">{p.descuento_porcentaje}% OFF</span>
+                      </div>
+                      <a
+                        href={`https://wa.me/5493584024822?text=${encodeURIComponent(
+                          `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n` +
+                          `• ${p.nombre} (-${p.descuento_porcentaje}% OFF)\n` +
+                          `• Detalle: ${p.descripcion}\n\n` +
+                          `¡Muchas gracias!`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-[9px] font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        <ShoppingBag className="w-3.5 h-3.5" />
+                        Pedir Promo
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
       <section className="py-20 bg-stone-50 dark:bg-[#111A34] border-t-4 border-black text-black dark:text-white relative overflow-hidden">

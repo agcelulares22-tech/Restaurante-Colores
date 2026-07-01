@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tag, Calendar, Plus, ToggleLeft, ToggleRight, Sparkles, Search, Edit2, Trash, Check, X } from 'lucide-react';
+import { Tag, Calendar, Plus, ToggleLeft, ToggleRight, Sparkles, Search, Edit2, Trash, Check, X, Image } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { promocionesService, Promocion } from '../services/promocionesService';
 import { promocionSchema } from '../lib/validations';
 import { ToastContainer, useToast } from './ToastContainer';
 import { EventoLog } from '../types';
+import { getActiveSupabaseClient } from '../lib/supabaseClient';
 
 interface PromocionesModuleProps {
   addLog: (tipo: EventoLog['tipo'], mensaje: string) => void;
@@ -59,10 +60,89 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
   const [desc, setDesc] = useState('');
   const [fechaVencimiento, setFechaVencimiento] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [imagenUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Helper to upload image to Supabase Storage
+  const uploadImage = async (file: File): Promise<string> => {
+    const supabase = getActiveSupabaseClient();
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('promociones')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error('Error uploading file to storage:', uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('promociones')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
+  // Helper to compress and convert image to base64 as fallback
+  const processImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const max_width = 800;
+          const max_height = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > max_width) {
+              height *= max_width / width;
+              width = max_width;
+            }
+          } else {
+            if (height > max_height) {
+              width *= max_height / height;
+              height = max_height;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Canvas context could not be created'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+          resolve(compressedBase64);
+        };
+        img.onerror = () => reject(new Error('Invalid image file'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('File reader failed'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+    }
+  };
 
   const resetForm = () => {
     setNombre(''); setDescuento(''); setTipo('descuento_directo');
     setVigencia(''); setDesc(''); setFechaVencimiento(''); setFormErrors([]); setEditingId(null);
+    setImageUrl(''); setImageFile(null);
   };
 
   // ── Validar con Zod ──────────────────────────────────────────────────────
@@ -89,6 +169,24 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
     if (pendingAction) return;
     if (!validateForm()) return;
 
+    setPendingAction('create');
+    let uploadedUrl = imagenUrl.trim();
+    if (imageFile) {
+      try {
+        toast.info('Subiendo imagen de la promoción...');
+        uploadedUrl = await uploadImage(imageFile);
+      } catch (err) {
+        console.warn('Falla subida a storage, guardando base64 local:', err);
+        try {
+          uploadedUrl = await processImageFile(imageFile);
+        } catch (compressErr) {
+          toast.error('Error al procesar la imagen.');
+          setPendingAction(null);
+          return;
+        }
+      }
+    }
+
     const newPr: Promocion = {
       id_promo: `p_${Date.now()}`,
       nombre: nombre.trim(),
@@ -98,10 +196,10 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       activo: true,
       descripcion: desc.trim() || 'Precios promocionales y combos especiales',
       fecha_vencimiento: fechaVencimiento || undefined,
+      imagen_url: uploadedUrl || undefined
     };
 
     const previous = promos;
-    setPendingAction('create');
     setPromos(prev => [newPr, ...prev]);
     resetForm();
 
@@ -126,6 +224,8 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
     setVigencia(p.dias_vigentes ?? '');
     setDesc(p.descripcion ?? '');
     setFechaVencimiento(p.fecha_vencimiento || '');
+    setImageUrl(p.imagen_url || '');
+    setImageFile(null);
     setFormErrors([]);
   };
 
@@ -133,6 +233,24 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
   const handleSaveEdit = async () => {
     if (!editingId || pendingAction) return;
     if (!validateForm()) return;
+
+    setPendingAction(`edit-${editingId}`);
+    let uploadedUrl = imagenUrl.trim();
+    if (imageFile) {
+      try {
+        toast.info('Subiendo imagen de la promoción...');
+        uploadedUrl = await uploadImage(imageFile);
+      } catch (err) {
+        console.warn('Falla subida a storage. Convirtiendo a local Base64:', err);
+        try {
+          uploadedUrl = await processImageFile(imageFile);
+        } catch (compressErr) {
+          toast.error('Error al procesar la imagen.');
+          setPendingAction(null);
+          return;
+        }
+      }
+    }
 
     const updated: Promocion = {
       id_promo: editingId,
@@ -143,10 +261,10 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       activo: promos.find(p => p.id_promo === editingId)?.activo ?? true,
       descripcion: desc.trim(),
       fecha_vencimiento: fechaVencimiento || undefined,
+      imagen_url: uploadedUrl || undefined
     };
 
     const previous = promos;
-    setPendingAction(`edit-${editingId}`);
     setPromos(prev => prev.map(p => p.id_promo === editingId ? updated : p));
     resetForm();
 
@@ -302,6 +420,35 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
               />
             </div>
 
+            <div>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Imagen de la Promoción (URL o Archivo)</label>
+              <input
+                type="text"
+                value={imagenUrl}
+                onChange={e => setImageUrl(e.target.value)}
+                className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#624A3E]/30 mb-2 placeholder-stone-400"
+                placeholder="Pegue la URL de la imagen..."
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full min-h-10 flex items-center justify-center gap-1.5 border border-dashed border-stone-300 hover:border-stone-400 bg-stone-50 rounded-xl text-xs font-bold text-stone-600 cursor-pointer"
+              >
+                <Image className="w-3.5 h-3.5 text-stone-450" />
+                Subir Archivo de Imagen
+              </button>
+              {imageFile && (
+                <p className="text-[10px] text-emerald-600 font-bold mt-1">✓ Seleccionado: {imageFile.name}</p>
+              )}
+            </div>
+
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -368,6 +515,13 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                       {TIPO_LABELS[p.tipo]}
                     </span>
                   </div>
+
+                  {/* Imagen miniatura */}
+                  {p.imagen_url && (
+                    <div className="shrink-0 w-12 h-12 rounded-xl border border-stone-200 overflow-hidden bg-stone-50">
+                      <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
+                    </div>
+                  )}
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
