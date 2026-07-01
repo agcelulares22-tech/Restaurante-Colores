@@ -24,8 +24,6 @@
   --color-slate-950: var(--slate-950);
   --color-slate-900: var(--slate-900);
   --color-slate-800: var(--slate-800);
-  
-  --color-black: var(--black-bg);
 
   /* Dynamically map stone colors to support seamless dark theme adaptation */
   --color-stone-950: var(--stone-950);
