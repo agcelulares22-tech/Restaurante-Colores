@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
@@ -24,18 +24,22 @@ import {
 } from 'lucide-react';
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
 import { ProductoMenu, Insumo } from '../types';
+
+const Spline = lazy(() => import('@splinetool/react-spline'));
 import { dbSavePedidoComplex } from '../supabase';
 
 interface RestaurantCoverProps {
   onEnterSystem: () => void;
   productosMenu?: ProductoMenu[];
   insumos?: Insumo[];
+  splineSceneUrl?: string;
 }
 
 export default function RestaurantCover({ 
   onEnterSystem, 
   productosMenu = INITIAL_PRODUCTOS_MENU,
-  insumos = []
+  insumos = [],
+  splineSceneUrl = 'https://prod.spline.design/6Wq1Q7YGySpRjZ7S/scene.splinecode'
 }: RestaurantCoverProps) {
   // Booking states
   const [bookingForm, setBookingForm] = useState({
@@ -1087,13 +1091,31 @@ export default function RestaurantCover({
       {/* CARTA DIGITAL / SHOPPING MODAL */}
       <AnimatePresence>
         {showDigitalMenu && (
-          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#121214] border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-5xl w-full shadow-2xl text-left flex flex-col max-h-[95vh] h-full text-stone-100 font-sans"
-            >
+          <>
+            {/* Escenario 3D Inmersivo en el Fondo (Spline) */}
+            <div className="fixed inset-0 z-[40] bg-[#0c0c0d] overflow-hidden pointer-events-auto">
+              <Suspense fallback={
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-amber-400 font-bold uppercase tracking-widest text-xs animate-pulse">
+                    Cargando experiencia 3D...
+                  </div>
+                </div>
+              }>
+                <Spline scene={splineSceneUrl} className="w-full h-full object-cover" />
+              </Suspense>
+              {/* Degradado oscuro overlay para garantizar contraste con el texto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0d] via-transparent to-[#0c0c0d] opacity-80 pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0c0c0d_90%)] opacity-60 pointer-events-none" />
+            </div>
+
+            {/* Contenedor Intermedio del Modal (Invisible y atraviesa clics) */}
+            <div className="fixed inset-0 z-[50] flex items-center justify-center p-4 sm:p-6 overflow-y-auto pointer-events-none">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-[#121214]/95 border border-stone-850 p-6 sm:p-8 rounded-3xl max-w-5xl w-full shadow-2xl text-left flex flex-col max-h-[95vh] h-full text-stone-100 font-sans pointer-events-auto backdrop-blur-sm"
+              >
               {/* Modal Header */}
               <div className="flex justify-between items-center pb-4 border-b border-stone-850">
                 <div>
@@ -1358,7 +1380,8 @@ export default function RestaurantCover({
               )}
             </motion.div>
           </div>
-        )}
+        </>
+      )}
       </AnimatePresence>
 \n\n      {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
       <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group">
