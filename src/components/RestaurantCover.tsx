@@ -119,6 +119,16 @@ export default function RestaurantCover({
     direccion: ''
   });
 
+  // Billing states
+  const [quieroFactura, setQuieroFactura] = useState(false);
+  const [facturacionForm, setFacturacionForm] = useState({
+    registroImpositivo: 'Consumidor Final',
+    razonSocial: '',
+    cuit: '',
+    domicilioFiscal: '',
+    email: ''
+  });
+
 
 
   // Scroll active category tab into view in Digital Menu modal
@@ -155,6 +165,33 @@ export default function RestaurantCover({
     if (!menuForm.nombre || !menuForm.telefono || (menuForm.modalidad === 'delivery' && !menuForm.direccion)) {
       alert('Por favor complete todos los campos obligatorios para continuar.');
       return;
+    }
+
+    if (quieroFactura) {
+      if (!facturacionForm.razonSocial.trim()) {
+        alert('Por favor ingrese la Razón Social o Nombre para la factura.');
+        return;
+      }
+      if (!facturacionForm.cuit.trim()) {
+        alert('Por favor ingrese el CUIT.');
+        return;
+      }
+      if (!/^\d{2}-\d{8}-\d{1}$/.test(facturacionForm.cuit.trim())) {
+        alert('El CUIT debe tener el formato XX-XXXXXXXX-X (Ej. 30-12345678-9).');
+        return;
+      }
+      if (!facturacionForm.domicilioFiscal.trim()) {
+        alert('Por favor ingrese el Domicilio Fiscal.');
+        return;
+      }
+      if (!facturacionForm.email.trim()) {
+        alert('Por favor ingrese el Email de Facturación.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(facturacionForm.email.trim())) {
+        alert('Por favor ingrese un correo electrónico válido.');
+        return;
+      }
     }
 
     const cartItems = Object.entries(menuCart).map(([id, qty]) => {
@@ -198,6 +235,17 @@ export default function RestaurantCover({
       itemLines += `• *${it.cantidad}x ${it.nombre}* ─── $${(it.precio_unitario * it.cantidad).toLocaleString('es-AR')}\n`;
     });
 
+    let billingInfo = '';
+    if (quieroFactura) {
+      billingInfo = `🧾 *DATOS DE FACTURACIÓN:*\n` +
+                    `• *Reg. Impositivo:* ${facturacionForm.registroImpositivo}\n` +
+                    `• *Razón Social:* ${facturacionForm.razonSocial.trim()}\n` +
+                    `• *CUIT:* ${facturacionForm.cuit.trim()}\n` +
+                    `• *Domicilio Fiscal:* ${facturacionForm.domicilioFiscal.trim()}\n` +
+                    `• *Email:* ${facturacionForm.email.trim()}\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    }
+
     const msg = `🍕 *NUEVO PEDIDO - PIZZERÍA COLORES* 🍕\n` +
                 `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
                 `📋 *Pedido N°:* #${orderId}\n` +
@@ -211,6 +259,7 @@ export default function RestaurantCover({
                 `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
                 `💵 *TOTAL A PAGAR:* *$${total.toLocaleString('es-AR')}*\n` +
                 `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                billingInfo +
                 `¡Muchas gracias! Aguardo confirmación del pedido.`;
 
     let cleanPhone = menuForm.telefono.replace(/\D/g, '');
@@ -220,6 +269,14 @@ export default function RestaurantCover({
     setMenuCart({});
     setMenuStep(1);
     setShowDigitalMenu(false);
+    setQuieroFactura(false);
+    setFacturacionForm({
+      registroImpositivo: 'Consumidor Final',
+      razonSocial: '',
+      cuit: '',
+      domicilioFiscal: '',
+      email: ''
+    });
     
     window.open(url, '_blank');
   };
@@ -1282,6 +1339,110 @@ export default function RestaurantCover({
                         placeholder="Ej: Alvear 1362, Dpto 3B"
                         className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
                       />
+                    </div>
+                  )}
+
+                  {/* Option "Quiero mi factura" */}
+                  <div className="flex items-center justify-between py-2 border-t border-b border-stone-800/40 my-2 select-none">
+                    <label className="text-xs font-bold text-stone-300 uppercase tracking-wider cursor-pointer select-none flex items-center gap-2.5 animate-fadeIn" htmlFor="quiero-factura-toggle">
+                      <span className="text-amber-500">🧾</span> Quiero mi factura
+                    </label>
+                    <button
+                      type="button"
+                      id="quiero-factura-toggle"
+                      onClick={() => setQuieroFactura(prev => !prev)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        quieroFactura ? 'bg-amber-500' : 'bg-stone-850'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          quieroFactura ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {quieroFactura && (
+                    <div className="space-y-4 animate-fadeIn border-l-2 border-amber-500/30 pl-3 my-3">
+                      <h4 className="text-[10px] font-black uppercase text-amber-500 tracking-widest mb-2">Datos de Facturación Fiscal</h4>
+                      
+                      {/* REGISTRO IMPOSITIVO */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase text-stone-400">Registro Impositivo *</label>
+                        <select
+                          value={facturacionForm.registroImpositivo}
+                          onChange={(e) => setFacturacionForm(prev => ({ ...prev, registroImpositivo: e.target.value }))}
+                          className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 cursor-pointer"
+                        >
+                          <option value="Consumidor Final">Consumidor Final</option>
+                          <option value="Monotributista">Monotributista</option>
+                          <option value="Responsable Inscripto">Responsable Inscripto</option>
+                          <option value="Exento">Exento</option>
+                        </select>
+                      </div>
+
+                      {/* RAZÓN SOCIAL / NOMBRE */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase text-stone-400">Razón Social o Nombre *</label>
+                        <input
+                          type="text"
+                          required
+                          value={facturacionForm.razonSocial}
+                          onChange={(e) => setFacturacionForm(prev => ({ ...prev, razonSocial: e.target.value }))}
+                          placeholder="Ej. Juan Pérez o Colores Pizza S.A."
+                          className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
+                        />
+                      </div>
+
+                      {/* CUIT */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase text-stone-400">CUIT *</label>
+                        <input
+                          type="text"
+                          required
+                          value={facturacionForm.cuit}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 11) val = val.substring(0, 11);
+                            let formatted = val;
+                            if (val.length > 2 && val.length <= 10) {
+                              formatted = `${val.substring(0, 2)}-${val.substring(2)}`;
+                            } else if (val.length > 10) {
+                              formatted = `${val.substring(0, 2)}-\n${val.substring(2, 10)}-${val.substring(10)}`.replace('\n', '');
+                            }
+                            setFacturacionForm(prev => ({ ...prev, cuit: formatted }));
+                          }}
+                          placeholder="Ej. 30-12345678-9"
+                          className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
+                        />
+                      </div>
+
+                      {/* DOMICILIO FISCAL */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase text-stone-400">Domicilio Fiscal *</label>
+                        <input
+                          type="text"
+                          required
+                          value={facturacionForm.domicilioFiscal}
+                          onChange={(e) => setFacturacionForm(prev => ({ ...prev, domicilioFiscal: e.target.value }))}
+                          placeholder="Ej. Av. Principal 123, CABA"
+                          className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
+                        />
+                      </div>
+
+                      {/* EMAIL */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold uppercase text-stone-400">Email de Facturación *</label>
+                        <input
+                          type="email"
+                          required
+                          value={facturacionForm.email}
+                          onChange={(e) => setFacturacionForm(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Ej. factura@colorespizza.com"
+                          className="w-full p-4 rounded-xl border border-stone-800 bg-[#1C1C1E] text-stone-100 text-sm font-bold focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 placeholder-stone-600"
+                        />
+                      </div>
                     </div>
                   )}
 
