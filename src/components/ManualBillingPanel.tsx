@@ -446,19 +446,19 @@ export function ManualBillingPanel({
   };
 
   return (
-    <div className="bg-[#131b2e] border border-white/10 rounded-2xl p-5 shadow-2xl space-y-5 text-zinc-100 font-sans animate-fadeIn">
+    <div className="glass-card rounded-2xl p-5 shadow-2xl space-y-5 text-stone-900 dark:text-zinc-100 font-sans animate-fadeIn">
       {/* Panel Header */}
-      <div className="flex justify-between items-center border-b border-white/5 pb-3">
+      <div className="flex justify-between items-center border-b border-stone-200 dark:border-white/5 pb-3">
         <div className="flex items-center gap-2">
           <Receipt className="w-5 h-5 text-[#E8B800]" />
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider block">Emitir Factura Libre</h3>
-            <p className="text-[9px] text-zinc-400 font-semibold">Generador de comprobantes manuales e ítems libres</p>
+            <h3 className="text-sm font-black text-stone-900 dark:text-white uppercase tracking-wider block">Emitir Factura Libre</h3>
+            <p className="text-[9px] text-stone-500 dark:text-zinc-400 font-semibold">Generador de comprobantes manuales e ítems libres</p>
           </div>
         </div>
         <button 
           onClick={onClose}
-          className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 border border-white/5 rounded-xl text-[10px] font-black uppercase text-zinc-300 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 border border-stone-200 dark:border-white/5 rounded-xl text-[10px] font-black uppercase text-stone-700 dark:text-zinc-300 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Volver
@@ -467,21 +467,21 @@ export function ManualBillingPanel({
 
       {/* Caja Closed Warning */}
       {!cajaSession && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[10px] text-amber-450 leading-relaxed font-semibold">
+        <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 rounded-xl text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed font-semibold">
           ⚠️ El turno de caja se encuentra cerrado. Para poder emitir comprobantes y registrarlos contablemente, es necesario abrir primero el turno fiscal.
         </div>
       )}
 
       {/* Header Fields Form Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-zinc-950/40 p-4 rounded-xl border border-white/5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-stone-50 dark:bg-zinc-950/40 p-4 rounded-xl border border-stone-200 dark:border-white/5">
         
         {/* TIPO COMPROBANTE */}
         <label className="space-y-1 block">
-          <span className="text-[9px] font-black uppercase text-zinc-450 tracking-wider">Tipo Comprobante</span>
+          <span className="text-[9px] font-black uppercase text-stone-500 dark:text-zinc-450 tracking-wider">Tipo Comprobante</span>
           <select 
             value={tipoComprobante} 
             onChange={e => setTipoComprobante(e.target.value as any)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 p-2 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
           >
             <option value="Factura C">Factura C</option>
             <option value="Factura B">Factura B</option>
@@ -528,7 +528,7 @@ export function ManualBillingPanel({
             value={numeroDocumento} 
             onChange={e => setNumeroDocumento(e.target.value)} 
             placeholder="Ej: 20-35661223-4"
-            className="w-full min-h-10 px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono font-bold text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full min-h-10 px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-mono font-bold text-stone-900 dark:text-white placeholder-stone-300 dark:placeholder-zinc-650 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </label>
 
@@ -567,7 +567,7 @@ export function ManualBillingPanel({
             type="date"
             value={fechaEmision}
             onChange={e => setFechaEmision(e.target.value)}
-            className="w-full min-h-10 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            className="w-full min-h-10 px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
           />
         </label>
 
@@ -590,8 +590,8 @@ export function ManualBillingPanel({
 
       {/* Section: Conceptos / Items */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center border-b border-white/5 pb-1">
-          <h4 className="text-xs font-black text-white uppercase tracking-wider">Conceptos / Ítems</h4>
+        <div className="flex justify-between items-center border-b border-stone-200 dark:border-white/5 pb-1">
+          <h4 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-wider">Conceptos / Ítems</h4>
           <button 
             type="button"
             onClick={handleAddItem}
@@ -604,7 +604,7 @@ export function ManualBillingPanel({
 
         <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
           {items.map((it, index) => (
-            <div key={it.id} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-zinc-950/20 p-3 rounded-xl border border-white/5">
+            <div key={it.id} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-stone-100/50 dark:bg-zinc-950/20 p-3 rounded-xl border border-stone-200 dark:border-white/5">
               
               {/* DESCRIPCIÓN */}
               <div className="sm:col-span-5 space-y-1">
@@ -614,7 +614,7 @@ export function ManualBillingPanel({
                   value={it.descripcion}
                   onChange={e => handleUpdateItem(it.id, 'descripcion', e.target.value)}
                   placeholder="Ej: Programacion sistion web"
-                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/20"
+                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/20"
                 />
               </div>
 
@@ -624,7 +624,7 @@ export function ManualBillingPanel({
                 <select 
                   value={it.unidadMedida}
                   onChange={e => handleUpdateItem(it.id, 'unidadMedida', e.target.value)}
-                  className="w-full min-h-9 p-1 rounded-lg bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none"
+                  className="w-full min-h-9 p-1 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-900 dark:text-white focus:outline-none"
                 >
                   {UNIDADES_MEDIDA.map(um => (
                     <option key={um.id} value={um.label}>{um.label}</option>
@@ -641,7 +641,7 @@ export function ManualBillingPanel({
                   step="any"
                   value={it.cantidad || ''}
                   onChange={e => handleUpdateItem(it.id, 'cantidad', parseFloat(e.target.value) || 0)}
-                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-center font-bold text-white focus:outline-none"
+                  className="w-full min-h-9 px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-mono text-center font-bold text-stone-900 dark:text-white focus:outline-none"
                 />
               </div>
 
@@ -656,7 +656,7 @@ export function ManualBillingPanel({
                     step="any"
                     value={it.precioUnitario || ''}
                     onChange={e => handleUpdateItem(it.id, 'precioUnitario', parseFloat(e.target.value) || 0)}
-                    className="w-full min-h-9 pl-5 pr-1 py-1.5 rounded-lg bg-zinc-900 border border-white/10 text-xs font-mono text-center font-bold text-white focus:outline-none"
+                    className="w-full min-h-9 pl-5 pr-1 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-white/10 text-xs font-mono text-center font-bold text-stone-900 dark:text-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -666,7 +666,7 @@ export function ManualBillingPanel({
                 <button 
                   type="button"
                   onClick={() => handleRemoveItem(it.id)}
-                  className="w-8 h-8 rounded-lg bg-red-950/20 hover:bg-red-900/40 text-red-400 hover:text-red-300 flex items-center justify-center cursor-pointer transition-colors"
+                  className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-650 dark:text-red-400 flex items-center justify-center cursor-pointer transition-colors"
                   title="Eliminar fila"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -679,10 +679,10 @@ export function ManualBillingPanel({
       </div>
 
       {/* Calculations & Totals display */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-zinc-950/65 p-4 rounded-xl border border-white/5">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-stone-50 dark:bg-zinc-950/65 p-4 rounded-xl border border-stone-200 dark:border-white/5">
         
         {/* IVA Inclusion Checkbox */}
-        <label className="flex items-center gap-2 text-xs font-bold text-zinc-300 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-xs font-bold text-stone-700 dark:text-zinc-300 cursor-pointer select-none">
           <input 
             type="checkbox" 
             checked={preciosConIva} 
@@ -693,18 +693,18 @@ export function ManualBillingPanel({
         </label>
 
         {/* Calculated metrics */}
-        <div className="flex gap-4 sm:gap-6 justify-between sm:justify-end text-xs font-semibold text-zinc-400">
+        <div className="flex gap-4 sm:gap-6 justify-between sm:justify-end text-xs font-semibold text-stone-500 dark:text-zinc-400">
           <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-zinc-400 block">Neto Gravado</span>
-            <span className="font-mono text-zinc-200 text-sm font-bold">{money(calculatedTotals.netoGravado)}</span>
+            <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">Neto Gravado</span>
+            <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.netoGravado)}</span>
           </div>
 
           <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-zinc-400 block">IVA ({ivaGeneral}%)</span>
-            <span className="font-mono text-zinc-200 text-sm font-bold">{money(calculatedTotals.ivaValue)}</span>
+            <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">IVA ({ivaGeneral}%)</span>
+            <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.ivaValue)}</span>
           </div>
 
-          <div className="text-left sm:text-right border-l border-white/10 pl-4 sm:pl-6">
+          <div className="text-left sm:text-right border-l border-stone-200 dark:border-white/10 pl-4 sm:pl-6">
             <span className="text-[8px] uppercase font-black text-[#E8B800] block">Total General</span>
             <span className="font-mono text-[#E8B800] text-base font-black">{money(calculatedTotals.total)}</span>
           </div>
@@ -716,7 +716,7 @@ export function ManualBillingPanel({
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={onClose}
-          className="w-full sm:w-1/3 min-h-11 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer border border-white/5"
+          className="w-full sm:w-1/3 min-h-11 py-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-700 dark:text-zinc-300 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer border border-stone-200 dark:border-white/5"
         >
           Cancelar
         </button>

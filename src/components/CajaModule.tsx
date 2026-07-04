@@ -775,19 +775,19 @@ function CajaModule({
 
           {/* RESUMEN DIARIO CONSOLIDADO */}
           {cajaSession && (
-            <div className="glass-card border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                <h4 className="font-black text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5">
+            <div className="glass-card border border-stone-200/80 dark:border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-white/5">
+                <h4 className="font-black text-stone-900 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5">
                   <TrendingUp className="w-4 h-4 text-emerald-400" />
                   Resumen Diario Consolidado
                 </h4>
-                <div className="flex gap-1 p-0.5 bg-zinc-950/60 border border-white/5 rounded-lg">
+                <div className="flex gap-1 p-0.5 bg-stone-100 dark:bg-zinc-950/60 border border-stone-200 dark:border-white/5 rounded-lg">
                   <button
                     onClick={() => setActiveSummaryTab('platos')}
                     className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
                       activeSummaryTab === 'platos'
-                        ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                        : 'text-zinc-400 hover:text-zinc-100'
+                        ? 'bg-white dark:bg-zinc-800 text-stone-900 dark:text-zinc-100 shadow-sm border border-stone-250/60 dark:border-zinc-700'
+                        : 'text-stone-550 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-zinc-100'
                     }`}
                   >
                     Platos
@@ -796,8 +796,8 @@ function CajaModule({
                     onClick={() => setActiveSummaryTab('gastos')}
                     className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
                       activeSummaryTab === 'gastos'
-                        ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                        : 'text-zinc-400 hover:text-zinc-100'
+                        ? 'bg-white dark:bg-zinc-800 text-stone-900 dark:text-zinc-100 shadow-sm border border-stone-250/60 dark:border-zinc-700'
+                        : 'text-stone-550 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-zinc-100'
                     }`}
                   >
                     Gastos ({movimientosCajaChica.length})
@@ -808,25 +808,25 @@ function CajaModule({
               {activeSummaryTab === 'platos' ? (
                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                   {platosConsumidosHoy.length === 0 ? (
-                    <div className="text-center py-6 text-zinc-500 text-[10px]">
+                    <div className="text-center py-6 text-stone-500 dark:text-zinc-500 text-[10px]">
                       Aún no hay platos cobrados hoy en este turno.
                     </div>
                   ) : (
-                    <div className="divide-y divide-white/5">
+                    <div className="divide-y divide-stone-150 dark:divide-white/5">
                       {platosConsumidosHoy.map((plato, idx) => (
                         <div key={idx} className="flex justify-between items-center py-2 text-[11px]">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono bg-zinc-800 text-zinc-300 rounded-md px-1.5 py-0.5 text-[9px] font-black">
+                            <span className="font-mono bg-stone-100 dark:bg-zinc-800 text-stone-700 dark:text-zinc-300 rounded-md px-1.5 py-0.5 text-[9px] font-black">
                               {plato.cantidad}x
                             </span>
-                            <span className="font-semibold text-zinc-100">{plato.nombre}</span>
+                            <span className="font-semibold text-stone-850 dark:text-zinc-100">{plato.nombre}</span>
                             {plato.categoria && (
-                              <span className="text-[8px] text-zinc-500 uppercase font-bold tracking-wider">
+                              <span className="text-[8px] text-stone-400 dark:text-zinc-500 uppercase font-bold tracking-wider">
                                 ({plato.categoria})
                               </span>
                             )}
                           </div>
-                          <span className="font-mono font-bold text-zinc-400">
+                          <span className="font-mono font-bold text-stone-600 dark:text-zinc-400">
                             ${plato.totalRecaudado.toLocaleString('es-AR')}
                           </span>
                         </div>
@@ -872,8 +872,8 @@ function CajaModule({
 
           {/* ACTIVE UNBILLED COMMANDS LIST (Rule 2) */}
           <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-xl space-y-4 transition-colors duration-300">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5 transition-colors duration-300">
-              <h4 className="font-black text-slate-800 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5 transition-colors duration-300">
+            <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-white/5 transition-colors duration-300">
+              <h4 className="font-black text-stone-900 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5 transition-colors duration-300">
                 <Receipt className="w-4 h-4 text-[#E8B800]" />
                 Comandas en Salón
               </h4>
@@ -884,10 +884,10 @@ function CajaModule({
 
             <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
               {activeBills.length === 0 ? (
-                <div className="text-center p-8 border border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-zinc-950/40 transition-colors duration-300">
+                <div className="text-center p-8 border border-dashed border-stone-200 dark:border-white/10 rounded-xl bg-stone-100/50 dark:bg-zinc-950/40 transition-colors duration-300">
                   <CheckCircle className="w-7 h-7 text-emerald-500 mx-auto mb-2" />
-                  <p className="text-[11px] text-slate-700 dark:text-zinc-300 font-black uppercase transition-colors duration-300">¡Todo liquidado!</p>
-                  <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 transition-colors duration-300">No hay comandos de mesas pendientes de liquidación.</p>
+                  <p className="text-[11px] text-stone-900 dark:text-zinc-300 font-black uppercase transition-colors duration-300">¡Todo liquidado!</p>
+                  <p className="text-[9px] text-stone-500 dark:text-zinc-500 mt-0.5 transition-colors duration-300">No hay comandos de mesas pendientes de liquidación.</p>
                 </div>
               ) : (
                 activeBills.map(b => {
@@ -918,12 +918,12 @@ function CajaModule({
                       className={`w-full p-3 rounded-xl border text-left transition-all flex justify-between items-center cursor-pointer ${
                         isSelected 
                           ? 'border-[#E8B800] bg-[#E8B800]/10 ring-2 ring-[#E8B800]/10 shadow-md'
-                          : 'border-white/10 bg-zinc-900/60 hover:bg-zinc-800/80'
+                          : 'border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-zinc-900/60 hover:bg-stone-100 dark:hover:bg-zinc-800/80'
                       }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-extrabold text-white text-xs font-sans tracking-tight">{b.numero_mesa}</span>
+                          <span className="font-extrabold text-stone-900 dark:text-white text-xs font-sans tracking-tight">{b.numero_mesa}</span>
                           
                           {/* Waiter condition badge mapping */}
                           {isReady ? (
@@ -937,18 +937,18 @@ function CajaModule({
                           )}
 
                           {b.origen !== 'Mozo' && (
-                            <span className="bg-zinc-800 text-zinc-300 text-[8px] font-extrabold px-1 py-0.2 rounded shrink-0 font-mono">
+                            <span className="bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-300 text-[8px] font-extrabold px-1 py-0.2 rounded shrink-0 font-mono">
                               {b.origen.toUpperCase()}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-zinc-400 font-sans font-medium">
+                        <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-sans font-medium">
                           M-#{b.id_pedido} • Mozo: {b.mozo} • {itemsCountSum} ítems
                         </p>
                       </div>
 
                       <div className="text-right space-y-0.5 shrink-0">
-                        <span className="font-mono text-xs font-black text-white block">
+                        <span className="font-mono text-xs font-black text-stone-900 dark:text-white block">
                           ${totalPrice.toLocaleString('es-AR')}
                         </span>
                         <span className="text-[9px] text-[#E8B800] uppercase font-black tracking-wide flex items-center gap-0.5 justify-end">
@@ -2026,7 +2026,7 @@ function CajaModule({
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div>
                           <label className="text-[9px] font-bold text-[#E8B800] block uppercase">Monto Entregado en Efectivo</label>
-                          <p className="text-[10px] text-zinc-400 font-medium">Ayuda vuelto rápido cajero</p>
+                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Ayuda vuelto rápido cajero</p>
                         </div>
                         
                         <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
@@ -2684,8 +2684,8 @@ function CajaModule({
       )}
 
       {/* HISTORICAL SHIFTS LIST */}
-      <div className="bg-zinc-950/40 p-5 rounded-2xl border border-white/5 shadow-xl space-y-4 font-sans">
-        <h4 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 pb-2 border-b border-white/5">
+      <div className="glass-card p-5 rounded-2xl shadow-xl space-y-4 font-sans">
+        <h4 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-tight flex items-center gap-1.5 pb-2 border-b border-stone-200 dark:border-white/5">
           <Calendar className="w-4 h-4 text-[#E8B800]" /> Registro de Auditoría de Cierres de Caja Homologados ({sessionInsumos.length})
         </h4>
 
@@ -2699,23 +2699,23 @@ function CajaModule({
               const hasDiffErr = hasDiff && (cs.diferencia || 0) !== 0;
 
               return (
-                <div className="p-3 bg-zinc-900 border border-white/5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="p-3 bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-white/5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="space-y-1">
-                    <p className="font-extrabold text-[#E8B800] flex items-center gap-1">
+                    <p className="font-extrabold text-[#624A3E] dark:text-[#E8B800] flex items-center gap-1">
                       Cierre de Caja {cs.usuario_cajero}
                     </p>
                     <p className="text-[10px] text-zinc-400 font-medium">
                       Apertura: {cs.fecha_apertura} • Cierre: {cs.fecha_cierre || 'En curso'}
                     </p>
-                    <p className="text-[10px] font-medium text-zinc-500 italic">
+                    <p className="text-[10px] font-medium text-stone-600 dark:text-zinc-500 italic">
                       Observaciones: "{cs.observaciones}"
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 sm:text-right shrink-0">
-                    <div className="bg-zinc-950 p-2 rounded border border-white/5 min-w-[100px] text-center">
-                      <span className="text-[8px] text-zinc-500 block font-black uppercase">Ventas Turno</span>
-                      <span className="font-mono font-bold text-zinc-100">${cs.monto_ventas.toLocaleString('es-AR')}</span>
+                    <div className="bg-stone-100 dark:bg-zinc-950 p-2 rounded border border-stone-200 dark:border-white/5 min-w-[100px] text-center">
+                      <span className="text-[8px] text-stone-500 dark:text-zinc-500 block font-black uppercase">Ventas Turno</span>
+                      <span className="font-mono font-bold text-stone-900 dark:text-zinc-100">${cs.monto_ventas.toLocaleString('es-AR')}</span>
                     </div>
 
                     <div className="bg-zinc-950 p-2 rounded border border-white/5 min-w-[100px] text-center">
@@ -2725,7 +2725,7 @@ function CajaModule({
 
                     {hasDiff && (
                       <div className={`p-2 rounded border min-w-[90px] text-center ${
-                        hasDiffErr ? 'bg-rose-500/10 text-rose-450 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20'
+                        hasDiffErr ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-450 border-rose-200 dark:border-rose-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-450 border-emerald-200 dark:border-emerald-500/20'
                       }`}>
                         <span className="text-[8px] block font-black uppercase">Diferencia</span>
                         <span className="font-mono font-bold">
@@ -2746,7 +2746,7 @@ function CajaModule({
                           pdfService.exportShiftClosePDF({ ...cs, desglose_productos: desglose });
                         }
                       }}
-                      className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors flex items-center justify-center cursor-pointer active:scale-95 border border-white/10"
+                      className="p-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-700 dark:text-zinc-300 rounded-lg transition-colors flex items-center justify-center cursor-pointer active:scale-95 border border-stone-200 dark:border-white/10"
                       title="Descargar Arqueo PDF"
                     >
                       <Download className="w-3.5 h-3.5" />

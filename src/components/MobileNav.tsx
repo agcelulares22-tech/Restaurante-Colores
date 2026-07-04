@@ -93,10 +93,10 @@ export default function MobileNav({
   return (
     <>
       {/* ── Mobile / Tablet header (lg:hidden) ─────────────────────────────── */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-zinc-950 border-b border-zinc-900 shadow-md flex items-center justify-between px-3 safe-area-top">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-white dark:bg-zinc-950 border-b border-stone-200 dark:border-zinc-900 shadow-sm dark:shadow-md flex items-center justify-between px-3 safe-area-top">
         <button
           onClick={() => setOpen(true)}
-          className="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
+          className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 flex items-center justify-center text-stone-700 dark:text-white transition-colors cursor-pointer shrink-0"
           aria-label="Abrir menu"
         >
           <Menu className="w-5 h-5" />
@@ -107,16 +107,16 @@ export default function MobileNav({
           className="flex items-center gap-2 min-w-0 flex-1 justify-center px-2 cursor-pointer select-none active:opacity-75"
           title="Ver estado de conexión"
         >
-          <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
+          <div className="w-7 h-7 bg-stone-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-stone-250 dark:border-zinc-800 overflow-hidden shrink-0 relative">
             <ElPatronLogo className="w-6 h-6 object-contain rounded" variant="icon" color="#E8B800" />
-            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
+            <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white dark:border-zinc-950 ${
               isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
             }`} />
           </div>
           <div className="min-w-0 text-left">
-            <span className="font-extrabold text-sm text-brand-yellow drop-shadow block leading-tight truncate">Colores Pizzería</span>
+            <span className="font-extrabold text-sm text-[#624A3E] dark:text-brand-yellow drop-shadow block leading-tight truncate">Colores Pizzería</span>
             <div className="flex items-center gap-1.5 leading-none mt-0.5">
-              <span className="text-[7px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">
+              <span className="text-[7px] uppercase font-bold text-stone-500 dark:text-zinc-400 tracking-wider block leading-none">
                 {isOnline ? 'En línea' : 'Sin conexión'}
               </span>
               {syncQueueSize > 0 && (
@@ -139,8 +139,8 @@ export default function MobileNav({
 
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="hidden sm:flex flex-col items-end mr-1">
-            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Reloj</span>
-            <span className="text-xs font-black text-white font-mono leading-none">{getSimulatedTimeStr()}</span>
+            <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider">Reloj</span>
+            <span className="text-xs font-black text-stone-900 dark:text-white font-mono leading-none">{getSimulatedTimeStr()}</span>
           </div>
           <ThemeToggle />
           <button
@@ -159,31 +159,31 @@ export default function MobileNav({
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div
             ref={drawerRef}
-            className="absolute top-0 left-0 bottom-0 w-[min(82vw,320px)] bg-zinc-950 shadow-2xl flex flex-col border-r border-zinc-900"
+            className="absolute top-0 left-0 bottom-0 w-[min(82vw,320px)] bg-white dark:bg-zinc-950 shadow-2xl flex flex-col border-r border-stone-200 dark:border-zinc-900"
           >
             {/* Drawer header */}
-            <div className="p-3 border-b border-zinc-900 flex items-center justify-between">
+            <div className="p-3 border-b border-stone-200 dark:border-zinc-900 flex items-center justify-between">
               <div 
                 onClick={() => { setShowDiagnostics(true); setOpen(false); }}
                 className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 select-none active:scale-[0.98]"
                 title="Abrir Diagnóstico"
               >
-                <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-zinc-800 overflow-hidden shrink-0 relative">
+                <div className="w-9 h-9 bg-stone-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-stone-250 dark:border-zinc-800 overflow-hidden shrink-0 relative">
                   <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#E8B800" />
-                  <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-zinc-950 ${
+                  <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white dark:border-zinc-950 ${
                     isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                   }`} />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-extrabold text-sm text-brand-yellow block leading-tight">Colores Pizzería</span>
-                  <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
+                  <span className="font-extrabold text-sm text-[#624A3E] dark:text-brand-yellow block leading-tight">Colores Pizzería</span>
+                  <span className="text-[7px] uppercase font-bold text-stone-500 dark:text-zinc-500 tracking-wider block leading-tight">
                     {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="w-9 h-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white cursor-pointer"
+                className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 flex items-center justify-center text-stone-700 dark:text-white cursor-pointer"
                 aria-label="Cerrar menu"
               >
                 <X className="w-5 h-5" />
@@ -208,20 +208,20 @@ export default function MobileNav({
 
 
             {/* Reloj y simulación */}
-            <div className="mx-3 mt-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+            <div className="mx-3 mt-3 p-3 bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-xl">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] uppercase font-bold text-zinc-500 tracking-wider font-mono flex items-center gap-1">
+                <span className="text-[8px] uppercase font-bold text-stone-500 dark:text-zinc-500 tracking-wider font-mono flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Reloj
                 </span>
                 <span className={`h-1.5 w-1.5 rounded-full ${autoTimerRunning ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'}`} />
               </div>
               <div className="flex items-center justify-between">
-                <strong className="text-sm font-black text-white font-mono tracking-tight">{getSimulatedTimeStr()}</strong>
+                <strong className="text-sm font-black text-stone-900 dark:text-white font-mono tracking-tight">{getSimulatedTimeStr()}</strong>
                 <div className="flex items-center gap-1">
                   <button onClick={onToggleAutoTimer} className={`p-1.5 rounded-lg cursor-pointer ${autoTimerRunning ? 'bg-amber-600/20 text-amber-500' : 'bg-emerald-600/20 text-emerald-500'}`}>
                     <Clock className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => onAdvanceTime(15)} className="px-2 py-1 rounded-lg bg-zinc-800 text-zinc-400 text-[9px] font-bold cursor-pointer">+15m</button>
+                  <button onClick={() => onAdvanceTime(15)} className="px-2 py-1 rounded-lg bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 text-[9px] font-bold cursor-pointer">+15m</button>
                 </div>
               </div>
             </div>
@@ -229,23 +229,23 @@ export default function MobileNav({
             {/* User selector */}
             <div className="mx-3 mt-2 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-750 flex items-center justify-center shrink-0">
-                  <User className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="w-7 h-7 rounded-full bg-stone-100 dark:bg-zinc-800 border border-stone-250 dark:border-zinc-750 flex items-center justify-center shrink-0">
+                  <User className="w-3.5 h-3.5 text-stone-550 dark:text-zinc-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-[7px] text-zinc-500 block font-bold uppercase tracking-wider">Usuario</span>
+                  <span className="text-[7px] text-stone-500 dark:text-zinc-500 block font-bold uppercase tracking-wider">Usuario</span>
                   {isAdmin ? (
                     <select
                       value={activeMozo}
                       onChange={(e) => onMozoChange(e.target.value)}
-                      className="text-[11px] bg-transparent border-none p-0 focus:outline-none font-extrabold text-white cursor-pointer w-full mt-0.5 focus:ring-0"
+                      className="text-[11px] bg-transparent border-none p-0 focus:outline-none font-extrabold text-stone-900 dark:text-white cursor-pointer w-full mt-0.5 focus:ring-0"
                     >
                       {usuarios.filter(u => u.activo !== false).map(u => (
-                        <option key={u.id_usuario || u.nombre} value={u.nombre} className="bg-zinc-900 text-white">{u.nombre}</option>
+                        <option key={u.id_usuario || u.nombre} value={u.nombre} className="bg-white dark:bg-zinc-900 text-stone-900 dark:text-white">{u.nombre}</option>
                       ))}
                     </select>
                   ) : (
-                    <span className="text-[11px] font-extrabold text-white mt-0.5 block">{activeUser.nombre}</span>
+                    <span className="text-[11px] font-extrabold text-stone-900 dark:text-white mt-0.5 block">{activeUser.nombre}</span>
                   )}
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function MobileNav({
                   <button
                     key={item.id}
                     onClick={() => handleNavigate(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-brand-yellow text-brand-black shadow-sm' : 'text-zinc-400 hover:text-white hover:bg-zinc-900'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-brand-yellow text-brand-black shadow-sm' : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-900'}`}
                   >
                     <span className="text-base shrink-0 leading-none">{item.icon}</span>
                     <span className="text-[13px] font-bold tracking-wide leading-none">{item.label}</span>
@@ -270,13 +270,13 @@ export default function MobileNav({
             </nav>
 
             {/* Logout */}
-            <div className="p-3 border-t border-zinc-900 space-y-2">
+            <div className="p-3 border-t border-stone-200 dark:border-zinc-900 space-y-2">
               <div className="flex items-center justify-center py-1">
                 <ThemeToggle />
               </div>
               <button
                 onClick={() => { setOpen(false); onLogout(); }}
-                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer text-brand-red hover:bg-red-950/20 border border-transparent"
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer text-brand-red hover:bg-red-105 dark:hover:bg-red-950/20 border border-transparent"
               >
                 <LogOut className="w-4 h-4 shrink-0" />
                 <span className="text-[13px] font-bold tracking-wide leading-none">Cerrar sesión</span>

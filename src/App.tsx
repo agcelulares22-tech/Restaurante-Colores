@@ -151,26 +151,26 @@ export default function App() {
 
       {/* LEFT SIDE PANEL - Desktop/Tablet sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-zinc-950 text-zinc-400 border-r border-zinc-900 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`fixed left-0 top-0 h-screen z-50 hidden lg:flex flex-col bg-white dark:bg-zinc-950 text-stone-600 dark:text-zinc-400 border-r border-stone-200 dark:border-zinc-900 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
           isSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
         id="sidebar-left-panel"
       >
         {/* Logo & Sync Status */}
         <div 
-          className={`flex flex-col border-b border-zinc-900 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
+          className={`flex flex-col border-b border-stone-200 dark:border-zinc-900 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
         >
           <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
-            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
+            <div className="w-8 h-8 bg-stone-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center shadow-sm border border-stone-250 dark:border-zinc-800 p-0.5 overflow-hidden shrink-0 relative">
               <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
-              <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-zinc-950 ${
+              <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white dark:border-zinc-950 ${
                 isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
               }`} />
             </div>
             {!isSidebarCollapsed && (
               <div className="ml-3 min-w-0">
-                <span className="font-bold text-sm text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
-                <span className="text-[7px] uppercase font-bold text-zinc-500 tracking-wider block leading-tight">
+                <span className="font-bold text-sm text-[#624A3E] dark:text-brand-yellow block leading-tight truncate">Colores Pizzería</span>
+                <span className="text-[7px] uppercase font-bold text-stone-500 dark:text-zinc-500 tracking-wider block leading-tight">
                   {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                 </span>
               </div>
@@ -241,7 +241,7 @@ export default function App() {
                 } ${
                   isActive
                     ? 'bg-[#0EA5E9] text-zinc-950 font-black glow-blue shadow-md hover:bg-[#0284c7]'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5'
                 }`}
               >
                 <span className="text-base shrink-0 leading-none">{item.icon}</span>
@@ -261,14 +261,14 @@ export default function App() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-zinc-900 p-3">
+        <div className="border-t border-stone-200 dark:border-zinc-900 p-3">
           <div className="flex items-center justify-center mb-2">
             <ThemeToggle />
           </div>
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? 'Cerrar sesión' : ''}
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-red-950/20 text-brand-red transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/20 text-brand-red transition-colors cursor-pointer ${
               isSidebarCollapsed ? 'justify-center' : 'justify-start'
             }`}
           >
@@ -279,7 +279,7 @@ export default function App() {
           <button
             onClick={() => setIsSidebarCollapsed(c => !c)}
             title={isSidebarCollapsed ? 'Expandir' : 'Colapsar'}
-            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center mt-2 p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-zinc-900 text-stone-500 dark:text-zinc-500 transition-colors cursor-pointer"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
