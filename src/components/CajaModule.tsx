@@ -635,7 +635,7 @@ function CajaModule({
               <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1 border transition-colors duration-300 ${
                 cajaSession 
                   ? 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20 animate-pulse' 
-                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-white/5'
+                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-stone-200'
               }`}>
                 {cajaSession ? <Unlock className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
                 {cajaSession ? 'Abierta' : 'Cerrada'}
@@ -645,47 +645,47 @@ function CajaModule({
             {/* Display detailed figures inside shift */}
             {cajaSession ? (
               <div className="space-y-2">
-                <div className="p-3 bg-zinc-950/45 rounded-xl border border-white/5 font-sans space-y-2">
-                  <div className="flex justify-between text-xs font-semibold text-zinc-400">
+                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 font-sans space-y-2">
+                  <div className="flex justify-between text-xs font-semibold text-stone-550">
                     <span>Responsable:</span>
-                    <span className="text-zinc-100">{cajaSession.usuario_cajero}</span>
+                    <span className="text-stone-900">{cajaSession.usuario_cajero}</span>
                   </div>
                   
-                  <div className="flex justify-between text-xs font-semibold text-zinc-400">
+                  <div className="flex justify-between text-xs font-semibold text-stone-550">
                     <span>Apertura:</span>
-                    <span className="font-mono text-zinc-100">{cajaSession.fecha_apertura}</span>
+                    <span className="font-mono text-stone-900">{cajaSession.fecha_apertura}</span>
                   </div>
 
-                  <div className="flex justify-between text-xs font-semibold text-zinc-400 pt-1 border-t border-white/5">
+                  <div className="flex justify-between text-xs font-semibold text-stone-550 pt-1 border-t border-stone-200">
                     <span>Monto Inicial:</span>
-                    <span className="font-mono text-zinc-100">${cajaSession.monto_apertura.toLocaleString('es-AR')}</span>
+                    <span className="font-mono text-stone-900">${cajaSession.monto_apertura.toLocaleString('es-AR')}</span>
                   </div>
 
-                  <div className="flex justify-between text-[13px] font-black text-[#E8B800] pt-1 border-t border-white/5">
+                  <div className="flex justify-between text-[13px] font-black text-[#624A3E] pt-1 border-t border-stone-200">
                     <span>Ventas registradas:</span>
                     <span className="font-mono">${cajaSession.monto_ventas.toLocaleString('es-AR')}</span>
                   </div>
 
                   {sumIngresosManuales > 0 && (
-                    <div className="flex justify-between text-xs font-semibold text-emerald-400">
+                    <div className="flex justify-between text-xs font-semibold text-emerald-700">
                       <span>(+) Ingresos Manuales:</span>
                       <span className="font-mono">${sumIngresosManuales.toLocaleString('es-AR')}</span>
                     </div>
                   )}
 
                   {sumEgresosManuales > 0 && (
-                    <div className="flex justify-between text-xs font-semibold text-rose-455">
+                    <div className="flex justify-between text-xs font-semibold text-rose-700">
                       <span>(-) Egresos Manuales:</span>
                       <span className="font-mono">-${sumEgresosManuales.toLocaleString('es-AR')}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-xs font-bold text-white pt-1 font-mono border-t border-white/10 border-dotted">
+                  <div className="flex justify-between text-xs font-bold text-stone-900 pt-1 font-mono border-t border-stone-250 border-dotted">
                     <span>Arqueo Teórico:</span>
                     <span>${cajaEsperadaTotal.toLocaleString('es-AR')}</span>
                   </div>
 
-                  <div className="flex justify-between text-[11px] font-black text-emerald-400 pt-1 border-t border-emerald-500/20">
+                  <div className="flex justify-between text-[11px] font-black text-emerald-700 pt-1 border-t border-emerald-350">
                     <span>Caja esperada:</span>
                     <span className="font-mono">${cajaEsperadaTotal.toLocaleString('es-AR')}</span>
                   </div>
@@ -693,8 +693,8 @@ function CajaModule({
 
                 {/* Turn revenue detailed tags */}
                 {cajaSession.registros_totales && (
-                  <div className="p-2 bg-zinc-950/60 rounded-xl space-y-1 text-[9px] font-mono text-zinc-400 font-bold border border-white/5">
-                    <p className="font-sans text-[8px] text-zinc-500 uppercase tracking-widest block font-black border-b border-white/5 pb-1 mb-1">
+                  <div className="p-2.5 bg-stone-50 rounded-xl space-y-1 text-[9px] font-mono text-stone-600 font-bold border border-stone-200">
+                    <p className="font-sans text-[8px] text-stone-500 uppercase tracking-widest block font-black border-b border-stone-200 pb-1 mb-1">
                       Desglose cobros en turno
                     </p>
                     <div className="flex justify-between">
@@ -716,7 +716,7 @@ function CajaModule({
                   </div>
                 )}
 
-                <div className="space-y-2 pt-2 border-t border-white/5">
+                <div className="space-y-2 pt-2 border-t border-stone-200">
                   <button
                     onClick={() => {
                       setMovimientoTipo('egreso');
@@ -724,7 +724,7 @@ function CajaModule({
                       setMovimientoConcepto('');
                       setShowMovimientoModal(true);
                     }}
-                    className="w-full py-2 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 rounded-xl text-[10px] uppercase font-black transition-all cursor-pointer border border-white/10 flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-xl text-[10px] uppercase font-black transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Coins className="w-3.5 h-3.5" />
                     Movimiento Caja Chica (+/-)
@@ -735,7 +735,7 @@ function CajaModule({
                       ...cajaSession,
                       movimientos_manuales: movimientosCajaChica
                     })}
-                    className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-white/5 rounded-xl text-[10px] uppercase font-black transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-xl text-[10px] uppercase font-black transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     Reporte X (Parcial PDF)
@@ -776,12 +776,12 @@ function CajaModule({
           {/* RESUMEN DIARIO CONSOLIDADO */}
           {cajaSession && (
             <div className="glass-card border border-stone-200/80 dark:border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-white/5">
+              <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-stone-200">
                 <h4 className="font-black text-stone-900 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5">
                   <TrendingUp className="w-4 h-4 text-emerald-400" />
                   Resumen Diario Consolidado
                 </h4>
-                <div className="flex gap-1 p-0.5 bg-stone-100 dark:bg-zinc-950/60 border border-stone-200 dark:border-white/5 rounded-lg">
+                <div className="flex gap-1 p-0.5 bg-stone-100 dark:bg-zinc-950/60 border border-stone-200 dark:border-stone-200 rounded-lg">
                   <button
                     onClick={() => setActiveSummaryTab('platos')}
                     className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
@@ -872,12 +872,12 @@ function CajaModule({
 
           {/* ACTIVE UNBILLED COMMANDS LIST (Rule 2) */}
           <div className="bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-xl space-y-4 transition-colors duration-300">
-            <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-white/5 transition-colors duration-300">
+            <div className="flex justify-between items-center pb-2 border-b border-stone-150 dark:border-stone-200 transition-colors duration-300">
               <h4 className="font-black text-stone-900 dark:text-white font-sans tracking-tight text-xs uppercase flex items-center gap-1.5 transition-colors duration-300">
                 <Receipt className="w-4 h-4 text-[#E8B800]" />
                 Comandas en Salón
               </h4>
-              <span className="text-[9px] font-bold bg-[#E8B800]/10 text-amber-600 dark:text-[#E8B800] border border-amber-200/50 dark:border-white/5 rounded-full px-2 py-0.5 font-mono transition-colors duration-300">
+              <span className="text-[9px] font-bold bg-[#E8B800]/10 text-amber-600 dark:text-[#E8B800] border border-amber-200/50 dark:border-stone-200 rounded-full px-2 py-0.5 font-mono transition-colors duration-300">
                 {activeBills.length} pendientes
               </span>
             </div>
@@ -962,24 +962,24 @@ function CajaModule({
             </div>
 
             {lastFacturas.length > 0 && (
-              <div className="pt-3 border-t border-white/5 space-y-2">
+              <div className="pt-3 border-t border-stone-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider flex items-center gap-1">
+                  <span className="text-[9px] font-black uppercase text-stone-500 tracking-wider flex items-center gap-1">
                     <FileText className="w-3 h-3" /> Tickets emitidos
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-zinc-500">{lastFacturas.length} disponibles</span>
+                  <span className="text-[9px] font-mono font-bold text-stone-400">{lastFacturas.length} disponibles</span>
                 </div>
                 {lastFacturas.map(f => (
-                  <div key={f.id_factura} className="p-2 rounded-xl bg-zinc-950/40 border border-white/5 flex items-center justify-between gap-2">
+                  <div key={f.id_factura} className="p-2 rounded-xl bg-stone-50 border border-stone-200 flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[10px] font-black text-zinc-200 font-mono truncate">{f.nro_ticket}</p>
-                      <p className="text-[9px] text-zinc-400 truncate">{f.cliente} - ${f.total.toLocaleString('es-AR')}</p>
+                      <p className="text-[10px] font-black text-stone-900 font-mono truncate">{f.nro_ticket}</p>
+                      <p className="text-[9px] text-stone-500 truncate">{f.cliente} - ${f.total.toLocaleString('es-AR')}</p>
                     </div>
                     <button
                       onClick={() => downloadFacturaHistorialPdf(f)}
-                      className="px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-[9px] font-black uppercase flex items-center gap-1 shrink-0"
+                      className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[9px] font-black uppercase flex items-center gap-1 shrink-0"
                     >
-                      <Download className="w-3 h-3" /> PDF
+                      <Download className="w-3.5 h-3.5 text-stone-700" /> PDF
                     </button>
                   </div>
                 ))}
@@ -1011,7 +1011,7 @@ function CajaModule({
               <div className="md:col-span-7 space-y-4 font-sans">
                 
                 {/* Header detail selected */}
-                <div className="border-b border-white/5 pb-3 flex flex-col sm:flex-row justify-between items-start gap-2">
+                <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row justify-between items-start gap-2">
                   <div className="min-w-0">
                     <span className="text-[10px] sm:text-[11px] text-[#E8B800] font-black uppercase tracking-wider block">Terminal de Liquidación</span>
                     <h3 className="font-extrabold text-white text-sm md:text-base tracking-tight flex items-center gap-1.5 mt-0.5">
@@ -1019,13 +1019,13 @@ function CajaModule({
                     </h3>
                   </div>
 
-                  <span className="text-[10px] text-zinc-400 font-mono bg-zinc-950/80 border border-white/5 px-2 py-0.5 rounded font-black">
+                  <span className="text-[10px] text-zinc-400 font-mono bg-zinc-950/80 border border-stone-200 px-2 py-0.5 rounded font-black">
                     Nro Trans: EP-{selectedPedido.id_pedido}
                   </span>
                 </div>
 
                 {/* Group categories of order items (Rule 3) */}
-                <div className="bg-zinc-950/40 border border-white/5 p-3 sm:p-3.5 rounded-xl space-y-2">
+                <div className="bg-zinc-950/40 border border-stone-200 p-3 sm:p-3.5 rounded-xl space-y-2">
                   {!isAdvancedSplitMode && (
                     <>
                       <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Items del pedido</h4>
@@ -1077,7 +1077,7 @@ function CajaModule({
                   )}
 
                   {/* Division controls helper line */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2.5 border-t border-white/5 font-sans">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2.5 border-t border-stone-200 font-sans">
                     <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => {
@@ -1137,7 +1137,7 @@ function CajaModule({
                               const nextCount = Math.max(1, advancedPartitions.length - 1);
                               initAdvancedSplit(nextCount);
                             }}
-                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-white/5"
+                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-stone-200"
                           >
                             -
                           </button>
@@ -1148,7 +1148,7 @@ function CajaModule({
                               const nextCount = advancedPartitions.length + 1;
                               initAdvancedSplit(nextCount);
                             }}
-                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-white/5"
+                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-stone-200"
                           >
                             +
                           </button>
@@ -1157,8 +1157,8 @@ function CajaModule({
                     </div>
 
                     {/* Distribuidor de Ítems */}
-                    <div className="bg-zinc-950/40 border border-white/5 p-4 rounded-xl space-y-3">
-                      <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                    <div className="bg-zinc-950/40 border border-stone-200 p-4 rounded-xl space-y-3">
+                      <div className="flex justify-between items-center border-b border-stone-200 pb-2">
                         <h5 className="text-[10px] font-black text-white uppercase tracking-wider">Asignación y Fraccionamiento de Platos</h5>
                         <span className="text-[9px] text-[#E8B800] font-black uppercase bg-[#E8B800]/10 px-1.5 py-0.5 rounded border border-[#E8B800]/20">
                           Total Mesa: ${(orderBreakdowns.finalTotal || 0).toLocaleString('es-AR')}
@@ -1179,7 +1179,7 @@ function CajaModule({
                           const isFullyAssigned = Math.abs(unassigned) < 0.01;
 
                           return (
-                            <div key={item.id_producto} className="bg-zinc-900/60 p-3 rounded-lg border border-white/5 space-y-2 text-left">
+                            <div key={item.id_producto} className="bg-zinc-900/60 p-3 rounded-lg border border-stone-200 space-y-2 text-left">
                               <div className="flex justify-between items-start text-xs font-bold">
                                 <div>
                                   <span className="text-zinc-200">{item.cantidad}x {item.nombre}</span>
@@ -1197,13 +1197,13 @@ function CajaModule({
                               </div>
 
                               {/* Comensales Assign Rows */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1 border-t border-white/5">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1 border-t border-stone-200">
                                 {advancedPartitions.map((p) => {
                                   const pItem = p.items.find(pi => pi.id_producto === item.id_producto);
                                   const currentQty = pItem ? pItem.cantidad : 0;
                                   
                                   return (
-                                    <div key={p.id} className="flex justify-between items-center text-[11px] bg-zinc-950 p-2 rounded border border-white/5">
+                                    <div key={p.id} className="flex justify-between items-center text-[11px] bg-zinc-950 p-2 rounded border border-stone-200">
                                       <span className="text-zinc-300 font-bold truncate max-w-[85px]">{p.nombre}:</span>
                                       <div className="flex items-center gap-1">
                                         <button
@@ -1213,7 +1213,7 @@ function CajaModule({
                                             const nextQty = Number((currentQty - 0.25).toFixed(2));
                                             updatePartitionItem(p.id, item.id_producto, Math.max(0, nextQty));
                                           }}
-                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-white/5"
+                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-stone-200"
                                         >
                                           -
                                         </button>
@@ -1225,7 +1225,7 @@ function CajaModule({
                                             const nextQty = Number((currentQty + 0.25).toFixed(2));
                                             updatePartitionItem(p.id, item.id_producto, nextQty);
                                           }}
-                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-white/5"
+                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-stone-200"
                                         >
                                           +
                                         </button>
@@ -1292,10 +1292,10 @@ function CajaModule({
                             <div key={p.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3.5 text-left ${
                               p.pagado 
                                 ? 'bg-emerald-950/20 border-emerald-500/25' 
-                                : 'bg-zinc-950/40 border-white/5'
+                                : 'bg-zinc-950/40 border-stone-200'
                             }`}>
                               {/* Person Header */}
-                              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                              <div className="flex justify-between items-center border-b border-stone-200 pb-2">
                                 <input
                                   type="text"
                                   disabled={p.pagado}
@@ -1329,7 +1329,7 @@ function CajaModule({
                               </div>
 
                               {/* Total breakdown */}
-                              <div className="bg-zinc-950/60 p-2.5 rounded-lg border border-white/5 text-[10px] space-y-1">
+                              <div className="bg-zinc-950/60 p-2.5 rounded-lg border border-stone-200 text-[10px] space-y-1">
                                 <div className="flex justify-between text-stone-600">
                                   <span>Subtotal:</span>
                                   <span className="font-mono">${breakdowns.subtotal.toLocaleString('es-AR')}</span>
@@ -1344,7 +1344,7 @@ function CajaModule({
                                   <span>Propina ({propinaPorcentaje}%):</span>
                                   <span className="font-mono">${breakdowns.propinaValue.toLocaleString('es-AR')}</span>
                                 </div>
-                                <div className="flex justify-between text-white font-black border-t border-white/5 pt-1 text-xs">
+                                <div className="flex justify-between text-white font-black border-t border-stone-200 pt-1 text-xs">
                                   <span>Total a pagar:</span>
                                   <span className="font-mono text-[#E8B800]">${breakdowns.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 1 })}</span>
                                 </div>
@@ -1378,7 +1378,7 @@ function CajaModule({
 
                                   {/* Cash input helper */}
                                   {p.metodoPago === 'efectivo' && (
-                                    <div className="flex items-center gap-1 bg-zinc-950 p-1.5 rounded border border-white/5">
+                                    <div className="flex items-center gap-1 bg-zinc-950 p-1.5 rounded border border-stone-200">
                                       <input
                                         type="number"
                                         value={p.montoEntregadoEfectivo}
@@ -1438,7 +1438,7 @@ function CajaModule({
                     )}
 
                 {/* CLIENT & AFIP TYPE SYSTEM */}
-                <div className="bg-zinc-950/40 border border-white/5 p-3 rounded-xl space-y-2">
+                <div className="bg-zinc-950/40 border border-stone-200 p-3 rounded-xl space-y-2">
                   <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Información Tributaria</h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -1486,7 +1486,7 @@ function CajaModule({
                 </div>
 
                 {/* FIDELIZACION Y CLUB EL PATRON */}
-                <div className="bg-zinc-950/40 border border-white/5 p-3 rounded-xl space-y-2">
+                <div className="bg-zinc-950/40 border border-stone-200 p-3 rounded-xl space-y-2">
                   <h4 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1">
                     <Users className="w-3.5 h-3.5 text-[#E8B800]" /> Fidelización de Clientes (Club Pizzería Colores)
                   </h4>
@@ -1557,7 +1557,7 @@ function CajaModule({
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-2 pt-1.5 border-t border-white/5">
+                      <div className="flex flex-col gap-2 pt-1.5 border-t border-stone-200">
                         {selectedCliente.puntos > 0 && (
                           <div className="flex items-center gap-2">
                             <label className="text-[9px] font-bold text-zinc-300 uppercase">Canjear Puntos:</label>
@@ -1600,7 +1600,7 @@ function CajaModule({
                       </div>
                     </div>
                   ) : dniCuitBuscar.trim() !== '' && (
-                    <div className="p-3 bg-zinc-950/40 border border-white/5 rounded-lg space-y-2">
+                    <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-lg space-y-2">
                       <p className="text-[10px] text-zinc-400 font-bold italic">Cliente no registrado. Registrar comensal:</p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1640,7 +1640,7 @@ function CajaModule({
 
                 {/* Standard split comensales (Rule 3) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  <div className="p-3 bg-zinc-950/40 border border-white/5 rounded-xl space-y-2">
+                  <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2">
                     <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
                       <Users className="w-3.5 h-3.5 text-[#E8B800]" /> Partes Comensales (Partes Iguales)
                     </h5>
@@ -1651,7 +1651,7 @@ function CajaModule({
                           setSplitPayerCount(prev => Math.max(1, prev - 1));
                           setActivePayerIndex(0);
                         }}
-                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-white/5"
+                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-200"
                       >
                         -
                       </button>
@@ -1661,14 +1661,14 @@ function CajaModule({
                           setSplitPayerCount(prev => prev + 1);
                           setActivePayerIndex(0);
                         }}
-                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-white/5"
+                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-200"
                       >
                         +
                       </button>
                     </div>
 
                     {splitPayerCount > 1 && (
-                      <div className="text-[10px] sm:text-xs text-zinc-300 leading-normal bg-zinc-950/60 p-2 rounded border border-white/5 space-y-0.5 text-center">
+                      <div className="text-[10px] sm:text-xs text-zinc-300 leading-normal bg-zinc-950/60 p-2 rounded border border-stone-200 space-y-0.5 text-center">
                         <p className="font-bold text-zinc-400">Monto partes iguales:</p>
                         <p className="text-[#22C55E] text-sm font-black font-mono">
                           ${(orderBreakdowns.finalTotal / splitPayerCount).toLocaleString('es-AR', { maximumFractionDigits: 1 })} c/u
@@ -1681,7 +1681,7 @@ function CajaModule({
                   </div>
 
                   {/* Manual discounts & tip adjustments (Rule 3) */}
-                  <div className="p-3 bg-zinc-950/40 border border-white/5 rounded-xl space-y-2.5">
+                  <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2.5">
                     <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
                       <Percent className="w-3.5 h-3.5 text-[#E8B800]" /> Bonificación & Propinas
                     </h5>
@@ -1775,7 +1775,7 @@ function CajaModule({
                     </div>
 
                     {/* Ajustes Rápidos */}
-                    <div className="border-t border-white/5 pt-2 mt-1 space-y-2">
+                    <div className="border-t border-stone-200 pt-2 mt-1 space-y-2">
                       <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block">Ajustes Rápidos</span>
                       
                       <div className="flex flex-col gap-2">
@@ -1901,7 +1901,7 @@ function CajaModule({
 
                         {/* Fila Promociones Vigentes */}
                         {activePromos.length > 0 && (
-                          <div className="border-t border-white/5 pt-2 mt-1 space-y-1">
+                          <div className="border-t border-stone-200 pt-2 mt-1 space-y-1">
                             <span className="text-[8px] font-bold text-emerald-450 dark:text-emerald-400 uppercase tracking-widest block">Campañas Activas (Aplicar)</span>
                             <div className="flex flex-wrap gap-1">
                               {activePromos.map(promo => {
@@ -1937,7 +1937,7 @@ function CajaModule({
                 </div>
 
                 {/* Coupon discount codes panel (Area 3) */}
-                <div className="p-3 bg-zinc-950/40 border border-white/5 rounded-xl space-y-2.5 font-sans">
+                <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2.5 font-sans">
                   <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
                     <Tag className="w-3.5 h-3.5 text-[#E8B800]" /> Cuponera & Promociones
                   </h5>
@@ -1986,7 +1986,7 @@ function CajaModule({
                 </div>
 
                 {/* PAYMENT TYPE / MIXED PAYMENTS LAYOUT (Rule 4) */}
-                <div className="bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl space-y-3.5">
+                <div className="bg-zinc-950/40 border border-stone-200 p-3 sm:p-4 rounded-xl space-y-3.5">
                   <div>
                     <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1.5">
                       Método de Liquidación Caja
@@ -2050,7 +2050,7 @@ function CajaModule({
                       </div>
 
                       {/* Billetes Rápidos */}
-                      <div className="border-t border-white/5 pt-2">
+                      <div className="border-t border-stone-200 pt-2">
                         <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block mb-1.5">Billetes Rápidos (Pesos AR)</span>
                         <div className="flex flex-wrap gap-1.5">
                           {[
@@ -2099,7 +2099,7 @@ function CajaModule({
                   {/* Mixed Payment Rows interface */}
                   {metodoPago === 'mixto' && (
                     <div className="space-y-3.5 bg-zinc-950/60 p-3 sm:p-3.5 rounded-xl border border-white/10">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] font-black uppercase text-zinc-400 border-b border-white/5 pb-1 gap-1">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] font-black uppercase text-zinc-400 border-b border-stone-200 pb-1 gap-1">
                         <span>Pagos Cargados parcialmente</span>
                         <span className="font-mono text-[#E8B800]">
                           Total: ${mixedSum.toLocaleString('es-AR')} / ${orderBreakdowns.finalTotal.toLocaleString('es-AR')}
@@ -2109,12 +2109,12 @@ function CajaModule({
                       {mixedPayments.length > 0 ? (
                         <div className="space-y-1">
                           {mixedPayments.map((p, idx) => (
-                            <div key={idx} className="flex justify-between items-center bg-zinc-900 border border-white/5 p-2 rounded-lg text-xs sm:text-sm font-bold text-zinc-200">
+                            <div key={idx} className="flex justify-between items-center bg-zinc-900 border border-stone-200 p-2 rounded-lg text-xs sm:text-sm font-bold text-zinc-200">
                               <span className="uppercase flex items-center gap-1">
                                 <ChevronRight className="w-3.5 h-3.5 text-[#E8B800]" /> {p.metodo}
                               </span>
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-zinc-100">${p.monto.toLocaleString('es-AR')}</span>
+                                <span className="font-mono text-stone-900">${p.monto.toLocaleString('es-AR')}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveMixedPayment(idx)}
@@ -2174,7 +2174,7 @@ function CajaModule({
 
                       {/* Cash change for mixed cash payments */}
                       {mixedPayments.some(p => p.metodo === 'efectivo') && (
-                        <div className="bg-zinc-950 p-2.5 rounded-lg border border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
+                        <div className="bg-zinc-950 p-2.5 rounded-lg border border-stone-200 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
                           <span className="text-zinc-400 font-bold block uppercase text-[10px]">Arqueo Cambio Extra (Efectivo Mixto)</span>
                           <div className="flex items-center gap-2 w-full sm:w-auto">
                             <input 
@@ -2268,7 +2268,7 @@ function CajaModule({
           </div>
 
               {/* EPSON TICKET PREVIEW SIMULATOR (MD: Span 5) */}
-              <div className="md:col-span-5 bg-zinc-950/40 border border-white/5 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
+              <div className="md:col-span-5 bg-zinc-950/40 border border-stone-200 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                   <Printer className="w-3.5 h-3.5" /> Simulación Salida Térmica (80mm)
                 </span>
@@ -2391,8 +2391,8 @@ function CajaModule({
 
             </div>
           ) : (
-            <div className="bg-white dark:bg-zinc-900/30 rounded-2xl p-10 border border-slate-200 dark:border-white/5 text-center flex flex-col justify-center items-center min-h-[450px] shadow-sm dark:shadow-none transition-colors duration-300">
-              <div className="p-4 bg-slate-50 dark:bg-zinc-900/60 rounded-2xl text-slate-500 dark:text-[#E8B800] border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm dark:shadow-lg transition-colors duration-300">
+            <div className="bg-white dark:bg-zinc-900/30 rounded-2xl p-10 border border-slate-200 dark:border-stone-200 text-center flex flex-col justify-center items-center min-h-[450px] shadow-sm dark:shadow-none transition-colors duration-300">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-900/60 rounded-2xl text-slate-500 dark:text-[#E8B800] border border-slate-200/60 dark:border-stone-200 mb-4 shadow-sm dark:shadow-lg transition-colors duration-300">
                 <Receipt className="w-10 h-10" />
               </div>
               <h3 className="font-black text-slate-800 dark:text-white text-lg uppercase tracking-tight transition-colors duration-300">
@@ -2685,7 +2685,7 @@ function CajaModule({
 
       {/* HISTORICAL SHIFTS LIST */}
       <div className="glass-card p-5 rounded-2xl shadow-xl space-y-4 font-sans">
-        <h4 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-tight flex items-center gap-1.5 pb-2 border-b border-stone-200 dark:border-white/5">
+        <h4 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-tight flex items-center gap-1.5 pb-2 border-b border-stone-200 dark:border-stone-200">
           <Calendar className="w-4 h-4 text-[#E8B800]" /> Registro de Auditoría de Cierres de Caja Homologados ({sessionInsumos.length})
         </h4>
 
@@ -2699,7 +2699,7 @@ function CajaModule({
               const hasDiffErr = hasDiff && (cs.diferencia || 0) !== 0;
 
               return (
-                <div className="p-3 bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-white/5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="p-3 bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-stone-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="space-y-1">
                     <p className="font-extrabold text-[#624A3E] dark:text-[#E8B800] flex items-center gap-1">
                       Cierre de Caja {cs.usuario_cajero}
@@ -2713,12 +2713,12 @@ function CajaModule({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 sm:text-right shrink-0">
-                    <div className="bg-stone-100 dark:bg-zinc-950 p-2 rounded border border-stone-200 dark:border-white/5 min-w-[100px] text-center">
+                    <div className="bg-stone-100 dark:bg-zinc-950 p-2 rounded border border-stone-200 dark:border-stone-200 min-w-[100px] text-center">
                       <span className="text-[8px] text-stone-500 dark:text-zinc-500 block font-black uppercase">Ventas Turno</span>
                       <span className="font-mono font-bold text-stone-900 dark:text-zinc-100">${cs.monto_ventas.toLocaleString('es-AR')}</span>
                     </div>
 
-                    <div className="bg-zinc-950 p-2 rounded border border-white/5 min-w-[100px] text-center">
+                    <div className="bg-zinc-950 p-2 rounded border border-stone-200 min-w-[100px] text-center">
                       <span className="text-[8px] text-zinc-500 block font-black uppercase">Monto Real</span>
                       <span className="font-mono font-bold text-zinc-100">${(cs.monto_real || 0).toLocaleString('es-AR')}</span>
                     </div>
@@ -2815,7 +2815,7 @@ function CajaModule({
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+            <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
               <FolderOpen className="w-6 h-6 text-[#E8B800]" />
               <div>
                 <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Archivo Histórico de Comprobantes</h3>
@@ -2824,7 +2824,7 @@ function CajaModule({
             </div>
 
             {/* SEARCH AND FILTERS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-zinc-950/60 p-3 rounded-xl border border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-zinc-950/60 p-3 rounded-xl border border-stone-200">
               <div>
                 <label className="text-[10px] font-bold text-zinc-450 block mb-1">Buscar por ticket, cliente o CUIT</label>
                 <input 
@@ -2959,7 +2959,7 @@ function CajaModule({
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex flex-col items-center gap-2 pb-2 border-b border-white/5">
+            <div className="flex flex-col items-center gap-2 pb-2 border-b border-stone-200">
               <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center text-[#E8B800] border border-amber-500/20">
                 <QrCode className="w-6 h-6" />
               </div>
@@ -2983,7 +2983,7 @@ function CajaModule({
                   <span className="text-stone-500 font-semibold">Puntos Canjeados:</span>
                   <span className="font-mono font-bold text-[#624A3E]">{puntosRedimidos} ptos</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-white/5 pt-1.5 mt-1.5">
+                <div className="flex justify-between text-xs border-t border-stone-200 pt-1.5 mt-1.5">
                   <span className="text-stone-750 font-black">Valor Descuento:</span>
                   <span className="font-mono font-black text-emerald-700 text-sm">ARS ${(puntosRedimidos * 10).toLocaleString('es-AR')}</span>
                 </div>
@@ -3060,7 +3060,7 @@ function CajaModule({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-white/5">
+            <div className="flex gap-2 pt-2 border-t border-stone-200">
               <button
                 type="button"
                 onClick={() => {
