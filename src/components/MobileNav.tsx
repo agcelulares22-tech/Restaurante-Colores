@@ -5,7 +5,7 @@ import { Usuario } from '../types';
 import ElPatronLogo from './ElPatronLogo';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import DiagnosticsTester from './DiagnosticsTester';
-import { ThemeToggle } from './ThemeToggle';
+
 
 
 interface MobileNavProps {
@@ -142,7 +142,7 @@ export default function MobileNav({
             <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider">Reloj</span>
             <span className="text-xs font-black text-stone-900 dark:text-white font-mono leading-none">{getSimulatedTimeStr()}</span>
           </div>
-          <ThemeToggle />
+
           <button
             onClick={onToggleAutoTimer}
             className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${autoTimerRunning ? 'bg-amber-600/20 text-amber-500' : 'bg-emerald-600/20 text-emerald-500'}`}
@@ -271,9 +271,7 @@ export default function MobileNav({
 
             {/* Logout */}
             <div className="p-3 border-t border-stone-200 dark:border-zinc-900 space-y-2">
-              <div className="flex items-center justify-center py-1">
-                <ThemeToggle />
-              </div>
+
               <button
                 onClick={() => { setOpen(false); onLogout(); }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer text-brand-red hover:bg-red-105 dark:hover:bg-red-950/20 border border-transparent"

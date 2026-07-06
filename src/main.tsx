@@ -46,6 +46,12 @@ try {
 
 import { syncQueueService } from './services/syncQueueService';
 
+// Force Light Mode always
+if (typeof window !== 'undefined') {
+  document.documentElement.classList.remove('dark');
+  window.localStorage.setItem('appTheme', 'light');
+}
+
 // Initialize offline background sync queue
 syncQueueService.initBackgroundSync();
 

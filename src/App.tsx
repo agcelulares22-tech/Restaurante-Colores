@@ -24,7 +24,7 @@ import RetryErrorWrapper from './components/RetryErrorWrapper';
 import RecetasErrorBoundary from './components/RecetasErrorBoundary';
 import Skeleton from './components/Skeleton';
 import DiagnosticsTester from './components/DiagnosticsTester';
-import { ThemeToggle } from './components/ThemeToggle';
+
 import { useAppState } from './hooks/useAppState';
 import { AppView } from './lib/permissions';
 
@@ -262,9 +262,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="border-t border-stone-200 dark:border-zinc-900 p-3">
-          <div className="flex items-center justify-center mb-2">
-            <ThemeToggle />
-          </div>
+
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? 'Cerrar sesión' : ''}
