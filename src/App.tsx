@@ -211,7 +211,7 @@ export default function App() {
 
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto overscroll-contain py-3 min-h-0 sidebar-scrollbar">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-3 min-h-0 sidebar-scrollbar">
           {[
             { id: 'home', label: 'Inicio', icon: '🏠' },
             { id: 'mozo', label: 'Mozo', icon: '📱' },

@@ -204,6 +204,7 @@ canvas {
 .sidebar-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #0EA5E9 rgba(0, 0, 0, 0.3);
+  overflow-x: hidden !important;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar {
