@@ -1061,6 +1061,7 @@ export default function SistemaModule({
 
       </div>
 
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   </div>
 );
