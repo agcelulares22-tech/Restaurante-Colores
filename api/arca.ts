@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
+import forge from "node-forge";
 
 const URLS = {
   homologacion: {
@@ -29,13 +30,38 @@ function buildTicketReqXml(service: string): string {
 </loginTicketRequest>`;
 }
 
-// Firma el XML con el certificado y clave privada
+// Firma el XML con el certificado y clave privada usando PKCS#7 / CMS
 function signTicket(xml: string, cert: string, key: string): string {
-  const sign = crypto.createSign("sha256");
-  sign.update(xml);
-  sign.end();
-  const signature = sign.sign({ key, passphrase: "" }, "base64");
-  return `-----BEGIN PKCS7-----\n${signature}\n-----END PKCS7-----`;
+  const certPem = cert.includes("-----BEGIN") ? cert.trim() : Buffer.from(cert, "base64").toString("utf8").trim();
+  const keyPem = key.includes("-----BEGIN") ? key.trim() : Buffer.from(key, "base64").toString("utf8").trim();
+
+  const forgeCert = forge.pki.certificateFromPem(certPem);
+  const forgeKey = forge.pki.privateKeyFromPem(keyPem);
+
+  const p7 = forge.pkcs7.createSignedData();
+  p7.content = forge.util.createBuffer(xml, "utf8");
+  p7.addCertificate(forgeCert);
+  p7.addSigner({
+    key: forgeKey,
+    certificate: forgeCert,
+    digestAlgorithm: forge.pki.oids.sha256,
+    authenticatedAttributes: [
+      {
+        type: forge.pki.oids.contentType,
+        value: forge.pki.oids.data,
+      },
+      {
+        type: forge.pki.oids.messageDigest,
+      },
+      {
+        type: forge.pki.oids.signingTime,
+        value: new Date(),
+      },
+    ],
+  });
+  p7.sign();
+  const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
+  return forge.util.encode64(bytes).replace(/\r?\n|\r/g, "");
 }
 
 // Obtiene el token y sign del WSAA

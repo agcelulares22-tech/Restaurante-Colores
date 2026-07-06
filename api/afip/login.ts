@@ -1,6 +1,7 @@
 ﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import https from "https";
+import forge from "node-forge";
 
 const AFIP_URLS = {
   homologacion: {
@@ -18,13 +19,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { service, ticketReq, cert, key } = req.body;
 
-    // Firmar el CMS con la clave privada (X.509)
-    const sign = crypto.createSign("sha256");
-    sign.update(ticketReq);
-    sign.end();
-    const signature = sign.sign({ key, passphrase: "" }, "base64");
+    // Decodificar la solicitud de ticket req (XML)
+    const rawXml = Buffer.from(ticketReq, "base64").toString("utf8");
 
-    const cms = `-----BEGIN PKCS7-----\n${signature}\n-----END PKCS7-----`;
+    // Limpiar y preparar certificados
+    const certPem = cert.includes("-----BEGIN") ? cert.trim() : Buffer.from(cert, "base64").toString("utf8").trim();
+    const keyPem = key.includes("-----BEGIN") ? key.trim() : Buffer.from(key, "base64").toString("utf8").trim();
+
+    const forgeCert = forge.pki.certificateFromPem(certPem);
+    const forgeKey = forge.pki.privateKeyFromPem(keyPem);
+
+    const p7 = forge.pkcs7.createSignedData();
+    p7.content = forge.util.createBuffer(rawXml, "utf8");
+    p7.addCertificate(forgeCert);
+    p7.addSigner({
+      key: forgeKey,
+      certificate: forgeCert,
+      digestAlgorithm: forge.pki.oids.sha256,
+      authenticatedAttributes: [
+        {
+          type: forge.pki.oids.contentType,
+          value: forge.pki.oids.data,
+        },
+        {
+          type: forge.pki.oids.messageDigest,
+        },
+        {
+          type: forge.pki.oids.signingTime,
+          value: new Date(),
+        },
+      ],
+    });
+    p7.sign();
+    const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
+    const cms = forge.util.encode64(bytes).replace(/\r?\n|\r/g, "");
 
     const env = AFIP_URLS[req.body.cuit === "99999999999" ? "homologacion" : "produccion"];
     const soap = `<?xml version="1.0" encoding="UTF-8"?>
