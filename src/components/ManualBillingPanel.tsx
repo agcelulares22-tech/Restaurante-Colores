@@ -344,6 +344,8 @@ export function ManualBillingPanel({
           }
         } catch (arcaErr: any) {
           console.warn('ARCA error simulation fallback:', arcaErr);
+          const errorMsg = arcaErr?.message || String(arcaErr);
+          toast.error(`Error de ARCA: ${errorMsg}`, { duration: 10000 });
           toast.warning('ARCA: Conexión fiscal simulada / local debido a fallos remotos.');
         }
       }
