@@ -35,8 +35,19 @@ function signTicket(xml: string, cert: string, key: string): string {
   const certPem = cert.includes("-----BEGIN") ? cert.trim() : Buffer.from(cert, "base64").toString("utf8").trim();
   const keyPem = key.includes("-----BEGIN") ? key.trim() : Buffer.from(key, "base64").toString("utf8").trim();
 
-  const forgeCert = forge.pki.certificateFromPem(certPem);
-  const forgeKey = forge.pki.privateKeyFromPem(keyPem);
+  let forgeCert;
+  try {
+    forgeCert = forge.pki.certificateFromPem(certPem);
+  } catch (err: any) {
+    throw new Error(`Error al parsear el Certificado PEM (largo ${certPem.length}): ${err.message}. Empieza con: "${certPem.substring(0, 60)}"`);
+  }
+
+  let forgeKey;
+  try {
+    forgeKey = forge.pki.privateKeyFromPem(keyPem);
+  } catch (err: any) {
+    throw new Error(`Error al parsear la Clave Privada PEM (largo ${keyPem.length}): ${err.message}. Empieza con: "${keyPem.substring(0, 60)}"`);
+  } 
 
   const p7 = forge.pkcs7.createSignedData();
   p7.content = forge.util.createBuffer(xml, "utf8");
