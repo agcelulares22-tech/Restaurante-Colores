@@ -48,17 +48,23 @@ export function getArcaCuit(): number | null {
   return creds ? creds.cuit : null;
 }
 
-export async function testArcaConnection(): Promise<boolean> {
+export async function testArcaConnection(): Promise<{ success: boolean; error?: string }> {
   const creds = getStoredCredentials();
-  if (!creds) return false;
+  if (!creds) return { success: false, error: 'No hay credenciales configuradas' };
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'test', credentials: creds }),
     });
-    return res.ok;
-  } catch { return false; }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Error en el servidor de ARCA' }));
+      return { success: false, error: err.error || `HTTP ${res.status}` };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || String(err) };
+  }
 }
 
 export interface ArcaInvoicePayload {

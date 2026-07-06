@@ -1017,12 +1017,12 @@ export default function SistemaModule({
                     setIsTestingArca(true);
                     toast.info('Verificando firma con WSAA (AFIP)...');
                     try {
-                      const success = await testArcaConnection();
-                      if (success) {
+                      const result = await testArcaConnection();
+                      if (result.success) {
                         toast.success('¡Conexión exitosa! El token de acceso WSAA fue emitido correctamente.');
                         addLog('sistema', 'ARCA: Conexión probada exitosamente con WSAA (Token OK).');
                       } else {
-                        toast.error('Error al conectar con ARCA. Verifica el CUIT, certificado y clave.');
+                        toast.error(`Error al conectar con ARCA: ${result.error}`, { duration: 8000 });
                       }
                     } catch (err: any) {
                       toast.error(`Error: ${err.message || err}`);
