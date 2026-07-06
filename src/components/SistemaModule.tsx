@@ -864,20 +864,43 @@ export default function SistemaModule({
                     {arcaCert ? '✓ Certificado Cargado' : 'Subir Archivo'}
                     <input
                       type="file"
-                      accept=".crt,.pem,.txt"
+                      accept=".crt,.pem,.txt,.der"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           const reader = new FileReader();
                           reader.onload = (event) => {
-                            const text = event.target?.result as string;
-                            if (text) {
-                              setArcaCert(text);
-                              toast.success('Certificado digital cargado.');
+                            const arrayBuffer = event.target?.result as ArrayBuffer;
+                            if (arrayBuffer) {
+                              const bytes = new Uint8Array(arrayBuffer);
+                              let isPem = false;
+                              try {
+                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
+                                if (header.includes('-----BEGIN') || header.includes('---')) {
+                                  isPem = true;
+                                }
+                              } catch (e) {}
+
+                              if (isPem) {
+                                const text = new TextDecoder('utf-8').decode(bytes);
+                                setArcaCert(text);
+                                toast.success('Certificado PEM cargado.');
+                              } else {
+                                // Convert binary DER to PEM format
+                                let binary = '';
+                                const len = bytes.byteLength;
+                                for (let i = 0; i < len; i++) {
+                                  binary += String.fromCharCode(bytes[i]);
+                                }
+                                const base64 = btoa(binary);
+                                const pem = `-----BEGIN CERTIFICATE-----\n${base64}\n-----END CERTIFICATE-----`;
+                                setArcaCert(pem);
+                                toast.success('Certificado DER binario convertido a PEM con éxito.');
+                              }
                             }
                           };
-                          reader.readAsText(file);
+                          reader.readAsArrayBuffer(file);
                         }
                       }}
                     />
@@ -902,20 +925,43 @@ export default function SistemaModule({
                     {arcaKey ? '✓ Clave Privada Cargada' : 'Subir Archivo'}
                     <input
                       type="file"
-                      accept=".key,.pem,.txt"
+                      accept=".key,.pem,.txt,.der"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           const reader = new FileReader();
                           reader.onload = (event) => {
-                            const text = event.target?.result as string;
-                            if (text) {
-                              setArcaKey(text);
-                              toast.success('Clave privada cargada.');
+                            const arrayBuffer = event.target?.result as ArrayBuffer;
+                            if (arrayBuffer) {
+                              const bytes = new Uint8Array(arrayBuffer);
+                              let isPem = false;
+                              try {
+                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
+                                if (header.includes('-----BEGIN') || header.includes('---')) {
+                                  isPem = true;
+                                }
+                              } catch (e) {}
+
+                              if (isPem) {
+                                const text = new TextDecoder('utf-8').decode(bytes);
+                                setArcaKey(text);
+                                toast.success('Clave privada PEM cargada.');
+                              } else {
+                                // Convert binary DER to PEM format
+                                let binary = '';
+                                const len = bytes.byteLength;
+                                for (let i = 0; i < len; i++) {
+                                  binary += String.fromCharCode(bytes[i]);
+                                }
+                                const base64 = btoa(binary);
+                                const pem = `-----BEGIN PRIVATE KEY-----\n${base64}\n-----END PRIVATE KEY-----`;
+                                setArcaKey(pem);
+                                toast.success('Clave privada DER binaria convertida a PEM con éxito.');
+                              }
                             }
                           };
-                          reader.readAsText(file);
+                          reader.readAsArrayBuffer(file);
                         }
                       }}
                     />
