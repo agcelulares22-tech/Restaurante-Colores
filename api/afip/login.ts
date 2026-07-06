@@ -14,6 +14,32 @@ const AFIP_URLS = {
   },
 };
 
+function sanitizeAndRepairPem(pem: string, defaultType: "CERTIFICATE" | "PRIVATE KEY"): string {
+  let cleaned = pem.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  
+  let type: string = defaultType;
+  if (cleaned.includes("RSA PRIVATE KEY")) {
+    type = "RSA PRIVATE KEY";
+  } else if (cleaned.includes("PRIVATE KEY")) {
+    type = "PRIVATE KEY";
+  } else if (cleaned.includes("CERTIFICATE")) {
+    type = "CERTIFICATE";
+  }
+
+  const beginHeader = `-----BEGIN ${type}-----`;
+  const endHeader = `-----END ${type}-----`;
+
+  if (!cleaned.includes(beginHeader)) {
+    cleaned = beginHeader + "\n" + cleaned;
+  }
+  if (!cleaned.includes(endHeader)) {
+    // Remove any trailing dashes or partial headers at the end
+    cleaned = cleaned.replace(/---+[^\-]*$/, "").trim();
+    cleaned = cleaned + "\n" + endHeader;
+  }
+  return cleaned;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).end();
   try {
@@ -23,12 +49,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rawXml = Buffer.from(ticketReq, "base64").toString("utf8");
 
     // Limpiar y preparar certificados
-    const certPem = cert.includes("-----BEGIN") 
-      ? cert.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n") 
-      : Buffer.from(cert, "base64").toString("utf8").trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    const keyPem = key.includes("-----BEGIN") 
-      ? key.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n") 
-      : Buffer.from(key, "base64").toString("utf8").trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const certRaw = cert.includes("-----BEGIN") ? cert : Buffer.from(cert, "base64").toString("utf8");
+    const keyRaw = key.includes("-----BEGIN") ? key : Buffer.from(key, "base64").toString("utf8");
+
+    const certPem = sanitizeAndRepairPem(certRaw, "CERTIFICATE");
+    const keyPem = sanitizeAndRepairPem(keyRaw, "PRIVATE KEY");
 
     let forgeCert;
     try {
