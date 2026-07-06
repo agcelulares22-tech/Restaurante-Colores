@@ -32,8 +32,12 @@ function buildTicketReqXml(service: string): string {
 
 // Firma el XML con el certificado y clave privada usando PKCS#7 / CMS
 function signTicket(xml: string, cert: string, key: string): string {
-  const certPem = cert.includes("-----BEGIN") ? cert.trim() : Buffer.from(cert, "base64").toString("utf8").trim();
-  const keyPem = key.includes("-----BEGIN") ? key.trim() : Buffer.from(key, "base64").toString("utf8").trim();
+  const certPem = cert.includes("-----BEGIN") 
+    ? cert.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n") 
+    : Buffer.from(cert, "base64").toString("utf8").trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const keyPem = key.includes("-----BEGIN") 
+    ? key.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n") 
+    : Buffer.from(key, "base64").toString("utf8").trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
   let forgeCert;
   try {
