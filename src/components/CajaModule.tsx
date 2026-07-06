@@ -1330,7 +1330,7 @@ function CajaModule({
 
                               {/* Total breakdown */}
                               <div className="bg-zinc-950/60 p-2.5 rounded-lg border border-white/5 text-[10px] space-y-1">
-                                <div className="flex justify-between text-zinc-400">
+                                <div className="flex justify-between text-stone-600">
                                   <span>Subtotal:</span>
                                   <span className="font-mono">${breakdowns.subtotal.toLocaleString('es-AR')}</span>
                                 </div>
@@ -1340,7 +1340,7 @@ function CajaModule({
                                     <span className="font-mono">-${(breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction).toLocaleString('es-AR')}</span>
                                   </div>
                                 )}
-                                <div className="flex justify-between text-zinc-400">
+                                <div className="flex justify-between text-stone-600">
                                   <span>Propina ({propinaPorcentaje}%):</span>
                                   <span className="font-mono">${breakdowns.propinaValue.toLocaleString('es-AR')}</span>
                                 </div>
@@ -1449,9 +1449,9 @@ function CajaModule({
                         onChange={e => setTipoComprobante(e.target.value as TipoComprobante)}
                         className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded text-zinc-100 font-bold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                       >
-                        <option value="factura_b" className="bg-zinc-950 text-zinc-100">Factura B (Cons. Final)</option>
-                        <option value="factura_a" className="bg-zinc-950 text-zinc-100">Factura A (Inscripto)</option>
-                        <option value="ticket_interno" className="bg-zinc-950 text-zinc-100">Ticket Interno (Mesa)</option>
+                        <option value="factura_b" className="bg-white text-stone-900">Factura B (Cons. Final)</option>
+                        <option value="factura_a" className="bg-white text-stone-900">Factura A (Inscripto)</option>
+                        <option value="ticket_interno" className="bg-white text-stone-900">Ticket Interno (Mesa)</option>
                       </select>
                     </div>
 
@@ -1765,11 +1765,11 @@ function CajaModule({
                           onChange={e => setPropinaPorcentaje(parseInt(e.target.value) || 0)}
                           className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                         >
-                          <option value="0" className="bg-zinc-950 text-zinc-100">0%</option>
-                          <option value="5" className="bg-zinc-950 text-zinc-100">5%</option>
-                          <option value="10" className="bg-zinc-950 text-zinc-100">10% (Rec.)</option>
-                          <option value="15" className="bg-zinc-950 text-zinc-100">15%</option>
-                          <option value="20" className="bg-zinc-950 text-zinc-100">20%</option>
+                          <option value="0" className="bg-white text-stone-900">0%</option>
+                          <option value="5" className="bg-white text-stone-900">5%</option>
+                          <option value="10" className="bg-white text-stone-900">10% (Rec.)</option>
+                          <option value="15" className="bg-white text-stone-900">15%</option>
+                          <option value="20" className="bg-white text-stone-900">20%</option>
                         </select>
                       </div>
                     </div>
@@ -2139,10 +2139,10 @@ function CajaModule({
                             onChange={e => setMixedMetodoInput(e.target.value)}
                             className="min-h-11 bg-zinc-950 border border-white/10 text-sm p-2 rounded-lg text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                           >
-                            <option value="efectivo" className="bg-zinc-950 text-zinc-100">Efectivo</option>
-                            <option value="tarjeta" className="bg-zinc-950 text-zinc-100">Tarjeta Crédito</option>
-                            <option value="transferencia" className="bg-zinc-950 text-zinc-100">Transferencia/Deb.</option>
-                            <option value="mp_qr" className="bg-zinc-950 text-zinc-100">MercadoPago QR</option>
+                            <option value="efectivo" className="bg-white text-stone-900">Efectivo</option>
+                            <option value="tarjeta" className="bg-white text-stone-900">Tarjeta Crédito</option>
+                            <option value="transferencia" className="bg-white text-stone-900">Transferencia/Deb.</option>
+                            <option value="mp_qr" className="bg-white text-stone-900">MercadoPago QR</option>
                           </select>
 
                           <input
@@ -2431,38 +2431,38 @@ function CajaModule({
       {/* SHIFT OPEN MODAL Dialog (Rule 1) */}
       {showOpenModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-          <div className="bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-white/10 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-zinc-100 font-sans">
-            <h3 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2">
+          <div className="glass-card rounded-t-2xl sm:rounded-2xl border border-stone-250 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-stone-900 font-sans">
+            <h3 className="text-sm font-black text-stone-900 uppercase tracking-tight flex items-center gap-2">
               <Unlock className="w-5 h-5 text-emerald-450" />
               Apertura de Caja Diaria
             </h3>
             
-            <p className="text-[11px] text-zinc-400 leading-normal font-medium">
+            <p className="text-[11px] text-stone-600 leading-normal font-medium">
               Por favor, ingrese el saldo inicial físico depositado en el cajón portamonedas para el cambio comercial, y su nombre de operador de caja.
             </p>
 
             <form onSubmit={handleOpenShift} className="space-y-3">
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Monto Inicial ($ ARS)</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Monto Inicial ($ ARS)</label>
                 <input 
                   type="number"
                   inputMode="decimal"
                   required
                   value={openingCashInput}
                   onChange={e => setOpeningCashInput(e.target.value)}
-                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-white/10 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ej. 25000"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Operador Responsable (Cajero)</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Operador Responsable (Cajero)</label>
                 <input 
                   type="text"
                   required
                   value={cashierNameInput}
                   onChange={e => setCashierNameInput(e.target.value)}
-                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-white/10 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ej. Sofía Colombo"
                 />
               </div>
@@ -2471,7 +2471,7 @@ function CajaModule({
                 <button
                   type="button"
                   onClick={() => setShowOpenModal(false)}
-                  className="w-1/2 min-h-11 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer"
+                  className="w-1/2 min-h-11 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer border border-stone-200"
                 >
                   Cancelar
                 </button>
@@ -2490,18 +2490,18 @@ function CajaModule({
       {/* SHIFT CLOSE MODAL Dialog (Rule 1) */}
       {showCloseModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-          <div className="bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-white/10 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-zinc-100 font-sans">
-            <h3 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2">
+          <div className="glass-card rounded-t-2xl sm:rounded-2xl border border-stone-250 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-stone-900 font-sans">
+            <h3 className="text-sm font-black text-stone-900 uppercase tracking-tight flex items-center gap-2">
               <Lock className="w-5 h-5 text-[#E8B800]" />
               Cierre de turno & Conciliación (Arqueo)
             </h3>
             
-            <p className="text-[11px] text-zinc-400 leading-normal font-medium">
+            <p className="text-[11px] text-stone-600 leading-normal font-medium">
               Al procesar este cierre se sumarán las ventas totales de este turno. Por favor cuente físicamente el dinero de caja e ingréselo a continuación. El sistema computará el descuadre o diferencia automáticamente.
             </p>
 
             {cajaSession && (
-              <div className="bg-zinc-950/60 p-3 rounded-xl border border-white/5 text-[10px] font-mono space-y-1 text-zinc-300">
+              <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-[10px] font-mono space-y-1 text-stone-750">
                 <div className="flex justify-between">
                   <span>Monto inicial:</span>
                   <span>${cajaSession.monto_apertura.toLocaleString('es-AR')}</span>
@@ -2522,7 +2522,7 @@ function CajaModule({
                     <span>-${sumEgresosManuales.toLocaleString('es-AR')}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-white pt-1 border-t border-white/10 border-dotted text-xs font-sans">
+                <div className="flex justify-between font-bold text-stone-900 pt-1 border-t border-stone-250 border-dotted text-xs font-sans">
                   <span>Total Esperado:</span>
                   <span>${cajaEsperadaTotal.toLocaleString('es-AR')}</span>
                 </div>
@@ -2531,16 +2531,16 @@ function CajaModule({
 
             {/* Rendimiento por Categorías */}
             {cajaSession && categoryStats.length > 0 && (
-              <div className="bg-zinc-950/60 p-3 rounded-xl border border-white/5 space-y-2 text-[10px] font-sans">
-                <span className="text-[9px] font-bold text-zinc-450 uppercase tracking-widest block border-b border-white/5 pb-1">Ventas por Categoría</span>
+              <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 space-y-2 text-[10px] font-sans">
+                <span className="text-[9px] font-bold text-stone-500 uppercase tracking-widest block border-b border-stone-150 pb-1">Ventas por Categoría</span>
                 <div className="space-y-2 max-h-28 overflow-y-auto pr-1">
                   {categoryStats.map((cat, idx) => (
                     <div key={idx} className="space-y-0.5">
-                      <div className="flex justify-between text-zinc-300 font-medium">
+                      <div className="flex justify-between text-stone-700 font-medium">
                         <span className="truncate pr-2">{cat.name}</span>
-                        <span className="font-mono text-zinc-150 font-bold">${cat.total.toLocaleString('es-AR')} ({cat.percentage}%)</span>
+                        <span className="font-mono text-stone-900 font-bold">${cat.total.toLocaleString('es-AR')} ({cat.percentage}%)</span>
                       </div>
-                      <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-stone-200 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#E8B800] rounded-full transition-all duration-300" 
                           style={{ width: `${cat.percentage}%` }}
@@ -2554,24 +2554,24 @@ function CajaModule({
 
             <form onSubmit={handleCloseShift} className="space-y-3">
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Monto Real Físico de Arqueo ($ ARS)</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Monto Real Físico de Arqueo ($ ARS)</label>
                 <input 
                   type="number"
                   inputMode="decimal"
                   required
                   value={closingPhysicalCashInput}
                   onChange={e => setClosingPhysicalCashInput(e.target.value)}
-                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-white/10 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ej. 120000"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Observaciones Finales</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Observaciones Finales</label>
                 <textarea 
                   value={closingObservationsInput}
                   onChange={e => setClosingObservationsInput(e.target.value)}
-                  className="w-full h-16 text-sm p-2.5 rounded-xl border border-white/10 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full h-16 text-sm p-2.5 rounded-xl border border-stone-200 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ex. Todo perfectamente conciliado"
                 />
               </div>
@@ -2580,7 +2580,7 @@ function CajaModule({
                 <button
                   type="button"
                   onClick={() => setShowCloseModal(false)}
-                  className="w-1/2 min-h-11 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer"
+                  className="w-1/2 min-h-11 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer border border-stone-200"
                 >
                   Cancelar
                 </button>
@@ -2599,19 +2599,19 @@ function CajaModule({
       {/* PETTY CASH MOVEMENT MODAL */}
       {showMovimientoModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-          <div className="bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-white/10 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-zinc-100 font-sans">
-            <h3 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2">
+          <div className="glass-card rounded-t-2xl sm:rounded-2xl border border-stone-250 max-w-md w-full p-5 sm:p-6 animate-scaleIn space-y-4 shadow-2xl text-stone-900 font-sans">
+            <h3 className="text-sm font-black text-stone-900 uppercase tracking-tight flex items-center gap-2">
               <Coins className="w-5 h-5 text-[#E8B800]" />
               Movimiento de Caja Chica
             </h3>
             
-            <p className="text-[11px] text-zinc-400 leading-normal font-medium">
+            <p className="text-[11px] text-stone-600 leading-normal font-medium">
               Registre un ingreso o egreso de efectivo manual (ej: compras de verdulería de urgencia o cambio adicional recibido).
             </p>
 
             <form onSubmit={handleRegistrarMovimientoCajaChica} className="space-y-3">
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Tipo de Movimiento</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Tipo de Movimiento</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -2619,7 +2619,7 @@ function CajaModule({
                     className={`min-h-11 py-2 px-3 text-xs font-black uppercase rounded-lg border transition-all cursor-pointer ${
                       movimientoTipo === 'egreso'
                         ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                        : 'bg-zinc-950 border-white/10 text-zinc-300 hover:bg-zinc-800'
+                        : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-205'
                     }`}
                   >
                     Egreso (Salida)
@@ -2630,7 +2630,7 @@ function CajaModule({
                     className={`min-h-11 py-2 px-3 text-xs font-black uppercase rounded-lg border transition-all cursor-pointer ${
                       movimientoTipo === 'ingreso'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-zinc-950 border-white/10 text-zinc-300 hover:bg-zinc-800'
+                        : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-205'
                     }`}
                   >
                     Ingreso (Entrada)
@@ -2639,26 +2639,26 @@ function CajaModule({
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Monto ($ ARS)</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Monto ($ ARS)</label>
                 <input 
                   type="number"
                   inputMode="decimal"
                   required
                   value={movimientoMonto}
                   onChange={e => setMovimientoMonto(e.target.value)}
-                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-white/10 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 font-mono font-extrabold focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ej. 1500"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Concepto / Motivo</label>
+                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Concepto / Motivo</label>
                 <input 
                   type="text"
                   required
                   value={movimientoConcepto}
                   onChange={e => setMovimientoConcepto(e.target.value)}
-                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-white/10 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-zinc-950 text-zinc-100 placeholder-zinc-500"
+                  className="w-full min-h-11 text-sm p-2.5 rounded-xl border border-stone-200 focus:ring-1 focus:ring-[#E8B800]/30 focus:outline-none bg-white text-stone-900 placeholder-stone-400"
                   placeholder="Ej. Compra hielo de urgencia"
                 />
               </div>
@@ -2667,7 +2667,7 @@ function CajaModule({
                 <button
                   type="button"
                   onClick={() => setShowMovimientoModal(false)}
-                  className="w-1/2 min-h-11 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer"
+                  className="w-1/2 min-h-11 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-xl transition-colors cursor-pointer border border-stone-200"
                 >
                   Cancelar
                 </button>
@@ -2764,7 +2764,7 @@ function CajaModule({
       {/* SUCCESS MODAL FOR TRANSACTION POLISH (Step 3) */}
       {showSuccessModal && successDetails && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn font-sans">
-          <div className="bg-zinc-900 rounded-2xl border border-white/10 max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative text-zinc-100">
+          <div className="glass-card rounded-2xl border border-stone-250 max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative text-stone-900">
             <button 
               onClick={() => setShowSuccessModal(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300 transition-all cursor-pointer border-0 bg-transparent"
@@ -2777,12 +2777,12 @@ function CajaModule({
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base font-black text-white uppercase tracking-tight">Cobro Completado</h3>
-              <p className="text-xs text-zinc-400 font-semibold">Comprobante Nº: {successDetails.nro}</p>
+              <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Cobro Completado</h3>
+              <p className="text-xs text-stone-500 font-semibold">Comprobante Nº: {successDetails.nro}</p>
             </div>
 
-            <div className="bg-zinc-950 p-4 rounded-xl border border-white/5 space-y-2 font-mono text-sm">
-              <div className="flex justify-between text-zinc-400">
+            <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2 font-mono text-sm">
+              <div className="flex justify-between text-stone-600">
                 <span className="text-xs font-sans font-bold">Monto Cobrado:</span>
                 <span className="font-extrabold text-[#E8B800]">${successDetails.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
               </div>
@@ -2807,7 +2807,7 @@ function CajaModule({
       {/* ARCHIVE DIALOG MODAL */}
       {showArchiveModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn font-sans">
-          <div className="bg-zinc-900 rounded-2xl border border-white/10 max-w-4xl w-full p-6 space-y-4 shadow-2xl relative flex flex-col max-h-[85vh] text-zinc-100">
+          <div className="glass-card rounded-2xl border border-stone-250 max-w-4xl w-full p-6 space-y-4 shadow-2xl relative flex flex-col max-h-[85vh] text-stone-900">
             <button 
               onClick={() => setShowArchiveModal(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300 transition-all cursor-pointer border-0 bg-transparent"
@@ -2818,8 +2818,8 @@ function CajaModule({
             <div className="flex items-center gap-2 pb-2 border-b border-white/5">
               <FolderOpen className="w-6 h-6 text-[#E8B800]" />
               <div>
-                <h3 className="text-base font-black text-white uppercase tracking-tight">Archivo Histórico de Comprobantes</h3>
-                <p className="text-[11px] text-zinc-400 font-medium">Búsqueda y descarga de facturas y pagos archivados en Supabase</p>
+                <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Archivo Histórico de Comprobantes</h3>
+                <p className="text-[11px] text-stone-500 font-medium">Búsqueda y descarga de facturas y pagos archivados en Supabase</p>
               </div>
             </div>
 
@@ -2831,7 +2831,7 @@ function CajaModule({
                   type="text"
                   value={archiveSearchQuery}
                   onChange={e => setArchiveSearchQuery(e.target.value)}
-                  className="w-full min-h-10 px-3 text-xs bg-zinc-950 border border-white/10 rounded-lg text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                   placeholder="Ej. T-0001 o Consumidor Final"
                 />
               </div>
@@ -2841,15 +2841,15 @@ function CajaModule({
                 <select
                   value={archiveMetodoFilter}
                   onChange={e => setArchiveMetodoFilter(e.target.value)}
-                  className="w-full min-h-10 px-3 text-xs bg-zinc-950 border border-white/10 rounded-lg text-zinc-100 font-semibold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-900 font-semibold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                 >
-                  <option value="todos" className="bg-zinc-950 text-zinc-100">Todos los medios</option>
-                  <option value="efectivo" className="bg-zinc-950 text-zinc-100">Efectivo</option>
-                  <option value="debito" className="bg-zinc-950 text-zinc-100">Débito</option>
-                  <option value="tarjeta" className="bg-zinc-950 text-zinc-100">Tarjeta de Crédito</option>
-                  <option value="transferencia" className="bg-zinc-950 text-zinc-100">Transferencia</option>
-                  <option value="mp_qr" className="bg-zinc-950 text-zinc-100">MercadoPago QR</option>
-                  <option value="mixto" className="bg-zinc-950 text-zinc-100">Mixto</option>
+                  <option value="todos" className="bg-white text-stone-900">Todos los medios</option>
+                  <option value="efectivo" className="bg-white text-stone-900">Efectivo</option>
+                  <option value="debito" className="bg-white text-stone-900">Débito</option>
+                  <option value="tarjeta" className="bg-white text-stone-900">Tarjeta de Crédito</option>
+                  <option value="transferencia" className="bg-white text-stone-900">Transferencia</option>
+                  <option value="mp_qr" className="bg-white text-stone-900">MercadoPago QR</option>
+                  <option value="mixto" className="bg-white text-stone-900">Mixto</option>
                 </select>
               </div>
 
@@ -2858,27 +2858,27 @@ function CajaModule({
                 <select
                   value={archiveEstadoFilter}
                   onChange={e => setArchiveEstadoFilter(e.target.value)}
-                  className="w-full min-h-10 px-3 text-xs bg-zinc-950 border border-white/10 rounded-lg text-zinc-100 font-semibold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                  className="w-full min-h-10 px-3 text-xs bg-white border border-stone-200 rounded-lg text-stone-900 font-semibold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
                 >
-                  <option value="todos" className="bg-zinc-950 text-zinc-100">Todos los estados</option>
-                  <option value="emitido" className="bg-zinc-950 text-zinc-100">Emitido</option>
-                  <option value="nota_credito" className="bg-zinc-950 text-zinc-100">Anulado (Nota de Crédito)</option>
+                  <option value="todos" className="bg-white text-stone-900">Todos los estados</option>
+                  <option value="emitido" className="bg-white text-stone-900">Emitido</option>
+                  <option value="nota_credito" className="bg-white text-stone-900">Anulado (Nota de Crédito)</option>
                 </select>
               </div>
             </div>
 
             {/* RESULTS LIST */}
-            <div className="flex-1 overflow-y-auto min-h-[300px] border border-white/5 rounded-xl divide-y divide-white/5 pr-1">
+            <div className="flex-1 overflow-y-auto min-h-[300px] border border-stone-200 rounded-xl divide-y divide-stone-150 pr-1">
               {filteredFacturas.length === 0 ? (
                 <div className="text-center py-12 text-zinc-500 text-xs italic">
                   No se encontraron comprobantes en el archivo que coincidan con los filtros.
                 </div>
               ) : (
                 filteredFacturas.map((f) => (
-                  <div key={f.id_factura} className="p-3 hover:bg-zinc-950/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div key={f.id_factura} className="p-3 hover:bg-stone-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-extrabold text-white">{f.nro_ticket}</span>
+                        <span className="font-mono font-extrabold text-stone-900">{f.nro_ticket}</span>
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${
                           f.estado === 'nota_credito' 
                             ? 'bg-rose-500/10 text-rose-455 border-rose-500/20' 
@@ -2886,10 +2886,10 @@ function CajaModule({
                         }`}>
                           {f.estado === 'nota_credito' ? 'Anulado (NC)' : 'Emitido'}
                         </span>
-                        <span className="text-[10px] text-zinc-450 font-medium font-mono">{f.fecha}</span>
+                        <span className="text-[10px] text-stone-500 font-medium font-mono">{f.fecha}</span>
                       </div>
-                      <p className="text-[10px] text-zinc-400 font-semibold">
-                        Cliente: <span className="text-zinc-200">{f.cliente}</span> • CUIT: <span className="font-mono text-zinc-200">{f.cuit}</span>
+                      <p className="text-[10px] text-stone-500 font-semibold">
+                        Cliente: <span className="text-stone-850">{f.cliente}</span> • CUIT: <span className="font-mono text-stone-850">{f.cuit}</span>
                       </p>
                       {f.afip_cae && (
                         <p className="text-[9px] text-[#E8B800] font-bold font-mono">
@@ -2901,10 +2901,10 @@ function CajaModule({
                     <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
                       <div className="text-right">
                         <span className="text-[9px] text-zinc-500 block font-black uppercase font-sans">Total</span>
-                        <span className="font-mono font-black text-white text-sm">${f.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                        <span className="font-mono font-black text-stone-900 text-sm">${f.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                       </div>
 
-                      <div className="bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-white/5 font-mono text-[9px] font-black uppercase text-zinc-300">
+                      <div className="bg-stone-100 px-2.5 py-1.5 rounded-lg border border-stone-200 font-mono text-[9px] font-black uppercase text-stone-700">
                         {f.medio_pago.toUpperCase()}
                       </div>
 
@@ -2935,11 +2935,11 @@ function CajaModule({
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-white/5">
+            <div className="flex justify-end pt-2 border-t border-stone-200">
               <button
                 type="button"
                 onClick={() => setShowArchiveModal(false)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border border-stone-200"
               >
                 Cerrar Archivos
               </button>
@@ -2964,28 +2964,28 @@ function CajaModule({
                 <QrCode className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white uppercase tracking-tight">Voucher de Recompensa</h3>
+                <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Voucher de Recompensa</h3>
                 <p className="text-[11px] text-zinc-400 font-medium font-bold text-[#E8B800]">Club Pizzería Colores</p>
               </div>
             </div>
 
             <div className="space-y-3 py-2">
-              <div className="bg-zinc-950 p-3 rounded-xl border border-white/5 text-zinc-100 text-left">
+              <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-stone-900 text-left">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-zinc-400 font-semibold">Beneficiario:</span>
-                  <span className="font-extrabold text-white">{selectedCliente.nombre}</span>
+                  <span className="text-stone-500 font-semibold">Beneficiario:</span>
+                  <span className="font-extrabold text-stone-900">{selectedCliente.nombre}</span>
                 </div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-zinc-400 font-semibold">Cédula/CUIT:</span>
-                  <span className="font-mono text-white">{selectedCliente.dni_cuit}</span>
+                  <span className="text-stone-500 font-semibold">Cédula/CUIT:</span>
+                  <span className="font-mono text-stone-900">{selectedCliente.dni_cuit}</span>
                 </div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-zinc-400 font-semibold">Puntos Canjeados:</span>
-                  <span className="font-mono font-bold text-[#E8B800]">{puntosRedimidos} ptos</span>
+                  <span className="text-stone-500 font-semibold">Puntos Canjeados:</span>
+                  <span className="font-mono font-bold text-[#624A3E]">{puntosRedimidos} ptos</span>
                 </div>
                 <div className="flex justify-between text-xs border-t border-white/5 pt-1.5 mt-1.5">
-                  <span className="text-zinc-300 font-black">Valor Descuento:</span>
-                  <span className="font-mono font-black text-emerald-450 text-sm">ARS ${(puntosRedimidos * 10).toLocaleString('es-AR')}</span>
+                  <span className="text-stone-750 font-black">Valor Descuento:</span>
+                  <span className="font-mono font-black text-emerald-700 text-sm">ARS ${(puntosRedimidos * 10).toLocaleString('es-AR')}</span>
                 </div>
               </div>
 
@@ -3075,7 +3075,7 @@ function CajaModule({
               <button
                 type="button"
                 onClick={() => setShowVoucherModal(false)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border-0"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-xl transition-all cursor-pointer border border-stone-200"
               >
                 Cerrar
               </button>

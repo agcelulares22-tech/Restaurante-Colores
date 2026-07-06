@@ -41,10 +41,10 @@
 }
 
 :root {
-  /* Light Mode - Slate / White */
-  --vintage-beige: #F1F5F9;         /* Slate-100 */
-  --vintage-beige-light: #F8FAFC;   /* Slate-50 */
-  --vintage-beige-dark: #E2E8F0;    /* Slate-200 */
+  /* Light Mode - Warm Beige / Linen */
+  --vintage-beige: #EFEAD8;         /* Beautiful soft warm beige */
+  --vintage-beige-light: #FAF7EE;   /* Very light linen beige/cream for page body */
+  --vintage-beige-dark: #E4DCC4;    /* Sand beige for borders/accents */
   
   --zinc-950: #0F172A;              /* Slate-900 */
   --zinc-900: #1E293B;              /* Slate-800 */
@@ -68,10 +68,10 @@
   --stone-500: #78716C;
   --stone-400: #A8A29E;
   --stone-300: #D6D3D1;
-  --stone-200: #E7E5E4;
-  --stone-150: #EDECF0;
-  --stone-100: #F5F5F4;
-  --stone-50: #FAFAF9;
+  --stone-200: #DFD7C1;
+  --stone-150: #EAE3D2;
+  --stone-100: #F3EFE3;
+  --stone-50: #FFFFFF;
 }
 
 .dark {
