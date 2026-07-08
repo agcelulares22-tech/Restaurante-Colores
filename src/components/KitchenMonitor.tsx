@@ -560,10 +560,10 @@ function KitchenMonitor({
 
         <div className={`p-4 flex justify-between items-start ${headerTheme} shadow-sm`}>
           <div className="flex flex-col min-w-0">
-            <span className="text-[1.6rem] sm:text-[2rem] font-black leading-none tracking-tight uppercase font-display truncate text-zinc-150">
+            <span className="text-[1.6rem] sm:text-[2rem] font-black leading-none tracking-tight uppercase font-display truncate text-zinc-800 dark:text-zinc-150">
               {p.numero_mesa}
             </span>
-            <span className="text-[10px] uppercase font-black tracking-widest opacity-60 font-mono mt-1 truncate text-zinc-400">
+            <span className="text-[10px] uppercase font-black tracking-widest opacity-60 font-mono mt-1 truncate text-zinc-500 dark:text-zinc-400">
               Orden #{p.id_pedido}
             </span>
           </div>
@@ -586,7 +586,7 @@ function KitchenMonitor({
             )}
             <div className="flex items-center gap-1.5 text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-full">
               <Clock className="w-3 h-3 text-[#E8B800]" />
-              <span className={`text-sm font-black ${sem?.timeText || 'text-zinc-200'}`}>{p.minutos_transcurridos}m</span>
+              <span className={`text-sm font-black ${sem?.timeText || 'text-zinc-700 dark:text-zinc-200'}`}>{p.minutos_transcurridos}m</span>
               {sem && <span className={`w-1.5 h-1.5 rounded-full ${sem.timeDot}`} />}
             </div>
           </div>
@@ -602,11 +602,11 @@ function KitchenMonitor({
                 <span className="text-lg font-black text-[#E8B800] font-mono shrink-0">
                   {it.cantidad}x
                 </span>
-                <span className="flex-1 font-semibold text-zinc-200 text-sm leading-snug truncate">
+                <span className="flex-1 font-semibold text-zinc-700 dark:text-zinc-200 text-sm leading-snug truncate">
                   {it.nombre}
                 </span>
                 {(it.precio_unitario ?? 0) > 0 && (
-                  <span className="text-xs font-mono font-black text-zinc-300 bg-slate-50 dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-zinc-700 shrink-0">
+                  <span className="text-xs font-mono font-black text-zinc-700 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-zinc-700 shrink-0">
                     ${(it.precio_unitario! * it.cantidad).toLocaleString('es-AR')}
                   </span>
                 )}
@@ -634,8 +634,8 @@ function KitchenMonitor({
             <div className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 space-y-1.5">
               {subtotalPlatos > 0 && (
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-zinc-400 font-semibold">Subtotal platos</span>
-                  <span className="font-mono font-bold text-zinc-200">${subtotalPlatos.toLocaleString('es-AR')}</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 font-semibold">Subtotal platos</span>
+                  <span className="font-mono font-bold text-zinc-700 dark:text-zinc-200">${subtotalPlatos.toLocaleString('es-AR')}</span>
                 </div>
               )}
               {costoDelivery > 0 && (
@@ -648,7 +648,7 @@ function KitchenMonitor({
                 </div>
               )}
               <div className="border-t border-slate-200 dark:border-zinc-700 pt-1.5 flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-300">Total</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-300">Total</span>
                 <span className="text-sm font-black font-mono text-[#E8B800]">${totalPedido.toLocaleString('es-AR')}</span>
               </div>
             </div>
