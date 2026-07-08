@@ -1,4 +1,4 @@
-﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import https from "https";
 import forge from "node-forge";
@@ -116,6 +116,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).send(xml);
   } catch (err: any) {
     console.error("AFIP WSAA error:", err);
-    res.status(500).json({ error: err.message });
+    let msg = err.message || String(err);
+    if (msg.includes("fetch failed") || msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("connect") || msg.toLowerCase().includes("und_err")) {
+      msg = "Los servidores de pruebas (Homologación) de AFIP / ARCA no responden o se encuentran fuera de servicio temporalmente en este momento. Por favor, espera unos instantes y vuelve a intentar.";
+    }
+    res.status(500).json({ error: msg });
   }
 }
