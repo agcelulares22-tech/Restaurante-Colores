@@ -1073,7 +1073,7 @@ function KitchenMonitor({
               {/* Left Column: Escandallo & Alérgenos */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  <h4 className="text-[10px] font-black text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mb-2">
                     ⚖️ Escandallo (Ingredientes de Receta)
                   </h4>
                   {(() => {
@@ -1093,9 +1093,9 @@ function KitchenMonitor({
                     ) : (
                       <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 rounded-xl p-3 space-y-1.5">
                         {ingredients.map((ing, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          <div key={idx} className="flex justify-between items-center text-xs font-semibold text-zinc-900 dark:text-zinc-300">
                             <span>• {ing.nombre}</span>
-                            <span className="font-mono text-zinc-800 dark:text-zinc-100 font-bold bg-slate-200/60 dark:bg-zinc-900/50 px-2 py-0.5 rounded border border-slate-350/30 dark:border-white/5">
+                            <span className="font-mono text-zinc-900 dark:text-zinc-100 font-bold bg-slate-200/60 dark:bg-zinc-900/50 px-2 py-0.5 rounded border border-slate-350/30 dark:border-white/5">
                               {ing.cantidad} {ing.unidad}
                             </span>
                           </div>
@@ -1106,7 +1106,7 @@ function KitchenMonitor({
                 </div>
 
                 <div>
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  <h4 className="text-[10px] font-black text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mb-2">
                     ⚠️ Alérgenos Declarados
                   </h4>
                   {selectedRecipeProduct.alergenos && selectedRecipeProduct.alergenos.length > 0 ? (
@@ -1131,13 +1131,13 @@ function KitchenMonitor({
               {/* Right Column: Pasos de Preparación */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  <h4 className="text-[10px] font-black text-zinc-600 dark:text-zinc-400 uppercase tracking-widest mb-2">
                     🍳 Pasos de Cocción y Preparación
                   </h4>
                   {selectedRecipeProduct.pasos_preparacion && selectedRecipeProduct.pasos_preparacion.length > 0 ? (
                     <ol className="space-y-2.5">
                       {selectedRecipeProduct.pasos_preparacion.map((step, idx) => (
-                        <li key={idx} className="flex gap-2.5 items-start text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 font-medium">
+                        <li key={idx} className="flex gap-2.5 items-start text-xs leading-relaxed text-zinc-900 dark:text-zinc-300 font-medium">
                           <span className="w-5 h-5 rounded-full bg-[#E8B800] text-black flex items-center justify-center shrink-0 font-mono font-bold text-[10px]">
                             {idx + 1}
                           </span>
