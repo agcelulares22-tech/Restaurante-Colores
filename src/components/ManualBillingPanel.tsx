@@ -160,12 +160,17 @@ export function ManualBillingPanel({
       subtotalTotal += (it.cantidad * it.precioUnitario);
     });
 
-    const ivaRateFraction = ivaGeneral / 100;
+    const isFacturaC = tipoComprobante === 'Factura C';
+    const ivaRateFraction = isFacturaC ? 0 : (ivaGeneral / 100);
     let total = 0;
     let netoGravado = 0;
     let ivaValue = 0;
 
-    if (preciosConIva) {
+    if (isFacturaC) {
+      total = subtotalTotal;
+      netoGravado = total;
+      ivaValue = 0;
+    } else if (preciosConIva) {
       total = subtotalTotal;
       netoGravado = Number((total / (1 + ivaRateFraction)).toFixed(2));
       ivaValue = Number((total - netoGravado).toFixed(2));
@@ -180,7 +185,7 @@ export function ManualBillingPanel({
       ivaValue,
       total
     };
-  }, [items, ivaGeneral, preciosConIva]);
+  }, [items, ivaGeneral, preciosConIva, tipoComprobante]);
 
   // Validation
   const validateInvoice = () => {
@@ -549,16 +554,21 @@ export function ManualBillingPanel({
         </label>
 
         {/* IVA GENERAL */}
-        <label className="space-y-1 block">
+        <label className={`space-y-1 block ${tipoComprobante === 'Factura C' ? 'opacity-40 cursor-not-allowed' : ''}`}>
           <span className="text-[9px] font-black uppercase text-zinc-450 tracking-wider">IVA General</span>
           <select 
-            value={ivaGeneral} 
+            value={tipoComprobante === 'Factura C' ? 0 : ivaGeneral} 
             onChange={e => setIvaGeneral(parseFloat(e.target.value) || 21)} 
-            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+            disabled={tipoComprobante === 'Factura C'}
+            className="w-full min-h-10 p-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 disabled:opacity-50"
           >
-            {ALICUOTAS_IVA.map(a => (
-              <option key={a.id} value={a.value}>{a.label}</option>
-            ))}
+            {tipoComprobante === 'Factura C' ? (
+              <option value="0">No Corresponde (Monotributo)</option>
+            ) : (
+              ALICUOTAS_IVA.map(a => (
+                <option key={a.id} value={a.value}>{a.label}</option>
+              ))
+            )}
           </select>
         </label>
 
@@ -684,27 +694,41 @@ export function ManualBillingPanel({
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-stone-50 dark:bg-zinc-950/65 p-4 rounded-xl border border-stone-200 dark:border-white/5">
         
         {/* IVA Inclusion Checkbox */}
-        <label className="flex items-center gap-2 text-xs font-bold text-stone-700 dark:text-zinc-300 cursor-pointer select-none">
-          <input 
-            type="checkbox" 
-            checked={preciosConIva} 
-            onChange={e => setPreciosConIva(e.target.checked)} 
-            className="w-4 h-4 accent-[#E8B800] rounded"
-          />
-          Precios de conceptos con IVA incluido
-        </label>
+        {tipoComprobante !== 'Factura C' ? (
+          <label className="flex items-center gap-2 text-xs font-bold text-stone-700 dark:text-zinc-300 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              checked={preciosConIva} 
+              onChange={e => setPreciosConIva(e.target.checked)} 
+              className="w-4 h-4 accent-[#E8B800] rounded"
+            />
+            Precios de conceptos con IVA incluido
+          </label>
+        ) : (
+          <div className="text-xs font-bold text-stone-400 dark:text-zinc-500 italic">
+            Comprobante exento de IVA (Monotributo)
+          </div>
+        )}
 
         {/* Calculated metrics */}
         <div className="flex gap-4 sm:gap-6 justify-between sm:justify-end text-xs font-semibold text-stone-500 dark:text-zinc-400">
-          <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">Neto Gravado</span>
-            <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.netoGravado)}</span>
-          </div>
-
-          <div className="text-left sm:text-right">
-            <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">IVA ({ivaGeneral}%)</span>
-            <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.ivaValue)}</span>
-          </div>
+          {tipoComprobante !== 'Factura C' ? (
+            <>
+              <div className="text-left sm:text-right">
+                <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">Neto Gravado</span>
+                <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.netoGravado)}</span>
+              </div>
+              <div className="text-left sm:text-right">
+                <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">IVA ({ivaGeneral}%)</span>
+                <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.ivaValue)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="text-left sm:text-right">
+              <span className="text-[8px] uppercase font-black text-stone-500 dark:text-zinc-400 block">Total Items</span>
+              <span className="font-mono text-stone-850 dark:text-zinc-200 text-sm font-bold">{money(calculatedTotals.total)}</span>
+            </div>
+          )}
 
           <div className="text-left sm:text-right border-l border-stone-200 dark:border-white/10 pl-4 sm:pl-6">
             <span className="text-[8px] uppercase font-black text-[#E8B800] block">Total General</span>
