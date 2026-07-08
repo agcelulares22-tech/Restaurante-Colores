@@ -47,8 +47,17 @@ export function clearCachedTa() {
 }
 
 export function saveArcaCredentials(creds: ArcaCredentials) {
+  const old = getStoredCredentials();
+  const changed = !old || 
+                  old.cuit !== creds.cuit || 
+                  old.key !== creds.key || 
+                  old.cert !== creds.cert ||
+                  old.production !== creds.production;
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
-  clearCachedTa(); // Limpiar token al cambiar credenciales
+  if (changed) {
+    clearCachedTa(); // Limpiar token al cambiar credenciales
+  }
   window.dispatchEvent(new Event('arca_config_changed'));
 }
 

@@ -13,6 +13,9 @@ const URLS = {
   },
 };
 
+// Caché en memoria del servidor (persiste mientras la función esté tibia en Vercel)
+const globalTaCache: { [cuit: string]: { token: string; sign: string; expiresAt: number } } = {};
+
 async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -165,14 +168,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let newWsaaTokenRequested = false;
     let usingClientToken = false;
 
-    if (req.body.wsaaToken && req.body.wsaaToken.token && req.body.wsaaToken.sign) {
+    const cuitKey = String(credentials.cuit);
+    const cachedGlobal = globalTaCache[cuitKey];
+
+    if (cachedGlobal && cachedGlobal.expiresAt > Date.now()) {
+      auth = { token: cachedGlobal.token, sign: cachedGlobal.sign };
+      usingClientToken = true;
+    } else if (req.body.wsaaToken && req.body.wsaaToken.token && req.body.wsaaToken.sign) {
       auth = req.body.wsaaToken;
       usingClientToken = true;
     } else {
-      const ltrXml = buildTicketReqXml("wsfe");
-      const cms = signTicket(ltrXml, credentials.cert, credentials.key);
-      auth = await getWsaaToken(envUrls.wsaa, cms);
-      newWsaaTokenRequested = true;
+      try {
+        const ltrXml = buildTicketReqXml("wsfe");
+        const cms = signTicket(ltrXml, credentials.cert, credentials.key);
+        auth = await getWsaaToken(envUrls.wsaa, cms);
+        newWsaaTokenRequested = true;
+
+        globalTaCache[cuitKey] = {
+          token: auth.token,
+          sign: auth.sign,
+          expiresAt: Date.now() + 10 * 60 * 60 * 1000
+        };
+      } catch (wsaaErr: any) {
+        let errorMsg = wsaaErr.message || String(wsaaErr);
+        if (errorMsg.includes("alreadyAuthenticated")) {
+          errorMsg = "La AFIP indica que ya posee un Token de Acceso activo para su CUIT y certificado en su servidor de pruebas. Para evitar este bloqueo preventivo, por favor espera de 5 a 10 minutos y vuelve a intentar.";
+        }
+        return res.status(500).json({ error: errorMsg });
+      }
     }
 
     async function performOperation(tokenObj: { token: string; sign: string }) {
@@ -390,6 +413,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const cms = signTicket(ltrXml, credentials.cert, credentials.key);
           auth = await getWsaaToken(envUrls.wsaa, cms);
           
+          globalTaCache[cuitKey] = {
+            token: auth.token,
+            sign: auth.sign,
+            expiresAt: Date.now() + 10 * 60 * 60 * 1000
+          };
+
           const opResult = await performOperation(auth);
           if (opResult.success === false) {
             return res.status(422).json(opResult);
@@ -399,7 +428,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             wsaaToken: auth
           });
         } catch (retryErr: any) {
-          return res.status(500).json({ error: retryErr.message || String(retryErr) });
+          let errorMsg = retryErr.message || String(retryErr);
+          if (errorMsg.includes("alreadyAuthenticated")) {
+            errorMsg = "La AFIP indica que ya existe un Token de Acceso activo para este certificado y no permite generar uno nuevo. Por favor, espera de 5 a 10 minutos para que el servidor de la AFIP libere la sesión o vuelve a intentar.";
+          }
+          return res.status(500).json({ error: errorMsg });
         }
       } else {
         return res.status(500).json({ error: opErr.message || String(opErr) });
