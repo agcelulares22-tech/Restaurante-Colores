@@ -132,7 +132,7 @@ async function getWsaaToken(wsaaUrl: string, cms: string): Promise<{ token: stri
   const sign = xml.match(/<sign>([^<]+)<\/sign>/)?.[1] || "";
 
   if (!token || !sign) {
-    throw new Error("WSAA retornó credenciales vacías o inválidas");
+    throw new Error("WSAA retornó credenciales vacías o inválidas. Respuesta AFIP: " + xml.replace(/<\/?loginCmsReturn>/g, '').substring(0, 400));
   }
 
   return { token, sign };
