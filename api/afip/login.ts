@@ -14,6 +14,25 @@ const AFIP_URLS = {
   },
 };
 
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetchWithTimeout(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+      throw new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 8 segundos excedido). Por favor, intenta de nuevo en unos instantes.");
+    }
+    throw err;
+  }
+}
+
 function sanitizeAndRepairPem(pem: string, defaultType: "CERTIFICATE" | "PRIVATE KEY"): string {
   let cleaned = pem.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   
@@ -105,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-    const response = await fetch(env.wsaa, {
+    const response = await fetchWithTimeout(env.wsaa, {
       method: "POST",
       headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: "" },
       body: soap,

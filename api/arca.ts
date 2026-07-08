@@ -4,7 +4,7 @@ import forge from "node-forge";
 
 const URLS = {
   homologacion: {
-    wsaa: "https://wsaa.homo.afip.gov.ar/ws/services/LoginCms",
+    wsaa: "https://wsaahomo.afip.gov.ar/ws/services/LoginCms",
     wsfe: "https://wswhomo.afip.gov.ar/wsfev1/service.asmx",
   },
   produccion: {
@@ -12,6 +12,25 @@ const URLS = {
     wsfe: "https://servicios1.afip.gov.ar/wsfev1/service.asmx",
   },
 };
+
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetchWithTimeout(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+      throw new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 8 segundos excedido). Por favor, intenta de nuevo en unos instantes.");
+    }
+    throw err;
+  }
+}
 
 function buildTicketReqXml(service: string): string {
   const uniqueId = Math.floor(Math.random() * 1000000).toString();
@@ -104,7 +123,7 @@ async function getWsaaToken(wsaaUrl: string, cms: string): Promise<{ token: stri
   </soap:Body>
 </soap:Envelope>`;
 
-  const response = await fetch(wsaaUrl, {
+  const response = await fetchWithTimeout(wsaaUrl, {
     method: "POST",
     headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: "" },
     body: soap,
@@ -175,7 +194,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-        const responseLast = await fetch(envUrls.wsfe, {
+        const responseLast = await fetchWithTimeout(envUrls.wsfe, {
           method: "POST",
           headers: {
             "Content-Type": "text/xml; charset=utf-8",
@@ -219,7 +238,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-        const responseLast = await fetch(envUrls.wsfe, {
+        const responseLast = await fetchWithTimeout(envUrls.wsfe, {
           method: "POST",
           headers: {
             "Content-Type": "text/xml; charset=utf-8",
@@ -290,7 +309,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-        const responseInvoice = await fetch(envUrls.wsfe, {
+        const responseInvoice = await fetchWithTimeout(envUrls.wsfe, {
           method: "POST",
           headers: {
             "Content-Type": "text/xml; charset=utf-8",
@@ -376,6 +395,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     console.error("ARCA proxy handler error:", err);
-    return res.status(500).json({ error: err.message || "Error interno en el proxy de ARCA" });
+    let msg = err.message || String(err);
+    if (msg.includes("fetch failed") || msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("connect") || msg.toLowerCase().includes("und_err")) {
+      msg = "Los servidores de pruebas (Homologación) de AFIP / ARCA no responden o se encuentran fuera de servicio temporalmente en este momento. Por favor, espera unos instantes y vuelve a intentar.";
+    }
+    return res.status(500).json({ error: msg });
   }
 }
