@@ -71,7 +71,8 @@ export default function SistemaModule({
     try {
       const stored = localStorage.getItem('colores_pizzeria_arca_creds');
       if (stored) {
-        return JSON.parse(stored).cuit || '';
+        const val = JSON.parse(stored).cuit;
+        return val ? String(val) : '';
       }
     } catch {}
     return '';
@@ -984,7 +985,7 @@ export default function SistemaModule({
               <button
                 type="button"
                 onClick={async () => {
-                  if (!arcaCuit.trim()) {
+                  if (!String(arcaCuit).trim()) {
                     toast.error('Carga el CUIT del contribuyente.');
                     return;
                   }
