@@ -13,7 +13,7 @@ const URLS = {
   },
 };
 
-async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 8000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -26,7 +26,7 @@ async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 8000
   } catch (err: any) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError' || err.message?.includes('aborted')) {
-      throw new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 8 segundos excedido). Por favor, intenta de nuevo en unos instantes.");
+      throw new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 25 segundos excedido). Por favor, intenta de nuevo en unos instantes.");
     }
     throw err;
   }
