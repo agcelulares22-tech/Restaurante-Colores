@@ -105,6 +105,16 @@ export const pdfService = {
     const logo = await loadLogoDataUrl();
     const qrImage = await loadQrDataUrl(data.qrData);
 
+    // Si es una factura de AFIP (factura_a, factura_b, factura_c, libre), exportarla en formato A4
+    const compType = (data.tipoComprobante || '').toLowerCase();
+    if (
+      compType.includes('factura') || 
+      compType.includes('nota_credito') || 
+      compType.includes('nota_debito')
+    ) {
+      return this.generateA4Invoice(data, logo, qrImage);
+    }
+
     let width: 58 | 80 = forceWidth || 80;
     if (!forceWidth) {
       try {
