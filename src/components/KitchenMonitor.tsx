@@ -1041,14 +1041,14 @@ function KitchenMonitor({
       )}
       {selectedRecipeProduct && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="glass-card border border-white/15 rounded-[24px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 flex flex-col space-y-4 font-sans text-zinc-200">
+          <div className="glass-card border border-slate-200 dark:border-white/15 rounded-[24px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 flex flex-col space-y-4 font-sans text-zinc-700 dark:text-zinc-200">
             {/* Header */}
-            <div className="flex justify-between items-start border-b border-white/10 pb-3">
+            <div className="flex justify-between items-start border-b border-slate-200 dark:border-white/10 pb-3">
               <div>
-                <span className="text-[9px] uppercase font-black text-amber-400 tracking-widest block bg-white/5 px-2 py-0.5 rounded w-fit">
+                <span className="text-[9px] uppercase font-black text-amber-700 dark:text-amber-400 tracking-widest block bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded w-fit">
                   {selectedRecipeProduct.categoria} • {selectedRecipeProduct.tiempo_preparacion_estimado || 15}m prep
                 </span>
-                <h3 className="font-sans font-black text-xl text-white mt-1">{selectedRecipeProduct.nombre}</h3>
+                <h3 className="font-sans font-black text-xl text-zinc-900 dark:text-white mt-1">{selectedRecipeProduct.nombre}</h3>
               </div>
               <button
                 onClick={() => setSelectedRecipeProduct(null)}
@@ -1091,11 +1091,11 @@ function KitchenMonitor({
                     return ingredients.length === 0 ? (
                       <p className="text-zinc-500 text-xs italic">Sin ingredientes registrados en escandallo.</p>
                     ) : (
-                      <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1.5">
+                      <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 rounded-xl p-3 space-y-1.5">
                         {ingredients.map((ing, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-xs font-semibold text-zinc-300">
+                          <div key={idx} className="flex justify-between items-center text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                             <span>• {ing.nombre}</span>
-                            <span className="font-mono text-zinc-100 font-bold bg-zinc-900/50 px-2 py-0.5 rounded border border-white/5">
+                            <span className="font-mono text-zinc-800 dark:text-zinc-100 font-bold bg-slate-200/60 dark:bg-zinc-900/50 px-2 py-0.5 rounded border border-slate-350/30 dark:border-white/5">
                               {ing.cantidad} {ing.unidad}
                             </span>
                           </div>
@@ -1114,14 +1114,14 @@ function KitchenMonitor({
                       {selectedRecipeProduct.alergenos.map((al, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] font-black uppercase px-2.5 py-1 bg-amber-500/10 text-amber-350 border border-amber-500/20 rounded-lg shadow-xs"
+                          className="text-[10px] font-black uppercase px-2.5 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-355 border border-amber-500/20 rounded-lg shadow-xs"
                         >
                           {al}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 bg-emerald-500/10 text-emerald-350 border border-emerald-500/25 rounded-lg shadow-xs inline-block">
+                    <span className="text-[10px] font-black uppercase px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-355 border border-emerald-500/25 rounded-lg shadow-xs inline-block">
                       Libre de alérgenos comunes
                     </span>
                   )}
@@ -1137,7 +1137,7 @@ function KitchenMonitor({
                   {selectedRecipeProduct.pasos_preparacion && selectedRecipeProduct.pasos_preparacion.length > 0 ? (
                     <ol className="space-y-2.5">
                       {selectedRecipeProduct.pasos_preparacion.map((step, idx) => (
-                        <li key={idx} className="flex gap-2.5 items-start text-xs leading-relaxed text-zinc-300 font-medium">
+                        <li key={idx} className="flex gap-2.5 items-start text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 font-medium">
                           <span className="w-5 h-5 rounded-full bg-[#E8B800] text-black flex items-center justify-center shrink-0 font-mono font-bold text-[10px]">
                             {idx + 1}
                           </span>
@@ -1146,7 +1146,7 @@ function KitchenMonitor({
                       ))}
                     </ol>
                   ) : (
-                    <p className="text-zinc-500 text-xs italic bg-white/5 border border-dashed border-white/5 p-3 rounded-lg">
+                    <p className="text-zinc-500 text-xs italic bg-slate-50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/5 p-3 rounded-lg">
                       No se han detallado las instrucciones de preparación paso a paso.
                     </p>
                   )}
@@ -1157,10 +1157,10 @@ function KitchenMonitor({
 
             {/* Plating Advice Callout */}
             {selectedRecipeProduct.consejo_emplatado && (
-              <div className="bg-amber-500/10 border border-amber-500/20 p-3.5 rounded-2xl flex items-start gap-2.5 text-xs text-amber-250 leading-relaxed">
-                <Utensils className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+              <div className="bg-amber-500/10 border border-amber-500/20 p-3.5 rounded-2xl flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-250 leading-relaxed">
+                <Utensils className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-[10px] font-black uppercase text-amber-400 block mb-0.5">Sugerencia de Emplatado:</span>
+                  <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-400 block mb-0.5">Sugerencia de Emplatado:</span>
                   <p className="font-semibold">"{selectedRecipeProduct.consejo_emplatado}"</p>
                 </div>
               </div>
