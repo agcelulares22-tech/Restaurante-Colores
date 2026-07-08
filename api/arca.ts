@@ -260,8 +260,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const lastCbteNum = parseInt(xmlLast.match(/<CbteNro>(\d+)<\/CbteNro>/)?.[1] || "0");
         const nextCbteNum = lastCbteNum + 1;
 
-        const baseImp = payload.neto || (payload.total / 1.21);
-        const importeIva = payload.ivaTotal || (payload.total - baseImp);
+        const isFacturaC = cbteTipo === 11;
+        const baseImp = isFacturaC ? payload.total : (payload.neto || (payload.total / 1.21));
+        const importeIva = isFacturaC ? 0 : (payload.ivaTotal || (payload.total - baseImp));
+
+        const ivaBlock = isFacturaC ? "" : `
+            <fe:Iva>
+              <fe:AlicIva>
+                <fe:Id>5</fe:Id>
+                <fe:BaseImp>${baseImp.toFixed(2)}</fe:BaseImp>
+                <fe:Importe>${importeIva.toFixed(2)}</fe:Importe>
+              </fe:AlicIva>
+            </fe:Iva>`;
 
         const soapInvoice = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
@@ -295,13 +305,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <fe:ImpIVA>${importeIva.toFixed(2)}</fe:ImpIVA>
             <fe:MonId>PES</fe:MonId>
             <fe:MonCotiz>1</fe:MonCotiz>
-            <fe:Iva>
-              <fe:AlicIva>
-                <fe:Id>5</fe:Id>
-                <fe:BaseImp>${baseImp.toFixed(2)}</fe:BaseImp>
-                <fe:Importe>${importeIva.toFixed(2)}</fe:Importe>
-              </fe:AlicIva>
-            </fe:Iva>
+            ${ivaBlock}
           </fe:FECAEDetRequest>
         </fe:FeDetReq>
       </fe:FeCAEReq>
@@ -336,13 +340,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (code) obs.push({ code, msg });
         });
 
+        // Parsear también la etiqueta <Err> (Errores estructurales)
+        const errBlocks = xmlInvoice.match(/<Err>.*?<\/Err>/gs) || [];
+        errBlocks.forEach((block) => {
+          const code = parseInt(block.match(/<Code>(\d+)<\/Code>/)?.[1] || "0");
+          const msg = block.match(/<Msg>([^<]*)<\/Msg>/)?.[1] || "";
+          if (code) obs.push({ code, msg });
+        });
+
         if (resultado === "R") {
           const errors = obs.map(o => `[${o.code}] ${o.msg}`).join("; ");
           return {
             success: false,
             resultado,
             observaciones: obs,
-            error: `ARCA rechazó la solicitud: ${errors || "Error de validación"}`
+            error: `ARCA rechazó la solicitud: ${errors || "Error de estructura / validación interna"}`
           };
         }
 
