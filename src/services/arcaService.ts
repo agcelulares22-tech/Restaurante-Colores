@@ -24,16 +24,19 @@ export function deleteArcaCredentials() {
 
 function getStoredCredentials(): ArcaCredentials | null {
   try {
+    // 1. Priorizar la configuración guardada por el usuario en la interfaz
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+
+    // 2. Fallback a las variables de entorno del build si no hay configuración local
     const env = (import.meta as any).env || {};
     const envCuit = env.VITE_ARCA_CUIT;
     const envKey = env.VITE_ARCA_KEY;
     const envCert = env.VITE_ARCA_CERT;
     if (envCuit && envKey && envCert) {
       return { cuit: Number(envCuit), key: envKey, cert: envCert, production: env.VITE_ARCA_PROD === 'true' };
-    }
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
     }
     return null;
   } catch { return null; }
