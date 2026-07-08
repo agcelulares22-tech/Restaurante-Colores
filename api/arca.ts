@@ -128,8 +128,10 @@ async function getWsaaToken(wsaaUrl: string, cms: string): Promise<{ token: stri
   }
 
   const xml = await response.text();
-  const token = xml.match(/<token>([^<]+)<\/token>/)?.[1] || "";
-  const sign = xml.match(/<sign>([^<]+)<\/sign>/)?.[1] || "";
+  // Decodificar entidades HTML ya que AFIP devuelve el XML de login escapado dentro del SOAP Body
+  const decodedXml = xml.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+  const token = decodedXml.match(/<token>([^<]+)<\/token>/)?.[1] || "";
+  const sign = decodedXml.match(/<sign>([^<]+)<\/sign>/)?.[1] || "";
 
   if (!token || !sign) {
     throw new Error("WSAA retornó credenciales vacías o inválidas. Respuesta AFIP: " + xml.replace(/<\/?loginCmsReturn>/g, '').substring(0, 400));
