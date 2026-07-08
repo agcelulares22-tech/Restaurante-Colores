@@ -16,8 +16,9 @@ const URLS = {
 // Genera el XML del Ticket de Requerimiento de Acceso (LTR)
 function buildTicketReqXml(service: string): string {
   const uniqueId = Math.floor(Math.random() * 1000000).toString();
-  const genTime = new Date(Date.now() - 2 * 60 * 1000).toISOString().replace(/[:\-]/g, '').slice(0, 14); // 2 minutos antes para evitar lag de reloj
-  const expTime = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString().replace(/[:\-]/g, '').slice(0, 14);
+  // Formato ISO-8601 completo compatible con xsd:dateTime sin milisegundos
+  const genTime = new Date(Date.now() - 2 * 60 * 1000).toISOString().split('.')[0] + 'Z';
+  const expTime = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <loginTicketRequest version="1.0">

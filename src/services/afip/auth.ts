@@ -25,8 +25,9 @@ function setTaCache(ta: string) {
 /** Genera el CMS (Ticket de Requerimiento) firmado con el certificado */
 function buildTicketReq(service: string, cuit: number, cert: string): string {
   const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-  const genTime = new Date().toISOString().replace(/[:\-]/g, '').slice(0, 14);
-  const expTime = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString().replace(/[:\-]/g, '').slice(0, 14);
+  // Formato ISO-8601 completo compatible con xsd:dateTime sin milisegundos
+  const genTime = new Date().toISOString().split('.')[0] + 'Z';
+  const expTime = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z';
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <loginTicketRequest version="1.0">
@@ -48,18 +49,22 @@ function buildTicketReq(service: string, cuit: number, cert: string): string {
 function parseTaResponse(xml: string, cuit: number): WsaaCredentials {
   const token = xml.match(/<token>([^<]+)<\/token>/)?.[1] || '';
   const sign = xml.match(/<sign>([^<]+)<\/sign>/)?.[1] || '';
-  const expiresAt = new Date();
+  let expiresAt = new Date();
 
   const expStr = xml.match(/<expirationTime>([^<]+)<\/expirationTime>/)?.[1];
   if (expStr) {
-    const y = expStr.slice(0, 4);
-    const M = expStr.slice(4, 6);
-    const d = expStr.slice(6, 8);
-    const h = expStr.slice(8, 10);
-    const m = expStr.slice(10, 12);
-    const s = expStr.slice(12, 14);
-    expiresAt.setFullYear(+y, +M - 1, +d);
-    expiresAt.setHours(+h, +m, +s, 0);
+    if (expStr.includes('-') || expStr.includes(':')) {
+      expiresAt = new Date(expStr);
+    } else {
+      const y = expStr.slice(0, 4);
+      const M = expStr.slice(4, 6);
+      const d = expStr.slice(6, 8);
+      const h = expStr.slice(8, 10);
+      const m = expStr.slice(10, 12);
+      const s = expStr.slice(12, 14);
+      expiresAt.setFullYear(+y, +M - 1, +d);
+      expiresAt.setHours(+h, +m, +s, 0);
+    }
   }
 
   return { token, sign, expiresAt, cuit };
