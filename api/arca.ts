@@ -1,10 +1,10 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import crypto from "crypto";
+"use strict";
+import { VercelRequest, VercelResponse } from "@vercel/node";
 import forge from "node-forge";
 
 const URLS = {
   homologacion: {
-    wsaa: "https://wsaahomo.afip.gov.ar/ws/services/LoginCms",
+    wsaa: "https://wsaa.homo.afip.gov.ar/ws/services/LoginCms",
     wsfe: "https://wswhomo.afip.gov.ar/wsfev1/service.asmx",
   },
   produccion: {
@@ -13,7 +13,6 @@ const URLS = {
   },
 };
 
-// Genera el XML del Ticket de Requerimiento de Acceso (LTR)
 function buildTicketReqXml(service: string): string {
   const uniqueId = Math.floor(Math.random() * 1000000).toString();
   // Formato ISO-8601 completo compatible con xsd:dateTime sin milisegundos
@@ -65,19 +64,8 @@ function signTicket(xml: string, cert: string, key: string): string {
   const certPem = sanitizeAndRepairPem(certRaw, "CERTIFICATE");
   const keyPem = sanitizeAndRepairPem(keyRaw, "PRIVATE KEY");
 
-  let forgeCert;
-  try {
-    forgeCert = forge.pki.certificateFromPem(certPem);
-  } catch (err: any) {
-    throw new Error(`Error al parsear el Certificado PEM (largo ${certPem.length}): ${err.message}. Empieza con: "${certPem.substring(0, 60)}"`);
-  }
-
-  let forgeKey;
-  try {
-    forgeKey = forge.pki.privateKeyFromPem(keyPem);
-  } catch (err: any) {
-    throw new Error(`Error al parsear la Clave Privada PEM (largo ${keyPem.length}): ${err.message}. Empieza con: "${keyPem.substring(0, 60)}"`);
-  } 
+  const forgeCert = forge.pki.certificateFromPem(certPem);
+  const forgeKey = forge.pki.privateKeyFromPem(keyPem);
 
   const p7 = forge.pkcs7.createSignedData();
   p7.content = forge.util.createBuffer(xml, "utf8");
@@ -96,16 +84,15 @@ function signTicket(xml: string, cert: string, key: string): string {
       },
       {
         type: forge.pki.oids.signingTime,
-        value: new Date(),
       },
     ],
   });
+
   p7.sign();
-  const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
-  return forge.util.encode64(bytes).replace(/\r?\n|\r/g, "");
+  return forge.util.encode64(forge.asn1.toDer(p7.toAsn1()).getBytes());
 }
 
-// Obtiene el token y sign del WSAA
+// Obtiene el token de WSAA enviando el ticket firmado
 async function getWsaaToken(wsaaUrl: string, cms: string): Promise<{ token: string; sign: string }> {
   const soap = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
@@ -155,32 +142,75 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const envUrls = credentials.production ? URLS.produccion : URLS.homologacion;
 
-    // 1. Obtener Token y Sign de WSAA
-    const ltrXml = buildTicketReqXml("wsfe");
-    const cms = signTicket(ltrXml, credentials.cert, credentials.key);
-    const auth = await getWsaaToken(envUrls.wsaa, cms);
+    let auth: { token: string; sign: string };
+    let newWsaaTokenRequested = false;
+    let usingClientToken = false;
 
-    if (action === "test") {
-      return res.json({ success: true, message: "Conexión a ARCA establecida con éxito." });
+    if (req.body.wsaaToken && req.body.wsaaToken.token && req.body.wsaaToken.sign) {
+      auth = req.body.wsaaToken;
+      usingClientToken = true;
+    } else {
+      const ltrXml = buildTicketReqXml("wsfe");
+      const cms = signTicket(ltrXml, credentials.cert, credentials.key);
+      auth = await getWsaaToken(envUrls.wsaa, cms);
+      newWsaaTokenRequested = true;
     }
 
-    if (action === "createInvoice") {
-      if (!payload) {
-        return res.status(400).json({ error: "Payload de factura faltante" });
-      }
-
-      // Obtener el último número de comprobante para el punto de venta y tipo
-      const ptoVta = payload.puntoVenta || 1;
-      const cbteTipo = payload.tipoComprobante || 6; // Factura B por defecto
-
-      const soapLast = `<?xml version="1.0" encoding="UTF-8"?>
+    async function performOperation(tokenObj: { token: string; sign: string }) {
+      if (action === "test") {
+        // En un test de conexión, tratamos de consultar el último comprobante autorizado para validar el token
+        const soapLast = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
   <soap:Header/>
   <soap:Body>
     <fe:FECompUltimoAutorizado>
       <fe:Auth>
-        <fe:Token>${auth.token}</fe:Token>
-        <fe:Sign>${auth.sign}</fe:Sign>
+        <fe:Token>${tokenObj.token}</fe:Token>
+        <fe:Sign>${tokenObj.sign}</fe:Sign>
+        <fe:Cuit>${credentials.cuit}</fe:Cuit>
+      </fe:Auth>
+      <fe:PtoVta>1</fe:PtoVta>
+      <fe:CbteTipo>6</fe:CbteTipo>
+    </fe:FECompUltimoAutorizado>
+  </soap:Body>
+</soap:Envelope>`;
+
+        const responseLast = await fetch(envUrls.wsfe, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/xml; charset=utf-8",
+            SOAPAction: "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado",
+          },
+          body: soapLast,
+        });
+
+        if (!responseLast.ok) {
+          throw new Error(`WSFE FECompUltimoAutorizado HTTP ${responseLast.status}`);
+        }
+        const xmlLast = await responseLast.text();
+        if (xmlLast.includes("soap:Fault") || xmlLast.includes("soapenv:Fault") || xmlLast.includes("Validation")) {
+          const faultMsg = xmlLast.match(/<faultstring>([^<]+)<\/faultstring>/)?.[1] || "Error de autorización en AFIP";
+          throw new Error(faultMsg);
+        }
+        return { success: true, message: "Conexión a ARCA establecida con éxito." };
+      }
+
+      if (action === "createInvoice") {
+        if (!payload) {
+          throw new Error("Payload de factura faltante");
+        }
+
+        const ptoVta = payload.puntoVenta || 1;
+        const cbteTipo = payload.tipoComprobante || 6;
+
+        const soapLast = `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
+  <soap:Header/>
+  <soap:Body>
+    <fe:FECompUltimoAutorizado>
+      <fe:Auth>
+        <fe:Token>${tokenObj.token}</fe:Token>
+        <fe:Sign>${tokenObj.sign}</fe:Sign>
         <fe:Cuit>${credentials.cuit}</fe:Cuit>
       </fe:Auth>
       <fe:PtoVta>${ptoVta}</fe:PtoVta>
@@ -189,36 +219,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-      const responseLast = await fetch(envUrls.wsfe, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/xml; charset=utf-8",
-          SOAPAction: "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado",
-        },
-        body: soapLast,
-      });
+        const responseLast = await fetch(envUrls.wsfe, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/xml; charset=utf-8",
+            SOAPAction: "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado",
+          },
+          body: soapLast,
+        });
 
-      if (!responseLast.ok) {
-        throw new Error(`WSFE FECompUltimoAutorizado HTTP ${responseLast.status}`);
-      }
+        if (!responseLast.ok) {
+          throw new Error(`WSFE FECompUltimoAutorizado HTTP ${responseLast.status}`);
+        }
 
-      const xmlLast = await responseLast.text();
-      const lastCbteNum = parseInt(xmlLast.match(/<CbteNro>(\d+)<\/CbteNro>/)?.[1] || "0");
-      const nextCbteNum = lastCbteNum + 1;
+        const xmlLast = await responseLast.text();
+        if (xmlLast.includes("soap:Fault") || xmlLast.includes("soapenv:Fault") || xmlLast.includes("Validation")) {
+          const faultMsg = xmlLast.match(/<faultstring>([^<]+)<\/faultstring>/)?.[1] || "Error en WSFE al validar punto de venta";
+          throw new Error(faultMsg);
+        }
 
-      // Armar payload de IVA
-      const itemsIva = payload.items || [];
-      const baseImp = payload.neto || (payload.total / 1.21);
-      const importeIva = payload.ivaTotal || (payload.total - baseImp);
+        const lastCbteNum = parseInt(xmlLast.match(/<CbteNro>(\d+)<\/CbteNro>/)?.[1] || "0");
+        const nextCbteNum = lastCbteNum + 1;
 
-      const soapInvoice = `<?xml version="1.0" encoding="UTF-8"?>
+        const baseImp = payload.neto || (payload.total / 1.21);
+        const importeIva = payload.ivaTotal || (payload.total - baseImp);
+
+        const soapInvoice = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
   <soap:Header/>
   <soap:Body>
     <fe:FECAESolicitar>
       <fe:Auth>
-        <fe:Token>${auth.token}</fe:Token>
-        <fe:Sign>${auth.sign}</fe:Sign>
+        <fe:Token>${tokenObj.token}</fe:Token>
+        <fe:Sign>${tokenObj.sign}</fe:Sign>
         <fe:Cuit>${credentials.cuit}</fe:Cuit>
       </fe:Auth>
       <fe:FeCAEReq>
@@ -245,7 +278,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <fe:MonCotiz>1</fe:MonCotiz>
             <fe:Iva>
               <fe:AlicIva>
-                <fe:Id>5</fe:Id> <!-- 21% -->
+                <fe:Id>5</fe:Id>
                 <fe:BaseImp>${baseImp.toFixed(2)}</fe:BaseImp>
                 <fe:Importe>${importeIva.toFixed(2)}</fe:Importe>
               </fe:AlicIva>
@@ -257,59 +290,92 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
-      const responseInvoice = await fetch(envUrls.wsfe, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/xml; charset=utf-8",
-          SOAPAction: "http://ar.gov.afip.dif.FEV1/FECAESolicitar",
-        },
-        body: soapInvoice,
-      });
-
-      if (!responseInvoice.ok) {
-        throw new Error(`WSFE FECAESolicitar HTTP ${responseInvoice.status}`);
-      }
-
-      const xmlInvoice = await responseInvoice.text();
-      const getTag = (tag: string) => xmlInvoice.match(new RegExp(`<${tag}>([^<]*)<\\/${tag}>`))?.[1] || "";
-      const cae = getTag("CAE");
-      const vto = getTag("CAEFchVto");
-      const resultado = getTag("Resultado");
-
-      const obs: Array<{ code: number; msg: string }> = [];
-      const obsBlocks = xmlInvoice.match(/<Obs>.*?<\/Obs>/gs) || [];
-      obsBlocks.forEach((block) => {
-        const code = parseInt(block.match(/<Code>(\d+)<\/Code>/)?.[1] || "0");
-        const msg = block.match(/<Msg>([^<]*)<\/Msg>/)?.[1] || "";
-        if (code) obs.push({ code, msg });
-      });
-
-      if (resultado === "R") {
-        const errors = obs.map(o => `[${o.code}] ${o.msg}`).join("; ");
-        return res.status(422).json({
-          success: false,
-          resultado,
-          observaciones: obs,
-          error: `ARCA rechazó la solicitud: ${errors || "Error de validación"}`
+        const responseInvoice = await fetch(envUrls.wsfe, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/xml; charset=utf-8",
+            SOAPAction: "http://ar.gov.afip.dif.FEV1/FECAESolicitar",
+          },
+          body: soapInvoice,
         });
-      }
 
-      return res.json({
-        success: true,
-        resultado,
-        cae,
-        vencimiento: vto,
-        CodAutorizacion: cae,
-        CAE: cae,
-        Vencimiento: vto,
-        CAEFchVto: vto,
-        nroCmp: nextCbteNum
-      });
+        if (!responseInvoice.ok) {
+          throw new Error(`WSFE FECAESolicitar HTTP ${responseInvoice.status}`);
+        }
+
+        const xmlInvoice = await responseInvoice.text();
+        const getTag = (tag: string) => xmlInvoice.match(new RegExp(`<${tag}>([^<]*)<\/${tag}>`))?.[1] || "";
+        const cae = getTag("CAE");
+        const vto = getTag("CAEFchVto");
+        const resultado = getTag("Resultado");
+
+        const obs: Array<{ code: number; msg: string }> = [];
+        const obsBlocks = xmlInvoice.match(/<Obs>.*?<\/Obs>/gs) || [];
+        obsBlocks.forEach((block) => {
+          const code = parseInt(block.match(/<Code>(\d+)<\/Code>/)?.[1] || "0");
+          const msg = block.match(/<Msg>([^<]*)<\/Msg>/)?.[1] || "";
+          if (code) obs.push({ code, msg });
+        });
+
+        if (resultado === "R") {
+          const errors = obs.map(o => `[${o.code}] ${o.msg}`).join("; ");
+          return {
+            success: false,
+            resultado,
+            observaciones: obs,
+            error: `ARCA rechazó la solicitud: ${errors || "Error de validación"}`
+          };
+        }
+
+        return {
+          success: true,
+          resultado,
+          cae,
+          vencimiento: vto,
+          CodAutorizacion: cae,
+          CAE: cae,
+          Vencimiento: vto,
+          CAEFchVto: vto,
+          nroCmp: nextCbteNum
+        };
+      }
+      throw new Error(`Acción '${action}' no soportada.`);
     }
 
-    return res.status(400).json({ error: `Acción '${action}' no soportada.` });
+    try {
+      const opResult = await performOperation(auth);
+      if (opResult.success === false) {
+        return res.status(422).json(opResult);
+      }
+      return res.json({
+        ...opResult,
+        wsaaToken: newWsaaTokenRequested ? auth : undefined
+      });
+    } catch (opErr: any) {
+      // Si falló usando el token cacheado, reintentar con uno nuevo
+      if (usingClientToken) {
+        try {
+          const ltrXml = buildTicketReqXml("wsfe");
+          const cms = signTicket(ltrXml, credentials.cert, credentials.key);
+          auth = await getWsaaToken(envUrls.wsaa, cms);
+          
+          const opResult = await performOperation(auth);
+          if (opResult.success === false) {
+            return res.status(422).json(opResult);
+          }
+          return res.json({
+            ...opResult,
+            wsaaToken: auth
+          });
+        } catch (retryErr: any) {
+          return res.status(500).json({ error: retryErr.message || String(retryErr) });
+        }
+      } else {
+        return res.status(500).json({ error: opErr.message || String(opErr) });
+      }
+    }
   } catch (err: any) {
     console.error("ARCA proxy handler error:", err);
-    return res.status(500).json({ error: err.message || "Error interno del servidor en el proxy de ARCA" });
+    return res.status(500).json({ error: err.message || "Error interno en el proxy de ARCA" });
   }
 }

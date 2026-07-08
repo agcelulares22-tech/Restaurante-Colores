@@ -9,28 +9,62 @@ interface ArcaCredentials {
 }
 
 const STORAGE_KEY = 'colores_pizzeria_arca_creds';
-
+const TA_CACHE_KEY = 'colores_pizzeria_arca_ta';
 const API_URL = '/api/arca';
+
+interface CachedTa {
+  token: string;
+  sign: string;
+  expiresAt: number;
+}
+
+function getCachedTa(): { token: string; sign: string } | null {
+  try {
+    const raw = localStorage.getItem(TA_CACHE_KEY);
+    if (!raw) return null;
+    const parsed: CachedTa = JSON.parse(raw);
+    // Si expira en menos de 5 minutos, descartar
+    if (parsed.expiresAt - Date.now() < 5 * 60 * 1000) {
+      localStorage.removeItem(TA_CACHE_KEY);
+      return null;
+    }
+    return { token: parsed.token, sign: parsed.sign };
+  } catch {
+    return null;
+  }
+}
+
+function setCachedTa(token: string, sign: string) {
+  try {
+    const expiresAt = Date.now() + 10 * 60 * 60 * 1000; // 10 horas
+    const data: CachedTa = { token, sign, expiresAt };
+    localStorage.setItem(TA_CACHE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+export function clearCachedTa() {
+  localStorage.removeItem(TA_CACHE_KEY);
+}
 
 export function saveArcaCredentials(creds: ArcaCredentials) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
+  clearCachedTa(); // Limpiar token al cambiar credenciales
   window.dispatchEvent(new Event('arca_config_changed'));
 }
 
 export function deleteArcaCredentials() {
   localStorage.removeItem(STORAGE_KEY);
+  clearCachedTa();
   window.dispatchEvent(new Event('arca_config_changed'));
 }
 
 function getStoredCredentials(): ArcaCredentials | null {
   try {
-    // 1. Priorizar la configuración guardada por el usuario en la interfaz
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       return JSON.parse(stored);
     }
 
-    // 2. Fallback a las variables de entorno del build si no hay configuración local
     const env = (import.meta as any).env || {};
     const envCuit = env.VITE_ARCA_CUIT;
     const envKey = env.VITE_ARCA_KEY;
@@ -55,14 +89,19 @@ export async function testArcaConnection(): Promise<{ success: boolean; error?: 
   const creds = getStoredCredentials();
   if (!creds) return { success: false, error: 'No hay credenciales configuradas' };
   try {
+    const cachedTa = getCachedTa();
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'test', credentials: creds }),
+      body: JSON.stringify({ action: 'test', credentials: creds, wsaaToken: cachedTa }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'Error en el servidor de ARCA' }));
       return { success: false, error: err.error || `HTTP ${res.status}` };
+    }
+    const data = await res.json();
+    if (data.wsaaToken) {
+      setCachedTa(data.wsaaToken.token, data.wsaaToken.sign);
     }
     return { success: true };
   } catch (err: any) {
@@ -110,10 +149,11 @@ export async function createArcaInvoice(payload: ArcaInvoicePayload): Promise<Ar
   const creds = getStoredCredentials();
   if (!creds) throw new Error('ARCA no está configurado');
 
+  const cachedTa = getCachedTa();
   const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'createInvoice', credentials: creds, payload }),
+    body: JSON.stringify({ action: 'createInvoice', credentials: creds, wsaaToken: cachedTa, payload }),
   });
 
   if (!res.ok) {
@@ -122,10 +162,11 @@ export async function createArcaInvoice(payload: ArcaInvoicePayload): Promise<Ar
   }
 
   const data = await res.json();
+  if (data.wsaaToken) {
+    setCachedTa(data.wsaaToken.token, data.wsaaToken.sign);
+  }
   return data;
 }
-
-// ─── Tipos de comprobante y lookup helpers ───────────────────
 
 export const TIPOS_COMPROBANTE = {
   'factura_a': { id: 1, label: 'Factura A', requiereCuit: true, condicionIva: 1 },
