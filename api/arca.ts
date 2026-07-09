@@ -320,6 +320,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <fe:CbteDesde>${nextCbteNum}</fe:CbteDesde>
             <fe:CbteHasta>${nextCbteNum}</fe:CbteHasta>
             <fe:CbteFch>${new Date().toISOString().split('T')[0].replace(/-/g, "")}</fe:CbteFch>
+            <fe:CondicionIVAReceptorId>${payload.cliente?.condicionIva || 5}</fe:CondicionIVAReceptorId>
             <fe:ImpTotal>${payload.total.toFixed(2)}</fe:ImpTotal>
             <fe:ImpTotConc>0.00</fe:ImpTotConc>
             <fe:ImpNeto>${baseImp.toFixed(2)}</fe:ImpNeto>
