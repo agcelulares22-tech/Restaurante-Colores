@@ -6,6 +6,42 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import './styles/mobile.css';
 
+// Global LocalStorage Quota safety wrapper to prevent QuotaExceededError crashes
+if (typeof window !== 'undefined' && window.localStorage) {
+  const originalSetItem = window.localStorage.setItem;
+  window.localStorage.setItem = function(key: string, value: string) {
+    try {
+      originalSetItem.call(window.localStorage, key, value);
+    } catch (e: any) {
+      if (e.name === 'QuotaExceededError' || e.code === 22 || e.number === 0x8007000E || String(e).includes('quota')) {
+        console.warn('LocalStorage quota exceeded! Clearing non-critical caches to free space...', key);
+        const nonCriticalCaches = [
+          'colores_pizzeria_cache_menu',
+          'colores_pizzeria_cache_insumos',
+          'colores_pizzeria_cache_recetas',
+          'colores_pizzeria_cache_categorias',
+          'colores_pizzeria_cache_proveedores',
+          'colores_pizzeria_cache_pedidos',
+          'colores_pizzeria_cache_reservas'
+        ];
+        nonCriticalCaches.forEach(k => {
+          try {
+            window.localStorage.removeItem(k);
+          } catch (err) {}
+        });
+        // Retry
+        try {
+          originalSetItem.call(window.localStorage, key, value);
+        } catch (retryError) {
+          console.error('Failed to setItem even after clearing non-critical caches:', retryError);
+        }
+      } else {
+        throw e;
+      }
+    }
+  };
+}
+
 // Global error handlers — runs BEFORE React mounts
 window.addEventListener('error', (e) => {
   // Catch unhandled runtime errors
