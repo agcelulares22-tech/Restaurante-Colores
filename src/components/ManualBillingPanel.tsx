@@ -343,7 +343,7 @@ export function ManualBillingPanel({
               ctz: 1,
               tipoDocRec: docTipo,
               nroDocRec: clientDocNumber,
-              tipoCodAut: 1,
+              tipoCodAut: 'E',
               codAut: parseInt(afipCae) || 0
             });
           }

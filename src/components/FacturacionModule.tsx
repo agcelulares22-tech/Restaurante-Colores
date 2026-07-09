@@ -371,7 +371,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
           ctz: 1,
           tipoDocRec: docTipo,
           nroDocRec: nroDoc,
-          tipoCodAut: 1,
+          tipoCodAut: 'E',
           codAut: parseInt(cae) || 0
         });
         return { cae, vto, qr: qrJson };

@@ -868,7 +868,7 @@ export function useCaja({
               ctz: 1,
               tipoDocRec: docTipo,
               nroDocRec: nroDoc,
-              tipoCodAut: 1,
+              tipoCodAut: 'E',
               codAut: parseInt(cae) || 0
             });
             addLog('sistema', `ARCA: CAE ${cae} emitido para Mesa ${selectedPedido.numero_mesa}.`);
@@ -1425,7 +1425,7 @@ export function useCaja({
               ctz: 1,
               tipoDocRec: docTipo,
               nroDocRec: nroDoc,
-              tipoCodAut: 1,
+              tipoCodAut: 'E',
               codAut: parseInt(cae) || 0
             });
             addLog('sistema', `ARCA: CAE ${cae} emitido para parte de ${partition.nombre}.`);
