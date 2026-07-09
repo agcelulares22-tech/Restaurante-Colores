@@ -60,7 +60,7 @@ const CONDICIONES_IVA = [
   { id: 5, label: 'Consumidor Final' },
   { id: 1, label: 'IVA Responsable Inscripto' },
   { id: 6, label: 'IVA Monotributo' },
-  { id: 3, label: 'IVA Exento' },
+  { id: 4, label: 'IVA Sujeto Exento' },
 ];
 
 const CONCEPTOS_AFIP = [
