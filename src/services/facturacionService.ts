@@ -39,18 +39,16 @@ const mapMetodoPagoFromDb = (medioPago?: string): Factura['medio_pago'] => {
 const LOCAL_FACTURAS_KEY = 'colores_pizzeria_facturas_pendientes';
 
 const readLocalFacturas = (): Factura[] => {
-  if (typeof localStorage === 'undefined') return [];
-  try {
-    const parsed = JSON.parse(localStorage.getItem(LOCAL_FACTURAS_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem(LOCAL_FACTURAS_KEY);
+    } catch {}
   }
+  return [];
 };
 
 const writeLocalFacturas = (facturas: Factura[]) => {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(LOCAL_FACTURAS_KEY, JSON.stringify(facturas));
+  // No-op to prevent saturating browser localStorage
 };
 
 export const mergeFacturas = (remote: Factura[], local: Factura[]): Factura[] => {
@@ -61,7 +59,7 @@ export const mergeFacturas = (remote: Factura[], local: Factura[]): Factura[] =>
 };
 
 const cacheFactura = (factura: Factura) => {
-  writeLocalFacturas(mergeFacturas([], [factura, ...readLocalFacturas()]));
+  // No-op to prevent saturating browser localStorage
 };
 
 export const facturacionService = {
