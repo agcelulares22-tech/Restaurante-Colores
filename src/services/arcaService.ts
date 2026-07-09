@@ -74,8 +74,14 @@ function getStoredCredentials(): ArcaCredentials | null {
       const parsed: ArcaCredentials = JSON.parse(stored);
       // Validar si las credenciales están vacías o incompletas (ej: truncadas por exceso de cuota en localStorage)
       if (parsed && typeof parsed === 'object') {
-        const hasKey = typeof parsed.key === 'string' && parsed.key.includes('PRIVATE KEY');
-        const hasCert = typeof parsed.cert === 'string' && parsed.cert.includes('CERTIFICATE');
+        const keyStr = parsed.key || '';
+        const certStr = parsed.cert || '';
+        const hasKey = typeof keyStr === 'string' && 
+                       keyStr.includes('PRIVATE KEY') && 
+                       keyStr.includes('-----END');
+        const hasCert = typeof certStr === 'string' && 
+                        certStr.includes('CERTIFICATE') && 
+                        certStr.includes('-----END CERTIFICATE-----');
         if (hasKey && hasCert) {
           return parsed;
         } else {
