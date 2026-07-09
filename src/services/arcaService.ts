@@ -71,7 +71,18 @@ function getStoredCredentials(): ArcaCredentials | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed: ArcaCredentials = JSON.parse(stored);
+      // Validar si las credenciales están vacías o incompletas (ej: truncadas por exceso de cuota en localStorage)
+      if (parsed && typeof parsed === 'object') {
+        const hasKey = typeof parsed.key === 'string' && parsed.key.includes('PRIVATE KEY');
+        const hasCert = typeof parsed.cert === 'string' && parsed.cert.includes('CERTIFICATE');
+        if (hasKey && hasCert) {
+          return parsed;
+        } else {
+          console.warn('Credenciales de ARCA corruptas o incompletas en LocalStorage. Eliminando para evitar errores de PEM.');
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
     }
 
     const env = (import.meta as any).env || {};
