@@ -247,7 +247,7 @@ export const pdfService = {
     doc.text('Producto / Descripción', margin + 20, y + 4.8);
     doc.text('Precio Unit.', margin + 142, y + 4.8, { align: 'right' });
     doc.text('Subtotal', margin + 178, y + 4.8, { align: 'right' });
-    y += 9;
+    y += 7.5;
 
     // Items List
     doc.setTextColor(...BRAND.dark);
@@ -265,25 +265,25 @@ export const pdfService = {
         doc.text('Producto / Descripción', margin + 20, y + 4.8);
         doc.text('Precio Unit.', margin + 142, y + 4.8, { align: 'right' });
         doc.text('Subtotal', margin + 178, y + 4.8, { align: 'right' });
-        y += 9;
+        y += 7.5;
         doc.setTextColor(...BRAND.dark);
       }
       
       if (i % 2 === 1) {
         doc.setFillColor(250, 248, 245);
-        doc.rect(margin, y - 5.5, 182, rowHeight, 'F');
+        doc.rect(margin, y, 182, rowHeight, 'F');
       }
       
       doc.setDrawColor(...BRAND.line);
       doc.setLineWidth(0.1);
-      doc.line(margin, y + rowHeight - 5.5, margin + 182, y + rowHeight - 5.5);
+      doc.line(margin, y + rowHeight, margin + 182, y + rowHeight);
 
       doc.setFont('helvetica', 'bold');
-      doc.text(String(item.cantidad), margin + 4, y);
+      doc.text(String(item.cantidad), margin + 4, y + 5.5);
       doc.setFont('helvetica', 'normal');
-      doc.text(item.descripcion.slice(0, 58), margin + 20, y);
-      doc.text(money(itemUnit(item)), margin + 142, y, { align: 'right' });
-      doc.text(money(item.subtotal), margin + 178, y, { align: 'right' });
+      doc.text(item.descripcion.slice(0, 58), margin + 20, y + 5.5);
+      doc.text(money(itemUnit(item)), margin + 142, y + 5.5, { align: 'right' });
+      doc.text(money(item.subtotal), margin + 178, y + 5.5, { align: 'right' });
       y += rowHeight;
     });
 
