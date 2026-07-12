@@ -18,7 +18,7 @@ import { Pedido, ProductoMenu, TicketData, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { ToastContainer, useToast } from './ToastContainer';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, getArcaCuit } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
 import { useDebounce } from '../hooks/useDebounce';
 
 interface FacturacionModuleProps {
@@ -333,7 +333,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
       const result = await createArcaInvoice({
         tipoComprobante: tipoId as any,
-        puntoVenta: 1,
+        puntoVenta: getArcaPuntoVenta(),
         cliente: {
           tipoDoc: docTipo,
           nroDoc,
@@ -363,7 +363,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
           ver: 1,
           fecha: new Date().toISOString().split('T')[0],
           cuit: emitterCuit,
-          ptoVta: 1,
+          ptoVta: getArcaPuntoVenta(),
           tipoCmp: tipoId,
           nroCmp: parseInt(factura.nro_ticket.split('-').pop() || '1'),
           importe: factura.total,

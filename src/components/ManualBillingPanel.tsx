@@ -15,7 +15,7 @@ import { CierreCaja, TicketData, TicketItem, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { cajaService } from '../services/cajaService';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaCuit } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
 
 interface ManualBillingPanelProps {
   cajaSession: CierreCaja | null;
@@ -313,7 +313,7 @@ export function ManualBillingPanel({
         try {
           const arcaResult = await createArcaInvoice({
             tipoComprobante: afipTipoId,
-            puntoVenta: 1,
+            puntoVenta: getArcaPuntoVenta(),
             cliente: {
               tipoDoc: docTipo,
               nroDoc: clientDocNumber,
@@ -335,7 +335,7 @@ export function ManualBillingPanel({
               ver: 1,
               fecha: fechaEmision,
               cuit: emitterCuit,
-              ptoVta: 1,
+              ptoVta: getArcaPuntoVenta(),
               tipoCmp: afipTipoId,
               nroCmp: parseInt(nroTicket.split('-').pop() || '1'),
               importe: calculatedTotals.total,

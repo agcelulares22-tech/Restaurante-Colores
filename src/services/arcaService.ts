@@ -6,6 +6,7 @@ interface ArcaCredentials {
   key: string;
   cert: string;
   production?: boolean;
+  puntoVenta?: number;
 }
 
 const STORAGE_KEY = 'colores_pizzeria_arca_creds';
@@ -52,7 +53,8 @@ export function saveArcaCredentials(creds: ArcaCredentials) {
                   old.cuit !== creds.cuit || 
                   old.key !== creds.key || 
                   old.cert !== creds.cert ||
-                  old.production !== creds.production;
+                  old.production !== creds.production ||
+                  old.puntoVenta !== creds.puntoVenta;
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
   if (changed) {
@@ -95,8 +97,15 @@ function getStoredCredentials(): ArcaCredentials | null {
     const envCuit = env.VITE_ARCA_CUIT;
     const envKey = env.VITE_ARCA_KEY;
     const envCert = env.VITE_ARCA_CERT;
+    const envPtoVta = env.VITE_ARCA_PTO_VTA;
     if (envCuit && envKey && envCert) {
-      return { cuit: Number(envCuit), key: envKey, cert: envCert, production: env.VITE_ARCA_PROD === 'true' };
+      return { 
+        cuit: Number(envCuit), 
+        key: envKey, 
+        cert: envCert, 
+        production: env.VITE_ARCA_PROD === 'true',
+        puntoVenta: envPtoVta ? Number(envPtoVta) : 1
+      };
     }
     return null;
   } catch { return null; }
@@ -109,6 +118,11 @@ export function isArcaConfigured(): boolean {
 export function getArcaCuit(): number | null {
   const creds = getStoredCredentials();
   return creds ? creds.cuit : null;
+}
+
+export function getArcaPuntoVenta(): number {
+  const creds = getStoredCredentials();
+  return creds && creds.puntoVenta ? creds.puntoVenta : 1;
 }
 
 export async function testArcaConnection(): Promise<{ success: boolean; error?: string }> {

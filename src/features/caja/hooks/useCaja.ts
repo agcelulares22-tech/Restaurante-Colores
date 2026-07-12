@@ -18,7 +18,7 @@ import { printerService } from '../../../services/printerService';
 import { facturacionService, Factura } from '../../../services/facturacionService';
 import { auditoriaService } from '../../../services/auditoriaService';
 import { clientesService } from '../../../services/clientesService';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE } from '../../../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaPuntoVenta } from '../../../services/arcaService';
 import { promocionesService, Promocion } from '../../../services/promocionesService';
 
 export interface SplitPartition {
@@ -830,7 +830,7 @@ export function useCaja({
 
           const result = await createArcaInvoice({
             tipoComprobante: tipoId as any,
-            puntoVenta: 1,
+            puntoVenta: getArcaPuntoVenta(),
             cliente: {
               tipoDoc: docTipo,
               nroDoc,
@@ -860,7 +860,7 @@ export function useCaja({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
-              ptoVta: 1,
+              ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
               nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
               importe: currentInvoiceTotal,
@@ -1383,7 +1383,7 @@ export function useCaja({
 
           const result = await createArcaInvoice({
             tipoComprobante: tipoId as any,
-            puntoVenta: 1,
+            puntoVenta: getArcaPuntoVenta(),
             cliente: {
               tipoDoc: docTipo,
               nroDoc,
@@ -1417,7 +1417,7 @@ export function useCaja({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
-              ptoVta: 1,
+              ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
               nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
               importe: breakdowns.finalTotal,

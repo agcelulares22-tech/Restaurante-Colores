@@ -104,6 +104,16 @@ export default function SistemaModule({
     } catch {}
     return '';
   });
+  const [arcaPtoVta, setArcaPtoVta] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
+      if (stored) {
+        const val = JSON.parse(stored).puntoVenta;
+        return val ? String(val) : '1';
+      }
+    } catch {}
+    return '1';
+  });
   const [isTestingArca, setIsTestingArca] = useState(false);
   const [arcaConfigured, setArcaConfigured] = useState<boolean>(() => {
     try {
@@ -833,6 +843,17 @@ export default function SistemaModule({
               />
             </div>
 
+            <div>
+              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Punto de Venta</label>
+              <input
+                type="number"
+                placeholder="Ej. 1"
+                value={arcaPtoVta}
+                onChange={e => setArcaPtoVta(e.target.value)}
+                className="w-full text-xs min-h-10 px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
+              />
+            </div>
+
             <div className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-150 text-xs">
               <span className="font-bold text-stone-700">Entorno del Servidor</span>
               <div className="flex bg-stone-200 p-0.5 rounded-lg border border-stone-300">
@@ -989,6 +1010,10 @@ export default function SistemaModule({
                     toast.error('Carga el CUIT del contribuyente.');
                     return;
                   }
+                  if (!String(arcaPtoVta).trim()) {
+                    toast.error('Carga el Punto de Venta.');
+                    return;
+                  }
                   if (!arcaCert || !arcaKey) {
                     toast.error('Sube el certificado (.crt) y la clave privada (.key).');
                     return;
@@ -998,7 +1023,8 @@ export default function SistemaModule({
                     cuit: Number(arcaCuit),
                     cert: arcaCert,
                     key: arcaKey,
-                    production: arcaProd
+                    production: arcaProd,
+                    puntoVenta: Number(arcaPtoVta)
                   };
                   saveArcaCredentials(creds);
                   setArcaConfigured(true);
@@ -1018,15 +1044,14 @@ export default function SistemaModule({
                     setIsTestingArca(true);
                     toast.info('Verificando firma con WSAA (AFIP)...');
                     try {
-                      const result = await testArcaConnection();
-                      if (result.success) {
-                        toast.success('¡Conexión exitosa! El token de acceso WSAA fue emitido correctamente.');
-                        addLog('sistema', 'ARCA: Conexión probada exitosamente con WSAA (Token OK).');
+                      const res = await testArcaConnection();
+                      if (res.success) {
+                        toast.success('Conexión con ARCA establecida exitosamente.');
                       } else {
-                        toast.error(`Error al conectar con ARCA: ${result.error}`, { duration: 8000 });
+                        toast.error(res.error || 'Error al conectar con ARCA.');
                       }
-                    } catch (err: any) {
-                      toast.error(`Error: ${err.message || err}`);
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Error inesperado.');
                     } finally {
                       setIsTestingArca(false);
                     }
@@ -1047,6 +1072,7 @@ export default function SistemaModule({
                     setArcaCuit('');
                     setArcaCert('');
                     setArcaKey('');
+                    setArcaPtoVta('1');
                     setArcaConfigured(false);
                     addLog('sistema', 'ARCA: Credenciales eliminadas de la memoria local activa.');
                     toast.success('Credenciales eliminadas de la memoria local.');
