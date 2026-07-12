@@ -190,9 +190,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           expiresAt: Date.now() + 10 * 60 * 60 * 1000
         };
       } catch (wsaaErr: any) {
-        let errorMsg = wsaaErr.message || String(wsaaErr);
+        const detail = wsaaErr.cause ? ` (${wsaaErr.cause.message || String(wsaaErr.cause)})` : '';
+        let errorMsg = `${wsaaErr.message || String(wsaaErr)}${detail}`;
         if (errorMsg.includes("alreadyAuthenticated")) {
-          errorMsg = "La AFIP indica que ya posee un Token de Acceso activo para su CUIT y certificado en su servidor de pruebas. Para evitar este bloqueo preventivo, por favor espera de 5 a 10 minutos y vuelve a intentar.";
+          errorMsg = "La AFIP indica que ya posee un Token de Acceso activo para su CUIT y certificado. Para evitar este bloqueo preventivo, por favor espera de 5 a 10 minutos y vuelve a intentar.";
         }
         return res.status(500).json({ error: errorMsg });
       }
@@ -429,7 +430,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             wsaaToken: auth
           });
         } catch (retryErr: any) {
-          let errorMsg = retryErr.message || String(retryErr);
+          const detail = retryErr.cause ? ` (${retryErr.cause.message || String(retryErr.cause)})` : '';
+          let errorMsg = `${retryErr.message || String(retryErr)}${detail}`;
           if (errorMsg.includes("alreadyAuthenticated")) {
             errorMsg = "La AFIP indica que ya existe un Token de Acceso activo para este certificado y no permite generar uno nuevo. Por favor, espera de 5 a 10 minutos para que el servidor de la AFIP libere la sesión o vuelve a intentar.";
           }
@@ -441,9 +443,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     console.error("ARCA proxy handler error:", err);
-    let msg = err.message || String(err);
-    if (msg.includes("fetch failed") || msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("connect") || msg.toLowerCase().includes("und_err")) {
-      msg = "Los servidores de pruebas (Homologación) de AFIP / ARCA no responden o se encuentran fuera de servicio temporalmente en este momento. Por favor, espera unos instantes y vuelve a intentar.";
+    const detail = err.cause ? ` (${err.cause.message || String(err.cause)})` : '';
+    let msg = `${err.message || String(err)}${detail}`;
+    if (msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("connect") || msg.toLowerCase().includes("und_err") || msg.includes("fetch failed")) {
+      msg = `Error de red al conectar con AFIP: ${msg}. Por favor, vuelve a intentar en unos instantes.`;
     }
     return res.status(500).json({ error: msg });
   }
