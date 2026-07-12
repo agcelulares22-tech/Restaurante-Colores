@@ -1,6 +1,7 @@
 "use strict";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import forge from "node-forge";
+import https from "https";
 
 const URLS = {
   homologacion: {
@@ -16,23 +17,50 @@ const URLS = {
 // Caché en memoria del servidor (persiste mientras la función esté tibia en Vercel)
 const globalTaCache: { [cuit: string]: { token: string; sign: string; expiresAt: number } } = {};
 
-async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await globalThis.fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError' || err.message?.includes('aborted')) {
-      throw new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 25 segundos excedido). Por favor, intenta de nuevo en unos instantes.");
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000): Promise<{ ok: boolean; status: number; text: () => Promise<string> }> {
+  return new Promise((resolve, reject) => {
+    try {
+      const parsedUrl = new URL(url);
+      const reqOptions: https.RequestOptions = {
+        method: options.method || "GET",
+        hostname: parsedUrl.hostname,
+        path: parsedUrl.pathname + parsedUrl.search,
+        headers: options.headers || {},
+        ciphers: "DEFAULT:@SECLEVEL=1",
+        timeout: timeoutMs,
+      };
+
+      const req = https.request(reqOptions, (res) => {
+        let data = "";
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          resolve({
+            ok: (res.statusCode || 200) >= 200 && (res.statusCode || 200) < 300,
+            status: res.statusCode || 200,
+            text: async () => data,
+          });
+        });
+      });
+
+      req.on("timeout", () => {
+        req.destroy();
+        reject(new Error("El servidor de la AFIP / ARCA tardó demasiado en responder (límite de 25 segundos excedido). Por favor, intenta de nuevo en unos instantes."));
+      });
+
+      req.on("error", (err) => {
+        reject(err);
+      });
+
+      if (options.body) {
+        req.write(options.body);
+      }
+      req.end();
+    } catch (err) {
+      reject(err);
     }
-    throw err;
-  }
+  });
 }
 
 function buildTicketReqXml(service: string): string {
