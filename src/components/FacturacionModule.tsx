@@ -244,6 +244,11 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         factura.afip_vto = arcaResult.vto;
         factura.afip_qr = arcaResult.qr;
         factura.afip_resultado = 'A';
+        
+        const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+        const cbteNroStr = String(arcaResult.nroCmp).padStart(8, '0');
+        const prefix = factura.tipo === 'A' ? 'A' : (factura.tipo === 'B' ? 'B' : (factura.tipo === 'C' ? 'C' : 'B'));
+        factura.nro_ticket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
       }
       await downloadFacturaPdf(factura);
       await persistFactura(factura);
@@ -288,6 +293,11 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         factura.afip_vto = arcaResult.vto;
         factura.afip_qr = arcaResult.qr;
         factura.afip_resultado = 'A';
+        
+        const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+        const cbteNroStr = String(arcaResult.nroCmp).padStart(8, '0');
+        const prefix = factura.tipo === 'A' ? 'A' : (factura.tipo === 'B' ? 'B' : (factura.tipo === 'C' ? 'C' : 'B'));
+        factura.nro_ticket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
       }
       await downloadFacturaPdf(factura, selectedPending.pedido);
       await persistFactura(factura);
@@ -365,7 +375,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
           cuit: emitterCuit,
           ptoVta: getArcaPuntoVenta(),
           tipoCmp: tipoId,
-          nroCmp: parseInt(factura.nro_ticket.split('-').pop() || '1'),
+          nroCmp: result.nroCmp || 1,
           importe: factura.total,
           moneda: 'PES',
           ctz: 1,
@@ -374,7 +384,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
           tipoCodAut: 'E',
           codAut: parseInt(cae) || 0
         });
-        return { cae, vto, qr: qrJson };
+        return { cae, vto, qr: qrJson, nroCmp: result.nroCmp || 1 };
       }
       return null;
     } catch (err: any) {

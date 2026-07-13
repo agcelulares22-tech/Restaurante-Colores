@@ -811,7 +811,7 @@ export function useCaja({
       }
     }
 
-    const compiledTicketNo = `T-0001-${Math.floor(Math.random() * 900000 + 100000)}`;
+    let compiledTicketNo = `T-0001-${Math.floor(Math.random() * 900000 + 100000)}`;
 
     let arcaCae = "";
     let arcaVto = "";
@@ -856,13 +856,23 @@ export function useCaja({
           if (cae) {
             arcaCae = cae;
             arcaVto = vto;
+
+            const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+            const cbteNroStr = String(result.nroCmp || 1).padStart(8, '0');
+            let prefix = 'B';
+            if (tipoComprobante === 'factura_a') prefix = 'A';
+            else if (tipoComprobante === 'factura_b') prefix = 'B';
+            else if (tipoComprobante === 'ticket_consumo') prefix = 'B';
+
+            compiledTicketNo = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
+
             arcaQr = JSON.stringify({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
-              nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
+              nroCmp: result.nroCmp || 1,
               importe: currentInvoiceTotal,
               moneda: 'PES',
               ctz: 1,
@@ -871,7 +881,7 @@ export function useCaja({
               tipoCodAut: 'E',
               codAut: parseInt(cae) || 0
             });
-            addLog('sistema', `ARCA: CAE ${cae} emitido para Mesa ${selectedPedido.numero_mesa}.`);
+            addLog('sistema', `ARCA: CAE ${cae} emitido para Mesa ${selectedPedido.numero_mesa}. Nro Comprobante: ${compiledTicketNo}`);
           }
         }
       } catch (err: any) {
@@ -1364,7 +1374,7 @@ export function useCaja({
       }
     }
 
-    const compiledTicketNo = `T-0001-${Math.floor(Math.random() * 900000 + 100000)}`;
+    let compiledTicketNo = `T-0001-${Math.floor(Math.random() * 900000 + 100000)}`;
 
     let arcaCae = "";
     let arcaVto = "";
@@ -1413,13 +1423,23 @@ export function useCaja({
           if (cae) {
             arcaCae = cae;
             arcaVto = vto;
+
+            const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+            const cbteNroStr = String(result.nroCmp || 1).padStart(8, '0');
+            let prefix = 'B';
+            if (tipoComprobante === 'factura_a') prefix = 'A';
+            else if (tipoComprobante === 'factura_b') prefix = 'B';
+            else if (tipoComprobante === 'ticket_consumo') prefix = 'B';
+
+            compiledTicketNo = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
+
             arcaQr = JSON.stringify({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
-              nroCmp: parseInt(compiledTicketNo.split('-').pop() || '1'),
+              nroCmp: result.nroCmp || 1,
               importe: breakdowns.finalTotal,
               moneda: 'PES',
               ctz: 1,
@@ -1428,7 +1448,7 @@ export function useCaja({
               tipoCodAut: 'E',
               codAut: parseInt(cae) || 0
             });
-            addLog('sistema', `ARCA: CAE ${cae} emitido para parte de ${partition.nombre}.`);
+            addLog('sistema', `ARCA: CAE ${cae} emitido para parte de ${partition.nombre}. Nro Comprobante: ${compiledTicketNo}`);
           }
         }
       } catch (err: any) {

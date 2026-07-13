@@ -269,7 +269,7 @@ export function ManualBillingPanel({
     try {
       // 1. Get invoice list to compute correct ticket number
       const currentFacturas = await facturacionService.list();
-      const nroTicket = await getNextInvoiceNumber(currentFacturas, tipoComprobante);
+      let nroTicket = await getNextInvoiceNumber(currentFacturas, tipoComprobante);
 
       // 2. Map Tipo to AFIP code
       let afipTipoId = 11; // Factura C default
@@ -330,6 +330,18 @@ export function ManualBillingPanel({
           afipVto = arcaResult?.Vencimiento || arcaResult?.CAEFchVto || '';
           
           if (afipCae) {
+            if (arcaResult?.nroCmp) {
+              const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+              const cbteNroStr = String(arcaResult.nroCmp).padStart(8, '0');
+              let prefix = 'B';
+              if (tipoComprobante === 'Factura A') prefix = 'A';
+              else if (tipoComprobante === 'Factura B') prefix = 'B';
+              else if (tipoComprobante === 'Ticket') prefix = 'B';
+              else if (tipoComprobante === 'Factura C') prefix = 'C';
+
+              nroTicket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
+            }
+
             const emitterCuit = getArcaCuit() || 30716492514;
             afipQr = JSON.stringify({
               ver: 1,
@@ -337,7 +349,7 @@ export function ManualBillingPanel({
               cuit: emitterCuit,
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: afipTipoId,
-              nroCmp: parseInt(nroTicket.split('-').pop() || '1'),
+              nroCmp: arcaResult?.nroCmp || 1,
               importe: calculatedTotals.total,
               moneda: 'PES',
               ctz: 1,
