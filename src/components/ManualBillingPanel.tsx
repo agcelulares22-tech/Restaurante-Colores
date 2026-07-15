@@ -33,10 +33,10 @@ interface ManualBillingPanelProps {
   onClose: () => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
   toast: {
-    success: (msg: string) => void;
-    error: (msg: string) => void;
-    info: (msg: string) => void;
-    warning: (msg: string) => void;
+    success: (msg: string, dur?: number) => void;
+    error: (msg: string, dur?: number) => void;
+    info: (msg: string, dur?: number) => void;
+    warning: (msg: string, dur?: number) => void;
   };
 }
 
@@ -362,7 +362,7 @@ export function ManualBillingPanel({
         } catch (arcaErr: any) {
           console.warn('ARCA error simulation fallback:', arcaErr);
           const errorMsg = arcaErr?.message || String(arcaErr);
-          toast.error(`Error de ARCA: ${errorMsg}`, { duration: 10000 });
+          toast.error(`Error de ARCA: ${errorMsg}`, 10000);
           toast.warning('ARCA: Conexión fiscal simulada / local debido a fallos remotos.');
         }
       }

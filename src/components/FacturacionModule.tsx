@@ -28,14 +28,14 @@ interface FacturacionModuleProps {
 }
 
 type FacturaExtendida = Factura & {
-  tipo?: 'ticket' | 'A' | 'B' | 'X';
+  tipo?: 'ticket' | 'A' | 'B' | 'C' | 'X';
   id_pedido?: string | null;
   observaciones?: string;
 };
 
 type TabKey = 'manual' | 'pagos' | 'archivo';
 type EstadoFiltro = 'todos' | 'emitido' | 'nota_credito';
-type TipoFiltro = 'todos' | 'ticket' | 'A' | 'B' | 'X';
+type TipoFiltro = 'todos' | 'ticket' | 'A' | 'B' | 'C' | 'X';
 type MedioFiltro = 'todos' | Factura['medio_pago'];
 
 const DEFAULT_FACTURAS: FacturaExtendida[] = [
@@ -53,17 +53,18 @@ const calcIvaIncluido = (total: number, aplicaIva = true) => {
   return { neto, iva: Number((total - neto).toFixed(2)) };
 };
 
-const facturaTipo = (f: FacturaExtendida): 'ticket' | 'A' | 'B' | 'X' => {
+const facturaTipo = (f: FacturaExtendida): 'ticket' | 'A' | 'B' | 'C' | 'X' => {
   if (f.tipo) return f.tipo;
   if (f.nro_ticket.startsWith('A-')) return 'A';
   if (f.nro_ticket.startsWith('B-')) return 'B';
+  if (f.nro_ticket.startsWith('C-')) return 'C';
   if (f.nro_ticket.startsWith('X-')) return 'X';
   return 'ticket';
 };
 
-const tipoPrefix = (tipo: 'ticket' | 'A' | 'B' | 'X') => (tipo === 'ticket' ? 'T' : tipo);
+const tipoPrefix = (tipo: 'ticket' | 'A' | 'B' | 'C' | 'X') => (tipo === 'ticket' ? 'T' : tipo);
 
-const nextNumber = (facturas: FacturaExtendida[], tipo: 'ticket' | 'A' | 'B' | 'X') => {
+const nextNumber = (facturas: FacturaExtendida[], tipo: 'ticket' | 'A' | 'B' | 'C' | 'X') => {
   const prefix = `${tipoPrefix(tipo)}-0001-`;
   const last = facturas
     .filter(f => f.nro_ticket.startsWith(prefix))
@@ -323,13 +324,14 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     }));
   };
 
-  const tipoToComprobante = (tipo: 'ticket' | 'A' | 'B' | 'X'): TipoComprobante => {
+  const tipoToComprobante = (tipo: 'ticket' | 'A' | 'B' | 'C' | 'X'): TipoComprobante => {
     if (tipo === 'A') return 'factura_a';
     if (tipo === 'B') return 'factura_b';
+    if (tipo === 'C') return 'factura_c';
     return 'ticket_consumo';
   };
 
-  const emitToArca = async (factura: FacturaExtendida): Promise<{ cae: string; vto: string; qr?: string } | null> => {
+  const emitToArca = async (factura: FacturaExtendida): Promise<{ cae: string; vto: string; qr?: string; nroCmp?: number } | null> => {
     if (!isArcaConfigured()) return null;
     try {
       const tipoMap: Record<string, number> = { 'A': 1, 'B': 6, 'X': 11, 'ticket': 206 };

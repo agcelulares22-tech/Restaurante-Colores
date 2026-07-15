@@ -183,6 +183,7 @@ export interface ArcaInvoiceResult {
   CAE?: string;
   Vencimiento?: string;
   CAEFchVto?: string;
+  nroCmp?: number;
 }
 
 export async function createArcaInvoice(payload: ArcaInvoicePayload): Promise<ArcaInvoiceResult> {
