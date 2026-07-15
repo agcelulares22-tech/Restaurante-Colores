@@ -308,14 +308,18 @@ export const pdfService = {
 
     y += 18;
 
-    // 5. Tabla de Productos (Grilla Estilo Oficial - Alineada exactamente a las grillas)
+    // 5. Tabla de Productos (Estilo Oficial AFIP: Abierta en laterales y sin grilla vertical)
     y += 3;
     const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
     
     const drawTableHeader = (currentY: number) => {
       doc.setDrawColor(0, 0, 0);
       doc.setFillColor(235, 235, 235);
-      doc.rect(margin, currentY, 182, 7.5, 'FD');
+      // Rectángulo relleno para la cabecera (dibujamos líneas superior e inferior)
+      doc.rect(margin, currentY, 182, 7.5, 'F');
+      doc.setLineWidth(0.3);
+      doc.line(margin, currentY, margin + 182, currentY);
+      doc.line(margin, currentY + 7.5, margin + 182, currentY + 7.5);
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
@@ -330,38 +334,21 @@ export const pdfService = {
       doc.text('Subtotal', 159, currentY + 4.8, { align: 'right' });
       doc.text('Alícuota IVA', 168.5, currentY + 4.8, { align: 'center' });
       doc.text('Subtotal c/IVA', 194, currentY + 4.8, { align: 'right' });
-
-      // Líneas verticales internas de la cabecera
-      colPositions.forEach(x => {
-        doc.line(x, currentY, x, currentY + 7.5);
-      });
     };
 
     drawTableHeader(y);
     y += 7.5;
 
-    // Dibujado de Items
-    const rowHeight = 8;
+    // Dibujado de Items (Sin grillas ni líneas por fila, solo lista abierta sobre blanco)
+    const rowHeight = 7;
     
     data.items.forEach((item, i) => {
-      if (y > 200) {
+      if (y > 205) {
         doc.addPage();
         y = 18;
         drawTableHeader(y);
         y += 7.5;
       }
-
-      // Dibujar línea inferior de la fila
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.15);
-      doc.line(margin, y + rowHeight, margin + 182, y + rowHeight);
-
-      // Dibujar bordes laterales y líneas de columnas internas
-      doc.line(margin, y, margin, y + rowHeight);
-      doc.line(margin + 182, y, margin + 182, y + rowHeight);
-      colPositions.forEach(x => {
-        doc.line(x, y, x, y + rowHeight);
-      });
 
       const isExemptOrC = letter === 'C';
       const netPrice = isExemptOrC ? itemUnit(item) : (itemUnit(item) / 1.21);
@@ -372,15 +359,15 @@ export const pdfService = {
       doc.setFontSize(7.5);
       doc.setTextColor(60, 60, 60);
 
-      doc.text(String(i + 1).padStart(3, '0'), 15, y + 5.2);
-      doc.text(item.descripcion.slice(0, 42), 27, y + 5.2);
-      doc.text(String(item.cantidad), 96, y + 5.2, { align: 'right' });
-      doc.text('unidades', 105.5, y + 5.2, { align: 'center' });
-      doc.text(formatNumber(netPrice), 129, y + 5.2, { align: 'right' });
-      doc.text('0,00', 141, y + 5.2, { align: 'right' });
-      doc.text(formatNumber(netSubtotal), 159, y + 5.2, { align: 'right' });
-      doc.text(alicuota, 168.5, y + 5.2, { align: 'center' });
-      doc.text(formatNumber(item.subtotal), 194, y + 5.2, { align: 'right' });
+      doc.text(String(i + 1).padStart(3, '0'), 15, y + 5.0);
+      doc.text(item.descripcion.slice(0, 42), 27, y + 5.0);
+      doc.text(String(item.cantidad), 96, y + 5.0, { align: 'right' });
+      doc.text('unidades', 105.5, y + 5.0, { align: 'center' });
+      doc.text(formatNumber(netPrice), 129, y + 5.0, { align: 'right' });
+      doc.text('0,00', 141, y + 5.0, { align: 'right' });
+      doc.text(formatNumber(netSubtotal), 159, y + 5.0, { align: 'right' });
+      doc.text(alicuota, 168.5, y + 5.0, { align: 'center' });
+      doc.text(formatNumber(item.subtotal), 194, y + 5.0, { align: 'right' });
 
       y += rowHeight;
     });
