@@ -310,6 +310,8 @@ export const pdfService = {
 
     // 5. Tabla de Productos (Grilla Estilo Oficial - Alineada exactamente a las grillas)
     y += 3;
+    const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
+    
     const drawTableHeader = (currentY: number) => {
       doc.setDrawColor(0, 0, 0);
       doc.setFillColor(235, 235, 235);
@@ -340,7 +342,6 @@ export const pdfService = {
 
     // Dibujado de Items
     const rowHeight = 8;
-    const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
     
     data.items.forEach((item, i) => {
       if (y > 200) {
