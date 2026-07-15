@@ -212,23 +212,22 @@ export const pdfService = {
 
     // Escribir datos del Emisor (Columna Izquierda)
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.text(data.razonSocial.toUpperCase(), margin + 4, headerY + 6);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
-    doc.text(`Razón Social: ${data.razonSocial}`, margin + 4, headerY + 13);
+    doc.text(`Razón Social: ${data.razonSocial}`, margin + 4, headerY + 12);
     
-    // Limitar longitud del domicilio comercial
-    const domText = `Domicilio Comercial: ${data.direccion}`;
-    const domLines = doc.splitTextToSize(domText, 82);
-    doc.text(domLines, margin + 4, headerY + 18);
+    const domText = `Domicilio Comercial: Alvear 1362, X5800 Río Cuarto, Córdoba`;
+    const domLines = doc.splitTextToSize(domText, 72);
+    doc.text(domLines, margin + 4, headerY + 17);
     
     doc.text('Condición frente al IVA: IVA Responsable Inscripto', margin + 4, headerY + 28);
 
-    // Escribir datos del Comprobante (Columna Derecha)
-    const rightColX = xCenter + 5;
+    // Escribir datos del Comprobante (Columna Derecha) - Desplazado a la derecha (x = 118) para evitar superposición con el cuadro de la letra
+    const rightColX = xCenter + 13; // 118
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
@@ -243,7 +242,7 @@ export const pdfService = {
     doc.text(`Fecha de Emisión: ${fechaEmision}`, rightColX, headerY + 17);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
     doc.text(`CUIT: ${data.cuit.replace(/-/g, '')}`, rightColX, headerY + 22);
     doc.text(`Ingresos Brutos: ${data.razonSocial}`, rightColX, headerY + 27);
@@ -263,7 +262,7 @@ export const pdfService = {
     doc.text(`Fecha de Vto. para el pago: ${fechaEmision}`, margin + 120, y + 4.5);
     y += 6.5;
 
-    // 4. Recuadro de Datos del Receptor (Alto: 18mm)
+    // 4. Recuadro de Datos del Receptor (Alto: 18mm) - Desplazada la columna derecha a x = 95 para evitar superposiciones
     y += 2;
     doc.rect(margin, y, 182, 18, 'D');
     
@@ -277,10 +276,10 @@ export const pdfService = {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Apellido y Nombre / Razón Social:', margin + 60, y + 5);
+    doc.text('Apellido y Nombre / Razón Social:', margin + 65, y + 5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
-    doc.text(cliente.slice(0, 48), margin + 110, y + 5);
+    doc.text(cliente.slice(0, 40), margin + 115, y + 5);
 
     // Fila 2
     doc.setFont('helvetica', 'bold');
@@ -293,10 +292,10 @@ export const pdfService = {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Domicilio Comercial:', margin + 60, y + 10);
+    doc.text('Domicilio Comercial:', margin + 65, y + 10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
-    doc.text('-', margin + 92, y + 10);
+    doc.text('-', margin + 95, y + 10);
 
     // Fila 3
     doc.setFont('helvetica', 'bold');
@@ -309,7 +308,7 @@ export const pdfService = {
 
     y += 18;
 
-    // 5. Tabla de Productos (Grilla Estilo Oficial)
+    // 5. Tabla de Productos (Grilla Estilo Oficial - Alineada exactamente a las grillas)
     y += 3;
     const drawTableHeader = (currentY: number) => {
       doc.setDrawColor(0, 0, 0);
@@ -320,18 +319,17 @@ export const pdfService = {
       doc.setFontSize(7.5);
       doc.setTextColor(0, 0, 0);
 
-      doc.text('Código', margin + 1, currentY + 4.8);
-      doc.text('Producto / Servicio', margin + 14, currentY + 4.8);
-      doc.text('Cantidad', margin + 84, currentY + 4.8, { align: 'right' });
-      doc.text('U. medida', margin + 93.5, currentY + 4.8, { align: 'center' });
-      doc.text('Precio Unit.', margin + 111, currentY + 4.8, { align: 'right' });
-      doc.text('% Bonif', margin + 123, currentY + 4.8, { align: 'right' });
-      doc.text('Subtotal', margin + 141, currentY + 4.8, { align: 'right' });
-      doc.text('Alícuota IVA', margin + 155, currentY + 4.8, { align: 'center' });
-      doc.text('Subtotal c/IVA', margin + 178, currentY + 4.8, { align: 'right' });
+      doc.text('Código', 15, currentY + 4.8);
+      doc.text('Producto / Servicio', 27, currentY + 4.8);
+      doc.text('Cantidad', 96, currentY + 4.8, { align: 'right' });
+      doc.text('U. medida', 105.5, currentY + 4.8, { align: 'center' });
+      doc.text('Precio Unit.', 129, currentY + 4.8, { align: 'right' });
+      doc.text('% Bonif', 141, currentY + 4.8, { align: 'right' });
+      doc.text('Subtotal', 159, currentY + 4.8, { align: 'right' });
+      doc.text('Alícuota IVA', 168.5, currentY + 4.8, { align: 'center' });
+      doc.text('Subtotal c/IVA', 194, currentY + 4.8, { align: 'right' });
 
       // Líneas verticales internas de la cabecera
-      const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
       colPositions.forEach(x => {
         doc.line(x, currentY, x, currentY + 7.5);
       });
@@ -373,15 +371,15 @@ export const pdfService = {
       doc.setFontSize(7.5);
       doc.setTextColor(60, 60, 60);
 
-      doc.text(String(i + 1).padStart(3, '0'), margin + 1, y + 5.2);
-      doc.text(item.descripcion.slice(0, 48), margin + 14, y + 5.2);
-      doc.text(String(item.cantidad), margin + 84, y + 5.2, { align: 'right' });
-      doc.text('unidades', margin + 93.5, y + 5.2, { align: 'center' });
-      doc.text(formatNumber(netPrice), margin + 111, y + 5.2, { align: 'right' });
-      doc.text('0,00', margin + 123, y + 5.2, { align: 'right' });
-      doc.text(formatNumber(netSubtotal), margin + 141, y + 5.2, { align: 'right' });
-      doc.text(alicuota, margin + 155, y + 5.2, { align: 'center' });
-      doc.text(formatNumber(item.subtotal), margin + 178, y + 5.2, { align: 'right' });
+      doc.text(String(i + 1).padStart(3, '0'), 15, y + 5.2);
+      doc.text(item.descripcion.slice(0, 42), 27, y + 5.2);
+      doc.text(String(item.cantidad), 96, y + 5.2, { align: 'right' });
+      doc.text('unidades', 105.5, y + 5.2, { align: 'center' });
+      doc.text(formatNumber(netPrice), 129, y + 5.2, { align: 'right' });
+      doc.text('0,00', 141, y + 5.2, { align: 'right' });
+      doc.text(formatNumber(netSubtotal), 159, y + 5.2, { align: 'right' });
+      doc.text(alicuota, 168.5, y + 5.2, { align: 'center' });
+      doc.text(formatNumber(item.subtotal), 194, y + 5.2, { align: 'right' });
 
       y += rowHeight;
     });
@@ -392,7 +390,7 @@ export const pdfService = {
       y = 18;
     }
 
-    // 6. Recuadro de Totales e Impuestos (Alto: 36mm)
+    // 6. Recuadro de Totales e Impuestos (Alto: 40mm) - Spacing ampliado para evitar superposición
     const isFacturaC = letter === 'C';
     const totalVal = data.total;
     const netVal = isFacturaC ? totalVal : (data.neto || (totalVal / 1.21));
@@ -400,14 +398,14 @@ export const pdfService = {
 
     const totalsY = y;
     doc.setDrawColor(0, 0, 0);
-    doc.rect(margin, totalsY, 182, 36, 'D');
+    doc.rect(margin, totalsY, 182, 40, 'D');
 
     // Izquierda del Recuadro de Totales
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
+    doc.setFontSize(8.5);
     doc.setTextColor(60, 60, 60);
-    doc.text('Importe Otros Tributos: $', margin + 25, totalsY + 18);
-    doc.text('0,00', margin + 62, totalsY + 18);
+    doc.text('Importe Otros Tributos: $', margin + 25, totalsY + 20);
+    doc.text('0,00', margin + 62, totalsY + 20);
 
     // Derecha del Recuadro de Totales
     const rightLabelsX = margin + 115;
@@ -464,19 +462,19 @@ export const pdfService = {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Importe Otros Tributos: $', rightLabelsX, totalsY + 31);
+    doc.text('Importe Otros Tributos: $', rightLabelsX, totalsY + 33);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
-    doc.text('0,00', rightValuesX, totalsY + 31, { align: 'right' });
+    doc.text('0,00', rightValuesX, totalsY + 33, { align: 'right' });
 
     // Fila Total Destacada
-    doc.line(rightLabelsX, totalsY + 32, rightValuesX, totalsY + 32);
+    doc.line(rightLabelsX, totalsY + 35.5, rightValuesX, totalsY + 35.5);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Importe Total: $', rightLabelsX, totalsY + 34.5);
-    doc.text(moneyNoSign(totalVal), rightValuesX, totalsY + 34.5, { align: 'right' });
+    doc.text('Importe Total: $', rightLabelsX, totalsY + 38.5);
+    doc.text(moneyNoSign(totalVal), rightValuesX, totalsY + 38.5, { align: 'right' });
 
-    y += 40;
+    y += 44;
 
     // 7. Pie de Página Oficial Fijo al Fondo (CAE + QR + ARCA)
     const footerY = 255;
