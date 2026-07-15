@@ -1013,27 +1013,27 @@ function CajaModule({
                 {/* Header detail selected */}
                 <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row justify-between items-start gap-2">
                   <div className="min-w-0">
-                    <span className="text-[10px] sm:text-[11px] text-[#E8B800] font-black uppercase tracking-wider block">Terminal de Liquidación</span>
-                    <h3 className="font-extrabold text-white text-sm md:text-base tracking-tight flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10px] sm:text-[11px] text-[#624A3E] font-black uppercase tracking-wider block">Terminal de Liquidación</span>
+                    <h3 className="font-extrabold text-stone-800 text-sm md:text-base tracking-tight flex items-center gap-1.5 mt-0.5">
                       Saldando Cuenta: {selectedPedido.numero_mesa} ({selectedPedido.mozo})
                     </h3>
                   </div>
 
-                  <span className="text-[10px] text-zinc-400 font-mono bg-zinc-950/80 border border-stone-200 px-2 py-0.5 rounded font-black">
+                  <span className="text-[10px] text-stone-600 font-mono bg-stone-100 border border-stone-300 px-2 py-0.5 rounded font-black">
                     Nro Trans: EP-{selectedPedido.id_pedido}
                   </span>
                 </div>
 
                 {/* Group categories of order items (Rule 3) */}
-                <div className="bg-zinc-950/40 border border-stone-200 p-3 sm:p-3.5 rounded-xl space-y-2">
+                <div className="bg-stone-50 border border-stone-200 p-3 sm:p-3.5 rounded-xl space-y-2">
                   {!isAdvancedSplitMode && (
                     <>
-                      <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Items del pedido</h4>
+                      <h4 className="text-[10px] font-black text-stone-500 uppercase tracking-widest mb-1">Items del pedido</h4>
                       
                       <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1 text-xs sm:text-sm">
                         {(Object.entries(groupedItemsByCategory) as [string, any[]][]).map(([category, items]) => (
                           <div key={category} className="space-y-1">
-                            <h5 className="text-[9px] font-black text-[#E8B800] uppercase tracking-wider">
+                            <h5 className="text-[9px] font-black text-[#624A3E] uppercase tracking-wider">
                               ■ {category}
                             </h5>
                             
@@ -1044,7 +1044,7 @@ function CajaModule({
                                 const isProductSelected = selectedProductsForSplit.includes(it.id_producto);
 
                                 return (
-                                  <div key={idx} className="flex justify-between items-center text-zinc-300 py-0.5 font-medium">
+                                  <div key={idx} className="flex justify-between items-center text-stone-700 py-0.5 font-medium">
                                     <div className="flex items-center gap-2 min-w-0">
                                       {/* Item split selection checkbox (Dividir por productos - Rule 3) */}
                                       {splitByProducts && (
@@ -1063,7 +1063,7 @@ function CajaModule({
                                       )}
                                       <span className="truncate">{it.cantidad}x {it.nombre}</span>
                                     </div>
-                                    <span className="font-mono text-white shrink-0">
+                                    <span className="font-mono text-stone-900 shrink-0">
                                       ${(it.cantidad * unitPrice).toLocaleString('es-AR')}
                                     </span>
                                   </div>
@@ -1085,9 +1085,9 @@ function CajaModule({
                           setSelectedProductsForSplit([]);
                           resetAdvancedSplit();
                         }}
-                        className="text-[10px] font-extrabold uppercase text-zinc-300 hover:text-white hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] font-extrabold uppercase text-stone-600 hover:text-stone-900 hover:underline flex items-center gap-1 cursor-pointer"
                       >
-                        <Users className="w-3 h-3" />
+                        <Users className="w-3 h-3 text-stone-650" />
                         {splitByProducts ? 'Quitar selector por producto' : 'Dividir o seleccionar ítems indiv.'}
                       </button>
 
@@ -1101,19 +1101,19 @@ function CajaModule({
                             setSelectedProductsForSplit([]);
                           }
                         }}
-                        className="text-[10px] font-extrabold uppercase text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] font-extrabold uppercase text-amber-700 hover:text-amber-800 hover:underline flex items-center gap-1 cursor-pointer"
                       >
-                        <Users className="w-3 h-3 text-amber-400" />
+                        <Users className="w-3 h-3 text-amber-700" />
                         {isAdvancedSplitMode ? 'Quitar División Avanzada' : 'División Avanzada por Personas / Fracciones'}
                       </button>
                     </div>
                     {splitByProducts && (
-                      <span className="text-[8px] bg-amber-500/10 text-amber-400 font-extrabold uppercase px-1.5 py-0.5 rounded border border-amber-500/20">
+                      <span className="text-[8px] bg-amber-500/10 text-amber-700 font-extrabold uppercase px-1.5 py-0.5 rounded border border-amber-500/20">
                         Cuenta Fraccionada por Productos
                       </span>
                     )}
                     {isAdvancedSplitMode && (
-                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 font-extrabold uppercase px-1.5 py-0.5 rounded border border-emerald-500/20">
+                      <span className="text-[8px] bg-emerald-500/10 text-emerald-700 font-extrabold uppercase px-1.5 py-0.5 rounded border border-emerald-500/20">
                         División Avanzada Activa
                       </span>
                     )}
@@ -1123,32 +1123,32 @@ function CajaModule({
                 {isAdvancedSplitMode ? (
                   <div className="space-y-4 font-sans animate-fadeIn text-left">
                     {/* Header/Control comensales */}
-                    <div className="bg-[#624A3E]/10 border border-[#624A3E]/20 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="bg-[#624A3E]/5 border border-[#624A3E]/20 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <div>
-                        <h4 className="text-xs font-black text-[#E8B800] uppercase tracking-widest">División de Cuenta Avanzada</h4>
-                        <p className="text-[11px] text-zinc-400 mt-0.5">Asigna porciones de ítems, propinas y cobra por separado.</p>
+                        <h4 className="text-xs font-black text-[#624A3E] uppercase tracking-widest">División de Cuenta Avanzada</h4>
+                        <p className="text-[11px] text-stone-500 mt-0.5">Asigna porciones de ítems, propinas y cobra por separado.</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-zinc-400 uppercase font-bold">Comensales:</span>
-                        <div className="flex bg-zinc-950 border border-white/10 p-0.5 rounded-lg">
+                        <span className="text-[10px] text-stone-600 uppercase font-bold">Comensales:</span>
+                        <div className="flex bg-white border border-stone-300 p-0.5 rounded-lg">
                           <button
                             type="button"
                             onClick={() => {
                               const nextCount = Math.max(1, advancedPartitions.length - 1);
                               initAdvancedSplit(nextCount);
                             }}
-                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-stone-200"
+                            className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 rounded text-xs font-bold text-stone-800 cursor-pointer active:scale-95 border border-stone-300"
                           >
                             -
                           </button>
-                          <span className="px-3 py-1 font-mono font-bold text-xs text-white">{advancedPartitions.length}</span>
+                          <span className="px-3 py-1 font-mono font-bold text-xs text-stone-900">{advancedPartitions.length}</span>
                           <button
                             type="button"
                             onClick={() => {
                               const nextCount = advancedPartitions.length + 1;
                               initAdvancedSplit(nextCount);
                             }}
-                            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded text-xs font-bold text-white cursor-pointer active:scale-95 border border-stone-200"
+                            className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 rounded text-xs font-bold text-stone-800 cursor-pointer active:scale-95 border border-stone-300"
                           >
                             +
                           </button>
@@ -1157,10 +1157,10 @@ function CajaModule({
                     </div>
 
                     {/* Distribuidor de Ítems */}
-                    <div className="bg-zinc-950/40 border border-stone-200 p-4 rounded-xl space-y-3">
+                    <div className="bg-stone-50 border border-stone-200 p-4 rounded-xl space-y-3">
                       <div className="flex justify-between items-center border-b border-stone-200 pb-2">
-                        <h5 className="text-[10px] font-black text-white uppercase tracking-wider">Asignación y Fraccionamiento de Platos</h5>
-                        <span className="text-[9px] text-[#E8B800] font-black uppercase bg-[#E8B800]/10 px-1.5 py-0.5 rounded border border-[#E8B800]/20">
+                        <h5 className="text-[10px] font-black text-stone-800 uppercase tracking-wider">Asignación y Fraccionamiento de Platos</h5>
+                        <span className="text-[9px] text-amber-700 font-black uppercase bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                           Total Mesa: ${(orderBreakdowns.finalTotal || 0).toLocaleString('es-AR')}
                         </span>
                       </div>
@@ -1179,17 +1179,17 @@ function CajaModule({
                           const isFullyAssigned = Math.abs(unassigned) < 0.01;
 
                           return (
-                            <div key={item.id_producto} className="bg-zinc-900/60 p-3 rounded-lg border border-stone-200 space-y-2 text-left">
+                            <div key={item.id_producto} className="bg-white p-3 rounded-lg border border-stone-200 space-y-2 text-left">
                               <div className="flex justify-between items-start text-xs font-bold">
                                 <div>
-                                  <span className="text-zinc-200">{item.cantidad}x {item.nombre}</span>
-                                  <span className="text-[10px] text-zinc-400 block font-normal">Precio Unitario: ${price.toLocaleString('es-AR')}</span>
+                                  <span className="text-stone-800">{item.cantidad}x {item.nombre}</span>
+                                  <span className="text-[10px] text-stone-500 block font-normal">Precio Unitario: ${price.toLocaleString('es-AR')}</span>
                                 </div>
                                 <div className="text-right">
                                   {isFullyAssigned ? (
-                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase font-black">Asignado</span>
+                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase font-black">Asignado</span>
                                   ) : (
-                                    <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase font-black">
+                                    <span className="text-[9px] bg-amber-500/10 text-amber-700 border border-amber-500/20 px-1.5 py-0.2 rounded uppercase font-black">
                                       Faltan {unassigned} por asignar
                                     </span>
                                   )}
@@ -1203,8 +1203,8 @@ function CajaModule({
                                   const currentQty = pItem ? pItem.cantidad : 0;
                                   
                                   return (
-                                    <div key={p.id} className="flex justify-between items-center text-[11px] bg-zinc-950 p-2 rounded border border-stone-200">
-                                      <span className="text-zinc-300 font-bold truncate max-w-[85px]">{p.nombre}:</span>
+                                    <div key={p.id} className="flex justify-between items-center text-[11px] bg-stone-50 p-2 rounded border border-stone-200">
+                                      <span className="text-stone-700 font-bold truncate max-w-[85px]">{p.nombre}:</span>
                                       <div className="flex items-center gap-1">
                                         <button
                                           type="button"
@@ -1213,11 +1213,11 @@ function CajaModule({
                                             const nextQty = Number((currentQty - 0.25).toFixed(2));
                                             updatePartitionItem(p.id, item.id_producto, Math.max(0, nextQty));
                                           }}
-                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-stone-200"
+                                          className="w-6 h-6 bg-white hover:bg-stone-100 disabled:opacity-50 text-stone-800 rounded font-bold flex items-center justify-center cursor-pointer border border-stone-300"
                                         >
                                           -
                                         </button>
-                                        <span className="font-mono text-white text-xs font-black px-1">{currentQty}</span>
+                                        <span className="font-mono text-stone-900 text-xs font-black px-1">{currentQty}</span>
                                         <button
                                           type="button"
                                           disabled={p.pagado || isFullyAssigned}
@@ -1225,7 +1225,7 @@ function CajaModule({
                                             const nextQty = Number((currentQty + 0.25).toFixed(2));
                                             updatePartitionItem(p.id, item.id_producto, nextQty);
                                           }}
-                                          className="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded font-bold flex items-center justify-center cursor-pointer border border-stone-200"
+                                          className="w-6 h-6 bg-white hover:bg-stone-100 disabled:opacity-50 text-stone-800 rounded font-bold flex items-center justify-center cursor-pointer border border-stone-300"
                                         >
                                           +
                                         </button>
@@ -1250,7 +1250,7 @@ function CajaModule({
                                       updatePartitionItem(p.id, item.id_producto, qty);
                                     });
                                   }}
-                                  className="text-[9px] uppercase font-black text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                  className="text-[9px] uppercase font-black text-stone-500 hover:text-stone-850 transition-colors cursor-pointer"
                                 >
                                   Dividir Equitativamente
                                 </button>
@@ -1275,7 +1275,7 @@ function CajaModule({
 
                     {/* Grilla de Participantes */}
                     <div className="space-y-3">
-                      <h5 className="text-[10px] font-black text-[#E8B800] uppercase tracking-widest text-left">Liquidación por Comensal</h5>
+                      <h5 className="text-[10px] font-black text-[#624A3E] uppercase tracking-widest text-left">Liquidación por Comensal</h5>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {advancedPartitions.map((p) => {
                           const breakdowns = getPartitionBreakdown(p);
@@ -1291,8 +1291,8 @@ function CajaModule({
                           return (
                             <div key={p.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3.5 text-left ${
                               p.pagado 
-                                ? 'bg-emerald-950/20 border-emerald-500/25' 
-                                : 'bg-zinc-950/40 border-stone-200'
+                                ? 'bg-emerald-50 border-emerald-500/25' 
+                                : 'bg-stone-50 border-stone-200'
                             }`}>
                               {/* Person Header */}
                               <div className="flex justify-between items-center border-b border-stone-200 pb-2">
@@ -1301,15 +1301,15 @@ function CajaModule({
                                   disabled={p.pagado}
                                   value={p.nombre}
                                   onChange={(e) => updatePartitionPayment(p.id, 'nombre', e.target.value)}
-                                  className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#E8B800] text-xs font-black text-white focus:outline-none py-0.5 max-w-[120px] transition-colors"
+                                  className="bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 text-xs font-black text-stone-900 focus:outline-none py-0.5 max-w-[120px] transition-colors"
                                   placeholder="Nombre comensal"
-                                />
+                                 animate-fadeIn />
                                 {p.pagado ? (
-                                  <span className="text-[8px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 px-1.5 py-0.5 rounded font-black uppercase">
+                                  <span className="text-[8px] bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 px-1.5 py-0.5 rounded font-black uppercase">
                                     Pagado ✓
                                   </span>
                                 ) : (
-                                  <span className="text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-black uppercase">
+                                  <span className="text-[8px] bg-amber-500/10 text-amber-700 border border-amber-500/20 px-1.5 py-0.5 rounded font-black uppercase">
                                     Pendiente
                                   </span>
                                 )}
@@ -1318,24 +1318,24 @@ function CajaModule({
                               {/* Items allocated list */}
                               <div className="space-y-1.5 max-h-[100px] overflow-y-auto pr-1">
                                 {p.items.filter(it => it.cantidad > 0).map((it, idx) => (
-                                  <div key={idx} className="flex justify-between text-[10px] text-zinc-300 font-mono">
+                                  <div key={idx} className="flex justify-between text-[10px] text-stone-650 font-mono">
                                     <span className="font-sans">{it.cantidad}x {it.nombre}</span>
                                     <span>${(it.cantidad * it.precio_unitario).toLocaleString('es-AR')}</span>
                                   </div>
                                 ))}
                                 {p.items.filter(it => it.cantidad > 0).length === 0 && (
-                                  <p className="text-[10px] text-zinc-500 italic">Sin platos asignados aún</p>
+                                  <p className="text-[10px] text-stone-400 italic">Sin platos asignados aún</p>
                                 )}
                               </div>
 
                               {/* Total breakdown */}
-                              <div className="bg-zinc-950/60 p-2.5 rounded-lg border border-stone-200 text-[10px] space-y-1">
+                              <div className="bg-white p-2.5 rounded-lg border border-stone-200 text-[10px] space-y-1">
                                 <div className="flex justify-between text-stone-600">
                                   <span>Subtotal:</span>
                                   <span className="font-mono">${breakdowns.subtotal.toLocaleString('es-AR')}</span>
                                 </div>
                                 {(breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction) > 0 && (
-                                  <div className="flex justify-between text-rose-450">
+                                  <div className="flex justify-between text-rose-700">
                                     <span>Bonif. Proporcional:</span>
                                     <span className="font-mono">-${(breakdowns.promoDeduction + breakdowns.manualDeduction + breakdowns.couponDeduction).toLocaleString('es-AR')}</span>
                                   </div>
@@ -1344,9 +1344,9 @@ function CajaModule({
                                   <span>Propina ({propinaPorcentaje}%):</span>
                                   <span className="font-mono">${breakdowns.propinaValue.toLocaleString('es-AR')}</span>
                                 </div>
-                                <div className="flex justify-between text-white font-black border-t border-stone-200 pt-1 text-xs">
+                                <div className="flex justify-between text-stone-800 font-black border-t border-stone-200 pt-1 text-xs">
                                   <span>Total a pagar:</span>
-                                  <span className="font-mono text-[#E8B800]">${breakdowns.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 1 })}</span>
+                                  <span className="font-mono text-amber-700">${breakdowns.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 1 })}</span>
                                 </div>
                               </div>
 
@@ -1367,7 +1367,7 @@ function CajaModule({
                                         className={`py-1 px-1.5 rounded text-[9px] font-black flex items-center justify-center gap-1 border transition-colors cursor-pointer ${
                                           p.metodoPago === m.key
                                             ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
-                                            : 'bg-zinc-900 border-white/15 text-zinc-300 hover:bg-zinc-800'
+                                            : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-100'
                                         }`}
                                       >
                                         <span>{m.icon}</span>
@@ -1378,16 +1378,16 @@ function CajaModule({
 
                                   {/* Cash input helper */}
                                   {p.metodoPago === 'efectivo' && (
-                                    <div className="flex items-center gap-1 bg-zinc-950 p-1.5 rounded border border-stone-200">
+                                    <div className="flex items-center gap-1 bg-white p-1.5 rounded border border-stone-200">
                                       <input
                                         type="number"
                                         value={p.montoEntregadoEfectivo}
                                         onChange={(e) => updatePartitionPayment(p.id, 'montoEntregadoEfectivo', e.target.value)}
                                         placeholder="Paga con..."
-                                        className="bg-transparent text-[10px] text-white font-mono focus:outline-none w-full"
+                                        className="bg-transparent text-[10px] text-stone-900 font-mono focus:outline-none w-full"
                                       />
                                       {cashChange > 0 && (
-                                        <span className="text-[9px] text-[#22C55E] font-black shrink-0 font-mono">Vuelto: ${cashChange.toLocaleString('es-AR')}</span>
+                                        <span className="text-[9px] text-emerald-700 font-black shrink-0 font-mono">Vuelto: ${cashChange.toLocaleString('es-AR')}</span>
                                       )}
                                     </div>
                                   )}
@@ -1404,7 +1404,7 @@ function CajaModule({
                               )}
 
                               {p.pagado && (
-                                <div className="bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/20 text-center font-mono text-[9px] text-zinc-300">
+                                <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-500/20 text-center font-mono text-[9px] text-emerald-800">
                                   Ticket Nº: {p.ticketNo}
                                 </div>
                               )}
@@ -1418,7 +1418,7 @@ function CajaModule({
                     <button
                       type="button"
                       onClick={resetAdvancedSplit}
-                      className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-black uppercase rounded-lg border border-white/10 transition-colors cursor-pointer"
+                      className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-black uppercase rounded-lg border border-stone-300 transition-colors cursor-pointer"
                     >
                       ← Volver a Cobro Consolidado
                     </button>
@@ -1428,26 +1428,26 @@ function CajaModule({
                     {/* Automated Promotions Detector flag box */}
                     {((selectedPedido.items.some(it => it.id_producto === 'prod_car_ojo_bife' || it.id_producto === 'prod_bife') && selectedPedido.items.some(it => it.id_producto === 'prod_vino_malbec' || it.id_producto === 'prod_vino_rutini_botella')) || 
                      (selectedPedido.items.some(it => it.id_producto === 'prod_cri_hamburguesa' || it.id_producto === 'prod_hamburguesa') && selectedPedido.items.some(it => it.id_insumo === 'ins_beb_gaseosa' || it.id_producto === 'prod_gaseosa'))) && (
-                      <div className="bg-emerald-550/10 border border-emerald-500/20 p-3 rounded-lg flex items-start gap-2 text-emerald-400">
-                        <Percent className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                      <div className="bg-emerald-50 border border-emerald-500/20 p-3 rounded-lg flex items-start gap-2 text-emerald-700">
+                        <Percent className="w-4 h-4 text-emerald-700 mt-0.5 shrink-0" />
                         <div className="text-[10px] font-sans">
                           <p className="font-bold uppercase tracking-wide">Promoción automática calificada</p>
-                          <p className="text-zinc-400 font-normal mt-0.5 leading-snug">Se han deducido $1.500 (Combo burger + lata) y/o el 15% del vino (Combo Ojo de bife + Vino) por compras cruzadas.</p>
+                          <p className="text-stone-500 font-normal mt-0.5 leading-snug">Se han deducido $1.500 (Combo burger + lata) y/o el 15% del vino (Combo Ojo de bife + Vino) por compras cruzadas.</p>
                         </div>
                       </div>
                     )}
 
                 {/* CLIENT & AFIP TYPE SYSTEM */}
-                <div className="bg-zinc-950/40 border border-stone-200 p-3 rounded-xl space-y-2">
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Información Tributaria</h4>
+                <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-2">
+                  <h4 className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Información Tributaria</h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
-                      <label className="text-[9px] font-bold uppercase text-zinc-400 block mb-0.5">Tipo de Factura</label>
+                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">Tipo de Factura</label>
                       <select
                         value={tipoComprobante}
                         onChange={e => setTipoComprobante(e.target.value as TipoComprobante)}
-                        className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded text-zinc-100 font-bold focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
                       >
                         <option value="factura_b" className="bg-white text-stone-900">Factura B (Cons. Final)</option>
                         <option value="factura_a" className="bg-white text-stone-900">Factura A (Inscripto)</option>
@@ -1456,7 +1456,7 @@ function CajaModule({
                     </div>
 
                     <div>
-                      <label className="text-[9px] font-bold uppercase text-zinc-400 block mb-0.5">DNI/CUIT Cliente</label>
+                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">DNI/CUIT Cliente</label>
                       <input 
                         type="text" 
                         value={cuitCliente}
@@ -1467,18 +1467,18 @@ function CajaModule({
                             setNombreCliente('Consumidor Final');
                           }
                         }}
-                        className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
                         placeholder="Ej. 20-38449102-1"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[9px] font-bold uppercase text-zinc-400 block mb-0.5">Razón Social Cliente</label>
+                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">Razón Social Cliente</label>
                       <input 
                         type="text" 
                         value={nombreCliente}
                         onChange={e => setNombreCliente(e.target.value)}
-                        className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         placeholder="Ej. José de San Martín"
                       />
                     </div>
@@ -1486,9 +1486,9 @@ function CajaModule({
                 </div>
 
                 {/* FIDELIZACION Y CLUB EL PATRON */}
-                <div className="bg-zinc-950/40 border border-stone-200 p-3 rounded-xl space-y-2">
-                  <h4 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-[#E8B800]" /> Fidelización de Clientes (Club Pizzería Colores)
+                <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-2">
+                  <h4 className="text-[10px] font-black text-stone-850 uppercase tracking-widest flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-amber-700" /> Fidelización de Clientes (Club Pizzería Colores)
                   </h4>
                   
                   <div className="flex gap-2">
@@ -1497,7 +1497,7 @@ function CajaModule({
                       value={dniCuitBuscar}
                       onChange={e => setDniCuitBuscar(e.target.value)}
                       placeholder="Buscar DNI/CUIT de cliente"
-                      className="flex-1 min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                      className="flex-1 min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
                     />
                     <button
                       type="button"
@@ -1508,15 +1508,15 @@ function CajaModule({
                     </button>
                   </div>
                   {selectedCliente ? (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg space-y-2">
+                    <div className="p-3 bg-emerald-50 border border-emerald-500/20 rounded-lg space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="text-xs font-bold text-emerald-400">{selectedCliente.nombre}</p>
+                            <p className="text-xs font-bold text-emerald-800">{selectedCliente.nombre}</p>
                             {(() => {
-                              const lvl = selectedCliente.puntos >= 500 ? { l: 'Oro', c: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', s: '⭐' } :
-                                          selectedCliente.puntos >= 105 ? { l: 'Plata', c: 'bg-zinc-800 text-zinc-300 border-zinc-700', s: '🥈' } :
-                                          { l: 'Bronce', c: 'bg-amber-700/25 text-amber-400 border-amber-600/30', s: '🥉' };
+                              const lvl = selectedCliente.puntos >= 500 ? { l: 'Oro', c: 'bg-yellow-500/20 text-yellow-450 border-yellow-500/30', s: '⭐' } :
+                                          selectedCliente.puntos >= 105 ? { l: 'Plata', c: 'bg-stone-200 text-stone-700 border-stone-300', s: '🥈' } :
+                                          { l: 'Bronce', c: 'bg-amber-750/15 text-amber-800 border-amber-600/30', s: '🥉' };
                               return (
                                 <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${lvl.c}`} title={`Nivel ${lvl.l}`}>
                                   {lvl.s} {lvl.l}
@@ -1524,8 +1524,8 @@ function CajaModule({
                               );
                             })()}
                           </div>
-                          <p className="text-[10px] text-zinc-400 font-mono">{selectedCliente.dni_cuit}</p>
-                          <p className="text-[10px] text-[#E8B800] font-bold mt-0.5">
+                          <p className="text-[10px] text-stone-500 font-mono">{selectedCliente.dni_cuit}</p>
+                          <p className="text-[10px] text-amber-700 font-bold mt-0.5">
                             Puntos Disponibles: {selectedCliente.puntos} (ARS ${(selectedCliente.puntos * 10).toLocaleString('es-AR')} de descuento)
                           </p>
                         </div>
@@ -1536,23 +1536,23 @@ function CajaModule({
                             setPuntosRedimidos(0);
                             setDniCuitBuscar('');
                           }}
-                          className="text-zinc-400 hover:text-zinc-200 text-[10px] font-bold transition-colors cursor-pointer"
+                          className="text-stone-500 hover:text-stone-700 text-[10px] font-bold transition-colors cursor-pointer"
                         >
                           Deseleccionar
                         </button>
                       </div>
 
                       {/* Historial simulado */}
-                      <div className="bg-zinc-950/50 p-2 rounded-lg border border-emerald-500/10 text-[9px] text-zinc-300 space-y-1">
-                        <span className="font-bold uppercase text-[8px] text-zinc-500 block">Historial de Fidelización</span>
+                      <div className="bg-white p-2 rounded-lg border border-stone-200 text-[9px] text-stone-700 space-y-1">
+                        <span className="font-bold uppercase text-[8px] text-stone-450 block">Historial de Fidelización</span>
                         <div className="flex justify-between font-mono">
                           <span>• Alta de Cliente</span>
-                          <span className="text-emerald-400 font-bold">+0 ptos</span>
+                          <span className="text-emerald-700 font-bold">+0 ptos</span>
                         </div>
                         {selectedCliente.puntos > 0 && (
                           <div className="flex justify-between font-mono">
                             <span>• Consumos Acumulados</span>
-                            <span className="text-emerald-400 font-bold">+{selectedCliente.puntos} ptos</span>
+                            <span className="text-emerald-700 font-bold">+{selectedCliente.puntos} ptos</span>
                           </div>
                         )}
                       </div>
@@ -1560,7 +1560,7 @@ function CajaModule({
                       <div className="flex flex-col gap-2 pt-1.5 border-t border-stone-200">
                         {selectedCliente.puntos > 0 && (
                           <div className="flex items-center gap-2">
-                            <label className="text-[9px] font-bold text-zinc-300 uppercase">Canjear Puntos:</label>
+                            <label className="text-[9px] font-bold text-stone-700 uppercase">Canjear Puntos:</label>
                             <input 
                               type="number"
                               min="0"
@@ -1576,9 +1576,9 @@ function CajaModule({
                                   setPuntosRedimidos(pts);
                                 }
                               }}
-                              className="w-16 p-1 bg-zinc-950 border border-white/10 rounded font-mono text-xs text-zinc-100 text-center focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                              className="w-16 p-1 bg-white border border-stone-300 rounded font-mono text-xs text-stone-900 text-center focus:outline-none focus:ring-1 focus:ring-amber-500"
                             />
-                            <span className="text-[9px] text-zinc-400 font-bold">1 pt = $10 descuento</span>
+                            <span className="text-[9px] text-stone-500 font-bold">1 pt = $10 descuento</span>
                           </div>
                         )}
                         
@@ -1600,8 +1600,8 @@ function CajaModule({
                       </div>
                     </div>
                   ) : dniCuitBuscar.trim() !== '' && (
-                    <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-lg space-y-2">
-                      <p className="text-[10px] text-zinc-400 font-bold italic">Cliente no registrado. Registrar comensal:</p>
+                    <div className="p-3 bg-stone-50 border border-stone-200 rounded-lg space-y-2">
+                      <p className="text-[10px] text-stone-500 font-bold italic">Cliente no registrado. Registrar comensal:</p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input 
@@ -1609,28 +1609,28 @@ function CajaModule({
                           placeholder="Nombre Completo"
                           value={nombreNuevoCliente}
                           onChange={e => setNombreNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-zinc-950 border border-white/10 rounded text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                         <input 
                           type="email" 
                           placeholder="Email"
                           value={emailNuevoCliente}
                           onChange={e => setEmailNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-zinc-950 border border-white/10 rounded text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                         <input 
                           type="text" 
                           placeholder="Teléfono"
                           value={telNuevoCliente}
                           onChange={e => setTelNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-zinc-950 border border-white/10 rounded text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
 
                       <button
                         type="button"
                         onClick={handleRegistrarCliente}
-                        className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] font-black uppercase rounded transition-colors cursor-pointer btn-premium active:scale-95"
+                        className="w-full py-1.5 bg-stone-700 hover:bg-stone-850 text-white text-[10px] font-black uppercase rounded transition-colors cursor-pointer btn-premium active:scale-95"
                       >
                         Registrar y Seleccionar Cliente
                       </button>
@@ -1640,40 +1640,40 @@ function CajaModule({
 
                 {/* Standard split comensales (Rule 3) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2">
-                    <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
-                      <Users className="w-3.5 h-3.5 text-[#E8B800]" /> Partes Comensales (Partes Iguales)
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                    <h5 className="text-[10px] font-black text-stone-700 flex items-center gap-1 uppercase tracking-wider">
+                      <Users className="w-3.5 h-3.5 text-amber-700" /> Partes Comensales (Partes Iguales)
                     </h5>
                     
-                    <div className="flex items-center justify-between gap-2 bg-zinc-950 border border-white/10 p-1.5 rounded-lg">
+                    <div className="flex items-center justify-between gap-2 bg-white border border-stone-300 p-1.5 rounded-lg">
                       <button
                         onClick={() => {
                           setSplitPayerCount(prev => Math.max(1, prev - 1));
                           setActivePayerIndex(0);
                         }}
-                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-200"
+                        className="touch-target w-9 h-9 bg-stone-100 hover:bg-stone-200 rounded text-stone-800 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300"
                       >
                         -
                       </button>
-                      <span className="text-sm font-mono font-black text-zinc-100">{splitPayerCount} pax</span>
+                      <span className="text-sm font-mono font-black text-stone-900">{splitPayerCount} pax</span>
                       <button
                         onClick={() => {
                           setSplitPayerCount(prev => prev + 1);
                           setActivePayerIndex(0);
                         }}
-                        className="touch-target w-9 h-9 bg-zinc-900 hover:bg-zinc-800 rounded text-zinc-100 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-200"
+                        className="touch-target w-9 h-9 bg-stone-100 hover:bg-stone-200 rounded text-stone-800 font-bold flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300"
                       >
                         +
                       </button>
                     </div>
 
                     {splitPayerCount > 1 && (
-                      <div className="text-[10px] sm:text-xs text-zinc-300 leading-normal bg-zinc-950/60 p-2 rounded border border-stone-200 space-y-0.5 text-center">
-                        <p className="font-bold text-zinc-400">Monto partes iguales:</p>
-                        <p className="text-[#22C55E] text-sm font-black font-mono">
+                      <div className="text-[10px] sm:text-xs text-stone-700 leading-normal bg-white p-2 rounded border border-stone-200 space-y-0.5 text-center">
+                        <p className="font-bold text-stone-500">Monto partes iguales:</p>
+                        <p className="text-emerald-700 text-sm font-black font-mono">
                           ${(orderBreakdowns.finalTotal / splitPayerCount).toLocaleString('es-AR', { maximumFractionDigits: 1 })} c/u
                         </p>
-                        <span className="bg-[#E8B800]/10 text-[#E8B800] px-1.5 py-0.5 rounded font-extrabold text-[9px] tracking-wider uppercase inline-block border border-[#E8B800]/20">
+                        <span className="bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded font-extrabold text-[9px] tracking-wider uppercase inline-block border border-amber-500/20">
                           Pagador Actual: {activePayerIndex + 1} de {splitPayerCount}
                         </span>
                       </div>
@@ -1681,14 +1681,14 @@ function CajaModule({
                   </div>
 
                   {/* Manual discounts & tip adjustments (Rule 3) */}
-                  <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2.5">
-                    <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
-                      <Percent className="w-3.5 h-3.5 text-[#E8B800]" /> Bonificación & Propinas
+                  <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2.5">
+                    <h5 className="text-[10px] font-black text-stone-700 flex items-center gap-1 uppercase tracking-wider">
+                      <Percent className="w-3.5 h-3.5 text-amber-700" /> Bonificación & Propinas
                     </h5>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-zinc-400 block uppercase">Tipo de Descuento</label>
-                      <div className="flex gap-1 p-0.5 bg-zinc-950 border border-white/10 rounded-lg w-full">
+                      <label className="text-[9px] font-bold text-stone-600 block uppercase">Tipo de Descuento</label>
+                      <div className="flex gap-1 p-0.5 bg-white border border-stone-300 rounded-lg w-full">
                         <button
                           type="button"
                           onClick={() => {
@@ -1697,8 +1697,8 @@ function CajaModule({
                           }}
                           className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
                             tipoDescuento === 'porcentaje'
-                              ? 'bg-zinc-800 text-zinc-100 shadow-xs'
-                              : 'text-zinc-400 hover:text-zinc-300'
+                              ? 'bg-stone-200 text-stone-900 shadow-xs'
+                              : 'text-stone-500 hover:text-stone-850'
                           }`}
                         >
                           % Porcentaje
@@ -1711,8 +1711,8 @@ function CajaModule({
                           }}
                           className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
                             tipoDescuento === 'monto'
-                              ? 'bg-zinc-800 text-zinc-100 shadow-xs'
-                              : 'text-zinc-400 hover:text-zinc-300'
+                              ? 'bg-stone-200 text-stone-900 shadow-xs'
+                              : 'text-stone-500 hover:text-stone-850'
                           }`}
                         >
                           $ Monto Fijo
@@ -1724,7 +1724,7 @@ function CajaModule({
                       <div>
                         {tipoDescuento === 'porcentaje' ? (
                           <>
-                            <label className="text-[9px] font-bold text-zinc-400 block mb-0.5">Descuento (%)</label>
+                            <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento (%)</label>
                             <input
                               type="number"
                               min="0"
@@ -1734,13 +1734,13 @@ function CajaModule({
                                 const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
                                 setDescuentoPorcentaje(val);
                               }}
-                              className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-mono text-center font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                              className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                               placeholder="Ej. 10"
                             />
                           </>
                         ) : (
                           <>
-                            <label className="text-[9px] font-bold text-zinc-400 block mb-0.5">Descuento ($)</label>
+                            <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento ($)</label>
                             <input
                               type="number"
                               min="0"
@@ -1751,7 +1751,7 @@ function CajaModule({
                                 const val = Math.min(maxMonto, Math.max(0, parseFloat(e.target.value) || 0));
                                 setDescuentoMonto(val);
                               }}
-                              className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-mono text-center font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                              className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                               placeholder="Monto $"
                             />
                           </>
@@ -1759,11 +1759,11 @@ function CajaModule({
                       </div>
 
                       <div>
-                        <label className="text-[9px] font-bold text-zinc-400 block mb-0.5">Propina %</label>
+                        <label className="text-[9px] font-bold text-stone-650 block mb-0.5">Propina %</label>
                         <select
                           value={propinaPorcentaje}
                           onChange={e => setPropinaPorcentaje(parseInt(e.target.value) || 0)}
-                          className="w-full min-h-11 text-sm p-2 bg-zinc-950 border border-white/10 rounded font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                          className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         >
                           <option value="0" className="bg-white text-stone-900">0%</option>
                           <option value="5" className="bg-white text-stone-900">5%</option>
@@ -1776,7 +1776,7 @@ function CajaModule({
 
                     {/* Ajustes Rápidos */}
                     <div className="border-t border-stone-200 pt-2 mt-1 space-y-2">
-                      <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block">Ajustes Rápidos</span>
+                      <span className="text-[8px] font-bold text-stone-500 uppercase tracking-widest block">Ajustes Rápidos</span>
                       
                       <div className="flex flex-col gap-2">
                         {/* Fila Descuentos / Recargos */}
@@ -1792,7 +1792,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               tipoDescuento === 'porcentaje' && descuentoPorcentaje === 0
                                 ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
                             }`}
                           >
                             Sin Desc.
@@ -1808,8 +1808,8 @@ function CajaModule({
                             }}
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               tipoDescuento === 'porcentaje' && descuentoPorcentaje === 10
-                                ? 'bg-emerald-650 text-white border-emerald-600'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
                             }`}
                           >
                             10% Off
@@ -1826,7 +1826,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               tipoDescuento === 'porcentaje' && descuentoPorcentaje === 15
                                 ? 'bg-emerald-600 text-white border-emerald-600'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
                             }`}
                           >
                             15% Off
@@ -1843,7 +1843,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               tipoDescuento === 'porcentaje' && descuentoPorcentaje === -10
                                 ? 'bg-rose-700 text-white border-rose-700'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
                             }`}
                             title="Recargo por pago con tarjeta"
                           >
@@ -1862,7 +1862,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               propinaPorcentaje === 0
                                 ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
                             }`}
                           >
                             Sin Propina
@@ -1877,7 +1877,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               propinaPorcentaje === 10
                                 ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
                             }`}
                           >
                             10% Propina
@@ -1892,7 +1892,7 @@ function CajaModule({
                             className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
                               propinaPorcentaje === 15
                                 ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-zinc-300'
+                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
                             }`}
                           >
                             15% Propina
@@ -1902,7 +1902,7 @@ function CajaModule({
                         {/* Fila Promociones Vigentes */}
                         {activePromos.length > 0 && (
                           <div className="border-t border-stone-200 pt-2 mt-1 space-y-1">
-                            <span className="text-[8px] font-bold text-emerald-450 dark:text-emerald-400 uppercase tracking-widest block">Campañas Activas (Aplicar)</span>
+                            <span className="text-[8px] font-bold text-emerald-700 uppercase tracking-widest block">Campañas Activas (Aplicar)</span>
                             <div className="flex flex-wrap gap-1">
                               {activePromos.map(promo => {
                                 const isApplied = tipoDescuento === 'porcentaje' && descuentoPorcentaje === promo.descuento_porcentaje;
@@ -1918,8 +1918,8 @@ function CajaModule({
                                     }}
                                     className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer flex items-center gap-1 ${
                                       isApplied
-                                        ? 'bg-emerald-650 text-white border-emerald-600 shadow-md animate-pulse'
-                                        : 'bg-zinc-900 border-white/10 text-emerald-400 hover:text-emerald-300'
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-md animate-pulse'
+                                        : 'bg-white border-stone-300 text-emerald-700 hover:bg-emerald-50'
                                     }`}
                                     title={promo.descripcion}
                                   >
@@ -1937,22 +1937,22 @@ function CajaModule({
                 </div>
 
                 {/* Coupon discount codes panel (Area 3) */}
-                <div className="p-3 bg-zinc-950/40 border border-stone-200 rounded-xl space-y-2.5 font-sans">
-                  <h5 className="text-[10px] font-black text-zinc-300 flex items-center gap-1 uppercase tracking-wider">
-                    <Tag className="w-3.5 h-3.5 text-[#E8B800]" /> Cuponera & Promociones
+                <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2.5 font-sans">
+                  <h5 className="text-[10px] font-black text-stone-700 flex items-center gap-1 uppercase tracking-wider">
+                    <Tag className="w-3.5 h-3.5 text-amber-700" /> Cuponera & Promociones
                   </h5>
                   {appliedCoupon ? (
-                    <div className="flex justify-between items-center bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
+                    <div className="flex justify-between items-center bg-emerald-50 border border-emerald-500/20 p-2.5 rounded-xl">
                       <div>
-                        <p className="text-xs font-bold text-emerald-400 font-sans">Cupón Activo: {appliedCoupon.code}</p>
-                        <p className="text-[10px] text-zinc-400 font-mono">
+                        <p className="text-xs font-bold text-emerald-800 font-sans">Cupón Activo: {appliedCoupon.code}</p>
+                        <p className="text-[10px] text-stone-500 font-mono">
                           Descuento: {appliedCoupon.type === 'porcentaje' ? `${appliedCoupon.value}%` : `$${appliedCoupon.value}`}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={handleRemoveCoupon}
-                        className="text-rose-400 hover:text-rose-300 text-xs font-black transition-colors cursor-pointer"
+                        className="text-rose-700 hover:text-rose-800 text-xs font-black transition-colors cursor-pointer"
                       >
                         Remover
                       </button>
@@ -1965,30 +1965,30 @@ function CajaModule({
                           placeholder="Ingresar código de cupón"
                           value={couponInput}
                           onChange={e => setCouponInput(e.target.value)}
-                          className="flex-1 min-h-11 text-xs p-2.5 bg-zinc-950 border border-white/10 rounded-xl text-zinc-100 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-600"
+                          className="flex-1 min-h-11 text-xs p-2.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
                         />
                         <button
                           type="button"
                           onClick={handleApplyCoupon}
-                          className="px-4 min-h-11 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-100 text-xs font-black rounded-xl cursor-pointer transition-colors active:scale-95"
+                          className="px-4 min-h-11 bg-stone-700 hover:bg-stone-850 border border-stone-300 text-white text-xs font-black rounded-xl cursor-pointer transition-colors active:scale-95"
                         >
                           Aplicar
                         </button>
                       </div>
                       {couponError && (
-                        <p className="text-[10px] text-rose-400 font-semibold">{couponError}</p>
+                        <p className="text-[10px] text-rose-700 font-semibold">{couponError}</p>
                       )}
-                      <p className="text-[9px] text-zinc-500 leading-relaxed">
-                        Probá con: <span className="font-mono text-zinc-400 font-bold">PROMO10</span> (10%), <span className="font-mono text-zinc-400 font-bold">BIENVENIDA</span> ($500), <span className="font-mono text-zinc-400 font-bold">PIZZALOVER</span> (15%).
+                      <p className="text-[9px] text-stone-500 leading-relaxed">
+                        Probá con: <span className="font-mono text-stone-600 font-bold">PROMO10</span> (10%), <span className="font-mono text-stone-600 font-bold">BIENVENIDA</span> ($500), <span className="font-mono text-stone-600 font-bold">PIZZALOVER</span> (15%).
                       </p>
                     </div>
                   )}
                 </div>
 
                 {/* PAYMENT TYPE / MIXED PAYMENTS LAYOUT (Rule 4) */}
-                <div className="bg-zinc-950/40 border border-stone-200 p-3 sm:p-4 rounded-xl space-y-3.5">
+                <div className="bg-stone-50 border border-stone-200 p-3 sm:p-4 rounded-xl space-y-3.5">
                   <div>
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1.5">
+                    <label className="text-[10px] font-black text-stone-500 uppercase tracking-widest block mb-1.5">
                       Método de Liquidación Caja
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -2010,7 +2010,7 @@ function CajaModule({
                           className={`min-h-11 py-2.5 px-2 rounded-xl text-xs font-black flex items-center justify-start gap-2 border transition-all cursor-pointer ${
                             metodoPago === m.key 
                               ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800] shadow-sm'
-                              : 'bg-zinc-900 border-white/10 text-zinc-300 hover:bg-zinc-800'
+                              : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-100'
                           }`}
                         >
                           {m.icon}
@@ -2022,26 +2022,26 @@ function CajaModule({
 
                   {/* Dynamic Fields for Payment Method details */}
                   {metodoPago === 'efectivo' && (
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg flex flex-col gap-3">
+                    <div className="bg-amber-50/50 border border-amber-500/20 p-3 rounded-lg flex flex-col gap-3">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div>
-                          <label className="text-[9px] font-bold text-[#E8B800] block uppercase">Monto Entregado en Efectivo</label>
-                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Ayuda vuelto rápido cajero</p>
+                          <label className="text-[9px] font-bold text-amber-700 block uppercase">Monto Entregado en Efectivo</label>
+                          <p className="text-[10px] text-stone-500 font-medium">Ayuda vuelto rápido cajero</p>
                         </div>
                         
                         <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                           <input 
-                            type="number"
+                            type="number" 
                             inputMode="decimal"
                             value={montoEntregadoEfectivo}
                             onChange={e => setMontoEntregadoEfectivo(e.target.value)}
                             placeholder="Monto entregado"
-                            className="min-h-11 p-2 bg-zinc-950 border border-white/10 rounded-lg text-sm font-mono font-black text-zinc-100 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                            className="min-h-11 p-2 bg-white border border-stone-300 rounded-lg text-sm font-mono font-black text-stone-900 w-full sm:w-28 focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
                           />
                           {calculatedChange > 0 && (
-                            <div className="text-right pl-2 border-l border-white/10">
-                              <span className="text-[8px] text-zinc-400 block font-bold uppercase">Entregar Vuelto</span>
-                              <span className="text-[11px] text-[#22C55E] font-black font-mono">
+                            <div className="text-right pl-2 border-l border-stone-250">
+                              <span className="text-[8px] text-stone-500 block font-bold uppercase">Entregar Vuelto</span>
+                              <span className="text-[11px] text-emerald-700 font-black font-mono">
                                 ${calculatedChange.toLocaleString('es-AR')}
                               </span>
                             </div>
@@ -2051,14 +2051,14 @@ function CajaModule({
 
                       {/* Billetes Rápidos */}
                       <div className="border-t border-stone-200 pt-2">
-                        <span className="text-[8px] font-bold text-zinc-450 uppercase tracking-widest block mb-1.5">Billetes Rápidos (Pesos AR)</span>
+                        <span className="text-[8px] font-bold text-stone-500 uppercase tracking-widest block mb-1.5">Billetes Rápidos (Pesos AR)</span>
                         <div className="flex flex-wrap gap-1.5">
                           {[
-                            { value: 1000, color: 'bg-amber-950/40 text-amber-400 border-amber-500/20 hover:bg-amber-950/60' },
-                            { value: 2000, color: 'bg-rose-950/40 text-rose-450 border-rose-500/20 hover:bg-rose-950/60' },
-                            { value: 5000, color: 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20 hover:bg-emerald-950/60' },
-                            { value: 10000, color: 'bg-sky-950/40 text-sky-400 border-sky-500/20 hover:bg-sky-950/60' },
-                            { value: 20000, color: 'bg-purple-950/40 text-purple-400 border-purple-500/20 hover:bg-purple-950/60' }
+                            { value: 1000, color: 'bg-amber-50 text-amber-700 border-amber-500/20 hover:bg-amber-100' },
+                            { value: 2000, color: 'bg-rose-50 text-rose-700 border-rose-500/20 hover:bg-rose-100' },
+                            { value: 5000, color: 'bg-emerald-50 text-emerald-700 border-emerald-500/20 hover:bg-emerald-100' },
+                            { value: 10000, color: 'bg-sky-50 text-sky-700 border-sky-500/20 hover:bg-sky-100' },
+                            { value: 20000, color: 'bg-purple-50 text-purple-700 border-purple-500/20 hover:bg-purple-100' }
                           ].map(bill => (
                             <button
                               key={bill.value}
@@ -2079,7 +2079,7 @@ function CajaModule({
                               const targetVal = (metodoPago as any) === 'mixto' ? rawRemainingMixedBalance : orderBreakdowns.finalTotal;
                               setMontoEntregadoEfectivo(String(Math.ceil(targetVal)));
                             }}
-                            className="px-2.5 py-1.5 border border-[#E8B800]/30 bg-[#E8B800]/10 text-[#E8B800] rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-[#E8B800]/20 cursor-pointer"
+                            className="px-2.5 py-1.5 border border-amber-500/20 bg-amber-500/10 text-amber-700 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-amber-500/20 cursor-pointer"
                           >
                             Exacto
                           </button>
@@ -2087,7 +2087,7 @@ function CajaModule({
                             key="clear"
                             type="button"
                             onClick={() => setMontoEntregadoEfectivo('')}
-                            className="px-2.5 py-1.5 border border-white/10 bg-zinc-900 text-zinc-400 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-zinc-800 cursor-pointer"
+                            className="px-2.5 py-1.5 border border-stone-300 bg-white text-stone-600 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95 hover:bg-stone-50 cursor-pointer"
                           >
                             Limpiar
                           </button>
@@ -2098,10 +2098,10 @@ function CajaModule({
 
                   {/* Mixed Payment Rows interface */}
                   {metodoPago === 'mixto' && (
-                    <div className="space-y-3.5 bg-zinc-950/60 p-3 sm:p-3.5 rounded-xl border border-white/10">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] font-black uppercase text-zinc-400 border-b border-stone-200 pb-1 gap-1">
+                    <div className="space-y-3.5 bg-stone-50 p-3 sm:p-3.5 rounded-xl border border-stone-200">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] font-black uppercase text-stone-500 border-b border-stone-200 pb-1 gap-1">
                         <span>Pagos Cargados parcialmente</span>
-                        <span className="font-mono text-[#E8B800]">
+                        <span className="font-mono text-amber-700">
                           Total: ${mixedSum.toLocaleString('es-AR')} / ${orderBreakdowns.finalTotal.toLocaleString('es-AR')}
                         </span>
                       </div>
@@ -2109,16 +2109,16 @@ function CajaModule({
                       {mixedPayments.length > 0 ? (
                         <div className="space-y-1">
                           {mixedPayments.map((p, idx) => (
-                            <div key={idx} className="flex justify-between items-center bg-zinc-900 border border-stone-200 p-2 rounded-lg text-xs sm:text-sm font-bold text-zinc-200">
+                            <div key={idx} className="flex justify-between items-center bg-white border border-stone-200 p-2 rounded-lg text-xs sm:text-sm font-bold text-stone-850">
                               <span className="uppercase flex items-center gap-1">
-                                <ChevronRight className="w-3.5 h-3.5 text-[#E8B800]" /> {p.metodo}
+                                <ChevronRight className="w-3.5 h-3.5 text-amber-700" /> {p.metodo}
                               </span>
                               <div className="flex items-center gap-2">
                                 <span className="font-mono text-stone-900">${p.monto.toLocaleString('es-AR')}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveMixedPayment(idx)}
-                                  className="touch-target w-8 h-8 text-zinc-400 hover:text-rose-450 transition-colors cursor-pointer flex items-center justify-center"
+                                  className="touch-target w-8 h-8 text-stone-500 hover:text-rose-700 transition-colors cursor-pointer flex items-center justify-center"
                                   title="Borrar pago parcial"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2128,7 +2128,7 @@ function CajaModule({
                           ))}
                         </div>
                       ) : (
-                        <p className="text-[10px] text-zinc-500 text-center italic">No hay pagos parciales ingresados. Introduzca por lo menos dos a continuación.</p>
+                        <p className="text-[10px] text-stone-500 text-center italic">No hay pagos parciales ingresados. Introduzca por lo menos dos a continuación.</p>
                       )}
 
                       {/* Add partial form */}
@@ -2137,7 +2137,7 @@ function CajaModule({
                           <select
                             value={mixedMetodoInput}
                             onChange={e => setMixedMetodoInput(e.target.value)}
-                            className="min-h-11 bg-zinc-950 border border-white/10 text-sm p-2 rounded-lg text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30"
+                            className="min-h-11 bg-white border border-stone-300 text-sm p-2 rounded-lg text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                           >
                             <option value="efectivo" className="bg-white text-stone-900">Efectivo</option>
                             <option value="tarjeta" className="bg-white text-stone-900">Tarjeta Crédito</option>
@@ -2156,26 +2156,26 @@ function CajaModule({
                                   setMontoEntregadoEfectivo(e.target.value);
                               }
                             }}
-                            className="min-h-11 flex-1 bg-zinc-950 border border-white/10 p-2 text-sm rounded-lg font-mono font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                            className="min-h-11 flex-1 bg-white border border-stone-300 p-2 text-sm rounded-lg font-mono font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
                           />
 
                           <button
                             type="submit"
-                            className="min-h-11 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1 shrink-0 transition-colors btn-premium"
+                            className="min-h-11 py-2 px-3 bg-stone-700 hover:bg-stone-850 text-white text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1 shrink-0 transition-colors btn-premium"
                           >
                             <Plus className="w-3.5 h-3.5" /> Agregar
                           </button>
                         </form>
                       ) : (
-                        <div className="bg-emerald-500/10 text-emerald-500 text-[10px] p-2 text-center rounded border border-emerald-500/20 font-bold">
+                        <div className="bg-emerald-50 text-emerald-700 text-[10px] p-2 text-center rounded border border-emerald-500/20 font-bold">
                           ✓ Saldo completado. Puede finalizar la transacción de cobro.
                         </div>
                       )}
 
                       {/* Cash change for mixed cash payments */}
                       {mixedPayments.some(p => p.metodo === 'efectivo') && (
-                        <div className="bg-zinc-950 p-2.5 rounded-lg border border-stone-200 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
-                          <span className="text-zinc-400 font-bold block uppercase text-[10px]">Arqueo Cambio Extra (Efectivo Mixto)</span>
+                        <div className="bg-white p-2.5 rounded-lg border border-stone-200 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
+                          <span className="text-stone-500 font-bold block uppercase text-[10px]">Arqueo Cambio Extra (Efectivo Mixto)</span>
                           <div className="flex items-center gap-2 w-full sm:w-auto">
                             <input 
                               type="number" 
@@ -2183,10 +2183,10 @@ function CajaModule({
                               value={montoEntregadoEfectivo}
                               onChange={e => setMontoEntregadoEfectivo(e.target.value)}
                               placeholder="Monto entregado"
-                              className="min-h-11 p-1.5 bg-zinc-950 border border-white/10 rounded text-sm text-zinc-100 font-mono w-full sm:w-24 focus:outline-none focus:ring-1 focus:ring-[#E8B800]/30 placeholder-zinc-500"
+                              className="min-h-11 p-1.5 bg-white border border-stone-300 rounded text-sm text-stone-900 font-mono w-full sm:w-24 focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
                             />
                             {calculatedChange > 0 && (
-                              <span className="text-[#22C55E] font-black">${calculatedChange.toLocaleString('es-AR')}</span>
+                              <span className="text-emerald-700 font-black">${calculatedChange.toLocaleString('es-AR')}</span>
                             )}
                           </div>
                         </div>
@@ -2237,7 +2237,7 @@ function CajaModule({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={triggerPDFDownloadOnly}
-                      className="min-h-10 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 text-[10px] uppercase font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                      className="min-h-10 py-2 bg-stone-100 hover:bg-stone-250 border border-stone-300 text-stone-700 text-[10px] uppercase font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Descargar PDF
@@ -2245,7 +2245,7 @@ function CajaModule({
                     
                     <button
                       onClick={triggerManualPrint}
-                      className="min-h-10 py-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 text-[10px] uppercase font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                      className="min-h-10 py-2 bg-stone-100 hover:bg-stone-250 border border-stone-300 text-stone-700 text-[10px] uppercase font-extrabold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       Imprimir Ticket
@@ -2258,7 +2258,7 @@ function CajaModule({
                       setSplitPayerCount(1);
                       setActivePayerIndex(0);
                     }}
-                    className="w-full min-h-10 text-center py-2 text-zinc-400 hover:text-zinc-200 text-xs uppercase font-extrabold cursor-pointer transition-colors"
+                    className="w-full min-h-10 text-center py-2 text-stone-500 hover:text-stone-850 text-xs uppercase font-extrabold cursor-pointer transition-colors"
                   >
                     ← Volver a Comandas
                   </button>
@@ -2268,8 +2268,8 @@ function CajaModule({
           </div>
 
               {/* EPSON TICKET PREVIEW SIMULATOR (MD: Span 5) */}
-              <div className="md:col-span-5 bg-zinc-950/40 border border-stone-200 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+              <div className="md:col-span-5 bg-stone-50 border border-stone-200 p-3 sm:p-4 rounded-xl flex flex-col items-center justify-start">
+                <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest mb-3 flex items-center gap-1">
                   <Printer className="w-3.5 h-3.5" /> Simulación Salida Térmica (80mm)
                 </span>
 
