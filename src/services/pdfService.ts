@@ -136,266 +136,399 @@ export const pdfService = {
     const doc = new jsPDF('p', 'mm', 'a4');
     const margin = 14;
     let y = 14;
-    const compType = data.tipoComprobante as string;
-    const letter = compType === 'factura_a' ? 'A' : (compType === 'factura_c' ? 'C' : 'B');
-    const cliente = data.clienteNombre || 'Consumidor Final';
-    const clienteCuit = data.clienteCuit || (data.cuit.startsWith('99') ? 'Consumidor Final' : data.cuit);
-
-    // Top Brand Accent Line
-    doc.setFillColor(...BRAND.brown);
-    doc.rect(margin, y, 182, 1.5, 'F');
-    y += 4;
-
-    // Header Content Layout (Clean & Open)
-    if (logo) {
-      addLogo(doc, logo, margin, y, 22);
+    const compType = (data.tipoComprobante || '').toLowerCase();
+    
+    let letter = 'B';
+    let codComprobante = 'COD. 006';
+    if (compType === 'factura_a') {
+      letter = 'A';
+      codComprobante = 'COD. 001';
+    } else if (compType === 'factura_b') {
+      letter = 'B';
+      codComprobante = 'COD. 006';
+    } else if (compType === 'factura_c') {
+      letter = 'C';
+      codComprobante = 'COD. 011';
+    } else if (compType === 'ticket_a') {
+      letter = 'A';
+      codComprobante = 'COD. 201';
+    } else if (compType === 'ticket_b') {
+      letter = 'B';
+      codComprobante = 'COD. 206';
     }
-    
-    const detailsX = logo ? margin + 26 : margin;
-    
-    doc.setTextColor(...BRAND.brown);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text(data.nombreComercial.toUpperCase(), detailsX, y + 5);
-    
-    doc.setTextColor(...BRAND.dark);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.text(data.razonSocial, detailsX, y + 10);
-    
-    doc.setTextColor(...BRAND.muted);
-    doc.setFontSize(8);
-    doc.text(`${data.direccion} | Tel: ${data.telefono}`, detailsX, y + 14);
-    doc.text(`Email: ${data.email}`, detailsX, y + 18);
 
-    // Invoice type letter badge on the right
-    doc.setFillColor(...BRAND.cream);
-    doc.rect(margin + 152, y, 30, 20, 'F');
-    doc.setDrawColor(...BRAND.brown);
+    const cliente = data.clienteNombre || 'Consumidor Final';
+    const clienteCuit = data.clienteCuit || (data.clienteDniCuit || '99-99999999-9');
+    const fechaEmision = data.fechaHora.split(' ')[0] || new Date().toLocaleDateString('es-AR');
+
+    const formatAfipDate = (dateStr?: string) => {
+      if (!dateStr) return '';
+      if (dateStr.includes('/')) return dateStr;
+      if (dateStr.length === 8) {
+        return `${dateStr.substring(6, 8)}/${dateStr.substring(4, 6)}/${dateStr.substring(0, 4)}`;
+      }
+      return dateStr;
+    };
+
+    const moneyNoSign = (val: number) => money(val).replace('$', '').trim();
+    const formatNumber = moneyNoSign;
+
+    // 1. Recuadro ORIGINAL en la parte superior
+    doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.3);
-    doc.rect(margin + 152, y, 30, 20, 'D');
-
-    doc.setTextColor(...BRAND.brown);
+    doc.rect(margin, y, 182, 6, 'D');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text(letter, margin + 167, y + 11, { align: 'center' });
-    doc.setTextColor(...BRAND.dark);
-    doc.setFontSize(7);
-    const codComprobante = compType === 'factura_a' ? 'COD. 001' : (compType === 'factura_c' ? 'COD. 011' : 'COD. 006');
-    doc.text(codComprobante, margin + 167, y + 16, { align: 'center' });
-
-    y += 26;
-
-    // Divider Line
-    doc.setDrawColor(...BRAND.line);
-    doc.setLineWidth(0.2);
-    doc.line(margin, y, margin + 182, y);
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('ORIGINAL', margin + 91, y + 4.5, { align: 'center' });
     y += 6;
 
-    // Two Columns for Emisor / Comprobante
-    doc.setTextColor(...BRAND.dark);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DATOS DEL EMISOR', margin, y);
-    doc.text('DATOS DEL COMPROBANTE', margin + 102, y);
-    y += 5;
+    // 2. Cabezal Principal Dividido (Alto: 38mm)
+    const headerY = y;
+    const headerHeight = 38;
+    doc.rect(margin, headerY, 182, headerHeight, 'D');
 
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...BRAND.muted);
-    doc.setFontSize(8.5);
-    doc.text(`CUIT: ${data.cuit}`, margin, y);
-    doc.text(`Comprobante: Factura ${letter}`, margin + 102, y);
-    y += 4.5;
-    doc.text('IVA: Responsable Inscripto', margin, y);
-    doc.text(`Nro Comprobante: ${data.nroComprobante}`, margin + 102, y);
-    y += 4.5;
-    doc.text(`Email: ${data.email}`, margin, y);
-    doc.text(`Fecha/Hora: ${data.fechaHora}`, margin + 102, y);
-    y += 4.5;
-    doc.text(`Mesa: ${data.mesa} | Mozo: ${data.mozo}`, margin + 102, y);
-    y += 8;
-
-    // Customer Card
-    doc.setFillColor(...BRAND.cream);
-    doc.setDrawColor(...BRAND.line);
-    doc.setLineWidth(0.2);
-    doc.rect(margin, y, 182, 16, 'FD');
-
-    doc.setTextColor(...BRAND.brown);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text('DATOS DEL RECEPTOR (CLIENTE)', margin + 4, y + 5);
-
-    doc.setTextColor(...BRAND.dark);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.text(`Cliente: ${cliente}`, margin + 4, y + 11);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.text(`CUIT/DNI: ${clienteCuit}`, margin + 110, y + 11);
+    // Cuadro central de tipo de factura (Letra A/B/C)
+    const xCenter = margin + 91; // 105
+    const wLetterBox = 20;
+    const hLetterBox = 18;
+    const xLetterBox = xCenter - (wLetterBox / 2); // 95
+    doc.rect(xLetterBox, headerY, wLetterBox, hLetterBox, 'D');
     
-    y += 22;
-
-    // Items Table Header
-    doc.setFillColor(...BRAND.brown);
-    doc.rect(margin, y, 182, 7.5, 'F');
-    doc.setTextColor(255, 255, 255);
+    // Letra grande
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text('Cant.', margin + 4, y + 4.8);
-    doc.text('Producto / Descripción', margin + 20, y + 4.8);
-    doc.text('Precio Unit.', margin + 142, y + 4.8, { align: 'right' });
-    doc.text('Subtotal', margin + 178, y + 4.8, { align: 'right' });
+    doc.setFontSize(22);
+    doc.text(letter, xCenter, headerY + 10, { align: 'center' });
+    
+    // Línea divisoria interna
+    doc.line(xLetterBox, headerY + 12, xLetterBox + wLetterBox, headerY + 12);
+    
+    // Código del comprobante
+    doc.setFontSize(7.5);
+    doc.text(codComprobante, xCenter, headerY + 15.5, { align: 'center' });
+
+    // Línea divisoria vertical desde el final del cuadro de la letra hasta abajo
+    doc.line(xCenter, headerY + hLetterBox, xCenter, headerY + headerHeight);
+
+    // Escribir datos del Emisor (Columna Izquierda)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(data.razonSocial.toUpperCase(), margin + 4, headerY + 6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Razón Social: ${data.razonSocial}`, margin + 4, headerY + 13);
+    
+    // Limitar longitud del domicilio comercial
+    const domText = `Domicilio Comercial: ${data.direccion}`;
+    const domLines = doc.splitTextToSize(domText, 82);
+    doc.text(domLines, margin + 4, headerY + 18);
+    
+    doc.text('Condición frente al IVA: IVA Responsable Inscripto', margin + 4, headerY + 28);
+
+    // Escribir datos del Comprobante (Columna Derecha)
+    const rightColX = xCenter + 5;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('FACTURA', rightColX, headerY + 6);
+
+    const parts = (data.nroComprobante || '').split('-');
+    const ptoVtaStr = parts.length === 3 ? parts[1] : '00003';
+    const compNroStr = parts.length === 3 ? parts[2] : String(data.nroComprobante || '1').padStart(8, '0');
+
+    doc.setFontSize(9);
+    doc.text(`Punto de Venta: ${ptoVtaStr}    Comp. Nro: ${compNroStr}`, rightColX, headerY + 12);
+    doc.text(`Fecha de Emisión: ${fechaEmision}`, rightColX, headerY + 17);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`CUIT: ${data.cuit.replace(/-/g, '')}`, rightColX, headerY + 22);
+    doc.text(`Ingresos Brutos: ${data.razonSocial}`, rightColX, headerY + 27);
+    doc.text(`Fecha de Inicio de Actividades: 01/10/2025`, rightColX, headerY + 32);
+
+    y += headerHeight;
+
+    // 3. Recuadro Períodos Facturados (Alto: 6.5mm)
+    y += 2;
+    doc.setDrawColor(0, 0, 0);
+    doc.rect(margin, y, 182, 6.5, 'D');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Período Facturado Desde: ${fechaEmision}`, margin + 4, y + 4.5);
+    doc.text(`Hasta: ${fechaEmision}`, margin + 70, y + 4.5);
+    doc.text(`Fecha de Vto. para el pago: ${fechaEmision}`, margin + 120, y + 4.5);
+    y += 6.5;
+
+    // 4. Recuadro de Datos del Receptor (Alto: 18mm)
+    y += 2;
+    doc.rect(margin, y, 182, 18, 'D');
+    
+    // Fila 1
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text('CUIT:', margin + 4, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(clienteCuit, margin + 14, y + 5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Apellido y Nombre / Razón Social:', margin + 60, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(cliente.slice(0, 48), margin + 110, y + 5);
+
+    // Fila 2
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Condición frente al IVA:', margin + 4, y + 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    const condIvaReceptor = letter === 'A' ? 'IVA Responsable Inscripto' : 'Consumidor Final';
+    doc.text(condIvaReceptor, margin + 38, y + 10);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Domicilio Comercial:', margin + 60, y + 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('-', margin + 92, y + 10);
+
+    // Fila 3
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Condición de venta:', margin + 4, y + 15);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    const condVenta = data.metodosPago.map(mp => mp.metodo.toUpperCase()).join(' + ') || 'EFECTIVO';
+    doc.text(condVenta, margin + 33, y + 15);
+
+    y += 18;
+
+    // 5. Tabla de Productos (Grilla Estilo Oficial)
+    y += 3;
+    const drawTableHeader = (currentY: number) => {
+      doc.setDrawColor(0, 0, 0);
+      doc.setFillColor(235, 235, 235);
+      doc.rect(margin, currentY, 182, 7.5, 'FD');
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(0, 0, 0);
+
+      doc.text('Código', margin + 1, currentY + 4.8);
+      doc.text('Producto / Servicio', margin + 14, currentY + 4.8);
+      doc.text('Cantidad', margin + 84, currentY + 4.8, { align: 'right' });
+      doc.text('U. medida', margin + 93.5, currentY + 4.8, { align: 'center' });
+      doc.text('Precio Unit.', margin + 111, currentY + 4.8, { align: 'right' });
+      doc.text('% Bonif', margin + 123, currentY + 4.8, { align: 'right' });
+      doc.text('Subtotal', margin + 141, currentY + 4.8, { align: 'right' });
+      doc.text('Alícuota IVA', margin + 155, currentY + 4.8, { align: 'center' });
+      doc.text('Subtotal c/IVA', margin + 178, currentY + 4.8, { align: 'right' });
+
+      // Líneas verticales internas de la cabecera
+      const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
+      colPositions.forEach(x => {
+        doc.line(x, currentY, x, currentY + 7.5);
+      });
+    };
+
+    drawTableHeader(y);
     y += 7.5;
 
-    // Items List
-    doc.setTextColor(...BRAND.dark);
+    // Dibujado de Items
+    const rowHeight = 8;
+    const colPositions = [26, 86, 98, 113, 131, 143, 161, 176];
+    
     data.items.forEach((item, i) => {
-      const rowHeight = 8;
-      if (y > 245) {
+      if (y > 200) {
         doc.addPage();
         y = 18;
-        doc.setFillColor(...BRAND.brown);
-        doc.rect(margin, y, 182, 7.5, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.text('Cant.', margin + 4, y + 4.8);
-        doc.text('Producto / Descripción', margin + 20, y + 4.8);
-        doc.text('Precio Unit.', margin + 142, y + 4.8, { align: 'right' });
-        doc.text('Subtotal', margin + 178, y + 4.8, { align: 'right' });
+        drawTableHeader(y);
         y += 7.5;
-        doc.setTextColor(...BRAND.dark);
       }
-      
-      if (i % 2 === 1) {
-        doc.setFillColor(250, 248, 245);
-        doc.rect(margin, y, 182, rowHeight, 'F');
-      }
-      
-      doc.setDrawColor(...BRAND.line);
-      doc.setLineWidth(0.1);
+
+      // Dibujar línea inferior de la fila
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.15);
       doc.line(margin, y + rowHeight, margin + 182, y + rowHeight);
 
-      doc.setFont('helvetica', 'bold');
-      doc.text(String(item.cantidad), margin + 4, y + 5.5);
+      // Dibujar bordes laterales y líneas de columnas internas
+      doc.line(margin, y, margin, y + rowHeight);
+      doc.line(margin + 182, y, margin + 182, y + rowHeight);
+      colPositions.forEach(x => {
+        doc.line(x, y, x, y + rowHeight);
+      });
+
+      const isExemptOrC = letter === 'C';
+      const netPrice = isExemptOrC ? itemUnit(item) : (itemUnit(item) / 1.21);
+      const netSubtotal = isExemptOrC ? item.subtotal : (item.subtotal / 1.21);
+      const alicuota = isExemptOrC ? '0%' : '21%';
+
       doc.setFont('helvetica', 'normal');
-      doc.text(item.descripcion.slice(0, 58), margin + 20, y + 5.5);
-      doc.text(money(itemUnit(item)), margin + 142, y + 5.5, { align: 'right' });
-      doc.text(money(item.subtotal), margin + 178, y + 5.5, { align: 'right' });
+      doc.setFontSize(7.5);
+      doc.setTextColor(60, 60, 60);
+
+      doc.text(String(i + 1).padStart(3, '0'), margin + 1, y + 5.2);
+      doc.text(item.descripcion.slice(0, 48), margin + 14, y + 5.2);
+      doc.text(String(item.cantidad), margin + 84, y + 5.2, { align: 'right' });
+      doc.text('unidades', margin + 93.5, y + 5.2, { align: 'center' });
+      doc.text(formatNumber(netPrice), margin + 111, y + 5.2, { align: 'right' });
+      doc.text('0,00', margin + 123, y + 5.2, { align: 'right' });
+      doc.text(formatNumber(netSubtotal), margin + 141, y + 5.2, { align: 'right' });
+      doc.text(alicuota, margin + 155, y + 5.2, { align: 'center' });
+      doc.text(formatNumber(item.subtotal), margin + 178, y + 5.2, { align: 'right' });
+
       y += rowHeight;
     });
 
     y += 4;
-    if (y > 200) {
+    if (y > 195) {
       doc.addPage();
       y = 18;
     }
-    
-    doc.setDrawColor(...BRAND.line);
-    doc.setLineWidth(0.2);
-    doc.line(margin, y, margin + 182, y);
-    y += 8;
 
-    // Totals Panel
-    const totalX = margin + 116;
-    const totalValueX = margin + 178;
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.dark);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Subtotal Neto', totalX, y);
-    doc.text(money(data.subtotal), totalValueX, y, { align: 'right' });
-    y += 5.5;
-    
-    if (data.descuento > 0) {
-      doc.text('Bonificación', totalX, y);
-      doc.text(`-${money(data.descuento)}`, totalValueX, y, { align: 'right' });
-      y += 5.5;
-    }
-    if (data.propina > 0) {
-      doc.text('Propina Sugerida', totalX, y);
-      doc.text(money(data.propina), totalValueX, y, { align: 'right' });
-      y += 5.5;
-    }
-    doc.text('IVA 21% Incluido', totalX, y);
-    doc.text(money(data.iva), totalValueX, y, { align: 'right' });
-    y += 8;
+    // 6. Recuadro de Totales e Impuestos (Alto: 36mm)
+    const isFacturaC = letter === 'C';
+    const totalVal = data.total;
+    const netVal = isFacturaC ? totalVal : (data.neto || (totalVal / 1.21));
+    const ivaVal = isFacturaC ? 0 : (data.iva || (totalVal - netVal));
 
-    // Total Highlight Box
-    doc.setFillColor(...BRAND.cream);
-    doc.setDrawColor(...BRAND.brown);
-    doc.setLineWidth(0.5);
-    doc.rect(totalX - 4, y - 5, 66, 9.5, 'FD');
-    doc.setTextColor(...BRAND.brown);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('TOTAL GENERAL', totalX, y + 1.2);
-    doc.text(money(data.total), totalValueX, y + 1.2, { align: 'right' });
-    y += 18;
+    const totalsY = y;
+    doc.setDrawColor(0, 0, 0);
+    doc.rect(margin, totalsY, 182, 36, 'D');
 
-    if (y > 220) {
-      doc.addPage();
-      y = 18;
-    }
-    
-    // Payment Methods
-    doc.setTextColor(...BRAND.dark);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.text('MEDIOS DE PAGO', margin, y);
-    y += 5;
+    // Izquierda del Recuadro de Totales
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    data.metodosPago.forEach(mp => {
-      if (y > 245) {
-        doc.addPage();
-        y = 18;
-      }
-      doc.text(`${mp.metodo.toUpperCase()}: ${money(mp.monto)}`, margin, y);
-      y += 4.5;
-    });
-    if (data.vuelto > 0) {
-      if (y > 245) {
-        doc.addPage();
-        y = 18;
-      }
-      doc.text(`Vuelto entregado: ${money(data.vuelto)}`, margin, y);
-      y += 4.5;
-    }
+    doc.setTextColor(60, 60, 60);
+    doc.text('Importe Otros Tributos: $', margin + 25, totalsY + 18);
+    doc.text('0,00', margin + 62, totalsY + 18);
 
-    // AFIP/ARCA Footer CAE + QR
-    y = 260;
-    doc.setDrawColor(...BRAND.line);
+    // Derecha del Recuadro de Totales
+    const rightLabelsX = margin + 115;
+    const rightValuesX = margin + 178;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Importe Neto Gravado: $', rightLabelsX, totalsY + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(moneyNoSign(isFacturaC ? 0 : netVal), rightValuesX, totalsY + 5, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 27%: $', rightLabelsX, totalsY + 9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 9, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 21%: $', rightLabelsX, totalsY + 13);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(moneyNoSign(isFacturaC ? 0 : ivaVal), rightValuesX, totalsY + 13, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 10.5%: $', rightLabelsX, totalsY + 17);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 17, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 5%: $', rightLabelsX, totalsY + 21);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 21, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 2.5%: $', rightLabelsX, totalsY + 25);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 25, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IVA 0%: $', rightLabelsX, totalsY + 29);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 29, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Importe Otros Tributos: $', rightLabelsX, totalsY + 31);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('0,00', rightValuesX, totalsY + 31, { align: 'right' });
+
+    // Fila Total Destacada
+    doc.line(rightLabelsX, totalsY + 32, rightValuesX, totalsY + 32);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Importe Total: $', rightLabelsX, totalsY + 34.5);
+    doc.text(moneyNoSign(totalVal), rightValuesX, totalsY + 34.5, { align: 'right' });
+
+    y += 40;
+
+    // 7. Pie de Página Oficial Fijo al Fondo (CAE + QR + ARCA)
+    const footerY = 255;
+
+    // Línea superior del pie de página
+    doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
-    doc.line(margin, y - 2, margin + 182, y - 2);
+    doc.line(margin, footerY - 2, margin + 182, footerY - 2);
 
+    // Renderizado QR
     if (qrImage) {
       try {
-        doc.addImage(qrImage, 'PNG', margin, y, 18, 18);
+        doc.addImage(qrImage, 'PNG', margin, footerY, 24, 24);
       } catch (err) {
-        doc.setDrawColor(...BRAND.brown);
-        doc.rect(margin, y, 18, 18);
-        doc.setFontSize(5.5);
-        doc.setTextColor(...BRAND.brown);
-        doc.text('AFIP QR', margin + 5, y + 10);
+        doc.rect(margin, footerY, 24, 24);
+        doc.setFontSize(6);
+        doc.text('AFIP QR', margin + 5, footerY + 12);
       }
     } else {
-      doc.setDrawColor(...BRAND.brown);
-      doc.rect(margin, y, 18, 18);
-      doc.setFontSize(5.5);
-      doc.setTextColor(...BRAND.brown);
-      doc.text('AFIP QR', margin + 5, y + 10);
+      doc.rect(margin, footerY, 24, 24);
+      doc.setFontSize(6);
+      doc.text('AFIP QR', margin + 5, footerY + 12);
     }
+
+    // ARCA Branding y Leyenda
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ARCA', margin + 28, footerY + 6);
     
-    doc.setTextColor(...BRAND.muted);
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Comprobante autorizado por AFIP / ARCA`, margin + 24, y + 5);
-    doc.text(`CAE Nro: ${data.cae || '732049182390'} | Vto: ${data.vto || '15/12/2026'}`, margin + 24, y + 10);
-    doc.setTextColor(...BRAND.dark);
+    doc.setFontSize(6);
+    doc.text('Agencia de Recaudación y Control Aduanero', margin + 28, footerY + 9);
+    
+    doc.setFontSize(9);
+    doc.text('Comprobante Autorizado', margin + 28, footerY + 14);
+    
     doc.setFont('helvetica', 'italic');
-    doc.text(data.mensajePie || 'Gracias por su visita.', margin + 24, y + 15);
+    doc.setFontSize(5);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Esta Agencia no se responsabiliza por los datos ingresados en el detalle de la operación', margin + 28, footerY + 18);
+
+    // Número de página centrado
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Pág. 1/1', margin + 91, footerY + 22, { align: 'center' });
+
+    // CAE y Vencimiento a la derecha
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(`CAE N°: ${data.cae || ''}`, margin + 120, footerY + 6);
+    doc.text(`Fecha de Vto. de CAE: ${formatAfipDate(data.vto)}`, margin + 120, footerY + 12);
 
     return doc;
   },
