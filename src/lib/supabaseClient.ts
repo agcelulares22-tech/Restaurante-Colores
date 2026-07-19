@@ -29,11 +29,12 @@ export const resolveSupabaseConfig = (
   env: SupabaseRuntimeEnv = {},
   localConfig: SupabaseLocalConfig = {},
 ): SupabaseConfig => {
-  const url = readEnvString(env, 'VITE_SUPABASE_URL') || localConfig.SUPABASE_URL || '';
-  const key = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY')
-    || readEnvString(env, 'VITE_SUPABASE_ANON_KEY')
-    || localConfig.SUPABASE_ANON_KEY
-    || '';
+  const production = Boolean(env.PROD);
+  const envUrl = readEnvString(env, 'VITE_SUPABASE_URL');
+  const envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY')
+    || readEnvString(env, 'VITE_SUPABASE_ANON_KEY');
+  const url = envUrl || (!production ? localConfig.SUPABASE_URL : '') || '';
+  const key = envKey || (!production ? localConfig.SUPABASE_ANON_KEY : '') || '';
 
   return { url: normalizeSupabaseUrl(url), key: key.trim() };
 };
@@ -42,10 +43,6 @@ export const getSupabaseConfig = (): SupabaseConfig => {
   const env = (import.meta as any).env || {};
   let localUrl = readLocalConfig('colores_pizzeria_supabase_url');
   let localKey = readLocalConfig('colores_pizzeria_supabase_anon_key');
-
-  // Credenciales por defecto para el proyecto Restaurante Colores Pizza
-  const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-  const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
 
   // Si localUrl es un placeholder, limpiamos localStorage
   if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://'))) {
@@ -57,13 +54,14 @@ export const getSupabaseConfig = (): SupabaseConfig => {
     localKey = '';
   }
 
-  const envUrl = readEnvString(env, 'VITE_SUPABASE_URL');
-  const envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') || readEnvString(env, 'VITE_SUPABASE_ANON_KEY');
+  if (!Boolean(env.PROD) && localUrl && localKey) {
+    return { url: normalizeSupabaseUrl(localUrl), key: localKey.trim() };
+  }
 
-  const url = localUrl || envUrl || defaultUrl;
-  const key = localKey || envKey || defaultKey;
-
-  return { url: normalizeSupabaseUrl(url), key: key.trim() };
+  return resolveSupabaseConfig(env, {
+    SUPABASE_URL: localUrl,
+    SUPABASE_ANON_KEY: localKey,
+  });
 };
 
 export const hasSupabaseConfig = (config = getSupabaseConfig()) => {

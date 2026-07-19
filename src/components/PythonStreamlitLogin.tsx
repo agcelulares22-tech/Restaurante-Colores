@@ -11,7 +11,13 @@ import {
 import ElPatronLogo from './ElPatronLogo';
 import { Usuario } from '../types';
 import { INITIAL_USUARIOS } from '../data/initialData';
-import { canLogin, getLoginErrorMessage } from '../lib/loginAuth';
+import {
+  canLogin,
+  getLoginErrorMessage,
+  getProfileUsernameCandidates,
+  getSupabaseAuthEmail,
+  normalizeLoginIdentifier,
+} from '../lib/loginAuth';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import {
   findDemoLoginUser,
@@ -97,8 +103,10 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
+      const normalizedIdentifier = normalizeLoginIdentifier(email);
+      const authEmail = getSupabaseAuthEmail(normalizedIdentifier);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: authEmail,
         password,
       });
 
@@ -109,32 +117,22 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      let profile = null;
-      let profileError = null;
-
-      try {
-        const { data: profileById, error: errById } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id_usuario', authData.user.id)
-          .maybeSingle();
-
-        if (profileById) {
-          profile = profileById;
-        } else {
-          const { data: profileByEmail, error: errByEmail } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('username', authData.user.email)
-            .maybeSingle();
-          profile = profileByEmail;
-          profileError = errByEmail;
-        }
-      } catch (err) {
-        console.warn('Profile fetch error, using email fallback:', err);
-      }
+      const profileCandidates = getProfileUsernameCandidates(
+        normalizedIdentifier,
+        authData.user.email,
+      );
+      const { data: matchingProfiles, error: profileError } = await supabase
+        .from('usuarios')
+        .select('id_usuario,nombre,apellido,username,rol,activo')
+        .in('username', profileCandidates);
 
       if (profileError) throw profileError;
+
+      const profile = profileCandidates
+        .map(candidate => matchingProfiles?.find(user => (
+          normalizeLoginIdentifier(String(user.username ?? '')) === candidate
+        )))
+        .find(Boolean);
 
       if (!profile) {
         setError('Tu cuenta no tiene un perfil operativo asignado.');
@@ -146,7 +144,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      await completeLogin(profile as Usuario);
+      await completeLogin({ ...profile, password: '' } as Usuario);
     } catch (err: unknown) {
       setError(getLoginErrorMessage(err));
     } finally {

@@ -3,25 +3,25 @@ import {
   Database, 
   ShieldCheck, 
   Download, 
-  RefreshCw, 
   Server, 
-  Github, 
   Terminal, 
   CheckCircle, 
-  AlertTriangle, 
-  Play, 
   Activity, 
   FileSpreadsheet,
-  Lock,
-  Compass,
-  Trash
+  Compass
 } from 'lucide-react';
 import { ProductoMenu, Insumo, RecetaEscandallo, Pedido, Mesa } from '../types';
 import SupabaseManager from './SupabaseManager';
 import ElPatronLogo from './ElPatronLogo';
 import { useToast, ToastContainer } from './ToastContainer';
-import { saveArcaCredentials, deleteArcaCredentials, testArcaConnection } from '../services/arcaService';
+import {
+  getArcaEnvironmentLabel,
+  getArcaPuntoVenta,
+  isArcaConfigured,
+  testArcaConnection,
+} from '../services/arcaService';
 import { printerService } from '../services/printerService';
+import { hasSupabaseConfig } from '../lib/supabaseClient';
 
 
 interface SistemaModuleProps {
@@ -52,87 +52,17 @@ export default function SistemaModule({
   onSyncComplete
 }: SistemaModuleProps) {
   const { toast, toasts, removeToast } = useToast();
-  // Test latencies
-  const [dbPingStatus, setDbPingStatus] = useState<'idle' | 'testing' | 'ready'>('idle');
-  const [dbPingMs, setDbPingMs] = useState<number>(0);
-  const [activeDbEngine, setActiveDbEngine] = useState<'SQLite Local (.db)' | 'PostgreSQL / Supabase (Cloud)'>('PostgreSQL / Supabase (Cloud)');
-
   // Real Speed/Latency states
   const [realPingMs, setRealPingMs] = useState<number | null>(null);
-  const [realMbps, setRealMbps] = useState<number | null>(null);
   const [realNetStatus, setRealNetStatus] = useState<'idle' | 'testing' | 'ready' | 'error'>('idle');
 
   // Printer diagnostics states
   const [printerDiagnosticStatus, setPrinterDiagnosticStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle');
   const [printerTestResult, setPrinterTestResult] = useState<string>('');
 
-  // ARCA (AFIP) Credentials Setup States
-  const [arcaCuit, setArcaCuit] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        const val = JSON.parse(stored).cuit;
-        return val ? String(val) : '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaProd, setArcaProd] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).production || false;
-      }
-    } catch {}
-    return false;
-  });
-  const [arcaCert, setArcaCert] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).cert || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaKey, setArcaKey] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).key || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaPtoVta, setArcaPtoVta] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        const val = JSON.parse(stored).puntoVenta;
-        return val ? String(val) : '1';
-      }
-    } catch {}
-    return '1';
-  });
   const [isTestingArca, setIsTestingArca] = useState(false);
-  const [arcaConfigured, setArcaConfigured] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('colores_pizzeria_arca_creds') !== null;
-    } catch { return false; }
-  });
-
-
-  // Selected checklist verification states
-  const [deployChecklist, setDeployChecklist] = useState<{ [id: string]: boolean }>({
-    'db_local': true,
-    'sql_supabase': false,
-    'users_config': true,
-    'menu_receta': false, // will check dynamically
-    'stock_critico': false, // will check dynamically
-    'caja_init': true,
-    'ci_github': true,
-    'secrets_bound': false
-  });
+  const arcaConfigured = isArcaConfigured();
+  const supabaseConfigured = hasSupabaseConfig();
 
   // Database audit of "Productos activos sin receta" (menu items that have no recipes assigned!)
   const menuItemsWithoutRecipe = useMemo(() => {
@@ -147,28 +77,20 @@ export default function SistemaModule({
     return insumos.filter(i => i.stock_actual <= i.stock_minimo);
   }, [insumos]);
 
-  // Real Speed/Latency test
+  // Measure the application's own backend, without sending diagnostics to third parties.
   const runRealNetworkTest = async () => {
     setRealNetStatus('testing');
     const start = Date.now();
     try {
-      const res = await fetch('https://api.cdnjs.com/libraries?limit=1', { cache: 'no-store' });
+      const res = await fetch(`/api/supabase-config?diagnostic=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json();
       const end = Date.now();
       const latency = end - start;
       setRealPingMs(latency);
-
-      const speedStart = Date.now();
-      const speedRes = await fetch('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js', { cache: 'no-store' });
-      const blob = await speedRes.blob();
-      const speedEnd = Date.now();
-      
-      const durationSecs = (speedEnd - speedStart) / 1000;
-      const sizeBits = blob.size * 8;
-      const mbps = (sizeBits / 1000000) / (durationSecs || 0.1);
-      setRealMbps(parseFloat(mbps.toFixed(2)));
       setRealNetStatus('ready');
-      addLog('sistema', `DIAGNOSTICO: Test de red. Latencia: ${latency}ms, Velocidad: ${mbps.toFixed(2)} Mbps`);
-      toast.success('Test de red completado.');
+      addLog('sistema', `DIAGNOSTICO: API de la aplicación respondió en ${latency} ms.`);
+      toast.success('Conectividad con el servidor verificada.');
     } catch {
       setRealNetStatus('error');
       toast.error('Error al medir la velocidad de red.');
@@ -226,16 +148,6 @@ export default function SistemaModule({
       setPrinterTestResult(err.message || 'Error desconocido.');
       toast.error('Fallo en la comunicación con el bridge de impresión.');
     }
-  };
-
-  // Simulate active latencies speed test
-  const triggerSpeedTest = () => {
-    setDbPingStatus('testing');
-    setTimeout(() => {
-      setDbPingMs(Math.floor(Math.random() * 15 + (activeDbEngine === 'SQLite Local (.db)' ? 12 : 110)));
-      setDbPingStatus('ready');
-      addLog('sistema', `DIAGNOSTICO: Test de latencia de red completado en ${activeDbEngine}. Velocidad óptima.`);
-    }, 1200);
   };
 
   // CSV Serialization helper
@@ -326,46 +238,26 @@ export default function SistemaModule({
               </span>
             </div>
   
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  setActiveDbEngine('SQLite Local (.db)');
-                  setDbPingStatus('idle');
-                }}
-                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                  activeDbEngine === 'SQLite Local (.db)'
-                    ? 'border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10'
-                    : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
-                }`}
-              >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 text-left">
                 <div className="flex items-center gap-2">
                   <Database className="w-4 h-4 text-[#4A2D1B]" />
-                  <span className="text-xs font-extrabold text-slate-800">SQLite Local</span>
+                  <span className="text-xs font-extrabold text-slate-800">Cola local PWA</span>
                 </div>
                 <p className="text-[10px] text-slate-450 mt-1 font-medium leading-normal">
-                  Almacenamiento local en archivo plano `data/restaurante.db`. Ideal para operaciones offline.
+                  Conserva comandas pendientes en el navegador cuando no hay red y las sincroniza al recuperar conexión.
                 </p>
-              </button>
+              </div>
   
-              <button
-                onClick={() => {
-                  setActiveDbEngine('PostgreSQL / Supabase (Cloud)');
-                  setDbPingStatus('idle');
-                }}
-                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                  activeDbEngine === 'PostgreSQL / Supabase (Cloud)'
-                    ? 'border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10'
-                    : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
-                }`}
-              >
+              <div className="p-4 rounded-xl border border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10 text-left">
                 <div className="flex items-center gap-2">
                   <Server className="w-4 h-4 text-[#6B4A35]" />
-                  <span className="text-xs font-extrabold text-slate-800">Supabase PG Link</span>
+                  <span className="text-xs font-extrabold text-slate-800">Supabase PostgreSQL</span>
                 </div>
                 <p className="text-[10px] text-slate-450 mt-1 font-medium leading-normal">
-                  Base PostgreSQL en la nube Supabase. Operación simultánea remota escalable de producción.
+                  Persistencia principal con Supabase Auth, PostgreSQL y políticas de seguridad RLS.
                 </p>
-              </button>
+              </div>
             </div>
 
           {/* Double diagnostics block */}
@@ -373,24 +265,18 @@ export default function SistemaModule({
             {/* Speed Test Panel */}
             <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Test de Velocidad de Red</span>
+                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Conectividad del servidor</span>
                 <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 leading-normal">
-                  Mide la latencia real y la velocidad de descarga en vivo de la conexión a internet.
+                  Mide la respuesta del backend de esta aplicación sin contactar servicios externos.
                 </p>
               </div>
 
               {realNetStatus !== 'idle' && (
                 <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-850 text-[11px] font-mono space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-slate-450 dark:text-zinc-400">Latencia (Ping):</span>
+                    <span className="text-slate-450 dark:text-zinc-400">Respuesta API:</span>
                     <span className={`font-black ${realPingMs && realPingMs < 80 ? 'text-emerald-600' : 'text-amber-600'}`}>
                       {realPingMs ? `${realPingMs} ms` : 'Midiendo...'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-450 dark:text-zinc-400">Velocidad:</span>
-                    <span className="font-black text-blue-600">
-                      {realMbps ? `${realMbps} Mbps` : 'Calculando...'}
                     </span>
                   </div>
                 </div>
@@ -403,7 +289,7 @@ export default function SistemaModule({
                 className="w-full py-2 bg-slate-900 dark:bg-zinc-800 text-white text-[10px] font-black uppercase rounded-lg hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0"
               >
                 <Activity className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                {realNetStatus === 'testing' ? 'Analizando Red...' : 'Ejecutar Test de Velocidad'}
+                {realNetStatus === 'testing' ? 'Consultando servidor...' : 'Probar conectividad'}
               </button>
             </div>
 
@@ -572,55 +458,27 @@ export default function SistemaModule({
           </div>
         </div>
 
-        {/* Entorno Servidor Python (requirements.txt) */}
+        {/* Arquitectura real desplegada */}
         <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-md space-y-4 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#FF4B4B] font-mono">requirements.txt</p>
-              <h4 className="font-extrabold text-white text-xs font-sans tracking-tight">
-                Dependencias del Servidor de Producción Python 3.11
-              </h4>
-              <p className="text-[10px] text-slate-400 font-sans mt-0.5">
-                Copia o descarga los paquetes configurados para el login y base relacional PostgreSQL/Supabase.
-              </p>
-            </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-amber-300 font-mono">Arquitectura activa</p>
+            <h4 className="font-extrabold text-white text-xs font-sans tracking-tight">React + Vercel + Supabase</h4>
+            <p className="text-[10px] text-slate-400 font-sans mt-0.5">Componentes que realmente sostienen esta versión del sistema.</p>
           </div>
-
-          <div className="bg-slate-950 rounded-xl p-3 border border-slate-850 font-mono text-[10px] text-slate-300 max-h-[160px] overflow-y-auto scrollbar-thin">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
             {[
-              'libpq-dev',
-              'build-essential',
-              'gcc',
-              'python3-dev',
-              'streamlit>=1.35.0',
-              'pandas>=2.0.0',
-              'plotly>=5.18.0',
-              'python-dotenv>=1.0.0',
-              'psycopg2-binary>=2.9.0',
-              'psycopg>=3.2.0',
-              'psycopg-pool>=3.2.0',
-              'python-escpos>=3.0',
-              'fastapi>=0.109.0',
-              'uvicorn>=0.26.0',
-              'pydantic>=2.0.0',
-              'openpyxl>=3.1.0',
-              'reportlab>=4.2.0',
-              'supabase>=2.3.0',
-              '# Python version for Streamlit Cloud',
-              'python-3.11'
-            ].map((line, idx) => (
-              <div key={idx} className="flex justify-between py-0.5 hover:bg-slate-900 px-1 rounded transition-colors">
-                <span className={line.startsWith('#') ? 'text-slate-500 italic' : line.includes('>=') ? 'text-amber-300/95 font-medium' : 'text-slate-300'}>{line}</span>
-                {!line.startsWith('#') && line.includes('>=') && (
-                  <span className="text-[9px] text-[#FF4B4B] bg-red-950/40 border border-[#FF4B4B]/30 px-1 rounded font-bold">Compilado</span>
-                )}
+              ['Interfaz', 'React, TypeScript y Vite PWA'],
+              ['Base de datos', 'Supabase PostgreSQL con RLS'],
+              ['Autenticación', 'Supabase Auth y perfiles operativos'],
+              ['Funciones', 'Vercel serverless para ARCA'],
+              ['Modo sin red', 'Caché PWA y cola local persistente'],
+              ['Facturación', 'WSAA + WSFE desde el servidor'],
+            ].map(([label, value]) => (
+              <div key={label} className="bg-slate-950 rounded-lg border border-slate-800 p-2.5">
+                <span className="text-slate-500 block uppercase font-bold">{label}</span>
+                <span className="text-slate-200 block mt-0.5">{value}</span>
               </div>
             ))}
-          </div>
-
-          <div className="flex justify-between items-center bg-slate-850 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300">
-            <span>Ubicación del script:</span>
-            <span className="font-mono text-[10px] text-[#FF4B4B] bg-slate-950 px-2 py-0.5 rounded font-bold">backend/login.py</span>
           </div>
         </div>
 
@@ -642,34 +500,34 @@ export default function SistemaModule({
 
           <div className="space-y-3">
             
-            {/* Checklist item 1 */}
+            {/* Persistencia offline */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.db_local}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, db_local: e.target.checked }))}
+                checked
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Base de Datos SQLite inicializada</span>
+                <span className="text-xs font-bold text-slate-100 block">Cola local de recuperación activa</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Base local cargada de manera sincronizada en `data/restaurante.db` lista para persistir.
+                  Las operaciones pendientes no se descartan y se reintentan cuando vuelve la conectividad.
                 </span>
               </div>
             </label>
 
-            {/* Checklist item 2 */}
+            {/* Supabase */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.sql_supabase}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, sql_supabase: e.target.checked }))}
+                checked={supabaseConfigured}
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Link SQL Supabase (PostgreSQL)</span>
+                <span className="text-xs font-bold text-slate-100 block">Supabase PostgreSQL configurado</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Carga del esquema en la nube con `supabase/schema.sql` y enlace con variables secretas `DATABASE_URL`.
+                  La aplicación utiliza Supabase Auth y políticas RLS para proteger los datos operativos.
                 </span>
               </div>
             </label>
@@ -716,18 +574,18 @@ export default function SistemaModule({
               </div>
             </label>
 
-            {/* Checklist item 5 */}
+            {/* Verificación automatizada */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.ci_github}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, ci_github: e.target.checked }))}
+                checked
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Integración Continua (CI) en GitHub</span>
+                <span className="text-xs font-bold text-slate-100 block">Verificación automatizada del código</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Workflow `.github/workflows/ci.yml` configurado para compilar, auditar código de Streamlit/TypeScript y pruebas unitarias de extremo a extremo.
+                  TypeScript, pruebas de regresión, auditoría de configuración y compilación de producción.
                 </span>
               </div>
             </label>
@@ -738,12 +596,14 @@ export default function SistemaModule({
           <div className="bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-[9px] text-slate-400 space-y-1">
             <div className="flex items-center gap-1 text-slate-300 font-extrabold border-b border-slate-800 pb-1 mb-1">
               <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-              STATUS CONSOLA DE PLENO DEPLOY
+              ESTADO DE LA ARQUITECTURA
             </div>
-            <p className="text-emerald-500">✔ python -m py_compile tests_restaurante.py ok</p>
-            <p className="text-emerald-500">✔ npx tsc --noEmit && vite build success</p>
-            <p className="text-slate-300">SQLite Engine: Linked successfully (data/restaurante.db)</p>
-            <p className="text-purple-400">Supabase State: Waiting DB_URL secret assignment</p>
+            <p className="text-emerald-500">✔ React + TypeScript PWA</p>
+            <p className="text-emerald-500">✔ Supabase Auth + PostgreSQL + RLS</p>
+            <p className="text-slate-300">✔ Cola offline con reintentos persistentes</p>
+            <p className={arcaConfigured ? 'text-emerald-400' : 'text-amber-400'}>
+              {arcaConfigured ? `✔ ARCA ${getArcaEnvironmentLabel()} configurado en servidor` : '⚠ ARCA pendiente de configuración en servidor'}
+            </p>
           </div>
         </div>
 
@@ -817,274 +677,56 @@ export default function SistemaModule({
           </div>
         </div>
 
-        {/* ARCA (AFIP) Credentials Configuration Wizard */}
+        {/* ARCA se administra en secretos del servidor; nunca desde el navegador. */}
         <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm space-y-4 mt-6">
           <div className="flex items-center gap-2 border-b border-stone-100 pb-2.5">
-            <Lock className="w-4.5 h-4.5 text-[#624A3E]" />
+            <ShieldCheck className="w-4.5 h-4.5 text-emerald-600" />
             <div className="text-left">
               <h4 className="font-bold text-[#624A3E] text-xs font-sans tracking-tight">
-                Firma Digital & Factura Electrónica (ARCA / AFIP)
+                Facturación Electrónica ARCA protegida
               </h4>
               <p className="text-[10px] text-stone-500 font-medium">
-                Sube tu certificado X.509 y llave privada para autorizar comprobantes electrónicos con CAE.
+                El certificado, la clave privada y los tokens se conservan exclusivamente en el servidor.
               </p>
             </div>
           </div>
 
-          <div className="space-y-3 font-sans">
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">CUIT Emisor (Sólo números)</label>
-              <input
-                type="number"
-                placeholder="Ej. 20384491021"
-                value={arcaCuit}
-                onChange={e => setArcaCuit(e.target.value)}
-                className="w-full text-xs min-h-10 px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] font-semibold">
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Estado</span>
+              <span className={arcaConfigured ? 'text-emerald-700' : 'text-rose-600'}>
+                {arcaConfigured ? 'Configurado en servidor' : 'No configurado'}
+              </span>
             </div>
-
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Punto de Venta</label>
-              <input
-                type="number"
-                placeholder="Ej. 1"
-                value={arcaPtoVta}
-                onChange={e => setArcaPtoVta(e.target.value)}
-                className="w-full text-xs min-h-10 px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
-              />
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Ambiente</span>
+              <span className="text-stone-800">{getArcaEnvironmentLabel()}</span>
             </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-150 text-xs">
-              <span className="font-bold text-stone-700">Entorno del Servidor</span>
-              <div className="flex bg-stone-200 p-0.5 rounded-lg border border-stone-300">
-                <button
-                  type="button"
-                  onClick={() => setArcaProd(false)}
-                  className={`text-[9px] font-black px-2.5 py-1 rounded transition-colors cursor-pointer ${
-                    !arcaProd ? 'bg-white text-stone-850 shadow-xs' : 'text-stone-500'
-                  }`}
-                >
-                  Homologación
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setArcaProd(true)}
-                  className={`text-[9px] font-black px-2.5 py-1 rounded transition-colors cursor-pointer ${
-                    arcaProd ? 'bg-[#624A3E] text-amber-300 shadow-xs' : 'text-stone-500'
-                  }`}
-                >
-                  Producción
-                </button>
-              </div>
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Punto de venta</span>
+              <span className="text-stone-800 font-mono">{String(getArcaPuntoVenta()).padStart(4, '0')}</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Certificado (.crt / .pem)</label>
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-[#624A3E]/40 text-stone-600 rounded-xl text-[10px] font-extrabold text-center cursor-pointer transition-colors shadow-xs truncate block">
-                    {arcaCert ? '✓ Certificado Cargado' : 'Subir Archivo'}
-                    <input
-                      type="file"
-                      accept=".crt,.pem,.txt,.der"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const arrayBuffer = event.target?.result as ArrayBuffer;
-                            if (arrayBuffer) {
-                              const bytes = new Uint8Array(arrayBuffer);
-                              let isPem = false;
-                              try {
-                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
-                                if (header.includes('-----BEGIN') || header.includes('---')) {
-                                  isPem = true;
-                                }
-                              } catch (e) {}
-
-                              if (isPem) {
-                                const text = new TextDecoder('utf-8').decode(bytes);
-                                setArcaCert(text);
-                                toast.success('Certificado PEM cargado.');
-                              } else {
-                                // Convert binary DER to PEM format
-                                let binary = '';
-                                const len = bytes.byteLength;
-                                for (let i = 0; i < len; i++) {
-                                  binary += String.fromCharCode(bytes[i]);
-                                }
-                                const base64 = btoa(binary);
-                                const pem = `-----BEGIN CERTIFICATE-----\n${base64}\n-----END CERTIFICATE-----`;
-                                setArcaCert(pem);
-                                toast.success('Certificado DER binario convertido a PEM con éxito.');
-                              }
-                            }
-                          };
-                          reader.readAsArrayBuffer(file);
-                        }
-                      }}
-                    />
-                  </label>
-                  {arcaCert && (
-                    <button
-                      type="button"
-                      onClick={() => setArcaCert('')}
-                      className="p-2 border border-stone-200 hover:border-red-200 text-stone-550 hover:text-rose-600 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-xs shrink-0"
-                      title="Eliminar"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Clave Privada (.key)</label>
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-[#624A3E]/40 text-stone-600 rounded-xl text-[10px] font-extrabold text-center cursor-pointer transition-colors shadow-xs truncate block">
-                    {arcaKey ? '✓ Clave Privada Cargada' : 'Subir Archivo'}
-                    <input
-                      type="file"
-                      accept=".key,.pem,.txt,.der"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const arrayBuffer = event.target?.result as ArrayBuffer;
-                            if (arrayBuffer) {
-                              const bytes = new Uint8Array(arrayBuffer);
-                              let isPem = false;
-                              try {
-                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
-                                if (header.includes('-----BEGIN') || header.includes('---')) {
-                                  isPem = true;
-                                }
-                              } catch (e) {}
-
-                              if (isPem) {
-                                const text = new TextDecoder('utf-8').decode(bytes);
-                                setArcaKey(text);
-                                toast.success('Clave privada PEM cargada.');
-                              } else {
-                                // Convert binary DER to PEM format
-                                let binary = '';
-                                const len = bytes.byteLength;
-                                for (let i = 0; i < len; i++) {
-                                  binary += String.fromCharCode(bytes[i]);
-                                }
-                                const base64 = btoa(binary);
-                                const pem = `-----BEGIN PRIVATE KEY-----\n${base64}\n-----END PRIVATE KEY-----`;
-                                setArcaKey(pem);
-                                toast.success('Clave privada DER binaria convertida a PEM con éxito.');
-                              }
-                            }
-                          };
-                          reader.readAsArrayBuffer(file);
-                        }
-                      }}
-                    />
-                  </label>
-                  {arcaKey && (
-                    <button
-                      type="button"
-                      onClick={() => setArcaKey('')}
-                      className="p-2 border border-stone-200 hover:border-red-200 text-stone-550 hover:text-rose-600 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-xs shrink-0"
-                      title="Eliminar"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!String(arcaCuit).trim()) {
-                    toast.error('Carga el CUIT del contribuyente.');
-                    return;
-                  }
-                  if (!String(arcaPtoVta).trim()) {
-                    toast.error('Carga el Punto de Venta.');
-                    return;
-                  }
-                  if (!arcaCert || !arcaKey) {
-                    toast.error('Sube el certificado (.crt) y la clave privada (.key).');
-                    return;
-                  }
-                  
-                  const creds = {
-                    cuit: Number(arcaCuit),
-                    cert: arcaCert,
-                    key: arcaKey,
-                    production: arcaProd,
-                    puntoVenta: Number(arcaPtoVta)
-                  };
-                  saveArcaCredentials(creds);
-                  setArcaConfigured(true);
-                  addLog('sistema', `ARCA: Credenciales actualizadas mediante la interfaz de usuario. CUIT: ${arcaCuit}`);
-                  toast.success('Configuración de ARCA guardada exitosamente.');
-                }}
-                className="flex-1 py-2 bg-[#624A3E] hover:bg-[#503C32] text-white rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer text-center"
-              >
-                Guardar Configuración
-              </button>
-
-              {arcaConfigured && (
-                <button
-                  type="button"
-                  disabled={isTestingArca}
-                  onClick={async () => {
-                    setIsTestingArca(true);
-                    toast.info('Verificando firma con WSAA (AFIP)...');
-                    try {
-                      const res = await testArcaConnection();
-                      if (res.success) {
-                        toast.success('Conexión con ARCA establecida exitosamente.');
-                      } else {
-                        toast.error(res.error || 'Error al conectar con ARCA.');
-                      }
-                    } catch (e: any) {
-                      toast.error(e?.message || 'Error inesperado.');
-                    } finally {
-                      setIsTestingArca(false);
-                    }
-                  }}
-                  className="py-2 px-3 bg-stone-900 hover:bg-stone-850 text-amber-300 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {isTestingArca ? 'Probando...' : 'Probar Conexión'}
-                </button>
-              )}
-            </div>
-
-            {arcaConfigured && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm('¿Seguro que deseas eliminar la firma digital de ARCA de la memoria local?')) {
-                    deleteArcaCredentials();
-                    setArcaCuit('');
-                    setArcaCert('');
-                    setArcaKey('');
-                    setArcaPtoVta('1');
-                    setArcaConfigured(false);
-                    addLog('sistema', 'ARCA: Credenciales eliminadas de la memoria local activa.');
-                    toast.success('Credenciales eliminadas de la memoria local.');
-                  }
-                }}
-                className="w-full py-1.5 border border-red-200 hover:bg-rose-50 text-rose-600 rounded-xl text-[9px] font-black uppercase transition-all cursor-pointer text-center"
-              >
-                Desconectar / Eliminar Firma Digital
-              </button>
-            )}
           </div>
+
+          <button
+            type="button"
+            disabled={!arcaConfigured || isTestingArca}
+            onClick={async () => {
+              setIsTestingArca(true);
+              try {
+                const result = await testArcaConnection();
+                if (result.success) toast.success('Conexión autenticada con ARCA establecida correctamente.');
+                else toast.error(result.error || 'ARCA no confirmó la conexión.');
+              } finally {
+                setIsTestingArca(false);
+              }
+            }}
+            className="w-full py-2 px-3 bg-stone-900 hover:bg-stone-800 text-amber-300 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isTestingArca ? 'Verificando con ARCA...' : 'Probar conexión segura'}
+          </button>
         </div>
+
 
       </div>
 

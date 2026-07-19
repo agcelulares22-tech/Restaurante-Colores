@@ -197,13 +197,13 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
       setArcaStatus('running');
       setArcaDetails('Autenticando contra WSAA y probando canal de facturación...');
       try {
-        const isOk = await testArcaConnection();
-        if (isOk) {
+        const result = await testArcaConnection();
+        if (result.success) {
           setArcaStatus('success');
-          setArcaDetails('Autenticación WSAA exitosa. Conexión ARCA homologada activa.');
+          setArcaDetails('Autenticación WSAA exitosa. El canal fiscal de ARCA está activo.');
         } else {
           setArcaStatus('failed');
-          setArcaDetails('Fallo al obtener ticket de acceso de WSAA o error del servidor.');
+          setArcaDetails(result.error || 'Fallo al obtener el ticket de acceso de WSAA.');
         }
       } catch (err: any) {
         setArcaStatus('failed');

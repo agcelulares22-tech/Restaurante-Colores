@@ -2,6 +2,61 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import forge from "node-forge";
 import https from "https";
+import crypto from "node:crypto";
+import { canUseArca, formatArcaDate, normalizeArcaRole, validateArcaInvoicePayload } from "../src/lib/arcaApiSecurity.js";
+
+export type ArcaPemKind = "CERTIFICATE" | "PRIVATE KEY";
+
+const PEM_HEADER = /-----BEGIN ([A-Z0-9 ]+)-----/;
+
+export function normalizeArcaPem(value: string, kind: ArcaPemKind): string {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(kind === "CERTIFICATE" ? "El certificado está vacío." : "La clave privada está vacía.");
+  }
+
+  const normalized = value
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .replace(/^(["'])([\s\S]*)\1$/, "$2")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n?/g, "\n")
+    .trim();
+
+  const label = normalized.match(PEM_HEADER)?.[1];
+  const allowedLabels = kind === "CERTIFICATE"
+    ? ["CERTIFICATE"]
+    : ["PRIVATE KEY", "RSA PRIVATE KEY"];
+
+  if (!label || !allowedLabels.includes(label)) {
+    if (label === "ENCRYPTED PRIVATE KEY") {
+      throw new Error("La clave privada está cifrada. Debe cargarse una clave PEM sin contraseña.");
+    }
+    throw new Error(
+      kind === "CERTIFICATE"
+        ? "El archivo no contiene un certificado X.509 PEM."
+        : "El archivo no contiene una clave privada PEM compatible."
+    );
+  }
+
+  const beginMarker = `-----BEGIN ${label}-----`;
+  const endMarker = `-----END ${label}-----`;
+  const beginIndex = normalized.indexOf(beginMarker);
+  const endIndex = normalized.indexOf(endMarker, beginIndex + beginMarker.length);
+  if (endIndex < 0) {
+    throw new Error(`Falta el cierre ${endMarker}.`);
+  }
+
+  const body = normalized
+    .slice(beginIndex + beginMarker.length, endIndex)
+    .replace(/\s+/g, "");
+  if (!body || !/^[A-Za-z0-9+/]+={0,2}$/.test(body) || body.length % 4 !== 0) {
+    throw new Error("El contenido Base64 del archivo PEM es inválido o está truncado.");
+  }
+
+  const wrappedBody = body.match(/.{1,64}/g)?.join("\n") || "";
+  return `${beginMarker}\n${wrappedBody}\n${endMarker}`;
+}
 
 const URLS = {
   homologacion: {
@@ -16,6 +71,86 @@ const URLS = {
 
 // Caché en memoria del servidor (persiste mientras la función esté tibia en Vercel)
 const globalTaCache: { [cuit: string]: { token: string; sign: string; expiresAt: number } } = {};
+const requestRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+interface ArcaServerConfig {
+  cuit: number;
+  key: string;
+  cert: string;
+  production: boolean;
+  puntoVenta: number;
+}
+
+function readPositiveInteger(value: unknown, name: string): number {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) throw new Error(`${name} no está configurado correctamente.`);
+  return parsed;
+}
+
+function getServerConfig(): ArcaServerConfig {
+  // Compatibilidad transitoria: VITE_ARCA_CERT/KEY siguen disponibles solo en
+  // el runtime de Vercel, pero vite.config.ts impide que entren al navegador.
+  const cert = process.env.ARCA_CERT || process.env.VITE_ARCA_CERT || '';
+  const key = process.env.ARCA_KEY || process.env.VITE_ARCA_KEY || '';
+  const cuit = readPositiveInteger(process.env.ARCA_CUIT || process.env.VITE_ARCA_CUIT, 'ARCA_CUIT');
+  const puntoVenta = readPositiveInteger(process.env.ARCA_PTO_VTA || process.env.VITE_ARCA_PTO_VTA || '1', 'ARCA_PTO_VTA');
+  if (!cert || !key) throw new Error('El certificado o la clave privada ARCA no están configurados en el servidor.');
+  return {
+    cuit,
+    puntoVenta,
+    cert,
+    key,
+    production: String(process.env.ARCA_PROD || process.env.VITE_ARCA_PROD).toLowerCase() === 'true',
+  };
+}
+
+async function authenticateArcaRequest(req: VercelRequest): Promise<{ id: string; role: string }> {
+  const authHeader = Array.isArray(req.headers.authorization)
+    ? req.headers.authorization[0]
+    : req.headers.authorization;
+  const accessToken = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!accessToken) throw Object.assign(new Error('Iniciá sesión para usar la facturación fiscal.'), { statusCode: 401 });
+
+  const supabaseUrl = String(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+  if (!supabaseUrl || !supabaseAnonKey) throw Object.assign(new Error('La validación de usuarios no está configurada.'), { statusCode: 503 });
+
+  const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${accessToken}` },
+  });
+  if (!authResponse.ok) throw Object.assign(new Error('La sesión es inválida o venció.'), { statusCode: 401 });
+  const authUser = await authResponse.json() as { id?: string; email?: string };
+  if (!authUser.id || !authUser.email) throw Object.assign(new Error('La sesión no identifica un usuario.'), { statusCode: 401 });
+
+  const profileResponse = await fetch(`${supabaseUrl}/rest/v1/usuarios?select=username,rol,activo`, {
+    headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${accessToken}` },
+  });
+  if (!profileResponse.ok) throw Object.assign(new Error('No se pudo verificar el perfil operativo.'), { statusCode: 403 });
+  const profiles = await profileResponse.json() as Array<{ username?: string; rol?: string; activo?: boolean }>;
+  const email = authUser.email.trim().toLowerCase();
+  const username = email.split('@')[0];
+  const profile = profiles.find(item => {
+    const candidate = String(item.username || '').trim().toLowerCase();
+    return candidate === username || candidate === email;
+  });
+  if (!profile || profile.activo === false || !canUseArca(profile.rol)) {
+    throw Object.assign(new Error('Tu perfil no tiene permiso para emitir comprobantes fiscales.'), { statusCode: 403 });
+  }
+  return { id: authUser.id, role: normalizeArcaRole(profile.rol) };
+}
+
+function enforceRateLimit(actorId: string): void {
+  const now = Date.now();
+  const current = requestRateLimit.get(actorId);
+  if (!current || current.resetAt <= now) {
+    requestRateLimit.set(actorId, { count: 1, resetAt: now + 60_000 });
+    return;
+  }
+  current.count += 1;
+  if (current.count > 20) {
+    throw Object.assign(new Error('Demasiadas solicitudes fiscales. Esperá un minuto e intentá nuevamente.'), { statusCode: 429 });
+  }
+}
 
 async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000): Promise<{ ok: boolean; status: number; text: () => Promise<string> }> {
   return new Promise((resolve, reject) => {
@@ -80,42 +215,41 @@ function buildTicketReqXml(service: string): string {
 </loginTicketRequest>`;
 }
 
-function sanitizeAndRepairPem(pem: string, defaultType: "CERTIFICATE" | "PRIVATE KEY"): string {
-  let cleaned = pem.trim().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  
-  let type: string = defaultType;
-  if (cleaned.includes("RSA PRIVATE KEY")) {
-    type = "RSA PRIVATE KEY";
-  } else if (cleaned.includes("PRIVATE KEY")) {
-    type = "PRIVATE KEY";
-  } else if (cleaned.includes("CERTIFICATE")) {
-    type = "CERTIFICATE";
-  }
-
-  const beginHeader = `-----BEGIN ${type}-----`;
-  const endHeader = `-----END ${type}-----`;
-
-  if (!cleaned.includes(beginHeader)) {
-    cleaned = beginHeader + "\n" + cleaned;
-  }
-  if (!cleaned.includes(endHeader)) {
-    // Remove any trailing dashes or partial headers at the end
-    cleaned = cleaned.replace(/---+[^\-]*$/, "").trim();
-    cleaned = cleaned + "\n" + endHeader;
-  }
-  return cleaned;
-}
-
 // Firma el XML con el certificado y clave privada usando PKCS#7 / CMS
 function signTicket(xml: string, cert: string, key: string): string {
   const certRaw = cert.includes("-----BEGIN") ? cert : Buffer.from(cert, "base64").toString("utf8");
   const keyRaw = key.includes("-----BEGIN") ? key : Buffer.from(key, "base64").toString("utf8");
 
-  const certPem = sanitizeAndRepairPem(certRaw, "CERTIFICATE");
-  const keyPem = sanitizeAndRepairPem(keyRaw, "PRIVATE KEY");
+  let certPem: string;
+  let keyPem: string;
+  try {
+    certPem = normalizeArcaPem(certRaw, "CERTIFICATE");
+  } catch (error: any) {
+    throw new Error(`Certificado ARCA inválido: ${error?.message || String(error)}`);
+  }
+  try {
+    keyPem = normalizeArcaPem(keyRaw, "PRIVATE KEY");
+  } catch (error: any) {
+    throw new Error(`Clave privada ARCA inválida: ${error?.message || String(error)}`);
+  }
 
-  const forgeCert = forge.pki.certificateFromPem(certPem);
-  const forgeKey = forge.pki.privateKeyFromPem(keyPem);
+  let forgeCert: forge.pki.Certificate;
+  let forgeKey: forge.pki.rsa.PrivateKey;
+  try {
+    forgeCert = forge.pki.certificateFromPem(certPem);
+  } catch (error: any) {
+    throw new Error(`Certificado ARCA inválido: ${error?.message || String(error)}`);
+  }
+  try {
+    forgeKey = forge.pki.privateKeyFromPem(keyPem);
+  } catch (error: any) {
+    throw new Error(`Clave privada ARCA inválida: ${error?.message || String(error)}`);
+  }
+
+  const publicKey = forgeCert.publicKey as forge.pki.rsa.PublicKey;
+  if (!publicKey?.n || !forgeKey?.n || publicKey.n.compareTo(forgeKey.n) !== 0) {
+    throw new Error('El certificado ARCA y la clave privada no corresponden al mismo par criptográfico.');
+  }
 
   const p7 = forge.pkcs7.createSignedData();
   p7.content = forge.util.createBuffer(xml, "utf8");
@@ -185,34 +319,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).end();
   }
 
-  try {
-    const { action, credentials, payload } = req.body;
+  const correlationId = String(req.headers['x-vercel-id'] || crypto.randomUUID());
+  let authorizationSubmitted = false;
+  res.setHeader('X-Correlation-Id', correlationId);
 
-    if (!credentials || !credentials.cuit || !credentials.key || !credentials.cert) {
-      return res.status(400).json({ error: "Credenciales de ARCA incompletas o faltantes" });
+  try {
+    const bodySize = Buffer.byteLength(JSON.stringify(req.body ?? {}), 'utf8');
+    if (bodySize > 100_000) return res.status(413).json({ error: 'La solicitud fiscal es demasiado grande.' });
+
+    const actor = await authenticateArcaRequest(req);
+    enforceRateLimit(actor.id);
+    const { action, payload: rawPayload } = req.body ?? {};
+    if (action !== 'test' && action !== 'createInvoice') {
+      return res.status(400).json({ error: 'Acción fiscal no soportada.', correlationId });
     }
+
+    const credentials = getServerConfig();
+    const payload = action === 'createInvoice' ? validateArcaInvoicePayload(rawPayload) : undefined;
 
     const envUrls = credentials.production ? URLS.produccion : URLS.homologacion;
 
     let auth: { token: string; sign: string };
-    let newWsaaTokenRequested = false;
-    let usingClientToken = false;
+    let usingCachedToken = false;
 
-    const cuitKey = String(credentials.cuit);
+    const cuitKey = `${credentials.production ? 'prod' : 'homo'}:${credentials.cuit}`;
     const cachedGlobal = globalTaCache[cuitKey];
 
     if (cachedGlobal && cachedGlobal.expiresAt > Date.now()) {
       auth = { token: cachedGlobal.token, sign: cachedGlobal.sign };
-      usingClientToken = true;
-    } else if (req.body.wsaaToken && req.body.wsaaToken.token && req.body.wsaaToken.sign) {
-      auth = req.body.wsaaToken;
-      usingClientToken = true;
+      usingCachedToken = true;
     } else {
       try {
         const ltrXml = buildTicketReqXml("wsfe");
         const cms = signTicket(ltrXml, credentials.cert, credentials.key);
         auth = await getWsaaToken(envUrls.wsaa, cms);
-        newWsaaTokenRequested = true;
 
         globalTaCache[cuitKey] = {
           token: auth.token,
@@ -225,7 +365,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (errorMsg.includes("alreadyAuthenticated")) {
           errorMsg = "La AFIP indica que ya posee un Token de Acceso activo para su CUIT y certificado. Para evitar este bloqueo preventivo, por favor espera de 5 a 10 minutos y vuelve a intentar.";
         }
-        return res.status(500).json({ error: errorMsg });
+        return res.status(502).json({ error: errorMsg, correlationId });
       }
     }
 
@@ -242,7 +382,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <fe:Sign>${tokenObj.sign}</fe:Sign>
         <fe:Cuit>${credentials.cuit}</fe:Cuit>
       </fe:Auth>
-      <fe:PtoVta>1</fe:PtoVta>
+      <fe:PtoVta>${credentials.puntoVenta}</fe:PtoVta>
       <fe:CbteTipo>6</fe:CbteTipo>
     </fe:FECompUltimoAutorizado>
   </soap:Body>
@@ -273,8 +413,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           throw new Error("Payload de factura faltante");
         }
 
-        const ptoVta = payload.puntoVenta || 1;
-        const cbteTipo = payload.tipoComprobante || 6;
+        const ptoVta = credentials.puntoVenta;
+        const cbteTipo = payload.tipoComprobante;
 
         const soapLast = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
@@ -315,8 +455,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const nextCbteNum = lastCbteNum + 1;
 
         const isFacturaC = cbteTipo === 11;
-        const baseImp = isFacturaC ? payload.total : (payload.neto || (payload.total / 1.21));
-        const importeIva = isFacturaC ? 0 : (payload.ivaTotal || (payload.total - baseImp));
+        const baseImp = payload.neto;
+        const importeIva = payload.ivaTotal;
 
         const ivaBlock = isFacturaC ? "" : `
             <fe:Iva>
@@ -350,7 +490,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <fe:DocNro>${payload.cliente?.nroDoc || 0}</fe:DocNro>
             <fe:CbteDesde>${nextCbteNum}</fe:CbteDesde>
             <fe:CbteHasta>${nextCbteNum}</fe:CbteHasta>
-            <fe:CbteFch>${new Date().toISOString().split('T')[0].replace(/-/g, "")}</fe:CbteFch>
+            <fe:CbteFch>${formatArcaDate()}</fe:CbteFch>
             <fe:CondicionIVAReceptorId>${payload.cliente?.condicionIva || 5}</fe:CondicionIVAReceptorId>
             <fe:ImpTotal>${payload.total.toFixed(2)}</fe:ImpTotal>
             <fe:ImpTotConc>0.00</fe:ImpTotConc>
@@ -368,6 +508,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </soap:Body>
 </soap:Envelope>`;
 
+        authorizationSubmitted = true;
         const responseInvoice = await fetchWithTimeout(envUrls.wsfe, {
           method: "POST",
           headers: {
@@ -431,15 +572,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const opResult = await performOperation(auth);
       if (opResult.success === false) {
-        return res.status(422).json(opResult);
+        return res.status(422).json({ ...opResult, correlationId });
       }
-      return res.json({
-        ...opResult,
-        wsaaToken: newWsaaTokenRequested ? auth : undefined
-      });
+      return res.json({ ...opResult, correlationId });
     } catch (opErr: any) {
       // Si falló usando el token cacheado, reintentar con uno nuevo
-      if (usingClientToken) {
+      if (usingCachedToken && action === 'test') {
         try {
           const ltrXml = buildTicketReqXml("wsfe");
           const cms = signTicket(ltrXml, credentials.cert, credentials.key);
@@ -453,31 +591,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
           const opResult = await performOperation(auth);
           if (opResult.success === false) {
-            return res.status(422).json(opResult);
+            return res.status(422).json({ ...opResult, correlationId });
           }
-          return res.json({
-            ...opResult,
-            wsaaToken: auth
-          });
+          return res.json({ ...opResult, correlationId });
         } catch (retryErr: any) {
           const detail = retryErr.cause ? ` (${retryErr.cause.message || String(retryErr.cause)})` : '';
           let errorMsg = `${retryErr.message || String(retryErr)}${detail}`;
           if (errorMsg.includes("alreadyAuthenticated")) {
             errorMsg = "La AFIP indica que ya existe un Token de Acceso activo para este certificado y no permite generar uno nuevo. Por favor, espera de 5 a 10 minutos para que el servidor de la AFIP libere la sesión o vuelve a intentar.";
           }
-          return res.status(500).json({ error: errorMsg });
+          return res.status(502).json({ error: errorMsg, correlationId });
         }
       } else {
-        return res.status(500).json({ error: opErr.message || String(opErr) });
+        const message = opErr.message || String(opErr);
+        if (authorizationSubmitted && /timeout|tardÃ³ demasiado|socket|connect|fetch failed/i.test(message)) {
+          return res.status(504).json({
+            error: 'El resultado de ARCA es incierto. No vuelvas a emitir hasta reconciliar el comprobante con ARCA.',
+            uncertain: true,
+            correlationId,
+          });
+        }
+        if (usingCachedToken) delete globalTaCache[cuitKey];
+        return res.status(502).json({ error: message, correlationId });
       }
     }
   } catch (err: any) {
-    console.error("ARCA proxy handler error:", err);
+    console.error("ARCA proxy handler error", { correlationId, message: err?.message || String(err) });
     const detail = err.cause ? ` (${err.cause.message || String(err.cause)})` : '';
     let msg = `${err.message || String(err)}${detail}`;
     if (msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("connect") || msg.toLowerCase().includes("und_err") || msg.includes("fetch failed")) {
       msg = `Error de red al conectar con AFIP: ${msg}. Por favor, vuelve a intentar en unos instantes.`;
     }
-    return res.status(500).json({ error: msg });
+    const statusCode = Number(err?.statusCode) || 500;
+    return res.status(statusCode).json({ error: msg, correlationId });
   }
 }

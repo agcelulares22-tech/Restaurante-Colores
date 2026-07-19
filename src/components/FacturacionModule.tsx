@@ -18,8 +18,9 @@ import { Pedido, ProductoMenu, TicketData, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { ToastContainer, useToast } from './ToastContainer';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, requireArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
 import { useDebounce } from '../hooks/useDebounce';
+import { requireApprovedArcaAuthorization } from '../lib/arcaAuthorization';
 
 interface FacturacionModuleProps {
   pedidos: Pedido[];
@@ -34,7 +35,7 @@ type FacturaExtendida = Factura & {
 };
 
 type TabKey = 'manual' | 'pagos' | 'archivo';
-type EstadoFiltro = 'todos' | 'emitido' | 'nota_credito';
+type EstadoFiltro = 'todos' | 'emitido' | 'nota_credito' | 'rechazado';
 type TipoFiltro = 'todos' | 'ticket' | 'A' | 'B' | 'C' | 'X';
 type MedioFiltro = 'todos' | Factura['medio_pago'];
 
@@ -257,9 +258,9 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       setManualTotal('0');
       setManualObs('');
       setActiveTab('archivo');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('No se pudo emitir el PDF del comprobante.');
+      toast.error(`No se emitió el comprobante: ${err?.message || String(err)}`);
     } finally {
       setIsEmitting(false);
     }
@@ -304,9 +305,9 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       await persistFactura(factura);
       addLog('sistema', `FACTURACION: Pedido #${selectedPending.pedido.id_pedido} convertido en ${factura.nro_ticket}.${arcaResult ? ` CAE: ${arcaResult.cae}` : ''}`);
       setActiveTab('archivo');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('No se pudo emitir el comprobante del pedido.');
+      toast.error(`No se emitió el comprobante del pedido: ${err?.message || String(err)}`);
     } finally {
       setIsEmitting(false);
     }
@@ -332,18 +333,21 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   };
 
   const emitToArca = async (factura: FacturaExtendida): Promise<{ cae: string; vto: string; qr?: string; nroCmp?: number } | null> => {
-    if (!isArcaConfigured()) return null;
-    try {
-      const tipoMap: Record<string, number> = { 'A': 1, 'B': 6, 'X': 11, 'ticket': 206 };
-      const tipoId = tipoMap[factura.tipo || 'ticket'] || 206;
-      const arcaTipo = Object.values(TIPOS_COMPROBANTE).find(t => t.id === tipoId);
-      if (!arcaTipo) return null;
+    if (factura.tipo === 'X') return null;
+    if (!isArcaConfigured()) {
+      throw new Error('ARCA no está configurado. Solo puede generarse un Comprobante X no fiscal.');
+    }
 
-      const { neto, iva } = calcIvaIncluido(factura.total, true);
-      const nroDoc = factura.cuit === '99-99999999-9' ? 0 : parseInt(factura.cuit.replace(/-/g, '').slice(0, 11)) || 0;
-      const docTipo = nroDoc === 0 ? 99 : (factura.cuit.replace(/-/g, '').length >= 11 ? 80 : 96);
+    const tipoMap: Record<string, number> = { 'A': 1, 'B': 6, 'C': 11, 'ticket': 206 };
+    const tipoId = tipoMap[factura.tipo || 'ticket'] || 206;
+    const arcaTipo = Object.values(TIPOS_COMPROBANTE).find(t => t.id === tipoId);
+    if (!arcaTipo) throw new Error('El tipo de comprobante no está habilitado para ARCA.');
 
-      const result = await createArcaInvoice({
+    const { neto, iva } = calcIvaIncluido(factura.total, true);
+    const nroDoc = factura.cuit === '99-99999999-9' ? 0 : parseInt(factura.cuit.replace(/-/g, '').slice(0, 11)) || 0;
+    const docTipo = nroDoc === 0 ? 99 : (factura.cuit.replace(/-/g, '').length >= 11 ? 80 : 96);
+
+    const result = await createArcaInvoice({
         tipoComprobante: tipoId as any,
         puntoVenta: getArcaPuntoVenta(),
         cliente: {
@@ -365,35 +369,25 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
         ivaTotal: iva,
       });
 
-      const cae = result?.CodAutorizacion || result?.CAE || '';
-      const vto = result?.Vencimiento || result?.CAEFchVto || '';
-
-      if (cae) {
-        addLog('sistema', `ARCA: CAE ${cae} emitido para ${factura.nro_ticket}.`);
-        const emitterCuit = getArcaCuit() || parseInt((import.meta as any).env?.VITE_ARCA_CUIT || '30716492514');
-        const qrJson = JSON.stringify({
+    const approval = requireApprovedArcaAuthorization(result);
+    addLog('sistema', `ARCA: CAE ${approval.cae} emitido para ${factura.nro_ticket}.`);
+    const emitterCuit = requireArcaCuit();
+    const qrJson = JSON.stringify({
           ver: 1,
           fecha: new Date().toISOString().split('T')[0],
           cuit: emitterCuit,
           ptoVta: getArcaPuntoVenta(),
           tipoCmp: tipoId,
-          nroCmp: result.nroCmp || 1,
+          nroCmp: approval.nroCmp,
           importe: factura.total,
           moneda: 'PES',
           ctz: 1,
           tipoDocRec: docTipo,
           nroDocRec: nroDoc,
           tipoCodAut: 'E',
-          codAut: parseInt(cae) || 0
+          codAut: parseInt(approval.cae) || 0
         });
-        return { cae, vto, qr: qrJson, nroCmp: result.nroCmp || 1 };
-      }
-      return null;
-    } catch (err: any) {
-      console.error('[ARCA] Error:', err);
-      toast.warning(`ARCA: No se pudo emitir el comprobante electrónico. ${err.message || ''}`);
-      return null;
-    }
+    return { cae: approval.cae, vto: approval.vencimiento, qr: qrJson, nroCmp: approval.nroCmp };
   };
 
   const downloadFacturaPdf = async (factura: FacturaExtendida, pedido?: Pedido) => {
@@ -818,6 +812,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                 <option value="todos">Todos</option>
                 <option value="emitido">Validos</option>
                 <option value="nota_credito">Anulados / NC</option>
+                <option value="rechazado">Rechazados por ARCA</option>
               </select>
             </label>
             <label className="space-y-1">
@@ -1005,9 +1000,10 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
               <tbody>
                 {filtered.map(f => {
                   const isNCD = f.estado === 'nota_credito';
+                  const isRejected = f.estado === 'rechazado';
                   const { neto } = calcIvaIncluido(f.total, f.iva_veintiuno > 0);
                   return (
-                    <tr key={f.id_factura} className={`border-b border-stone-100 hover:bg-stone-50/50 transition-colors ${isNCD ? 'opacity-60 bg-red-50/10' : ''}`}>
+                    <tr key={f.id_factura} className={`border-b border-stone-100 hover:bg-stone-50/50 transition-colors ${isNCD || isRejected ? 'opacity-60 bg-red-50/10' : ''}`}>
                       <td data-label="Nro" className="py-3 px-3 font-mono font-bold text-stone-800">
                         {f.nro_ticket}
                         {f.afip_cae && <span className="block text-[8px] text-emerald-600 font-medium font-sans">CAE: {f.afip_cae}</span>}
@@ -1022,23 +1018,27 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
                       <td data-label="Total" className={`py-3 px-3 text-right font-mono font-extrabold ${isNCD ? 'text-red-500 line-through' : 'text-stone-900'}`}>{money(f.total)}</td>
                       <td data-label="Estado" className="py-3 px-3 text-center">
                         <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                          isNCD 
+                          isNCD || isRejected
                             ? 'bg-rose-50 text-rose-600 border-rose-100' 
                             : f.afip_cae 
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
                               : 'bg-amber-50 text-amber-700 border-amber-100'
                         }`}>
-                          {isNCD ? 'Anulado' : f.afip_cae ? 'CAE ✓' : 'Simulado'}
+                          {isNCD ? 'Anulado' : isRejected ? 'Rechazado por ARCA' : f.afip_cae ? 'CAE ✓' : 'No fiscal'}
                         </span>
                       </td>
                       <td data-label="Acciones" className="py-3 px-3 text-right space-x-1.5 whitespace-nowrap">
-                        <button onClick={() => downloadFacturaPdf(f)} className="p-1.5 rounded-lg bg-stone-50 hover:bg-[#624A3E]/10 text-stone-500 hover:text-[#624A3E] transition-all" title="Descargar PDF">
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => downloadFacturaPdf(f)} className="p-1.5 rounded-lg bg-stone-50 hover:bg-[#624A3E]/10 text-stone-500 hover:text-[#624A3E] transition-all" title="Reimprimir">
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                        {!isNCD && (
+                        {!isRejected && (
+                          <>
+                            <button onClick={() => downloadFacturaPdf(f)} className="p-1.5 rounded-lg bg-stone-50 hover:bg-[#624A3E]/10 text-stone-500 hover:text-[#624A3E] transition-all" title="Descargar PDF">
+                              <Download className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => downloadFacturaPdf(f)} className="p-1.5 rounded-lg bg-stone-50 hover:bg-[#624A3E]/10 text-stone-500 hover:text-[#624A3E] transition-all" title="Reimprimir">
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                        {!isNCD && !isRejected && (
                           <button onClick={() => handleNotaCredito(f.id_factura)} className="p-1 px-2 text-[9px] font-black rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors" title="Anular con nota de credito">
                             Anular
                           </button>

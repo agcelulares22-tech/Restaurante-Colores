@@ -278,9 +278,9 @@ ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Usuarios iniciales
 INSERT INTO public.usuarios (id_usuario, nombre, apellido, username, password, rol, activo) VALUES
-    (1, 'Super Admin', '', 'super@admi.com', 'superadmi2026/', 'superadmin', true),
-    (2, 'Administrador', '', 'admin@colores.com', 'Pizzeriacolores2026/', 'administrador', true),
-    (3, 'Mozo', '', 'mozo@colores.com', 'Pizzeriacoloresmozo2026/', 'mozo', true),
+    (1, 'Super Admin', '', 'super@admi.com', NULL, 'superadmin', true),
+    (2, 'Administrador', '', 'admin@colores.com', NULL, 'administrador', true),
+    (3, 'Mozo', '', 'mozo@colores.com', NULL, 'mozo', true),
     (4, 'Enzo', 'Fernández', 'enzo', '1234', 'mozo', true),
     (5, 'Micaela', 'Gómez', 'micaela', '1234', 'mozo', true),
     (6, 'Damián', 'Martínez', 'damian', '1234', 'cocina', true),

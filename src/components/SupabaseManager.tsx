@@ -80,6 +80,7 @@ export default function SupabaseManager({
   const [showSqlSetupGuide, setShowSqlSetupGuide] = useState(false);
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
+  const runtimeConfigLocked = Boolean((import.meta as any).env?.PROD);
   
   // Statuses
   const [connectionStatus, setConnectionStatus] = useState<'not_configured' | 'testing' | 'connected' | 'error'>('not_configured');
@@ -129,26 +130,11 @@ export default function SupabaseManager({
 
     // Initial load
     const config = getSupabaseConfig();
-    const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-    const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-    const effectiveUrl = config.url.startsWith('https://msmaksbtetcmoaiyywto') ? config.url : defaultUrl;
-    const effectiveKey = config.key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3Rv') ? config.key : defaultKey;
-
-    if (effectiveUrl !== config.url || effectiveKey !== config.key) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('colores_pizzeria_supabase_url', effectiveUrl);
-        localStorage.setItem('colores_pizzeria_supabase_anon_key', effectiveKey);
-        localStorage.removeItem('colores_pizzeria_cache_menu');
-        localStorage.removeItem('colores_pizzeria_cache_categorias');
-        localStorage.removeItem('colores_pizzeria_cache_proveedores');
-        localStorage.removeItem('colores_pizzeria_cache_insumos');
-        localStorage.removeItem('colores_pizzeria_cache_recetas');
-      }
-      resetSupabaseInstance();
-    }
+    const effectiveUrl = config.url;
+    const effectiveKey = config.key;
 
     setUrl(effectiveUrl);
-    setAnonKey(effectiveKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' ? '' : effectiveKey);
+    setAnonKey(effectiveKey.includes('...') ? '' : effectiveKey);
 
     // Auto-test if config looks fully valid
     if (effectiveUrl && effectiveKey && !effectiveKey.includes('...')) {
@@ -241,12 +227,17 @@ export default function SupabaseManager({
     setConnectionMessage('Estableciendo enlace de prueba...');
 
     try {
-      // Temporarily store in local storage to initialize correct client instance.
-      localStorage.setItem('colores_pizzeria_supabase_url', normalizedUrl);
-      localStorage.setItem('colores_pizzeria_supabase_anon_key', normalizedKey);
-      setUrl(normalizedUrl);
-      setAnonKey(normalizedKey);
-      if (configChanged) resetSupabaseInstance();
+      if (runtimeConfigLocked && configChanged) {
+        throw new Error('La configuración de producción sólo puede modificarse desde Vercel.');
+      }
+      if (!runtimeConfigLocked) {
+        // Development-only override for local testing.
+        localStorage.setItem('colores_pizzeria_supabase_url', normalizedUrl);
+        localStorage.setItem('colores_pizzeria_supabase_anon_key', normalizedKey);
+        setUrl(normalizedUrl);
+        setAnonKey(normalizedKey);
+        if (configChanged) resetSupabaseInstance();
+      }
 
       const client = getSupabaseClient();
       if (!client) {
@@ -320,13 +311,17 @@ export default function SupabaseManager({
   };
 
   const handleClearConfig = () => {
+    if (runtimeConfigLocked) {
+      toast.warning('La configuración de producción se administra desde Vercel.');
+      return;
+    }
     localStorage.removeItem('colores_pizzeria_supabase_url');
     localStorage.removeItem('colores_pizzeria_supabase_anon_key');
     setUrl('');
     setAnonKey('');
     resetSupabaseInstance();
     setConnectionStatus('not_configured');
-    setConnectionMessage('Configuración removida. Volviendo a SQLite Local offline.');
+    setConnectionMessage('Configuración local removida. Se utilizará la configuración segura del despliegue.');
     addLog('sistema', 'SUPABASE: Desconectado. Retornando a persistencia interna offline.');
     setScannedTables([]);
     setSelectedTableForInspect(null);
@@ -484,7 +479,7 @@ export default function SupabaseManager({
             }`} />
             {connectionStatus === 'connected' ? 'Enlazado Cloud' :
              connectionStatus === 'testing' ? 'Verificando...' :
-             connectionStatus === 'error' ? 'Fallo Conexión' : ' SQLite Offline'}
+             connectionStatus === 'error' ? 'Fallo Conexión' : 'Sin verificar'}
           </span>
         </div>
       </div>
@@ -498,17 +493,19 @@ export default function SupabaseManager({
             placeholder="https://xxx.supabase.co" 
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            readOnly={runtimeConfigLocked}
             className="w-full text-xs py-1.5 px-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#624A3E]"
           />
         </div>
 
         <div className="md:col-span-5 space-y-1">
-          <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Supabase Client Anon Key</label>
+          <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Supabase Publishable Key</label>
           <input 
             type="password" 
-            placeholder="eyJhbGciOiJIUzI... (Su clave anónima)" 
-            value={anonKey}
+            placeholder="Clave pública del proyecto"
+            value={runtimeConfigLocked ? '••••••••••••••••' : anonKey}
             onChange={(e) => setAnonKey(e.target.value)}
+            readOnly={runtimeConfigLocked}
             className="w-full text-xs py-1.5 px-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
           />
         </div>
@@ -520,10 +517,10 @@ export default function SupabaseManager({
             className="flex-1 py-1.5 px-3 bg-[#624A3E] hover:bg-[#4E3930] text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${connectionStatus === 'testing' ? 'animate-spin' : ''}`} />
-            Conectar
+            {runtimeConfigLocked ? 'Verificar' : 'Conectar'}
           </button>
           
-          {(url || anonKey) && (
+          {!runtimeConfigLocked && (url || anonKey) && (
             <button
               onClick={handleClearConfig}
               className="py-1.5 px-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
@@ -534,6 +531,12 @@ export default function SupabaseManager({
           )}
         </div>
       </div>
+
+      {runtimeConfigLocked && (
+        <p className="text-[10px] text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+          Configuración protegida por el despliegue. Los cambios de URL o clave se realizan únicamente desde las variables de entorno de Vercel.
+        </p>
+      )}
 
       {connectionMessage && (
         <div className={`p-3 rounded-lg text-[11px] leading-snug font-medium flex items-center gap-2 ${
@@ -573,7 +576,7 @@ export default function SupabaseManager({
         {showSqlSetupGuide && (
           <div className="space-y-2.5 animate-fadeIn">
             <p className="text-[10px] text-slate-500 leading-relaxed text-left">
-              Ejecute este script en el <strong>"SQL Editor"</strong> de su consola de Supabase para crear automáticamente todas las tablas relacionales y habilitar el acceso completo de subida/bajada sin restricciones de seguridad (RLS):
+              Este asistente crea la estructura inicial con RLS activado. Después aplique políticas para usuarios <strong>authenticated</strong>; nunca otorgue escritura al rol público <strong>anon</strong>.
             </p>
             <div className="bg-slate-900 text-slate-100 p-3 rounded-xl relative font-mono text-[9px] overflow-hidden group shadow-inner">
               <pre className="overflow-x-auto whitespace-pre max-h-56 leading-relaxed text-left pr-20">
@@ -696,20 +699,20 @@ CREATE TABLE IF NOT EXISTS public.pedido_detalle (
   categoria text NOT NULL
 );
 
--- 2. DESACTIVACIÓN DE RLS PARA PERMITIR LECTURA/ESCRITURA DIRECTA
-ALTER TABLE public.productos_menu DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usuarios DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.mesas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recetas_escandallo DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.promociones DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`}
+-- 2. SEGURIDAD: RLS DEBE PERMANECER ACTIVO
+ALTER TABLE public.productos_menu ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mesas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.insumos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recetas_escandallo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proveedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria_eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedidos_cabecera ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedido_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
+-- Aplique políticas authenticated de la migración de seguridad antes de sincronizar.`}
               </pre>
               <button
                 onClick={() => {
@@ -832,19 +835,20 @@ CREATE TABLE IF NOT EXISTS public.pedido_detalle (
   categoria text NOT NULL
 );
 
--- 2. DESACTIVACIÓN DE RLS PARA PERMITIR LECTURA/ESCRITURA DIRECTA
-ALTER TABLE public.productos_menu DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usuarios DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.mesas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recetas_escandallo DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.promociones DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
+-- 2. SEGURIDAD: RLS DEBE PERMANECER ACTIVO
+ALTER TABLE public.productos_menu ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mesas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.insumos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recetas_escandallo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proveedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria_eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedidos_cabecera ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedido_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
+-- Aplique políticas authenticated de la migración de seguridad antes de sincronizar.`;
                   navigator.clipboard.writeText(sqlCode);
                   setCopiedSql(true);
                   setTimeout(() => setCopiedSql(false), 2000);
@@ -1092,19 +1096,21 @@ ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
                 Panel de Sincronización Bidireccional
               </span>
               <p className="text-[11px] text-slate-500">
-                Llene su base de datos vacía o descargue los datos de producción en calidos flujos bidireccionales.
+                Actualice la vista local con los datos autorizados de producción.
               </p>
             </div>
 
             <div className="flex gap-2 w-full md:w-auto">
-              <button
-                onClick={handleSeedDatabase}
-                disabled={isPushing}
-                className="flex-1 md:flex-none py-1.5 px-3 bg-[#624A3E] hover:bg-[#4E3930] text-white rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                {isPushing ? 'Subiendo...' : 'Sembrar / Subir Locales'}
-              </button>
+              {!runtimeConfigLocked && (
+                <button
+                  onClick={handleSeedDatabase}
+                  disabled={isPushing}
+                  className="flex-1 md:flex-none py-1.5 px-3 bg-[#624A3E] hover:bg-[#4E3930] text-white rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  {isPushing ? 'Subiendo...' : 'Sembrar datos de desarrollo'}
+                </button>
+              )}
 
               <button
                 onClick={handlePullDatabase}
@@ -1120,7 +1126,7 @@ ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
           <div className="flex items-start gap-1.5 text-[10px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
             <Info className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>Políticas de Acceso RLS:</strong> Asegúrese de habilitar los permisos de inserción, actualización y lectura para el rol de clave anónima (anon) en su consola de base de datos Supabase para habilitar la sync automática.
+              <strong>Políticas de Acceso RLS:</strong> la escritura operativa requiere una sesión Supabase autenticada. El rol público anon conserva únicamente la lectura del catálogo público.
             </p>
           </div>
         </div>

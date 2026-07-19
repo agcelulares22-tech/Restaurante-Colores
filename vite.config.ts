@@ -6,6 +6,17 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
   return {
+    // Lista explícita: evita que VITE_ARCA_CERT/VITE_ARCA_KEY terminen en el bundle.
+    envPrefix: [
+      'VITE_SUPABASE_',
+      'VITE_ENABLE_DEMO_LOGIN',
+      'VITE_DEMO_USER',
+      'VITE_DEMO_PASSWORD',
+      'VITE_ARCA_ENABLED',
+      'VITE_ARCA_CUIT',
+      'VITE_ARCA_PROD',
+      'VITE_ARCA_PTO_VTA',
+    ],
     plugins: [react(), tailwindcss(), VitePWA({
       registerType: 'autoUpdate',
       workbox: {
@@ -13,7 +24,6 @@ export default defineConfig(() => {
         skipWaiting: true,
         clientsClaim: true,
         runtimeCaching: [
-          { urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i, handler: 'NetworkFirst', options: { cacheName: 'supabase-api', expiration: { maxEntries: 100, maxAgeSeconds: 300 } } },
           { urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'unsplash-images', expiration: { maxEntries: 50, maxAgeSeconds: 86400 } } }
         ]
       },

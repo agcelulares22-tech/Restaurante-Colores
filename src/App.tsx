@@ -75,7 +75,6 @@ export default function App() {
     isOnline,
     syncQueueSize,
     activeMozo,
-    setActiveMozo,
     activeView,
     minutosGlobal,
     autoTimerRunning,
@@ -299,8 +298,8 @@ export default function App() {
                 activeRol={activeUser.rol}
                 mesas={mesas} pedidos={pedidos} insumos={insumos}
                 productosMenu={productosMenu} usuarios={usuarios}
-                allowedViews={allowedViews} canChangeUser={true}
-                activeMozo={activeMozo} onMozoChange={setActiveMozo}
+                allowedViews={allowedViews} canChangeUser={false}
+                activeMozo={activeMozo} onMozoChange={handleMozoChange}
                 onNavigate={handleNavigate}
                 getSimulatedTimeStr={getSimulatedTimeStr}
                 autoTimerRunning={autoTimerRunning}
@@ -318,7 +317,7 @@ export default function App() {
                 recetas={recetas}
                 usuarios={usuarios}
                 pedidos={pedidos}
-                onMozoChange={setActiveMozo}
+                onMozoChange={handleMozoChange}
                 onCrearPedido={handleCrearPedido}
                 onFacturarMesa={handleFacturarMesa}
                 addLog={addLog}
