@@ -67,7 +67,7 @@ export const hydratePedido = (
 
 export const serializePedidoHeader = (pedido: Pedido) => ({
   id_pedido: pedido.id_pedido,
-  id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
+  id_mesa: (pedido.id_mesa === 999 || pedido.id_mesa === 998 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(pedido.numero_mesa || '').toUpperCase().startsWith('RETIRO')) ? null : (pedido.id_mesa || null),
   numero_mesa: pedido.numero_mesa,
   mozo: pedido.mozo || 'Sistema',
   estado_comanda: pedido.estado_comanda,
@@ -301,9 +301,29 @@ export const pedidosService = {
         console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data, affectedRows: data?.length });
 
         if (!error && (!data || data.length === 0)) {
-          const errMsg = `[pedidosService.update] El update no afectó ninguna fila. Probablemente el pedido ${id} no existe en Supabase.`;
-          console.warn(errMsg);
-          error = { message: errMsg, code: 'ZERO_ROWS_AFFECTED' } as any;
+          console.warn(`[pedidosService.update] El update no afectó ninguna fila. Pedido ${id} no existe en Supabase. Actualizando en cola de sincronización.`);
+          const { syncQueueService } = await import('./syncQueueService');
+          let updatedInQueue = false;
+          const queue = syncQueueService.getQueue();
+          const newQueue = queue.map(item => {
+            if (item.action === 'upsert_pedido' && item.payload && String(item.payload.id_pedido) === String(id)) {
+              updatedInQueue = true;
+              return {
+                ...item,
+                payload: {
+                  ...item.payload,
+                  ...fields
+                }
+              };
+            }
+            return item;
+          });
+          if (updatedInQueue) {
+            syncQueueService.saveQueue(newQueue);
+          } else {
+            syncQueueService.enqueue('update_pedido_estado', { id, fields });
+          }
+          return;
         }
 
         // Dynamic schema fallback: if idempotency_key is missing, strip and retry

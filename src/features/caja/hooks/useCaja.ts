@@ -48,6 +48,8 @@ interface UseCajaProps {
     info: (msg: string) => void;
     warning: (msg: string) => void;
   };
+  cajaSession: CierreCaja | null;
+  setCajaSession: React.Dispatch<React.SetStateAction<CierreCaja | null>>;
 }
 
 function getProcessedPedidoItems(pedido: Pedido, productosMenu: ProductoMenu[]): TicketItem[] {
@@ -122,7 +124,9 @@ export function useCaja({
   onFacturarMesa,
   onCambiarEstadoPedido,
   addLog,
-  toast
+  toast,
+  cajaSession,
+  setCajaSession
 }: UseCajaProps) {
   // Configurable Restaurant Details
   const [restaurante, setRestaurante] = useState(() => {
@@ -153,7 +157,6 @@ export function useCaja({
   const [editRestauranteMode, setEditRestauranteMode] = useState(false);
 
   // Active cashier session states
-  const [cajaSession, setCajaSession] = useState<CierreCaja | null>(null);
   const [sessionInsumos, setSessionInsumos] = useState<CierreCaja[]>([]);
   const [lastFacturas, setLastFacturas] = useState<Factura[]>([]);
   const [allFacturas, setAllFacturas] = useState<Factura[]>([]);
@@ -518,11 +521,23 @@ export function useCaja({
 
   // Pricing calculations
   const orderBreakdowns = useMemo(() => {
-    if (!selectedPedido) return { subtotal: 0, promoDeduction: 0, manualDeduction: 0, baseTotal: 0, propinaValue: 0, ivaValue: 0, finalTotal: 0, itemsCalculados: [] };
+    if (!selectedPedido) return { subtotal: 0, promoDeduction: 0, manualDeduction: 0, couponDeduction: 0, customPriceDeduction: 0, baseTotal: 0, propinaValue: 0, ivaValue: 0, finalTotal: 0, itemsCalculados: [] };
     
     const lineItems = getProcessedPedidoItems(selectedPedido, productosMenu);
 
-    let subtotal = lineItems.reduce((acc, current) => acc + current.subtotal, 0);
+    let subtotal = 0;
+    let customPriceDeduction = 0;
+
+    lineItems.forEach(item => {
+      const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+      const originalPrice = pm ? pm.precio_venta : item.precio_unitario;
+      subtotal += originalPrice * item.cantidad;
+      
+      const diff = originalPrice - item.precio_unitario;
+      if (diff > 0) {
+        customPriceDeduction += diff * item.cantidad;
+      }
+    });
 
     if (splitByProducts && selectedProductsForSplit.length > 0) {
       let itemsToProcess = [...selectedPedido.items];
@@ -536,17 +551,28 @@ export function useCaja({
           precio_unitario: selectedPedido.costo_envio
         });
       }
-      subtotal = itemsToProcess.reduce((acc, item) => {
+      subtotal = 0;
+      customPriceDeduction = 0;
+      itemsToProcess.forEach(item => {
         if (selectedProductsForSplit.includes(item.id_producto)) {
-          const prod = productosMenu.find(p => p.id_producto === item.id_producto);
-          return acc + ((item.precio_unitario ?? prod?.precio_venta ?? 0) * item.cantidad);
+          const pm = productosMenu.find(p => p.id_producto === item.id_producto);
+          const originalPrice = pm ? pm.precio_venta : (item.precio_unitario ?? 0);
+          subtotal += originalPrice * item.cantidad;
+          
+          const diff = originalPrice - (item.precio_unitario ?? 0);
+          if (diff > 0) {
+            customPriceDeduction += diff * item.cantidad;
+          }
         }
-        return acc;
-      }, 0);
+      });
     }
 
     let promoDeduction = 0;
     const appliedPromosList: string[] = [];
+
+    if (customPriceDeduction > 0) {
+      appliedPromosList.push(`Descuento de Comanda`);
+    }
 
     // Filter active database promotions
     const activePromos = promociones.filter(p => p.activo);
@@ -648,7 +674,7 @@ export function useCaja({
     let manualDeduction = tipoDescuento === 'porcentaje'
       ? subtotal * (descuentoPorcentaje / 100)
       : descuentoMonto;
-    let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction);
+    let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction - customPriceDeduction);
     let propinaValue = baseTotal * (propinaPorcentaje / 100);
     let ivaValue = baseTotal * 0.21;
     let finalTotal = Math.max(0, baseTotal + propinaValue - (puntosRedimidos * 10));
@@ -657,6 +683,7 @@ export function useCaja({
       promoDeduction,
       manualDeduction,
       couponDeduction,
+      customPriceDeduction,
       baseTotal,
       propinaValue,
       ivaValue,

@@ -98,7 +98,9 @@ export default function App() {
     handleNavigate,
     handleCrearPedido,
     getSimulatedTimeStr,
-    handleSupabaseSync
+    handleSupabaseSync,
+    cajaSession,
+    setCajaSession
   } = useAppState();
 
   if (!isStreamlitLoggedIn && showCover) {
@@ -336,7 +338,7 @@ export default function App() {
               />
             )}
             {activeView === 'caja' && (
-              <CajaModule pedidos={pedidos} productosMenu={productosMenu} onFacturarMesa={handleFacturarMesa} onCambiarEstadoPedido={handleCambiarEstadoPedido} addLog={addLog} />
+              <CajaModule pedidos={pedidos} productosMenu={productosMenu} onFacturarMesa={handleFacturarMesa} onCambiarEstadoPedido={handleCambiarEstadoPedido} addLog={addLog} cajaSession={cajaSession} setCajaSession={setCajaSession} />
             )}
             {activeView === 'inventario' && (
               <InventoryModule insumos={insumos} productosMenu={productosMenu} recetas={recetas} mermas={mermas}

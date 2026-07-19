@@ -15,6 +15,7 @@ import {
 import { RegistroAsistencia, Usuario } from '../types';
 import { asistenciaService } from '../services/asistenciaService';
 import { useToast, ToastContainer } from './ToastContainer';
+import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 
 interface FichajeModuleProps {
   activeMozo: string;
@@ -179,7 +180,7 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
               setGpsErrorMsg('Error desconocido de geolocalización.');
           }
         },
-        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     };
 
@@ -207,6 +208,23 @@ export default function FichajeModule({ activeMozo, usuarios }: FichajeModulePro
     requestLocation();
     fetchLogs();
   }, [activeMozo]);
+
+  useEffect(() => {
+    const client = tryGetActiveSupabaseClient();
+    if (!client) return;
+
+    const channel = client
+      .channel('realtime_registro_asistencia')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registro_asistencia' }, (payload) => {
+        console.log('[Realtime] Attendance change detected:', payload);
+        fetchLogs();
+      })
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, []);
 
   // Handle Clock-in / Clock-out Action
   const handleFichar = async (tipo: 'ingreso' | 'egreso') => {

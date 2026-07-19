@@ -381,7 +381,7 @@ export const pdfService = {
     // 6. Recuadro de Totales e Impuestos (Alto: 40mm) - Spacing ampliado para evitar superposición
     const isFacturaC = letter === 'C';
     const totalVal = data.total;
-    const netVal = isFacturaC ? totalVal : (data.neto || (totalVal / 1.21));
+    const netVal = isFacturaC ? totalVal : (((data as any).neto || data.subtotal) || (totalVal / 1.21));
     const ivaVal = isFacturaC ? 0 : (data.iva || (totalVal - netVal));
 
     const totalsY = y;

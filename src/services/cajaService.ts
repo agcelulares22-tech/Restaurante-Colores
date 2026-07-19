@@ -151,6 +151,44 @@ export const cajaService = {
     return null;
   },
 
+  async getOpenSessionRemoteActive(): Promise<CierreCaja | null> {
+    try {
+      const supabase = tryGetActiveSupabaseClient();
+      if (!supabase) return null;
+      const { data, error } = await supabase
+        .from('cierres_caja')
+        .select('*')
+        .is('fecha_cierre', null)
+        .order('fecha_apertura', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) {
+        return {
+          id_cierre: data.id_cierre,
+          fecha_apertura: data.fecha_apertura || inferFechaApertura(data.id_cierre),
+          fecha_cierre: null,
+          monto_apertura: parseFloat(data.monto_apertura),
+          monto_ventas: parseFloat(data.monto_ventas),
+          monto_real: null,
+          diferencia: null,
+          observaciones: data.observaciones || '',
+          usuario_cajero: data.usuario_cajero || 'Cajero',
+          registros_totales: {
+            efectivo: 0,
+            debito: 0,
+            credito: 0,
+            transferencia: 0,
+            mercadopago: 0
+          }
+        };
+      }
+    } catch (err) {
+      console.warn('Could not fetch active session from Supabase:', err);
+    }
+    return null;
+  },
+
   async open(montoApertura: number, cajero: string): Promise<CierreCaja> {
     aperturaCajaSchema.parse({ monto_apertura: montoApertura, cajero });
     const session: CierreCaja = {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, Merma, EventoLog, Reserva, Usuario } from '../types';
+import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, Merma, EventoLog, Reserva, Usuario, CierreCaja } from '../types';
 import { 
   INITIAL_USUARIOS,
   INITIAL_MESAS, 
@@ -76,6 +76,7 @@ export function useAppState() {
   const [recetas, setRecetas] = useState<RecetaEscandallo[]>(INITIAL_RECETAS_ESCANDALLO);
   const [pedidos, setPedidos] = useState<Pedido[]>(INITIAL_PEDIDOS);
   const [mermas, setMermas] = useState<Merma[]>([]);
+  const [cajaSession, setCajaSession] = useState<CierreCaja | null>(null);
 
   const [postLoginLoading, setPostLoginLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
@@ -306,6 +307,21 @@ export function useAppState() {
         if ((dbMermas ?? []).length > 0) {
           setMermas(dbMermas ?? []);
         }
+
+        // Try to load the active remote caja session
+        try {
+          const remoteSession = await cajaService.getOpenSessionRemoteActive();
+          if (remoteSession && active) {
+            localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(remoteSession));
+            setCajaSession(remoteSession);
+          } else if (active) {
+            localStorage.removeItem('colores_pizzeria_caja_activa');
+            setCajaSession(null);
+          }
+        } catch (err) {
+          console.warn('Could not fetch active remote caja session on load:', err);
+        }
+
         addLog('sistema', 'SUPABASE: Auto-sincronización exitosa con servidor Supabase.');
       } catch (err) {
         console.warn('Supabase: Falló auto-sync en el arranque. Usando datos SQLite locales.', err);
@@ -373,6 +389,23 @@ export function useAppState() {
               estado: newRow.estado || 'libre',
               comensales: newRow.comensales || undefined
             } : m));
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cierres_caja' }, async (payload: any) => {
+          console.log('[Realtime] cierres_caja event:', payload.eventType, payload);
+          if (!active) return;
+          try {
+            const { cajaService } = await import('../services/cajaService');
+            const remoteSession = await cajaService.getOpenSessionRemoteActive();
+            if (remoteSession) {
+              localStorage.setItem('colores_pizzeria_caja_activa', JSON.stringify(remoteSession));
+              setCajaSession(remoteSession);
+            } else {
+              localStorage.removeItem('colores_pizzeria_caja_activa');
+              setCajaSession(null);
+            }
+          } catch (err) {
+            console.warn('Realtime: failed to reload active caja session:', err);
           }
         })
         .subscribe();
@@ -1101,6 +1134,8 @@ export function useAppState() {
     handleNavigate,
     handleCrearPedido,
     getSimulatedTimeStr,
-    handleSupabaseSync
+    handleSupabaseSync,
+    cajaSession,
+    setCajaSession
   };
 }

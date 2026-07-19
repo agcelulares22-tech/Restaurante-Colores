@@ -58,6 +58,8 @@ interface CajaModuleProps {
   onFacturarMesa: (idPedido: string, alreadyUpdatedInCaja?: boolean, itemsRemaining?: Pedido['items']) => void;
   onCambiarEstadoPedido: (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => void;
   addLog: (tipo: 'pedido_creado' | 'descuento_stock' | 'alerta_stock' | 'comanda_estado' | 'merma_registrada' | 'sistema', mensaje: string) => void;
+  cajaSession: CierreCaja | null;
+  setCajaSession: React.Dispatch<React.SetStateAction<CierreCaja | null>>;
 }
 
 function CajaModule({
@@ -65,7 +67,9 @@ function CajaModule({
   productosMenu,
   onFacturarMesa,
   onCambiarEstadoPedido,
-  addLog
+  addLog,
+  cajaSession,
+  setCajaSession
 }: CajaModuleProps) {
   const { toast, toasts, removeToast } = useToast();
   const [activeSummaryTab, setActiveSummaryTab] = useState<'platos' | 'gastos'>('platos');
@@ -77,7 +81,9 @@ function CajaModule({
     onFacturarMesa,
     onCambiarEstadoPedido,
     addLog,
-    toast
+    toast,
+    cajaSession,
+    setCajaSession
   });
 
   const {
@@ -85,7 +91,6 @@ function CajaModule({
     setRestaurante,
     editRestauranteMode,
     setEditRestauranteMode,
-    cajaSession,
     sessionInsumos,
     lastFacturas,
     allFacturas,
@@ -2323,11 +2328,11 @@ function CajaModule({
                       <span className="font-mono">${orderBreakdowns.subtotal.toLocaleString('es-AR')}</span>
                     </div>
 
-                    {(orderBreakdowns.promoDeduction > 0 || orderBreakdowns.manualDeduction > 0 || (orderBreakdowns.couponDeduction || 0) > 0) && (
+                    {(orderBreakdowns.promoDeduction > 0 || orderBreakdowns.manualDeduction > 0 || (orderBreakdowns.couponDeduction || 0) > 0 || (orderBreakdowns.customPriceDeduction || 0) > 0) && (
                       <>
                         <div className="flex justify-between text-emerald-800 font-bold font-sans">
                           <span>Descuentos:</span>
-                          <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction + (orderBreakdowns.couponDeduction || 0)).toLocaleString('es-AR')}</span>
+                          <span className="font-mono">-${(orderBreakdowns.promoDeduction + orderBreakdowns.manualDeduction + (orderBreakdowns.couponDeduction || 0) + (orderBreakdowns.customPriceDeduction || 0)).toLocaleString('es-AR')}</span>
                         </div>
                         {orderBreakdowns.appliedPromosList && (orderBreakdowns.appliedPromosList as string[]).length > 0 && (
                           <div className="pl-3.5 space-y-0.5">
