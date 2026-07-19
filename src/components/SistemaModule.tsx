@@ -13,14 +13,18 @@ import {
   Activity, 
   FileSpreadsheet,
   Lock,
-  Compass,
-  Trash
+  Compass
 } from 'lucide-react';
 import { ProductoMenu, Insumo, RecetaEscandallo, Pedido, Mesa } from '../types';
 import SupabaseManager from './SupabaseManager';
 import ElPatronLogo from './ElPatronLogo';
 import { useToast, ToastContainer } from './ToastContainer';
-import { saveArcaCredentials, deleteArcaCredentials, testArcaConnection } from '../services/arcaService';
+import {
+  getArcaEnvironmentLabel,
+  getArcaPuntoVenta,
+  isArcaConfigured,
+  testArcaConnection,
+} from '../services/arcaService';
 import { printerService } from '../services/printerService';
 
 
@@ -66,60 +70,8 @@ export default function SistemaModule({
   const [printerDiagnosticStatus, setPrinterDiagnosticStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle');
   const [printerTestResult, setPrinterTestResult] = useState<string>('');
 
-  // ARCA (AFIP) Credentials Setup States
-  const [arcaCuit, setArcaCuit] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        const val = JSON.parse(stored).cuit;
-        return val ? String(val) : '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaProd, setArcaProd] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).production || false;
-      }
-    } catch {}
-    return false;
-  });
-  const [arcaCert, setArcaCert] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).cert || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaKey, setArcaKey] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        return JSON.parse(stored).key || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [arcaPtoVta, setArcaPtoVta] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem('colores_pizzeria_arca_creds');
-      if (stored) {
-        const val = JSON.parse(stored).puntoVenta;
-        return val ? String(val) : '1';
-      }
-    } catch {}
-    return '1';
-  });
   const [isTestingArca, setIsTestingArca] = useState(false);
-  const [arcaConfigured, setArcaConfigured] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('colores_pizzeria_arca_creds') !== null;
-    } catch { return false; }
-  });
+  const arcaConfigured = isArcaConfigured();
 
 
   // Selected checklist verification states
@@ -817,274 +769,56 @@ export default function SistemaModule({
           </div>
         </div>
 
-        {/* ARCA (AFIP) Credentials Configuration Wizard */}
+        {/* ARCA se administra en secretos del servidor; nunca desde el navegador. */}
         <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm space-y-4 mt-6">
           <div className="flex items-center gap-2 border-b border-stone-100 pb-2.5">
-            <Lock className="w-4.5 h-4.5 text-[#624A3E]" />
+            <ShieldCheck className="w-4.5 h-4.5 text-emerald-600" />
             <div className="text-left">
               <h4 className="font-bold text-[#624A3E] text-xs font-sans tracking-tight">
-                Firma Digital & Factura Electrónica (ARCA / AFIP)
+                Facturación Electrónica ARCA protegida
               </h4>
               <p className="text-[10px] text-stone-500 font-medium">
-                Sube tu certificado X.509 y llave privada para autorizar comprobantes electrónicos con CAE.
+                El certificado, la clave privada y los tokens se conservan exclusivamente en el servidor.
               </p>
             </div>
           </div>
 
-          <div className="space-y-3 font-sans">
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">CUIT Emisor (Sólo números)</label>
-              <input
-                type="number"
-                placeholder="Ej. 20384491021"
-                value={arcaCuit}
-                onChange={e => setArcaCuit(e.target.value)}
-                className="w-full text-xs min-h-10 px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] font-semibold">
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Estado</span>
+              <span className={arcaConfigured ? 'text-emerald-700' : 'text-rose-600'}>
+                {arcaConfigured ? 'Configurado en servidor' : 'No configurado'}
+              </span>
             </div>
-
-            <div>
-              <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Punto de Venta</label>
-              <input
-                type="number"
-                placeholder="Ej. 1"
-                value={arcaPtoVta}
-                onChange={e => setArcaPtoVta(e.target.value)}
-                className="w-full text-xs min-h-10 px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] font-mono"
-              />
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Ambiente</span>
+              <span className="text-stone-800">{getArcaEnvironmentLabel()}</span>
             </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-150 text-xs">
-              <span className="font-bold text-stone-700">Entorno del Servidor</span>
-              <div className="flex bg-stone-200 p-0.5 rounded-lg border border-stone-300">
-                <button
-                  type="button"
-                  onClick={() => setArcaProd(false)}
-                  className={`text-[9px] font-black px-2.5 py-1 rounded transition-colors cursor-pointer ${
-                    !arcaProd ? 'bg-white text-stone-850 shadow-xs' : 'text-stone-500'
-                  }`}
-                >
-                  Homologación
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setArcaProd(true)}
-                  className={`text-[9px] font-black px-2.5 py-1 rounded transition-colors cursor-pointer ${
-                    arcaProd ? 'bg-[#624A3E] text-amber-300 shadow-xs' : 'text-stone-500'
-                  }`}
-                >
-                  Producción
-                </button>
-              </div>
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <span className="block text-stone-500 uppercase font-black">Punto de venta</span>
+              <span className="text-stone-800 font-mono">{String(getArcaPuntoVenta()).padStart(4, '0')}</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Certificado (.crt / .pem)</label>
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-[#624A3E]/40 text-stone-600 rounded-xl text-[10px] font-extrabold text-center cursor-pointer transition-colors shadow-xs truncate block">
-                    {arcaCert ? '✓ Certificado Cargado' : 'Subir Archivo'}
-                    <input
-                      type="file"
-                      accept=".crt,.pem,.txt,.der"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const arrayBuffer = event.target?.result as ArrayBuffer;
-                            if (arrayBuffer) {
-                              const bytes = new Uint8Array(arrayBuffer);
-                              let isPem = false;
-                              try {
-                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
-                                if (header.includes('-----BEGIN') || header.includes('---')) {
-                                  isPem = true;
-                                }
-                              } catch (e) {}
-
-                              if (isPem) {
-                                const text = new TextDecoder('utf-8').decode(bytes);
-                                setArcaCert(text);
-                                toast.success('Certificado PEM cargado.');
-                              } else {
-                                // Convert binary DER to PEM format
-                                let binary = '';
-                                const len = bytes.byteLength;
-                                for (let i = 0; i < len; i++) {
-                                  binary += String.fromCharCode(bytes[i]);
-                                }
-                                const base64 = btoa(binary);
-                                const pem = `-----BEGIN CERTIFICATE-----\n${base64}\n-----END CERTIFICATE-----`;
-                                setArcaCert(pem);
-                                toast.success('Certificado DER binario convertido a PEM con éxito.');
-                              }
-                            }
-                          };
-                          reader.readAsArrayBuffer(file);
-                        }
-                      }}
-                    />
-                  </label>
-                  {arcaCert && (
-                    <button
-                      type="button"
-                      onClick={() => setArcaCert('')}
-                      className="p-2 border border-stone-200 hover:border-red-200 text-stone-550 hover:text-rose-600 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-xs shrink-0"
-                      title="Eliminar"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-stone-500 uppercase block mb-1">Clave Privada (.key)</label>
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-[#624A3E]/40 text-stone-600 rounded-xl text-[10px] font-extrabold text-center cursor-pointer transition-colors shadow-xs truncate block">
-                    {arcaKey ? '✓ Clave Privada Cargada' : 'Subir Archivo'}
-                    <input
-                      type="file"
-                      accept=".key,.pem,.txt,.der"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const arrayBuffer = event.target?.result as ArrayBuffer;
-                            if (arrayBuffer) {
-                              const bytes = new Uint8Array(arrayBuffer);
-                              let isPem = false;
-                              try {
-                                const header = new TextDecoder('utf-8').decode(bytes.slice(0, 50));
-                                if (header.includes('-----BEGIN') || header.includes('---')) {
-                                  isPem = true;
-                                }
-                              } catch (e) {}
-
-                              if (isPem) {
-                                const text = new TextDecoder('utf-8').decode(bytes);
-                                setArcaKey(text);
-                                toast.success('Clave privada PEM cargada.');
-                              } else {
-                                // Convert binary DER to PEM format
-                                let binary = '';
-                                const len = bytes.byteLength;
-                                for (let i = 0; i < len; i++) {
-                                  binary += String.fromCharCode(bytes[i]);
-                                }
-                                const base64 = btoa(binary);
-                                const pem = `-----BEGIN PRIVATE KEY-----\n${base64}\n-----END PRIVATE KEY-----`;
-                                setArcaKey(pem);
-                                toast.success('Clave privada DER binaria convertida a PEM con éxito.');
-                              }
-                            }
-                          };
-                          reader.readAsArrayBuffer(file);
-                        }
-                      }}
-                    />
-                  </label>
-                  {arcaKey && (
-                    <button
-                      type="button"
-                      onClick={() => setArcaKey('')}
-                      className="p-2 border border-stone-200 hover:border-red-200 text-stone-550 hover:text-rose-600 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-xs shrink-0"
-                      title="Eliminar"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!String(arcaCuit).trim()) {
-                    toast.error('Carga el CUIT del contribuyente.');
-                    return;
-                  }
-                  if (!String(arcaPtoVta).trim()) {
-                    toast.error('Carga el Punto de Venta.');
-                    return;
-                  }
-                  if (!arcaCert || !arcaKey) {
-                    toast.error('Sube el certificado (.crt) y la clave privada (.key).');
-                    return;
-                  }
-                  
-                  const creds = {
-                    cuit: Number(arcaCuit),
-                    cert: arcaCert,
-                    key: arcaKey,
-                    production: arcaProd,
-                    puntoVenta: Number(arcaPtoVta)
-                  };
-                  saveArcaCredentials(creds);
-                  setArcaConfigured(true);
-                  addLog('sistema', `ARCA: Credenciales actualizadas mediante la interfaz de usuario. CUIT: ${arcaCuit}`);
-                  toast.success('Configuración de ARCA guardada exitosamente.');
-                }}
-                className="flex-1 py-2 bg-[#624A3E] hover:bg-[#503C32] text-white rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer text-center"
-              >
-                Guardar Configuración
-              </button>
-
-              {arcaConfigured && (
-                <button
-                  type="button"
-                  disabled={isTestingArca}
-                  onClick={async () => {
-                    setIsTestingArca(true);
-                    toast.info('Verificando firma con WSAA (AFIP)...');
-                    try {
-                      const res = await testArcaConnection();
-                      if (res.success) {
-                        toast.success('Conexión con ARCA establecida exitosamente.');
-                      } else {
-                        toast.error(res.error || 'Error al conectar con ARCA.');
-                      }
-                    } catch (e: any) {
-                      toast.error(e?.message || 'Error inesperado.');
-                    } finally {
-                      setIsTestingArca(false);
-                    }
-                  }}
-                  className="py-2 px-3 bg-stone-900 hover:bg-stone-850 text-amber-300 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {isTestingArca ? 'Probando...' : 'Probar Conexión'}
-                </button>
-              )}
-            </div>
-
-            {arcaConfigured && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm('¿Seguro que deseas eliminar la firma digital de ARCA de la memoria local?')) {
-                    deleteArcaCredentials();
-                    setArcaCuit('');
-                    setArcaCert('');
-                    setArcaKey('');
-                    setArcaPtoVta('1');
-                    setArcaConfigured(false);
-                    addLog('sistema', 'ARCA: Credenciales eliminadas de la memoria local activa.');
-                    toast.success('Credenciales eliminadas de la memoria local.');
-                  }
-                }}
-                className="w-full py-1.5 border border-red-200 hover:bg-rose-50 text-rose-600 rounded-xl text-[9px] font-black uppercase transition-all cursor-pointer text-center"
-              >
-                Desconectar / Eliminar Firma Digital
-              </button>
-            )}
           </div>
+
+          <button
+            type="button"
+            disabled={!arcaConfigured || isTestingArca}
+            onClick={async () => {
+              setIsTestingArca(true);
+              try {
+                const result = await testArcaConnection();
+                if (result.success) toast.success('Conexión autenticada con ARCA establecida correctamente.');
+                else toast.error(result.error || 'ARCA no confirmó la conexión.');
+              } finally {
+                setIsTestingArca(false);
+              }
+            }}
+            className="w-full py-2 px-3 bg-stone-900 hover:bg-stone-800 text-amber-300 rounded-xl text-[10px] font-black uppercase transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isTestingArca ? 'Verificando con ARCA...' : 'Probar conexión segura'}
+          </button>
         </div>
+
 
       </div>
 

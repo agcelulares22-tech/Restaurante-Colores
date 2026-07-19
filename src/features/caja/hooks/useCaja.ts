@@ -18,7 +18,7 @@ import { printerService } from '../../../services/printerService';
 import { facturacionService, Factura } from '../../../services/facturacionService';
 import { auditoriaService } from '../../../services/auditoriaService';
 import { clientesService } from '../../../services/clientesService';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaPuntoVenta } from '../../../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, requireArcaCuit, getArcaPuntoVenta } from '../../../services/arcaService';
 import { promocionesService, Promocion } from '../../../services/promocionesService';
 import { requireApprovedArcaAuthorization } from '../../../lib/arcaAuthorization';
 
@@ -903,7 +903,7 @@ export function useCaja({
             arcaQr = JSON.stringify({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
-              cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
+              cuit: requireArcaCuit(),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
               nroCmp: approval.nroCmp,
@@ -1477,7 +1477,7 @@ export function useCaja({
             arcaQr = JSON.stringify({
               ver: 1,
               fecha: new Date().toISOString().split('T')[0],
-              cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
+              cuit: requireArcaCuit(),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
               nroCmp: approval.nroCmp,

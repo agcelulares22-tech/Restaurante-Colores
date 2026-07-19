@@ -79,7 +79,7 @@ export default function UsuariosModule({ usuarios, onUsuariosChange, addLog, act
       nombre: normalizedNombre,
       apellido: normalizedApellido,
       username: normalizedNombre.trim().toLowerCase(),
-      password: '1234',
+      password: '',
       rol,
       activo: true
     };
@@ -118,39 +118,37 @@ export default function UsuariosModule({ usuarios, onUsuariosChange, addLog, act
       toast.error('No tenés permisos para asignar el rol Super Admin.');
       return;
     }
-    const updated = usuarios.map(u => {
-      if (u.id_usuario === id) {
-        const changed = { ...u, nombre: editNombre.trim(), apellido: editApellido.trim(), rol: editRol };
-        usuariosService.update(id, { nombre: editNombre.trim(), apellido: editApellido.trim(), rol: editRol }).catch(() => {});
-        addLog('sistema', `USUARIOS: Modificado usuario '${u.nombre} ${u.apellido}' → '${editNombre} ${editApellido}' (${editRol})`);
-        return changed;
-      }
-      return u;
-    });
-    onUsuariosChange(updated);
-    setEditingId(null);
-    toast.success('Usuario actualizado correctamente.');
-  };
 
-  const handleToggleActivo = (id: number) => {
+    try {
+      const persisted = await usuariosService.update(id, {
+        nombre: editNombre.trim(),
+        apellido: editApellido.trim(),
+        rol: editRol,
+      });
+      onUsuariosChange(usuarios.map(user => user.id_usuario === id ? persisted : user));
+      addLog('sistema', `USUARIOS: Modificado usuario '${target?.nombre} ${target?.apellido}' → '${editNombre} ${editApellido}' (${editRol})`);
+      setEditingId(null);
+      toast.success('Usuario actualizado correctamente.');
+    } catch {
+      toast.error('No se pudo actualizar el usuario en Supabase. No se aplicaron cambios.');
+    }
+  };
+  const handleToggleActivo = async (id: number) => {
     const target = usuarios.find(u => u.id_usuario === id);
     if (!target) return;
     if (target.rol === 'superadmin' && activeUser?.rol !== 'superadmin') {
       toast.error('No tenés permisos para modificar un usuario Super Admin.');
       return;
     }
-    const nextActivo = target.activo === false ? true : false;
-    const updated = usuarios.map(u => {
-      if (u.id_usuario === id) {
-        usuariosService.update(id, { activo: nextActivo }).catch(() => {});
-        addLog('sistema', `USUARIOS: Usuario '${u.nombre} ${u.apellido}' ${nextActivo ? 'habilitado' : 'deshabilitado'}`);
-        return { ...u, activo: nextActivo };
-      }
-      return u;
-    });
-    onUsuariosChange(updated);
+    const nextActivo = target.activo === false;
+    try {
+      const persisted = await usuariosService.update(id, { activo: nextActivo });
+      onUsuariosChange(usuarios.map(user => user.id_usuario === id ? persisted : user));
+      addLog('sistema', `USUARIOS: Usuario '${target.nombre} ${target.apellido}' ${nextActivo ? 'habilitado' : 'deshabilitado'}`);
+    } catch {
+      toast.error('No se pudo cambiar el estado del usuario. No se aplicaron cambios.');
+    }
   };
-
   const handleDeleteUsuario = async (id: number) => {
     setDeleteConfirm(null);
     const target = usuarios.find(u => u.id_usuario === id);

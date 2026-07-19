@@ -123,7 +123,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
       );
       const { data: matchingProfiles, error: profileError } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('id_usuario,nombre,apellido,username,rol,activo')
         .in('username', profileCandidates);
 
       if (profileError) throw profileError;
@@ -144,7 +144,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      await completeLogin(profile as Usuario);
+      await completeLogin({ ...profile, password: '' } as Usuario);
     } catch (err: unknown) {
       setError(getLoginErrorMessage(err));
     } finally {

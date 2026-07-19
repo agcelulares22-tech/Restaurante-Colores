@@ -2,12 +2,23 @@ import { getActiveSupabaseClient } from '../lib/supabaseClient';
 import { Usuario } from '../types';
 
 const LOCAL_USERS_KEY = 'colores_pizzeria_usuarios_locales';
+const USER_PROFILE_COLUMNS = 'id_usuario,nombre,apellido,username,rol,activo';
+
+const sanitizeUsuario = (usuario: Usuario): Usuario => ({
+  ...usuario,
+  password: '',
+});
+
+const withoutPassword = (usuario: Partial<Usuario>): Partial<Usuario> => {
+  const { password: _password, ...profile } = usuario;
+  return profile;
+};
 
 const readLocalUsers = (): Usuario[] => {
   if (typeof localStorage === 'undefined') return [];
   try {
     const parsed = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(sanitizeUsuario) : [];
   } catch {
     return [];
   }
@@ -15,7 +26,7 @@ const readLocalUsers = (): Usuario[] => {
 
 const writeLocalUsers = (usuarios: Usuario[]) => {
   if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(usuarios));
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(usuarios.map(sanitizeUsuario)));
 };
 
 export const mergeUsuarios = (remote: Usuario[], local: Usuario[]): Usuario[] => {
@@ -38,9 +49,9 @@ export const usuariosService = {
     const local = readLocalUsers();
     try {
       const supabase = getActiveSupabaseClient();
-      const { data, error } = await supabase.from('usuarios').select('*').order('id_usuario', { ascending: true });
+      const { data, error } = await supabase.from('usuarios').select(USER_PROFILE_COLUMNS).order('id_usuario', { ascending: true });
       if (error) throw error;
-      const resolved = resolveUsuariosForOnlineSync(data || [], local);
+      const resolved = resolveUsuariosForOnlineSync((data || []).map(user => sanitizeUsuario(user as Usuario)), local);
       writeLocalUsers(resolved);
       return resolved;
     } catch (error) {
@@ -53,10 +64,11 @@ export const usuariosService = {
     const local = readLocalUsers().find(usuario => usuario.id_usuario === id) || null;
     try {
       const supabase = getActiveSupabaseClient();
-      const { data, error } = await supabase.from('usuarios').select('*').eq('id_usuario', id).single();
+      const { data, error } = await supabase.from('usuarios').select(USER_PROFILE_COLUMNS).eq('id_usuario', id).single();
       if (error) throw error;
-      if (data) cacheUsuario(data);
-      return data || local;
+      const user = data ? sanitizeUsuario(data as Usuario) : null;
+      if (user) cacheUsuario(user);
+      return user || local;
     } catch {
       return local;
     }
@@ -65,13 +77,14 @@ export const usuariosService = {
   async create(user: Usuario): Promise<Usuario> {
     cacheUsuario(user);
     const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('usuarios').insert([user]).select().single();
+    const { data, error } = await supabase.from('usuarios').insert([withoutPassword(user)]).select(USER_PROFILE_COLUMNS).single();
     if (error) {
       console.error('Error creating usuario:', error);
       throw error;
     }
-    cacheUsuario(data);
-    return data;
+    const sanitized = sanitizeUsuario(data as Usuario);
+    cacheUsuario(sanitized);
+    return sanitized;
   },
 
   async update(id: number, user: Partial<Usuario>): Promise<Usuario> {
@@ -79,24 +92,25 @@ export const usuariosService = {
     if (current) cacheUsuario({ ...current, ...user });
 
     const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('usuarios').update(user).eq('id_usuario', id).select().single();
+    const { data, error } = await supabase.from('usuarios').update(withoutPassword(user)).eq('id_usuario', id).select(USER_PROFILE_COLUMNS).single();
     if (error) {
       console.error('Error updating usuario:', error);
       throw error;
     }
-    cacheUsuario(data);
-    return data;
+    const sanitized = sanitizeUsuario(data as Usuario);
+    cacheUsuario(sanitized);
+    return sanitized;
   },
 
   async upsert(users: Usuario[]): Promise<Usuario[]> {
     writeLocalUsers(mergeUsuarios([], [...readLocalUsers(), ...users]));
     const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('usuarios').upsert(users).select();
+    const { data, error } = await supabase.from('usuarios').upsert(users.map(withoutPassword)).select(USER_PROFILE_COLUMNS);
     if (error) {
       console.error('Error upserting usuarios:', error);
       throw error;
     }
-    const merged = mergeUsuarios(data || [], readLocalUsers());
+    const merged = mergeUsuarios((data || []).map(user => sanitizeUsuario(user as Usuario)), readLocalUsers());
     writeLocalUsers(merged);
     return merged;
   },

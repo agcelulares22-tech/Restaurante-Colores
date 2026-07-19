@@ -18,7 +18,7 @@ import { Pedido, ProductoMenu, TicketData, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { ToastContainer, useToast } from './ToastContainer';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, TIPOS_DOCUMENTO, requireArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
 import { useDebounce } from '../hooks/useDebounce';
 import { requireApprovedArcaAuthorization } from '../lib/arcaAuthorization';
 
@@ -371,7 +371,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
     const approval = requireApprovedArcaAuthorization(result);
     addLog('sistema', `ARCA: CAE ${approval.cae} emitido para ${factura.nro_ticket}.`);
-    const emitterCuit = getArcaCuit() || parseInt((import.meta as any).env?.VITE_ARCA_CUIT || '30716492514');
+    const emitterCuit = requireArcaCuit();
     const qrJson = JSON.stringify({
           ver: 1,
           fecha: new Date().toISOString().split('T')[0],

@@ -15,7 +15,7 @@ import { CierreCaja, TicketData, TicketItem, TipoComprobante } from '../types';
 import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { cajaService } from '../services/cajaService';
-import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
+import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, requireArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
 import { requireApprovedArcaAuthorization } from '../lib/arcaAuthorization';
 
 interface ManualBillingPanelProps {
@@ -341,7 +341,7 @@ export function ManualBillingPanel({
         else if (tipoComprobante === 'Factura C') prefix = 'C';
         nroTicket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
 
-        const emitterCuit = getArcaCuit() || 30716492514;
+        const emitterCuit = requireArcaCuit();
         afipQr = JSON.stringify({
           ver: 1,
           fecha: fechaEmision,
@@ -361,12 +361,13 @@ export function ManualBillingPanel({
 
       // 5. Build Factura Db structure
       const letterCode = nroTicket.charAt(0);
-      const mappedTipoCode: 'ticket' | 'A' | 'B' | 'X' = 
+      const mappedTipoCode: 'ticket' | 'A' | 'B' | 'C' | 'X' =
         letterCode === 'A' ? 'A' :
         letterCode === 'B' ? 'B' :
+        letterCode === 'C' ? 'C' :
         letterCode === 'X' ? 'X' : 'ticket';
 
-      const invoiceToSave: Factura & { tipo?: 'ticket' | 'A' | 'B' | 'X'; observaciones?: string; fecha_emision?: string } = {
+      const invoiceToSave: Factura & { tipo?: 'ticket' | 'A' | 'B' | 'C' | 'X'; observaciones?: string; fecha_emision?: string } = {
         id_factura: `fac_${Date.now()}`,
         id_pedido: undefined,
         nro_ticket: nroTicket,

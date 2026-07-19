@@ -6,6 +6,17 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
   return {
+    // Lista explícita: evita que VITE_ARCA_CERT/VITE_ARCA_KEY terminen en el bundle.
+    envPrefix: [
+      'VITE_SUPABASE_',
+      'VITE_ENABLE_DEMO_LOGIN',
+      'VITE_DEMO_USER',
+      'VITE_DEMO_PASSWORD',
+      'VITE_ARCA_ENABLED',
+      'VITE_ARCA_CUIT',
+      'VITE_ARCA_PROD',
+      'VITE_ARCA_PTO_VTA',
+    ],
     plugins: [react(), tailwindcss(), VitePWA({
       registerType: 'autoUpdate',
       workbox: {
