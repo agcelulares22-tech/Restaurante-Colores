@@ -35,6 +35,7 @@ import {
   dbUpsertRecetas
 } from '../supabase';
 import { createClientPedidoId } from '../lib/pedidoIds';
+import { resolveAuthenticatedProfile } from '../lib/loginAuth';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
   const isP1Delivery = String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
@@ -59,9 +60,8 @@ export function useAppState() {
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // --- Global Synced States ---
-  const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
-    typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
-  ));
+  // Supabase Auth is the source of truth. A browser flag alone must never open the POS.
+  const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(false);
   const [showCover, setShowCover] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -443,40 +443,46 @@ export function useAppState() {
   };
 
   // Terminal active configs & simulation states
-  const [activeMozo, setActiveMozo] = useState<string>('Sofía');
+  const [activeMozo, setActiveMozo] = useState<string>('');
+  const [authenticatedProfileId, setAuthenticatedProfileId] = useState<number | null>(null);
   const [activeView, setActiveView] = useState<AppView>('home');
   const activeUser = useMemo(
-    () => usuarios.find(usuario => usuario.nombre === activeMozo && usuario.activo !== false)
+    () => usuarios.find(usuario => usuario.id_usuario === authenticatedProfileId && usuario.activo !== false)
+      || usuarios.find(usuario => usuario.nombre === activeMozo && usuario.activo !== false)
       || usuarios.find(usuario => usuario.activo !== false)
       || INITIAL_USUARIOS[0],
-    [usuarios, activeMozo]
+    [usuarios, authenticatedProfileId, activeMozo]
   );
 
   const allowedViews = useMemo(() => {
     return getAllowedViews(activeUser.rol);
   }, [activeUser.rol]);
 
-  const applyAuthenticatedSession = useCallback((session: {
-    user?: { user_metadata?: Record<string, unknown> };
+  const applyAuthenticatedSession = useCallback(async (session: {
+    user?: { email?: string | null; user_metadata?: Record<string, unknown> };
   }) => {
-    const metadata = session.user?.user_metadata;
-    const requestedName = metadata?.nombre || metadata?.name;
-    const operator = (
-      typeof requestedName === 'string'
-        ? usuarios.find(usuario => (
-            usuario.activo !== false
-            && usuario.nombre.toLowerCase() === requestedName.trim().toLowerCase()
-          ))
-        : undefined
-    ) || usuarios.find(usuario => usuario.activo !== false && usuario.rol === 'mozo')
-      || usuarios.find(usuario => usuario.activo !== false && usuario.rol !== 'administrador')
-      || usuarios.find(usuario => usuario.activo !== false);
+    // RLS exposes operational profiles only after Auth has established the session.
+    const remoteUsers = await dbFetchUsuarios();
+    const candidates = remoteUsers && remoteUsers.length > 0 ? remoteUsers : usuarios;
+    const operator = resolveAuthenticatedProfile(candidates, session.user);
 
-    if (operator) {
-      setActiveMozo(operator.nombre);
-      setActiveView('home');
-      setIsStreamlitLoggedIn(true);
+    if (!operator) {
+      window.sessionStorage.removeItem('colores_pizzeria_session');
+      setAuthenticatedProfileId(null);
+      setIsStreamlitLoggedIn(false);
+      return;
     }
+
+    if (remoteUsers && remoteUsers.length > 0) {
+      const currentSignature = usuarios.map(user => `${user.id_usuario}:${user.username}:${user.rol}:${user.activo !== false}`).join('|');
+      const remoteSignature = remoteUsers.map(user => `${user.id_usuario}:${user.username}:${user.rol}:${user.activo !== false}`).join('|');
+      if (currentSignature !== remoteSignature) setUsuarios(remoteUsers);
+    }
+    window.sessionStorage.setItem('colores_pizzeria_session', 'active');
+    setAuthenticatedProfileId(operator.id_usuario);
+    setActiveMozo(operator.nombre);
+    setActiveView('home');
+    setIsStreamlitLoggedIn(true);
   }, [usuarios]);
 
   useEffect(() => {
@@ -484,10 +490,15 @@ export function useAppState() {
     if (!client) return;
 
     client.auth.getSession().then(({ data }) => {
-      if (data.session) applyAuthenticatedSession(data.session);
+      if (data.session) void applyAuthenticatedSession(data.session);
     }).catch(err => console.error('Auth session error:', err));
     const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
-      if (session) applyAuthenticatedSession(session);
+      if (session) void applyAuthenticatedSession(session);
+      else {
+        window.sessionStorage.removeItem('colores_pizzeria_session');
+        setAuthenticatedProfileId(null);
+        setIsStreamlitLoggedIn(false);
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, [applyAuthenticatedSession]);
@@ -653,6 +664,10 @@ export function useAppState() {
       toast.error('El usuario seleccionado no está disponible.');
       return;
     }
+    if (authenticatedProfileId !== null && nextUser.id_usuario !== authenticatedProfileId) {
+      toast.error('No se puede cambiar la identidad de una sesión autenticada. Cerrá sesión para ingresar con otro usuario.');
+      return;
+    }
     setActiveMozo(mozo);
     if (!allowedViews.includes(activeView)) {
       setActiveView('home');
@@ -671,6 +686,7 @@ export function useAppState() {
 
   const handleLoginSuccess = (user: Usuario) => {
     window.sessionStorage.setItem('colores_pizzeria_session', 'active');
+    setAuthenticatedProfileId(user.id_usuario);
     setActiveMozo(user.nombre);
     setActiveView('home');
 
@@ -691,6 +707,9 @@ export function useAppState() {
   const handleLogout = () => {
     window.sessionStorage.removeItem('colores_pizzeria_session');
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
+    setAuthenticatedProfileId(null);
+    setActiveMozo('');
+    setActiveView('home');
     setIsStreamlitLoggedIn(false);
   };
 

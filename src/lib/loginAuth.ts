@@ -27,6 +27,39 @@ export function getProfileUsernameCandidates(identifier: string, authEmail?: str
   ].filter(Boolean)));
 }
 
+type AuthSessionUser = {
+  email?: string | null;
+  user_metadata?: Record<string, unknown>;
+};
+
+/** Links a verified Auth identity to exactly one active operational profile. */
+export function resolveAuthenticatedProfile<T extends LoginUser>(
+  users: T[],
+  authUser: AuthSessionUser | null | undefined,
+): T | null {
+  const activeUsers = users.filter(user => user.activo !== false);
+  const metadata = authUser?.user_metadata;
+  const metadataUsername = metadata?.username;
+  const metadataName = metadata?.nombre ?? metadata?.name;
+  const usernameCandidates = getProfileUsernameCandidates(
+    typeof metadataUsername === 'string' ? metadataUsername : authUser?.email || '',
+    authUser?.email,
+  );
+
+  const byUsername = activeUsers.find(user => (
+    usernameCandidates.includes(normalizeLoginIdentifier(user.username))
+  ));
+  if (byUsername) return byUsername;
+
+  if (typeof metadataName === 'string') {
+    const normalizedName = normalizeLoginIdentifier(metadataName);
+    return activeUsers.find(user => normalizeLoginIdentifier(user.nombre) === normalizedName) ?? null;
+  }
+
+  // Never fall back to a different employee: that would substitute identities/roles.
+  return null;
+}
+
 export function findLocalLoginUser(users: LoginUser[], identifier: string, password: string): LoginUser | null {
   const normalized = normalizeLoginIdentifier(identifier);
   return users.find(user => (

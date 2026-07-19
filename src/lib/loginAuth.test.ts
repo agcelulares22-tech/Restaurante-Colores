@@ -7,6 +7,7 @@ import {
   getProfileUsernameCandidates,
   getSupabaseAuthEmail,
   normalizeLoginIdentifier,
+  resolveAuthenticatedProfile,
 } from './loginAuth';
 
 const users = [
@@ -51,4 +52,14 @@ test('getLoginErrorMessage traduce errores tecnicos a mensajes accionables', () 
     getLoginErrorMessage(new Error('Failed to fetch')),
     'No pudimos conectar con el servidor. Revisá la conexión e intentá nuevamente.'
   );
+});
+
+test('resolveAuthenticatedProfile vincula Auth sin sustituir admin por un mozo', () => {
+  assert.equal(resolveAuthenticatedProfile(users, { email: 'admin@colores.local' })?.id_usuario, 1);
+  assert.equal(resolveAuthenticatedProfile(users, { email: 'desconocido@colores.local' }), null);
+});
+
+test('resolveAuthenticatedProfile no conserva un perfil que no coincide con la identidad Auth', () => {
+  assert.equal(resolveAuthenticatedProfile(users, { email: 'otro@colores.local' }), null);
+  assert.equal(resolveAuthenticatedProfile(users, { email: 'admin@colores.local' }), users[0]);
 });
