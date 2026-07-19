@@ -8,9 +8,44 @@ export interface SyncQueueItem {
   payload: any;
   timestamp: string;
   attempts: number;
+  lastError?: string;
 }
 
 const QUEUE_KEY = 'colores_pizzeria_offline_sync_queue';
+let processingPromise: Promise<void> | null = null;
+
+const getPedidoIdentity = (payload: any): string => String(
+  payload?.idempotency_key || payload?.id_pedido || ''
+);
+
+export const mergeQueueItem = (queue: SyncQueueItem[], incoming: SyncQueueItem): SyncQueueItem[] => {
+  if (incoming.action === 'upsert_pedido') {
+    const identity = getPedidoIdentity(incoming.payload);
+    if (identity) {
+      const existingIndex = queue.findIndex(item => (
+        item.action === 'upsert_pedido' && getPedidoIdentity(item.payload) === identity
+      ));
+      if (existingIndex >= 0) {
+        const next = [...queue];
+        next[existingIndex] = {
+          ...incoming,
+          attempts: 0,
+        };
+        return next;
+      }
+    }
+  }
+  return [...queue, incoming];
+};
+
+export const mergeQueueAfterProcessing = (
+  latestQueue: SyncQueueItem[],
+  processedIds: Set<string>,
+  failedItems: SyncQueueItem[],
+): SyncQueueItem[] => {
+  const newlyQueued = latestQueue.filter(item => !processedIds.has(item.id));
+  return [...failedItems, ...newlyQueued];
+};
 
 export const syncQueueService = {
   getQueue(): SyncQueueItem[] {
@@ -37,8 +72,7 @@ export const syncQueueService = {
       timestamp: new Date().toISOString(),
       attempts: 0
     };
-    queue.push(item);
-    this.saveQueue(queue);
+    this.saveQueue(mergeQueueItem(queue, item));
 
     // Trigger immediate background sync check
     this.processQueue().catch(err => console.warn('Immediate sync try failed:', err));
@@ -59,6 +93,14 @@ export const syncQueueService = {
   },
 
   async processQueue(): Promise<void> {
+    if (processingPromise) return processingPromise;
+    processingPromise = this.processQueueOnce().finally(() => {
+      processingPromise = null;
+    });
+    return processingPromise;
+  },
+
+  async processQueueOnce(): Promise<void> {
     const queue = this.getQueue();
     if (queue.length === 0) return;
 
@@ -71,6 +113,7 @@ export const syncQueueService = {
 
     console.log(`SyncQueue: Found ${queue.length} pending items to synchronize.`);
     const remaining: SyncQueueItem[] = [];
+    const processedIds = new Set<string>();
 
     // Dynamically import services to avoid circular dependency
     const { pedidosService } = await import('./pedidosService');
@@ -78,6 +121,7 @@ export const syncQueueService = {
     const { mermasService } = await import('./mermasService');
 
     for (const item of queue) {
+      processedIds.add(item.id);
       item.attempts += 1;
       let success = false;
 
@@ -101,22 +145,22 @@ export const syncQueueService = {
           success = true;
         }
       } catch (err) {
+        item.lastError = err instanceof Error ? err.message : String(err);
         console.error(`SyncQueue: Failed synchronization attempt #${item.attempts} for task ${item.id}:`, err);
       }
 
       if (success) {
         console.log(`SyncQueue: Task ${item.id} (${item.action}) successfully synchronized.`);
       } else {
-        // Keep in queue if it hasn't exceeded too many retries (e.g. 50 attempts)
-        if (item.attempts < 50) {
-          remaining.push(item);
-        } else {
-          console.error(`SyncQueue: Task ${item.id} exceeded maximum retry threshold. Discarding.`);
-        }
+        // Never discard an unsynchronized commercial operation automatically.
+        item.attempts = Math.min(item.attempts, 50);
+        remaining.push(item);
+        if (item.attempts >= 50) console.error(`SyncQueue: Task ${item.id} requires manual attention and remains queued.`);
       }
     }
 
-    this.saveQueue(remaining);
+    // Preserve items enqueued while this processing pass was in flight.
+    this.saveQueue(mergeQueueAfterProcessing(this.getQueue(), processedIds, remaining));
   },
 
   initBackgroundSync(): void {

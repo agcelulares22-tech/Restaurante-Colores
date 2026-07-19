@@ -3,16 +3,11 @@ import {
   Database, 
   ShieldCheck, 
   Download, 
-  RefreshCw, 
   Server, 
-  Github, 
   Terminal, 
   CheckCircle, 
-  AlertTriangle, 
-  Play, 
   Activity, 
   FileSpreadsheet,
-  Lock,
   Compass
 } from 'lucide-react';
 import { ProductoMenu, Insumo, RecetaEscandallo, Pedido, Mesa } from '../types';
@@ -26,6 +21,7 @@ import {
   testArcaConnection,
 } from '../services/arcaService';
 import { printerService } from '../services/printerService';
+import { hasSupabaseConfig } from '../lib/supabaseClient';
 
 
 interface SistemaModuleProps {
@@ -56,14 +52,8 @@ export default function SistemaModule({
   onSyncComplete
 }: SistemaModuleProps) {
   const { toast, toasts, removeToast } = useToast();
-  // Test latencies
-  const [dbPingStatus, setDbPingStatus] = useState<'idle' | 'testing' | 'ready'>('idle');
-  const [dbPingMs, setDbPingMs] = useState<number>(0);
-  const [activeDbEngine, setActiveDbEngine] = useState<'SQLite Local (.db)' | 'PostgreSQL / Supabase (Cloud)'>('PostgreSQL / Supabase (Cloud)');
-
   // Real Speed/Latency states
   const [realPingMs, setRealPingMs] = useState<number | null>(null);
-  const [realMbps, setRealMbps] = useState<number | null>(null);
   const [realNetStatus, setRealNetStatus] = useState<'idle' | 'testing' | 'ready' | 'error'>('idle');
 
   // Printer diagnostics states
@@ -72,19 +62,7 @@ export default function SistemaModule({
 
   const [isTestingArca, setIsTestingArca] = useState(false);
   const arcaConfigured = isArcaConfigured();
-
-
-  // Selected checklist verification states
-  const [deployChecklist, setDeployChecklist] = useState<{ [id: string]: boolean }>({
-    'db_local': true,
-    'sql_supabase': false,
-    'users_config': true,
-    'menu_receta': false, // will check dynamically
-    'stock_critico': false, // will check dynamically
-    'caja_init': true,
-    'ci_github': true,
-    'secrets_bound': false
-  });
+  const supabaseConfigured = hasSupabaseConfig();
 
   // Database audit of "Productos activos sin receta" (menu items that have no recipes assigned!)
   const menuItemsWithoutRecipe = useMemo(() => {
@@ -99,28 +77,20 @@ export default function SistemaModule({
     return insumos.filter(i => i.stock_actual <= i.stock_minimo);
   }, [insumos]);
 
-  // Real Speed/Latency test
+  // Measure the application's own backend, without sending diagnostics to third parties.
   const runRealNetworkTest = async () => {
     setRealNetStatus('testing');
     const start = Date.now();
     try {
-      const res = await fetch('https://api.cdnjs.com/libraries?limit=1', { cache: 'no-store' });
+      const res = await fetch(`/api/supabase-config?diagnostic=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json();
       const end = Date.now();
       const latency = end - start;
       setRealPingMs(latency);
-
-      const speedStart = Date.now();
-      const speedRes = await fetch('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js', { cache: 'no-store' });
-      const blob = await speedRes.blob();
-      const speedEnd = Date.now();
-      
-      const durationSecs = (speedEnd - speedStart) / 1000;
-      const sizeBits = blob.size * 8;
-      const mbps = (sizeBits / 1000000) / (durationSecs || 0.1);
-      setRealMbps(parseFloat(mbps.toFixed(2)));
       setRealNetStatus('ready');
-      addLog('sistema', `DIAGNOSTICO: Test de red. Latencia: ${latency}ms, Velocidad: ${mbps.toFixed(2)} Mbps`);
-      toast.success('Test de red completado.');
+      addLog('sistema', `DIAGNOSTICO: API de la aplicación respondió en ${latency} ms.`);
+      toast.success('Conectividad con el servidor verificada.');
     } catch {
       setRealNetStatus('error');
       toast.error('Error al medir la velocidad de red.');
@@ -178,16 +148,6 @@ export default function SistemaModule({
       setPrinterTestResult(err.message || 'Error desconocido.');
       toast.error('Fallo en la comunicación con el bridge de impresión.');
     }
-  };
-
-  // Simulate active latencies speed test
-  const triggerSpeedTest = () => {
-    setDbPingStatus('testing');
-    setTimeout(() => {
-      setDbPingMs(Math.floor(Math.random() * 15 + (activeDbEngine === 'SQLite Local (.db)' ? 12 : 110)));
-      setDbPingStatus('ready');
-      addLog('sistema', `DIAGNOSTICO: Test de latencia de red completado en ${activeDbEngine}. Velocidad óptima.`);
-    }, 1200);
   };
 
   // CSV Serialization helper
@@ -278,46 +238,26 @@ export default function SistemaModule({
               </span>
             </div>
   
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  setActiveDbEngine('SQLite Local (.db)');
-                  setDbPingStatus('idle');
-                }}
-                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                  activeDbEngine === 'SQLite Local (.db)'
-                    ? 'border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10'
-                    : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
-                }`}
-              >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 text-left">
                 <div className="flex items-center gap-2">
                   <Database className="w-4 h-4 text-[#4A2D1B]" />
-                  <span className="text-xs font-extrabold text-slate-800">SQLite Local</span>
+                  <span className="text-xs font-extrabold text-slate-800">Cola local PWA</span>
                 </div>
                 <p className="text-[10px] text-slate-450 mt-1 font-medium leading-normal">
-                  Almacenamiento local en archivo plano `data/restaurante.db`. Ideal para operaciones offline.
+                  Conserva comandas pendientes en el navegador cuando no hay red y las sincroniza al recuperar conexión.
                 </p>
-              </button>
+              </div>
   
-              <button
-                onClick={() => {
-                  setActiveDbEngine('PostgreSQL / Supabase (Cloud)');
-                  setDbPingStatus('idle');
-                }}
-                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                  activeDbEngine === 'PostgreSQL / Supabase (Cloud)'
-                    ? 'border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10'
-                    : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
-                }`}
-              >
+              <div className="p-4 rounded-xl border border-[#4A2D1B] bg-[#4A2D1B]/5 ring-1 ring-[#4A2D1B]/10 text-left">
                 <div className="flex items-center gap-2">
                   <Server className="w-4 h-4 text-[#6B4A35]" />
-                  <span className="text-xs font-extrabold text-slate-800">Supabase PG Link</span>
+                  <span className="text-xs font-extrabold text-slate-800">Supabase PostgreSQL</span>
                 </div>
                 <p className="text-[10px] text-slate-450 mt-1 font-medium leading-normal">
-                  Base PostgreSQL en la nube Supabase. Operación simultánea remota escalable de producción.
+                  Persistencia principal con Supabase Auth, PostgreSQL y políticas de seguridad RLS.
                 </p>
-              </button>
+              </div>
             </div>
 
           {/* Double diagnostics block */}
@@ -325,24 +265,18 @@ export default function SistemaModule({
             {/* Speed Test Panel */}
             <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Test de Velocidad de Red</span>
+                <span className="text-[10px] text-slate-450 dark:text-zinc-400 uppercase font-black tracking-wide block">Conectividad del servidor</span>
                 <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 leading-normal">
-                  Mide la latencia real y la velocidad de descarga en vivo de la conexión a internet.
+                  Mide la respuesta del backend de esta aplicación sin contactar servicios externos.
                 </p>
               </div>
 
               {realNetStatus !== 'idle' && (
                 <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-850 text-[11px] font-mono space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-slate-450 dark:text-zinc-400">Latencia (Ping):</span>
+                    <span className="text-slate-450 dark:text-zinc-400">Respuesta API:</span>
                     <span className={`font-black ${realPingMs && realPingMs < 80 ? 'text-emerald-600' : 'text-amber-600'}`}>
                       {realPingMs ? `${realPingMs} ms` : 'Midiendo...'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-450 dark:text-zinc-400">Velocidad:</span>
-                    <span className="font-black text-blue-600">
-                      {realMbps ? `${realMbps} Mbps` : 'Calculando...'}
                     </span>
                   </div>
                 </div>
@@ -355,7 +289,7 @@ export default function SistemaModule({
                 className="w-full py-2 bg-slate-900 dark:bg-zinc-800 text-white text-[10px] font-black uppercase rounded-lg hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0"
               >
                 <Activity className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                {realNetStatus === 'testing' ? 'Analizando Red...' : 'Ejecutar Test de Velocidad'}
+                {realNetStatus === 'testing' ? 'Consultando servidor...' : 'Probar conectividad'}
               </button>
             </div>
 
@@ -524,55 +458,27 @@ export default function SistemaModule({
           </div>
         </div>
 
-        {/* Entorno Servidor Python (requirements.txt) */}
+        {/* Arquitectura real desplegada */}
         <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-md space-y-4 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#FF4B4B] font-mono">requirements.txt</p>
-              <h4 className="font-extrabold text-white text-xs font-sans tracking-tight">
-                Dependencias del Servidor de Producción Python 3.11
-              </h4>
-              <p className="text-[10px] text-slate-400 font-sans mt-0.5">
-                Copia o descarga los paquetes configurados para el login y base relacional PostgreSQL/Supabase.
-              </p>
-            </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-amber-300 font-mono">Arquitectura activa</p>
+            <h4 className="font-extrabold text-white text-xs font-sans tracking-tight">React + Vercel + Supabase</h4>
+            <p className="text-[10px] text-slate-400 font-sans mt-0.5">Componentes que realmente sostienen esta versión del sistema.</p>
           </div>
-
-          <div className="bg-slate-950 rounded-xl p-3 border border-slate-850 font-mono text-[10px] text-slate-300 max-h-[160px] overflow-y-auto scrollbar-thin">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
             {[
-              'libpq-dev',
-              'build-essential',
-              'gcc',
-              'python3-dev',
-              'streamlit>=1.35.0',
-              'pandas>=2.0.0',
-              'plotly>=5.18.0',
-              'python-dotenv>=1.0.0',
-              'psycopg2-binary>=2.9.0',
-              'psycopg>=3.2.0',
-              'psycopg-pool>=3.2.0',
-              'python-escpos>=3.0',
-              'fastapi>=0.109.0',
-              'uvicorn>=0.26.0',
-              'pydantic>=2.0.0',
-              'openpyxl>=3.1.0',
-              'reportlab>=4.2.0',
-              'supabase>=2.3.0',
-              '# Python version for Streamlit Cloud',
-              'python-3.11'
-            ].map((line, idx) => (
-              <div key={idx} className="flex justify-between py-0.5 hover:bg-slate-900 px-1 rounded transition-colors">
-                <span className={line.startsWith('#') ? 'text-slate-500 italic' : line.includes('>=') ? 'text-amber-300/95 font-medium' : 'text-slate-300'}>{line}</span>
-                {!line.startsWith('#') && line.includes('>=') && (
-                  <span className="text-[9px] text-[#FF4B4B] bg-red-950/40 border border-[#FF4B4B]/30 px-1 rounded font-bold">Compilado</span>
-                )}
+              ['Interfaz', 'React, TypeScript y Vite PWA'],
+              ['Base de datos', 'Supabase PostgreSQL con RLS'],
+              ['Autenticación', 'Supabase Auth y perfiles operativos'],
+              ['Funciones', 'Vercel serverless para ARCA'],
+              ['Modo sin red', 'Caché PWA y cola local persistente'],
+              ['Facturación', 'WSAA + WSFE desde el servidor'],
+            ].map(([label, value]) => (
+              <div key={label} className="bg-slate-950 rounded-lg border border-slate-800 p-2.5">
+                <span className="text-slate-500 block uppercase font-bold">{label}</span>
+                <span className="text-slate-200 block mt-0.5">{value}</span>
               </div>
             ))}
-          </div>
-
-          <div className="flex justify-between items-center bg-slate-850 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300">
-            <span>Ubicación del script:</span>
-            <span className="font-mono text-[10px] text-[#FF4B4B] bg-slate-950 px-2 py-0.5 rounded font-bold">backend/login.py</span>
           </div>
         </div>
 
@@ -594,34 +500,34 @@ export default function SistemaModule({
 
           <div className="space-y-3">
             
-            {/* Checklist item 1 */}
+            {/* Persistencia offline */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.db_local}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, db_local: e.target.checked }))}
+                checked
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Base de Datos SQLite inicializada</span>
+                <span className="text-xs font-bold text-slate-100 block">Cola local de recuperación activa</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Base local cargada de manera sincronizada en `data/restaurante.db` lista para persistir.
+                  Las operaciones pendientes no se descartan y se reintentan cuando vuelve la conectividad.
                 </span>
               </div>
             </label>
 
-            {/* Checklist item 2 */}
+            {/* Supabase */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.sql_supabase}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, sql_supabase: e.target.checked }))}
+                checked={supabaseConfigured}
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Link SQL Supabase (PostgreSQL)</span>
+                <span className="text-xs font-bold text-slate-100 block">Supabase PostgreSQL configurado</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Carga del esquema en la nube con `supabase/schema.sql` y enlace con variables secretas `DATABASE_URL`.
+                  La aplicación utiliza Supabase Auth y políticas RLS para proteger los datos operativos.
                 </span>
               </div>
             </label>
@@ -668,18 +574,18 @@ export default function SistemaModule({
               </div>
             </label>
 
-            {/* Checklist item 5 */}
+            {/* Verificación automatizada */}
             <label className="flex items-start gap-3 p-2.5 bg-slate-850 hover:bg-slate-800/80 rounded-xl cursor-pointer transition-colors border border-slate-800">
               <input
                 type="checkbox"
-                checked={deployChecklist.ci_github}
-                onChange={(e) => setDeployChecklist(prev => ({ ...prev, ci_github: e.target.checked }))}
+                checked
+                disabled
                 className="mt-0.5 rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-offset-slate-900 w-4 h-4"
               />
               <div>
-                <span className="text-xs font-bold text-slate-100 block">Integración Continua (CI) en GitHub</span>
+                <span className="text-xs font-bold text-slate-100 block">Verificación automatizada del código</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-sans leading-normal">
-                  Workflow `.github/workflows/ci.yml` configurado para compilar, auditar código de Streamlit/TypeScript y pruebas unitarias de extremo a extremo.
+                  TypeScript, pruebas de regresión, auditoría de configuración y compilación de producción.
                 </span>
               </div>
             </label>
@@ -690,12 +596,14 @@ export default function SistemaModule({
           <div className="bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-[9px] text-slate-400 space-y-1">
             <div className="flex items-center gap-1 text-slate-300 font-extrabold border-b border-slate-800 pb-1 mb-1">
               <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-              STATUS CONSOLA DE PLENO DEPLOY
+              ESTADO DE LA ARQUITECTURA
             </div>
-            <p className="text-emerald-500">✔ python -m py_compile tests_restaurante.py ok</p>
-            <p className="text-emerald-500">✔ npx tsc --noEmit && vite build success</p>
-            <p className="text-slate-300">SQLite Engine: Linked successfully (data/restaurante.db)</p>
-            <p className="text-purple-400">Supabase State: Waiting DB_URL secret assignment</p>
+            <p className="text-emerald-500">✔ React + TypeScript PWA</p>
+            <p className="text-emerald-500">✔ Supabase Auth + PostgreSQL + RLS</p>
+            <p className="text-slate-300">✔ Cola offline con reintentos persistentes</p>
+            <p className={arcaConfigured ? 'text-emerald-400' : 'text-amber-400'}>
+              {arcaConfigured ? `✔ ARCA ${getArcaEnvironmentLabel()} configurado en servidor` : '⚠ ARCA pendiente de configuración en servidor'}
+            </p>
           </div>
         </div>
 

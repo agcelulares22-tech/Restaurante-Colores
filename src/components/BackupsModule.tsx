@@ -279,12 +279,12 @@ export default function BackupsModule({
       {/* Storage stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
-          <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Estado del Disco</span>
-          <h4 className="text-2xl font-black text-emerald-600 font-mono mt-1">Óptimo (1.2% Uso)</h4>
+          <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Respaldo Local</span>
+          <h4 className="text-2xl font-black text-emerald-600 font-mono mt-1">Disponible</h4>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
           <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Base de Datos</span>
-          <h4 className="text-2xl font-black text-stone-900 font-mono mt-1">Postgres / SQLite</h4>
+          <h4 className="text-2xl font-black text-stone-900 font-mono mt-1">Supabase PostgreSQL</h4>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-[#624A3E]/5 border-l-4 border-l-[#624A3E]">
           <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Último Respaldo Disponible</span>

@@ -228,11 +228,7 @@ export const pedidosService = {
   async create(pedido: Pedido): Promise<Pedido> {
     const { stockEngine } = await import('./stock/stockEngine');
     pedido.items.forEach(item => stockEngine.validatePedidoItem(item));
-    try {
-      await this.upsert([pedido]);
-    } catch (err) {
-      console.warn('pedidosService.create failed remote push:', err);
-    }
+    await this.upsert([pedido]);
     return pedido;
   },
 
@@ -417,7 +413,9 @@ export const pedidosService = {
       if (fromSyncQueue) {
         throw new Error('Supabase client not available during sync queue processing');
       }
-      console.warn('Supabase is not configured or offline. Skipping database upsert.');
+      const { syncQueueService } = await import('./syncQueueService');
+      pedidos.forEach(pedido => syncQueueService.enqueue('upsert_pedido', pedido));
+      console.warn('Supabase no disponible. Comanda guardada en la cola de sincronización.');
       return;
     }
     
@@ -566,6 +564,7 @@ export const pedidosService = {
         if (!fromSyncQueue) {
           const { syncQueueService } = await import('./syncQueueService');
           syncQueueService.enqueue('upsert_pedido', ped);
+          continue;
         }
         throw err;
       }

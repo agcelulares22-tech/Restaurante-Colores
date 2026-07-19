@@ -18,7 +18,6 @@ import { stockEngine } from '../services/stock/stockEngine';
 import type { BackupSnapshotData } from '../services/backupsService';
 import { 
   getSupabaseClient,
-  resetSupabaseInstance,
   dbFetchMesas,
   dbFetchInsumos,
   dbFetchProductosMenu,
@@ -129,7 +128,7 @@ export function useAppState() {
     {
       id: 'init_log_1',
       tipo: 'sistema',
-      mensaje: 'SISTEMA: Conexión establecida de forma segura. SQLite local cargada con éxito.',
+      mensaje: 'SISTEMA: Aplicación iniciada con caché PWA y conexión segura.',
       timestamp: new Date(Date.now() - 35 * 60 * 1000)
     },
     {
@@ -175,39 +174,7 @@ export function useAppState() {
     };
   }, []);
 
-  // 1. Config loading effect (runs once on mount)
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const response = await fetch('/api/supabase-config');
-        const data = await response.json();
-        if (data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
-          const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-          const currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
-          const currentKey = localStorage.getItem('colores_pizzeria_supabase_anon_key');
-          
-          // Only overwrite if the user has no local configuration OR if the API returns a custom (non-default) URL
-          if (!currentUrl || data.SUPABASE_URL !== defaultUrl) {
-            if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
-              localStorage.removeItem('colores_pizzeria_cache_menu');
-              localStorage.removeItem('colores_pizzeria_cache_categorias');
-              localStorage.removeItem('colores_pizzeria_cache_proveedores');
-              localStorage.removeItem('colores_pizzeria_cache_insumos');
-              localStorage.removeItem('colores_pizzeria_cache_recetas');
-              localStorage.setItem('colores_pizzeria_supabase_url', data.SUPABASE_URL);
-              localStorage.setItem('colores_pizzeria_supabase_anon_key', data.SUPABASE_ANON_KEY);
-              resetSupabaseInstance();
-            }
-          }
-        }
-      } catch (configErr) {
-        console.warn('Could not fetch Supabase config from API:', configErr);
-      }
-    };
-    loadConfig();
-  }, []);
-
-  // 2. Data load and Realtime sync effect
+  // Data load and Realtime sync effect
   useEffect(() => {
     let active = true;
     let channel: any = null;
@@ -330,7 +297,7 @@ export function useAppState() {
 
         addLog('sistema', 'SUPABASE: Auto-sincronización exitosa con servidor Supabase.');
       } catch (err) {
-        console.warn('Supabase: Falló auto-sync en el arranque. Usando datos SQLite locales.', err);
+        console.warn('Supabase: Falló auto-sync en el arranque. Conservando la caché local disponible.', err);
       }
     };
 
