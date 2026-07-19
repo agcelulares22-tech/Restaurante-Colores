@@ -3,7 +3,7 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import forge from "node-forge";
 import https from "https";
 import crypto from "node:crypto";
-import { canUseArca, formatArcaDate, normalizeArcaRole, validateArcaInvoicePayload } from "../src/lib/arcaApiSecurity";
+import { canUseArca, formatArcaDate, normalizeArcaRole, validateArcaInvoicePayload } from "../src/lib/arcaApiSecurity.js";
 
 export type ArcaPemKind = "CERTIFICATE" | "PRIVATE KEY";
 
