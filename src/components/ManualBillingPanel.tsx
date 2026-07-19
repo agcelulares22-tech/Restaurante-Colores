@@ -402,16 +402,15 @@ export function ManualBillingPanel({
 
       // 8. Generate and download PDF
       const pdfItems: TicketItem[] = items.map(it => {
-        const itemTotal = it.cantidad * it.precioUnitario;
-        const price = preciosConIva 
-          ? Number((it.precioUnitario / (1 + (ivaGeneral / 100))).toFixed(2)) 
-          : it.precioUnitario;
+        const priceWithIva = preciosConIva 
+          ? it.precioUnitario 
+          : Number((it.precioUnitario * (1 + (ivaGeneral / 100))).toFixed(2));
 
         return {
           cantidad: it.cantidad,
           descripcion: it.descripcion,
-          precio_unitario: price,
-          subtotal: it.cantidad * price
+          precio_unitario: priceWithIva,
+          subtotal: it.cantidad * priceWithIva
         };
       });
 
