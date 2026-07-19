@@ -729,10 +729,18 @@ export const pdfService = {
       y += bold ? 5.5 : 4.5;
     };
 
-    sum('Subtotal Neto:', money(data.subtotal));
-    if (data.descuento > 0) sum('Bonificación:', `-${money(data.descuento)}`);
-    if (data.propina > 0) sum('Propina Sugerida:', money(data.propina));
-    sum('IVA 21% Incluido:', money(data.iva));
+    if (isFactura) {
+      sum('Subtotal Neto:', money(data.subtotal));
+      if (data.descuento > 0) sum('Bonificación:', `-${money(data.descuento)}`);
+      if (data.propina > 0) sum('Propina Sugerida:', money(data.propina));
+      sum('IVA 21% Incluido:', money(data.iva));
+    } else {
+      if (data.descuento > 0 || data.propina > 0) {
+        sum('Subtotal:', money(data.subtotal + data.iva));
+      }
+      if (data.descuento > 0) sum('Bonificación:', `-${money(data.descuento)}`);
+      if (data.propina > 0) sum('Propina Sugerida:', money(data.propina));
+    }
 
     y += 1;
     doc.setDrawColor(...BRAND.brown);
