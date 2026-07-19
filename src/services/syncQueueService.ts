@@ -18,6 +18,8 @@ const getPedidoIdentity = (payload: any): string => String(
   payload?.idempotency_key || payload?.id_pedido || ''
 );
 
+const getFacturaIdentity = (payload: any): string => String(payload?.id_factura || '');
+
 export const mergeQueueItem = (queue: SyncQueueItem[], incoming: SyncQueueItem): SyncQueueItem[] => {
   if (incoming.action === 'upsert_pedido') {
     const identity = getPedidoIdentity(incoming.payload);
@@ -31,6 +33,19 @@ export const mergeQueueItem = (queue: SyncQueueItem[], incoming: SyncQueueItem):
           ...incoming,
           attempts: 0,
         };
+        return next;
+      }
+    }
+  }
+  if (incoming.action === 'upsert_factura') {
+    const identity = getFacturaIdentity(incoming.payload);
+    if (identity) {
+      const existingIndex = queue.findIndex(item => (
+        item.action === 'upsert_factura' && getFacturaIdentity(item.payload) === identity
+      ));
+      if (existingIndex >= 0) {
+        const next = [...queue];
+        next[existingIndex] = { ...incoming, attempts: 0 };
         return next;
       }
     }

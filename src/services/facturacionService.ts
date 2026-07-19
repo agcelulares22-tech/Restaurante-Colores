@@ -17,6 +17,7 @@ export interface Factura {
   afip_qr?: string;
   afip_resultado?: 'A' | 'O' | 'R';
   fecha_emision?: string;
+  persistencia?: 'remota' | 'pendiente_sync';
 }
 
 const mapMetodoPagoToDb = (medioPago: Factura['medio_pago']) => {
@@ -58,17 +59,27 @@ const mapTipoComprobanteFromDb = (tipoComprobante: string): Factura['tipo'] => {
 
 const LOCAL_FACTURAS_KEY = 'colores_pizzeria_facturas_pendientes';
 
+const MAX_LOCAL_FACTURAS = 500;
 const readLocalFacturas = (): Factura[] => {
-  if (typeof localStorage !== 'undefined') {
-    try {
-      localStorage.removeItem(LOCAL_FACTURAS_KEY);
-    } catch {}
+  if (typeof localStorage === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_FACTURAS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('No se pudo leer el respaldo fiscal local.', error);
+    return [];
   }
-  return [];
 };
 
-const writeLocalFacturas = (facturas: Factura[]) => {
-  // No-op to prevent saturating browser localStorage
+const writeLocalFacturas = (facturas: Factura[]): boolean => {
+  if (typeof localStorage === 'undefined') return false;
+  try {
+    localStorage.setItem(LOCAL_FACTURAS_KEY, JSON.stringify(facturas.slice(0, MAX_LOCAL_FACTURAS)));
+    return true;
+  } catch (error) {
+    console.error('No se pudo escribir el respaldo fiscal local.', error);
+    return false;
+  }
 };
 
 export const mergeFacturas = (remote: Factura[], local: Factura[]): Factura[] => {
@@ -78,8 +89,34 @@ export const mergeFacturas = (remote: Factura[], local: Factura[]): Factura[] =>
   return Array.from(merged.values()).sort((a, b) => b.id_factura.localeCompare(a.id_factura));
 };
 
-const cacheFactura = (factura: Factura) => {
-  // No-op to prevent saturating browser localStorage
+const cacheFactura = (factura: Factura): boolean => {
+  return writeLocalFacturas(mergeFacturas([factura], readLocalFacturas()));
+};
+
+export const toFacturaDbPayload = (factura: Factura) => ({
+  id_factura: factura.id_factura,
+  id_pedido: factura.id_pedido || null,
+  numero_factura: factura.nro_ticket,
+  total: factura.total,
+  tipo_comprobante: mapTipoComprobanteToDb(factura),
+  metodo_pago: mapMetodoPagoToDb(factura.medio_pago),
+  cuit_cliente: factura.cuit,
+  fecha_emision: factura.fecha_emision || new Date().toISOString(),
+  afip_cae: factura.afip_cae,
+  afip_vto: factura.afip_vto,
+  afip_qr: factura.afip_qr,
+  afip_resultado: factura.afip_resultado
+});
+
+const enqueueFactura = async (factura: Factura): Promise<boolean> => {
+  try {
+    const { syncQueueService } = await import('./syncQueueService');
+    syncQueueService.enqueue('upsert_factura', factura);
+    return true;
+  } catch (error) {
+    console.error('No se pudo agregar el comprobante a la cola de sincronizacion.', error);
+    return false;
+  }
 };
 
 export const facturacionService = {
@@ -113,7 +150,8 @@ export const facturacionService = {
           afip_vto: f.afip_vto,
           afip_qr: f.afip_qr,
           afip_resultado: f.afip_resultado,
-          fecha_emision: f.fecha_emision
+          fecha_emision: f.fecha_emision,
+          persistencia: 'remota' as const
         };
       });
 
@@ -125,76 +163,61 @@ export const facturacionService = {
   },
 
   async create(factura: Factura, fromSyncQueue: boolean = false): Promise<Factura> {
-    cacheFactura(factura);
-    const supabase = getActiveSupabaseClient();
-    const dbPayload = {
-      id_factura: factura.id_factura,
-      id_pedido: factura.id_pedido || null,
-      numero_factura: factura.nro_ticket,
-      total: factura.total,
-      tipo_comprobante: mapTipoComprobanteToDb(factura),
-      metodo_pago: mapMetodoPagoToDb(factura.medio_pago),
-      cuit_cliente: factura.cuit,
-      fecha_emision: factura.fecha_emision || new Date().toISOString(),
-      afip_cae: factura.afip_cae,
-      afip_vto: factura.afip_vto,
-      afip_qr: factura.afip_qr,
-      afip_resultado: factura.afip_resultado
-    };
-    
+    const pendingFactura: Factura = { ...factura, persistencia: 'pendiente_sync' };
+    const locallyBackedUp = cacheFactura(pendingFactura);
+    const dbPayload = toFacturaDbPayload(factura);
+
     try {
-      const { data, error } = await supabase.from('facturas').insert([dbPayload]).select().single();
+      const supabase = getActiveSupabaseClient();
+      const { data, error } = await supabase
+        .from('facturas')
+        .upsert([dbPayload], { onConflict: 'id_factura' })
+        .select()
+        .single();
       if (error) {
         console.error('Error creating invoice:', error);
         throw error;
       }
-      return {
+      const persisted: Factura = {
         ...factura,
-        id_factura: data.id_factura
+        id_factura: data.id_factura,
+        persistencia: 'remota'
       };
+      cacheFactura(persisted);
+      return persisted;
     } catch (err) {
       console.warn('facturacionService.create failed remote push, enqueued for sync:', err);
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('upsert_factura', factura);
+      if (fromSyncQueue) throw err;
+
+      const queued = await enqueueFactura(pendingFactura);
+      if (!locallyBackedUp && !queued) {
+        throw new Error('El comprobante fiscal fue autorizado, pero no pudo guardarse localmente ni en Supabase. No lo emita nuevamente; verifique ARCA y contacte soporte.');
       }
-      throw err;
+      return pendingFactura;
     }
   },
 
   async upsert(facturas: Factura[], fromSyncQueue: boolean = false): Promise<void> {
-    writeLocalFacturas(mergeFacturas([], [...facturas, ...readLocalFacturas()]));
-    const supabase = getActiveSupabaseClient();
-    const dbPayloads = facturas.map(f => {
-      return {
-        id_factura: f.id_factura,
-        id_pedido: f.id_pedido || null,
-        numero_factura: f.nro_ticket,
-        total: f.total,
-        tipo_comprobante: mapTipoComprobanteToDb(f),
-        metodo_pago: mapMetodoPagoToDb(f.medio_pago),
-        cuit_cliente: f.cuit,
-        fecha_emision: f.fecha_emision || new Date().toISOString(),
-        afip_cae: f.afip_cae,
-        afip_vto: f.afip_vto,
-        afip_qr: f.afip_qr,
-        afip_resultado: f.afip_resultado
-      };
-    });
+    const pendingFacturas = facturas.map(f => ({ ...f, persistencia: 'pendiente_sync' as const }));
+    const locallyBackedUp = writeLocalFacturas(mergeFacturas(pendingFacturas, readLocalFacturas()));
+    const dbPayloads = facturas.map(toFacturaDbPayload);
 
     try {
-      const { error } = await supabase.from('facturas').upsert(dbPayloads);
+      const supabase = getActiveSupabaseClient();
+      const { error } = await supabase.from('facturas').upsert(dbPayloads, { onConflict: 'id_factura' });
       if (error) {
         console.error('Error upserting invoices:', error);
         throw error;
       }
+      const persisted = facturas.map(f => ({ ...f, persistencia: 'remota' as const }));
+      writeLocalFacturas(mergeFacturas(persisted, readLocalFacturas()));
     } catch (err) {
       console.warn('facturacionService.upsert failed remote push, enqueued for sync:', err);
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
+      if (fromSyncQueue) throw err;
+      const queueResults = await Promise.all(pendingFacturas.map(enqueueFactura));
+      if (!locallyBackedUp && !queueResults.some(Boolean)) {
+        throw new Error('No se pudieron conservar los comprobantes para sincronizarlos.');
       }
-      throw err;
     }
   },
 

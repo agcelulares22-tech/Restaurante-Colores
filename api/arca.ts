@@ -4,6 +4,8 @@ import forge from "node-forge";
 import https from "https";
 import crypto from "node:crypto";
 import { canUseArca, formatArcaDate, normalizeArcaRole, validateArcaInvoicePayload } from "../src/lib/arcaApiSecurity.js";
+import { isUncertainArcaTransportError } from "../src/lib/arcaTransport.js";
+import { withSerializedKey } from "../src/lib/serialQueue.js";
 
 export type ArcaPemKind = "CERTIFICATE" | "PRIVATE KEY";
 
@@ -569,8 +571,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error(`Acción '${action}' no soportada.`);
     }
 
+    const operationKey = `${cuitKey}:${credentials.puntoVenta}:${payload?.tipoComprobante ?? 'test'}`;
+    const runOperation = (tokenObj: { token: string; sign: string }) => (
+      action === 'createInvoice'
+        ? withSerializedKey(operationKey, () => performOperation(tokenObj))
+        : performOperation(tokenObj)
+    );
+
     try {
-      const opResult = await performOperation(auth);
+      const opResult = await runOperation(auth);
       if (opResult.success === false) {
         return res.status(422).json({ ...opResult, correlationId });
       }
@@ -589,7 +598,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             expiresAt: Date.now() + 10 * 60 * 60 * 1000
           };
 
-          const opResult = await performOperation(auth);
+          const opResult = await runOperation(auth);
           if (opResult.success === false) {
             return res.status(422).json({ ...opResult, correlationId });
           }
@@ -604,7 +613,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       } else {
         const message = opErr.message || String(opErr);
-        if (authorizationSubmitted && /timeout|tardÃ³ demasiado|socket|connect|fetch failed/i.test(message)) {
+        if (authorizationSubmitted && isUncertainArcaTransportError(message)) {
           return res.status(504).json({
             error: 'El resultado de ARCA es incierto. No vuelvas a emitir hasta reconciliar el comprobante con ARCA.',
             uncertain: true,

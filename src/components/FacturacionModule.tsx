@@ -203,13 +203,18 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
   };
 
   const persistFactura = async (factura: FacturaExtendida) => {
-    setFacturas(prev => [factura, ...prev]);
     try {
-      await facturacionService.create(factura);
-      toast.success(`Comprobante ${factura.nro_ticket} guardado y PDF descargado.`);
+      const persisted = await facturacionService.create(factura);
+      setFacturas(prev => [persisted, ...prev]);
+      if (persisted.persistencia === 'pendiente_sync') {
+        toast.warning(`PDF descargado. ${factura.nro_ticket} ya fue emitido y quedo pendiente de sincronizacion; no vuelva a emitirlo.`);
+      } else {
+        toast.success(`Comprobante ${factura.nro_ticket} guardado y PDF descargado.`);
+      }
     } catch (err) {
-      console.warn('Factura guardada en modo local/demo:', err);
-      toast.warning(`PDF descargado. ${factura.nro_ticket} quedo guardado en esta sesion local.`);
+      setFacturas(prev => [factura, ...prev]);
+      console.error('No se pudo conservar el comprobante emitido:', err);
+      toast.error(`El comprobante ${factura.nro_ticket} pudo haber sido autorizado pero no se pudo conservar. No vuelva a emitirlo; verifique ARCA y contacte soporte.`);
     }
   };
 

@@ -46,3 +46,23 @@ test('la cola conserva operaciones agregadas mientras se procesaban otras', () =
   assert.deepEqual(result.map(entry => entry.id), ['sync-1', 'sync-2']);
   assert.equal(result[0].attempts, 50);
 });
+
+test('la cola conserva una sola revision de cada comprobante fiscal', () => {
+  const original: SyncQueueItem = {
+    id: 'sync-fac-1',
+    action: 'upsert_factura',
+    payload: { id_factura: 'fac-1', afip_cae: '123' },
+    timestamp: '2026-07-19T00:00:00.000Z',
+    attempts: 7,
+  };
+  const updated: SyncQueueItem = {
+    ...original,
+    id: 'sync-fac-2',
+    payload: { ...original.payload, persistencia: 'pendiente_sync' },
+    attempts: 0,
+  };
+  const result = mergeQueueItem([original], updated);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].id, 'sync-fac-2');
+  assert.equal(result[0].attempts, 0);
+});

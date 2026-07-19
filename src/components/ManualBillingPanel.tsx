@@ -388,7 +388,10 @@ export function ManualBillingPanel({
       };
 
       // 6. Save in FacturacionService
-      await facturacionService.create(invoiceToSave);
+      const persistedInvoice = await facturacionService.create(invoiceToSave);
+      if (persistedInvoice.persistencia === 'pendiente_sync') {
+        toast.warning('El comprobante ya fue emitido y quedo respaldado localmente. Se sincronizara con Supabase al recuperar la conexion; no vuelva a emitirlo.');
+      }
 
       // 7. Update Caja Session Sales totals
       await cajaService.updateSales(calculatedTotals.total, { [medioPago]: calculatedTotals.total });

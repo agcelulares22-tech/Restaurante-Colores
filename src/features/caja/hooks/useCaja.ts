@@ -985,7 +985,7 @@ export function useCaja({
     const mappedMedio = pays.map(p => p.metodo.toUpperCase()).join(' + ');
 
     try {
-      await facturacionService.create({
+      const persistedInvoice = await facturacionService.create({
         id_factura: idFactura,
         id_pedido: selectedPedido.id_pedido,
         nro_ticket: compiledTicketNo,
@@ -1001,8 +1001,19 @@ export function useCaja({
         afip_qr: arcaQr || undefined,
         afip_resultado: arcaCae ? 'A' : undefined
       });
+      if (persistedInvoice.persistencia === 'pendiente_sync') {
+        const message = `El comprobante ${compiledTicketNo} ya fue emitido y quedo respaldado localmente. Se sincronizara con Supabase; no vuelva a emitirlo.`;
+        toast.warning(message);
+        addLog('sistema', `FACTURACION PENDIENTE DE SINCRONIZACION: ${compiledTicketNo}.`);
+      }
     } catch (err) {
-      console.warn('Network offline backup creation:', err);
+      console.error('No se pudo conservar el comprobante emitido:', err);
+      const message = arcaCae
+        ? `ARCA autorizo ${compiledTicketNo}, pero no se pudo conservar. No vuelva a emitirlo; verifique ARCA y contacte soporte.`
+        : `No se pudo guardar ${compiledTicketNo}. Verifique el estado antes de reintentar.`;
+      toast.error(message);
+      addLog('sistema', `ERROR CRITICO DE PERSISTENCIA FISCAL: ${compiledTicketNo}.`);
+      if (!arcaCae) return;
     }
 
     const paymentRows: PagoDb[] = pays.map((p, idx) => ({
@@ -1499,7 +1510,6 @@ export function useCaja({
       }
     }
 
-    await cajaService.updateSales(breakdowns.finalTotal, { [partition.metodoPago]: breakdowns.finalTotal });
 
     const dataTicket: TicketData = {
       nombreComercial: restaurante.nombreComercial,
@@ -1543,7 +1553,7 @@ export function useCaja({
 
     const idFactura = `fac_${Date.now()}`;
     try {
-      await facturacionService.create({
+      const persistedInvoice = await facturacionService.create({
         id_factura: idFactura,
         id_pedido: selectedPedido.id_pedido,
         nro_ticket: compiledTicketNo,
@@ -1559,9 +1569,22 @@ export function useCaja({
         afip_qr: arcaQr || undefined,
         afip_resultado: arcaCae ? 'A' : undefined
       });
+      if (persistedInvoice.persistencia === 'pendiente_sync') {
+        const message = `El comprobante parcial ${compiledTicketNo} ya fue emitido y quedo respaldado localmente. Se sincronizara con Supabase; no vuelva a emitirlo.`;
+        toast.warning(message);
+        addLog('sistema', `FACTURACION PARCIAL PENDIENTE DE SINCRONIZACION: ${compiledTicketNo}.`);
+      }
     } catch (err) {
-      console.warn('Network offline backup creation for partition failed:', err);
+      console.error('No se pudo conservar el comprobante parcial emitido:', err);
+      const message = arcaCae
+        ? `ARCA autorizo ${compiledTicketNo}, pero no se pudo conservar. No vuelva a emitirlo; verifique ARCA y contacte soporte.`
+        : `No se pudo guardar ${compiledTicketNo}. Verifique el estado antes de reintentar.`;
+      toast.error(message);
+      addLog('sistema', `ERROR CRITICO DE PERSISTENCIA FISCAL PARCIAL: ${compiledTicketNo}.`);
+      if (!arcaCae) return;
     }
+    await cajaService.updateSales(breakdowns.finalTotal, { [partition.metodoPago]: breakdowns.finalTotal });
+
 
     try {
       await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
