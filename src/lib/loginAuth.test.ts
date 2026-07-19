@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { canLogin, findLocalLoginUser, getLoginErrorMessage, normalizeLoginIdentifier } from './loginAuth';
+import {
+  canLogin,
+  findLocalLoginUser,
+  getLoginErrorMessage,
+  getProfileUsernameCandidates,
+  getSupabaseAuthEmail,
+  normalizeLoginIdentifier,
+} from './loginAuth';
 
 const users = [
   { id_usuario: 1, nombre: 'Admin', apellido: '', username: 'ADMIN', password: '1234', rol: 'superadmin' as const },
@@ -9,6 +16,22 @@ const users = [
 
 test('normalizeLoginIdentifier limpia espacios y mayusculas', () => {
   assert.equal(normalizeLoginIdentifier('  ADMIN  '), 'admin');
+});
+
+test('getSupabaseAuthEmail permite iniciar con usuario corto o email', () => {
+  assert.equal(getSupabaseAuthEmail(' ADMIN '), 'admin@colores.local');
+  assert.equal(getSupabaseAuthEmail('Admin@Colores.com'), 'admin@colores.com');
+});
+
+test('getProfileUsernameCandidates vincula Auth con perfiles numericos existentes', () => {
+  assert.deepEqual(
+    getProfileUsernameCandidates('admin', 'admin@colores.local'),
+    ['admin', 'admin@colores.local']
+  );
+  assert.deepEqual(
+    getProfileUsernameCandidates('super@admi.com', 'super@admi.com'),
+    ['super@admi.com', 'super']
+  );
 });
 
 test('findLocalLoginUser valida usuario local sin depender de mayusculas', () => {

@@ -25,6 +25,10 @@ export const mergeUsuarios = (remote: Usuario[], local: Usuario[]): Usuario[] =>
   return Array.from(merged.values()).sort((a, b) => a.id_usuario - b.id_usuario);
 };
 
+export const resolveUsuariosForOnlineSync = (remote: Usuario[], local: Usuario[]): Usuario[] => (
+  remote.length > 0 ? [...remote].sort((a, b) => a.id_usuario - b.id_usuario) : local
+);
+
 const cacheUsuario = (usuario: Usuario) => {
   writeLocalUsers(mergeUsuarios([], [...readLocalUsers(), usuario]));
 };
@@ -36,9 +40,9 @@ export const usuariosService = {
       const supabase = getActiveSupabaseClient();
       const { data, error } = await supabase.from('usuarios').select('*').order('id_usuario', { ascending: true });
       if (error) throw error;
-      const merged = mergeUsuarios(data || [], local);
-      writeLocalUsers(merged);
-      return merged;
+      const resolved = resolveUsuariosForOnlineSync(data || [], local);
+      writeLocalUsers(resolved);
+      return resolved;
     } catch (error) {
       console.warn('No se pudieron leer usuarios remotos; usando copia local.', error);
       return local;

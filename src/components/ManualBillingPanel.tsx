@@ -16,6 +16,7 @@ import { facturacionService, Factura } from '../services/facturacionService';
 import { pdfService } from '../services/pdfService';
 import { cajaService } from '../services/cajaService';
 import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaCuit, getArcaPuntoVenta } from '../services/arcaService';
+import { requireApprovedArcaAuthorization } from '../lib/arcaAuthorization';
 
 interface ManualBillingPanelProps {
   cajaSession: CierreCaja | null;
@@ -303,68 +304,59 @@ export function ManualBillingPanel({
       });
 
       const clientDocNumber = numeroDocumento === '0' ? 0 : parseInt(numeroDocumento.replace(/-/g, '')) || 0;
+      const isFiscalComprobante = tipoComprobante !== 'Comprobante X';
 
-      // 4. Call Mock AFIP connection
+      if (isFiscalComprobante && !isArcaConfigured()) {
+        throw new Error('ARCA no está configurado. Solo puede generarse un Comprobante X no fiscal.');
+      }
+
+      // 4. Solicitar autorización fiscal real a ARCA
       let afipCae = '';
       let afipVto = '';
       let afipQr = '';
 
-      if (isArcaConfigured() && tipoComprobante !== 'Comprobante X') {
-        try {
-          const arcaResult = await createArcaInvoice({
-            tipoComprobante: afipTipoId,
-            puntoVenta: getArcaPuntoVenta(),
-            cliente: {
-              tipoDoc: docTipo,
-              nroDoc: clientDocNumber,
-              nombre: docTipo === 99 ? 'Consumidor Final' : (tipoComprobante === 'Factura A' ? 'Razon Social Cliente A' : 'Cliente General'),
-              condicionIva: condicionIvaReceptor
-            },
-            items: mappedItems,
-            total: calculatedTotals.total,
-            neto: calculatedTotals.netoGravado,
-            ivaTotal: calculatedTotals.ivaValue
-          });
+      if (isFiscalComprobante) {
+        const arcaResult = await createArcaInvoice({
+          tipoComprobante: afipTipoId,
+          puntoVenta: getArcaPuntoVenta(),
+          cliente: {
+            tipoDoc: docTipo,
+            nroDoc: clientDocNumber,
+            nombre: docTipo === 99 ? 'Consumidor Final' : (tipoComprobante === 'Factura A' ? 'Razon Social Cliente A' : 'Cliente General'),
+            condicionIva: condicionIvaReceptor
+          },
+          items: mappedItems,
+          total: calculatedTotals.total,
+          neto: calculatedTotals.netoGravado,
+          ivaTotal: calculatedTotals.ivaValue
+        });
+        const approval = requireApprovedArcaAuthorization(arcaResult);
+        afipCae = approval.cae;
+        afipVto = approval.vencimiento;
 
-          afipCae = arcaResult?.CodAutorizacion || arcaResult?.CAE || '';
-          afipVto = arcaResult?.Vencimiento || arcaResult?.CAEFchVto || '';
-          
-          if (afipCae) {
-            if (arcaResult?.nroCmp) {
-              const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
-              const cbteNroStr = String(arcaResult.nroCmp).padStart(8, '0');
-              let prefix = 'B';
-              if (tipoComprobante === 'Factura A') prefix = 'A';
-              else if (tipoComprobante === 'Factura B') prefix = 'B';
-              else if (tipoComprobante === 'Ticket') prefix = 'B';
-              else if (tipoComprobante === 'Factura C') prefix = 'C';
+        const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+        const cbteNroStr = String(approval.nroCmp).padStart(8, '0');
+        let prefix = 'B';
+        if (tipoComprobante === 'Factura A') prefix = 'A';
+        else if (tipoComprobante === 'Factura C') prefix = 'C';
+        nroTicket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
 
-              nroTicket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
-            }
-
-            const emitterCuit = getArcaCuit() || 30716492514;
-            afipQr = JSON.stringify({
-              ver: 1,
-              fecha: fechaEmision,
-              cuit: emitterCuit,
-              ptoVta: getArcaPuntoVenta(),
-              tipoCmp: afipTipoId,
-              nroCmp: arcaResult?.nroCmp || 1,
-              importe: calculatedTotals.total,
-              moneda: 'PES',
-              ctz: 1,
-              tipoDocRec: docTipo,
-              nroDocRec: clientDocNumber,
-              tipoCodAut: 'E',
-              codAut: parseInt(afipCae) || 0
-            });
-          }
-        } catch (arcaErr: any) {
-          console.warn('ARCA error simulation fallback:', arcaErr);
-          const errorMsg = arcaErr?.message || String(arcaErr);
-          toast.error(`Error de ARCA: ${errorMsg}`, 10000);
-          toast.warning('ARCA: Conexión fiscal simulada / local debido a fallos remotos.');
-        }
+        const emitterCuit = getArcaCuit() || 30716492514;
+        afipQr = JSON.stringify({
+          ver: 1,
+          fecha: fechaEmision,
+          cuit: emitterCuit,
+          ptoVta: getArcaPuntoVenta(),
+          tipoCmp: afipTipoId,
+          nroCmp: approval.nroCmp,
+          importe: calculatedTotals.total,
+          moneda: 'PES',
+          ctz: 1,
+          tipoDocRec: docTipo,
+          nroDocRec: clientDocNumber,
+          tipoCodAut: 'E',
+          codAut: parseInt(afipCae) || 0
+        });
       }
 
       // 5. Build Factura Db structure
@@ -452,8 +444,12 @@ export function ManualBillingPanel({
       await pdfService.exportToPDF(ticketData);
 
       // 9. Success Callback
-      toast.success(`Comprobante fiscal ${nroTicket} emitido y guardado correctamente.`);
-      addLog('sistema', `CAJA: Factura manual ${nroTicket} emitida por ${money(calculatedTotals.total)}.`);
+      toast.success(isFiscalComprobante
+        ? `Comprobante fiscal ${nroTicket} autorizado por ARCA y guardado correctamente.`
+        : `Comprobante X ${nroTicket} guardado correctamente como documento no fiscal.`);
+      addLog('sistema', isFiscalComprobante
+        ? `CAJA: Factura manual ${nroTicket} autorizada por ARCA con CAE ${afipCae}.`
+        : `CAJA: Comprobante X ${nroTicket} guardado por ${money(calculatedTotals.total)}.`);
       onEmitSuccess();
     } catch (err: any) {
       console.error(err);

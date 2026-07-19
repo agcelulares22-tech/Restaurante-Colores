@@ -20,6 +20,7 @@ import { auditoriaService } from '../../../services/auditoriaService';
 import { clientesService } from '../../../services/clientesService';
 import { isArcaConfigured, createArcaInvoice, TIPOS_COMPROBANTE, getArcaPuntoVenta } from '../../../services/arcaService';
 import { promocionesService, Promocion } from '../../../services/promocionesService';
+import { requireApprovedArcaAuthorization } from '../../../lib/arcaAuthorization';
 
 export interface SplitPartition {
   id: string;
@@ -844,6 +845,11 @@ export function useCaja({
     let arcaVto = "";
     let arcaQr = "";
 
+    if (!isArcaConfigured()) {
+      toast.error('ARCA no está configurado. No se puede registrar esta operación como comprobante fiscal.');
+      return;
+    }
+
     if (isArcaConfigured()) {
       try {
         const tipoMap: Record<string, number> = { 'factura_a': 1, 'factura_b': 6, 'ticket_consumo': 206 };
@@ -877,15 +883,16 @@ export function useCaja({
             ivaTotal: iva,
           });
 
-          const cae = result?.CodAutorizacion || result?.CAE || '';
-          const vto = result?.Vencimiento || result?.CAEFchVto || '';
+          const approval = requireApprovedArcaAuthorization(result);
+          const cae = approval.cae;
+          const vto = approval.vencimiento;
 
           if (cae) {
             arcaCae = cae;
             arcaVto = vto;
 
             const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
-            const cbteNroStr = String(result.nroCmp || 1).padStart(8, '0');
+            const cbteNroStr = String(approval.nroCmp).padStart(8, '0');
             let prefix = 'B';
             if (tipoComprobante === 'factura_a') prefix = 'A';
             else if (tipoComprobante === 'factura_b') prefix = 'B';
@@ -899,7 +906,7 @@ export function useCaja({
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
-              nroCmp: result.nroCmp || 1,
+              nroCmp: approval.nroCmp,
               importe: currentInvoiceTotal,
               moneda: 'PES',
               ctz: 1,
@@ -913,7 +920,8 @@ export function useCaja({
         }
       } catch (err: any) {
         console.error('[ARCA] Error:', err);
-        toast.warning(`ARCA: No se pudo emitir el comprobante electrónico. ${err.message || ''}`);
+        toast.error(`ARCA rechazó o no autorizó el comprobante. No se registró el cobro: ${err.message || ''}`);
+        return;
       }
     }
 
@@ -1407,6 +1415,11 @@ export function useCaja({
     let arcaVto = "";
     let arcaQr = "";
 
+    if (!isArcaConfigured()) {
+      toast.error('ARCA no está configurado. No se puede registrar esta parte como comprobante fiscal.');
+      return;
+    }
+
     if (isArcaConfigured()) {
       try {
         const tipoMap: Record<string, number> = { 'factura_a': 1, 'factura_b': 6, 'ticket_consumo': 206 };
@@ -1444,15 +1457,16 @@ export function useCaja({
             ivaTotal: iva,
           });
 
-          const cae = result?.CodAutorizacion || result?.CAE || '';
-          const vto = result?.Vencimiento || result?.CAEFchVto || '';
+          const approval = requireApprovedArcaAuthorization(result);
+          const cae = approval.cae;
+          const vto = approval.vencimiento;
 
           if (cae) {
             arcaCae = cae;
             arcaVto = vto;
 
             const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
-            const cbteNroStr = String(result.nroCmp || 1).padStart(8, '0');
+            const cbteNroStr = String(approval.nroCmp).padStart(8, '0');
             let prefix = 'B';
             if (tipoComprobante === 'factura_a') prefix = 'A';
             else if (tipoComprobante === 'factura_b') prefix = 'B';
@@ -1466,7 +1480,7 @@ export function useCaja({
               cuit: parseInt(restaurante.cuit.replace(/-/g, '') || '30716492514'),
               ptoVta: getArcaPuntoVenta(),
               tipoCmp: tipoId,
-              nroCmp: result.nroCmp || 1,
+              nroCmp: approval.nroCmp,
               importe: breakdowns.finalTotal,
               moneda: 'PES',
               ctz: 1,
@@ -1480,7 +1494,8 @@ export function useCaja({
         }
       } catch (err: any) {
         console.error('[ARCA Split] Error:', err);
-        toast.warning(`ARCA: No se pudo emitir el comprobante electrónico para esta parte. ${err.message || ''}`);
+        toast.error(`ARCA rechazó o no autorizó esta parte. No se registró el cobro: ${err.message || ''}`);
+        return;
       }
     }
 

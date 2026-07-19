@@ -6,6 +6,27 @@ export function normalizeLoginIdentifier(value: string): string {
   return value.trim().toLowerCase();
 }
 
+const DEFAULT_AUTH_DOMAIN = 'colores.local';
+
+export function getSupabaseAuthEmail(identifier: string): string {
+  const normalized = normalizeLoginIdentifier(identifier);
+  return normalized.includes('@') ? normalized : `${normalized}@${DEFAULT_AUTH_DOMAIN}`;
+}
+
+export function getProfileUsernameCandidates(identifier: string, authEmail?: string | null): string[] {
+  const normalizedIdentifier = normalizeLoginIdentifier(identifier);
+  const normalizedAuthEmail = authEmail ? normalizeLoginIdentifier(authEmail) : '';
+  const authUsername = normalizedAuthEmail.includes('@')
+    ? normalizedAuthEmail.split('@')[0]
+    : normalizedAuthEmail;
+
+  return Array.from(new Set([
+    normalizedIdentifier,
+    normalizedAuthEmail,
+    authUsername,
+  ].filter(Boolean)));
+}
+
 export function findLocalLoginUser(users: LoginUser[], identifier: string, password: string): LoginUser | null {
   const normalized = normalizeLoginIdentifier(identifier);
   return users.find(user => (

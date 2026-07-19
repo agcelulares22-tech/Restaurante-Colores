@@ -2868,6 +2868,7 @@ function CajaModule({
                   <option value="todos" className="bg-white text-stone-900">Todos los estados</option>
                   <option value="emitido" className="bg-white text-stone-900">Emitido</option>
                   <option value="nota_credito" className="bg-white text-stone-900">Anulado (Nota de Crédito)</option>
+                  <option value="rechazado" className="bg-white text-stone-900">Rechazado por ARCA</option>
                 </select>
               </div>
             </div>
@@ -2885,11 +2886,11 @@ function CajaModule({
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-extrabold text-stone-900">{f.nro_ticket}</span>
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${
-                          f.estado === 'nota_credito' 
+                          f.estado === 'nota_credito' || f.estado === 'rechazado'
                             ? 'bg-rose-500/10 text-rose-455 border-rose-500/20' 
                             : 'bg-emerald-500/10 text-emerald-455 border-emerald-500/20'
                         }`}>
-                          {f.estado === 'nota_credito' ? 'Anulado (NC)' : 'Emitido'}
+                          {f.estado === 'nota_credito' ? 'Anulado (NC)' : f.estado === 'rechazado' ? 'Rechazado por ARCA' : 'Emitido'}
                         </span>
                         <span className="text-[10px] text-stone-500 font-medium font-mono">{f.fecha}</span>
                       </div>
@@ -2914,15 +2915,17 @@ function CajaModule({
                       </div>
 
                       <div className="flex gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => downloadFacturaHistorialPdf(f)}
-                          className="px-2.5 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer border-0 btn-premium active:scale-95"
-                          title="Descargar Comprobante PDF"
-                        >
-                          <Download className="w-3.5 h-3.5 text-zinc-950" />
-                          PDF
-                        </button>
+                        {f.estado !== 'rechazado' && (
+                          <button
+                            type="button"
+                            onClick={() => downloadFacturaHistorialPdf(f)}
+                            className="px-2.5 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer border-0 btn-premium active:scale-95"
+                            title="Descargar Comprobante PDF"
+                          >
+                            <Download className="w-3.5 h-3.5 text-zinc-950" />
+                            PDF
+                          </button>
+                        )}
 
                         {f.estado === 'emitido' && (
                           <button

@@ -10,7 +10,8 @@ export interface Factura {
   iva_veintiuno: number;
   medio_pago: 'efectivo' | 'debito' | 'tarjeta' | 'transferencia' | 'mp_qr' | 'mixto';
   fecha: string;
-  estado: 'emitido' | 'nota_credito';
+  estado: 'emitido' | 'nota_credito' | 'rechazado';
+  tipo?: 'ticket' | 'A' | 'B' | 'C' | 'X';
   afip_cae?: string;
   afip_vto?: string;
   afip_qr?: string;
@@ -34,6 +35,25 @@ const mapMetodoPagoFromDb = (medioPago?: string): Factura['medio_pago'] => {
   if (medioPago === 'MercadoPago') return 'mp_qr';
   if (medioPago === 'Mixto') return 'mixto';
   return 'efectivo';
+};
+
+const mapTipoComprobanteToDb = (factura: Factura): string => {
+  if (factura.estado === 'nota_credito') return 'Nota Credito';
+  const tipo = factura.tipo || factura.nro_ticket.split('-')[0];
+  if (tipo === 'A') return 'Factura A';
+  if (tipo === 'C') return 'Factura C';
+  if (tipo === 'X') return 'Comprobante X';
+  if (tipo === 'ticket' || tipo === 'T') return 'Ticket Factura B';
+  return 'Factura B';
+};
+
+const mapTipoComprobanteFromDb = (tipoComprobante: string): Factura['tipo'] => {
+  const normalized = tipoComprobante.toLowerCase();
+  if (normalized.includes('comprobante x')) return 'X';
+  if (normalized.includes('factura a')) return 'A';
+  if (normalized.includes('factura c')) return 'C';
+  if (normalized.includes('ticket')) return 'ticket';
+  return 'B';
 };
 
 const LOCAL_FACTURAS_KEY = 'colores_pizzeria_facturas_pendientes';
@@ -83,7 +103,12 @@ export const facturacionService = {
           iva_veintiuno: parseFloat((f.total * 0.21).toFixed(2)),
           medio_pago: mapMetodoPagoFromDb(f.metodo_pago),
           fecha: new Date(f.fecha_emision).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs',
-          estado: tipoComprobante.toLowerCase().includes('nota') ? 'nota_credito' as const : 'emitido' as const,
+          estado: f.afip_resultado === 'R'
+            ? 'rechazado' as const
+            : tipoComprobante.toLowerCase().includes('nota')
+              ? 'nota_credito' as const
+              : 'emitido' as const,
+          tipo: mapTipoComprobanteFromDb(tipoComprobante),
           afip_cae: f.afip_cae,
           afip_vto: f.afip_vto,
           afip_qr: f.afip_qr,
@@ -107,7 +132,7 @@ export const facturacionService = {
       id_pedido: factura.id_pedido || null,
       numero_factura: factura.nro_ticket,
       total: factura.total,
-      tipo_comprobante: factura.estado === 'nota_credito' ? 'Nota Credito' : 'Factura B',
+      tipo_comprobante: mapTipoComprobanteToDb(factura),
       metodo_pago: mapMetodoPagoToDb(factura.medio_pago),
       cuit_cliente: factura.cuit,
       fecha_emision: factura.fecha_emision || new Date().toISOString(),
@@ -146,7 +171,7 @@ export const facturacionService = {
         id_pedido: f.id_pedido || null,
         numero_factura: f.nro_ticket,
         total: f.total,
-        tipo_comprobante: f.estado === 'nota_credito' ? 'Nota Credito' : 'Factura B',
+        tipo_comprobante: mapTipoComprobanteToDb(f),
         metodo_pago: mapMetodoPagoToDb(f.medio_pago),
         cuit_cliente: f.cuit,
         fecha_emision: f.fecha_emision || new Date().toISOString(),
