@@ -182,17 +182,22 @@ export function useAppState() {
         const response = await fetch('/api/supabase-config');
         const data = await response.json();
         if (data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
+          const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
           const currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
           const currentKey = localStorage.getItem('colores_pizzeria_supabase_anon_key');
-          if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
-            localStorage.removeItem('colores_pizzeria_cache_menu');
-            localStorage.removeItem('colores_pizzeria_cache_categorias');
-            localStorage.removeItem('colores_pizzeria_cache_proveedores');
-            localStorage.removeItem('colores_pizzeria_cache_insumos');
-            localStorage.removeItem('colores_pizzeria_cache_recetas');
-            localStorage.setItem('colores_pizzeria_supabase_url', data.SUPABASE_URL);
-            localStorage.setItem('colores_pizzeria_supabase_anon_key', data.SUPABASE_ANON_KEY);
-            resetSupabaseInstance();
+          
+          // Only overwrite if the user has no local configuration OR if the API returns a custom (non-default) URL
+          if (!currentUrl || data.SUPABASE_URL !== defaultUrl) {
+            if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {
+              localStorage.removeItem('colores_pizzeria_cache_menu');
+              localStorage.removeItem('colores_pizzeria_cache_categorias');
+              localStorage.removeItem('colores_pizzeria_cache_proveedores');
+              localStorage.removeItem('colores_pizzeria_cache_insumos');
+              localStorage.removeItem('colores_pizzeria_cache_recetas');
+              localStorage.setItem('colores_pizzeria_supabase_url', data.SUPABASE_URL);
+              localStorage.setItem('colores_pizzeria_supabase_anon_key', data.SUPABASE_ANON_KEY);
+              resetSupabaseInstance();
+            }
           }
         }
       } catch (configErr) {

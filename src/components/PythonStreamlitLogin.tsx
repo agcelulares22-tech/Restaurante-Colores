@@ -109,11 +109,30 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id_usuario', authData.user.id)
-        .single();
+      let profile = null;
+      let profileError = null;
+
+      try {
+        const { data: profileById, error: errById } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id_usuario', authData.user.id)
+          .maybeSingle();
+
+        if (profileById) {
+          profile = profileById;
+        } else {
+          const { data: profileByEmail, error: errByEmail } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('username', authData.user.email)
+            .maybeSingle();
+          profile = profileByEmail;
+          profileError = errByEmail;
+        }
+      } catch (err) {
+        console.warn('Profile fetch error, using email fallback:', err);
+      }
 
       if (profileError) throw profileError;
 
