@@ -1,3 +1,4 @@
+// Colores Pizzería - Revert to commit 2a585b2 (IVA pre-ticket fix only)
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, Merma, EventoLog, Reserva, Usuario, CierreCaja } from '../types';
 import { 
