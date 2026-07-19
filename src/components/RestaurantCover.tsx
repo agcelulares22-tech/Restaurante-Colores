@@ -382,9 +382,11 @@ export default function RestaurantCover({
       {/* 1. BRAND HEADER (McDonald's High Contrast Inspired) */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 dark:bg-[#0B132B]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
-          <div 
+          <button
+            type="button"
             onClick={onEnterSystem}
-            className="flex items-center gap-3 cursor-default select-none"
+            className="flex items-center gap-3 cursor-pointer select-none text-left"
+            aria-label="Ingresar al sistema de gestión"
           >
             <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
               <Pizza className="w-7 h-7 text-white" />
@@ -397,7 +399,7 @@ export default function RestaurantCover({
                 Pizzería & Minutas
               </span>
             </div>
-          </div>
+          </button>
 
           <div className="flex items-center gap-3">
             <button
@@ -1017,6 +1019,14 @@ export default function RestaurantCover({
             <p className="text-xs font-bold text-stone-500 leading-relaxed uppercase">
               Hacé clic en el botón para ingresar al panel de pedidos para mozos o solicitar tu mesa en el salón directamente en segundos.
             </p>
+            <button
+              type="button"
+              onClick={onEnterSystem}
+              className="w-full px-5 py-3 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Ingresar al sistema
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </section>

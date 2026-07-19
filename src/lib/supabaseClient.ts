@@ -40,30 +40,10 @@ export const resolveSupabaseConfig = (
 
 export const getSupabaseConfig = (): SupabaseConfig => {
   const env = (import.meta as any).env || {};
-  let localUrl = readLocalConfig('colores_pizzeria_supabase_url');
-  let localKey = readLocalConfig('colores_pizzeria_supabase_anon_key');
-
-  // Credenciales por defecto para el proyecto Restaurante Colores Pizza
-  const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-  const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-
-  // Si localUrl es un placeholder o no pertenece al proyecto actual, limpiamos localStorage
-  if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://msmaksbtetcmoaiyywto'))) {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('colores_pizzeria_supabase_url');
-      window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
-    }
-    localUrl = '';
-    localKey = '';
-  }
-
-  const envUrl = readEnvString(env, 'VITE_SUPABASE_URL');
-  const envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') || readEnvString(env, 'VITE_SUPABASE_ANON_KEY');
-
-  const url = localUrl || envUrl || defaultUrl;
-  const key = localKey || envKey || defaultKey;
-
-  return { url: normalizeSupabaseUrl(url), key: key.trim() };
+  return resolveSupabaseConfig(env, {
+    SUPABASE_URL: readLocalConfig('colores_pizzeria_supabase_url'),
+    SUPABASE_ANON_KEY: readLocalConfig('colores_pizzeria_supabase_anon_key'),
+  });
 };
 
 export const hasSupabaseConfig = (config = getSupabaseConfig()) => {

@@ -1,5 +1,5 @@
 "use strict";
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from '../server/vercel';
 import forge from "node-forge";
 import https from "https";
 

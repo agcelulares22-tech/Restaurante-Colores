@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from '../../server/vercel';
 
 const AFIP_URLS = {
   homologacion: "https://wswhomo.afip.gov.ar/wsfev1/service.asmx",

@@ -17,6 +17,10 @@ export function canLogin(user: Pick<Usuario, 'activo'> | null | undefined): bool
   return Boolean(user && user.activo !== false);
 }
 
+export function sanitizeAuthenticatedUser(user: Usuario): Usuario {
+  return { ...user, password: '' };
+}
+
 export function getLoginErrorMessage(error: unknown): string {
   const message = error instanceof Error
     ? error.message

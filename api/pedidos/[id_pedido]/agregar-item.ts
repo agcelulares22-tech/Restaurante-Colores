@@ -1,17 +1,5 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createClient } from "@supabase/supabase-js";
-
-const DEFAULT_SUPABASE_URL = 'https://msmaksbtetcmoaiyywto.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-
-const getSupabaseClient = () => {
-  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-  if (!url || !key) {
-    throw new Error('Supabase configuration missing on process.env');
-  }
-  return createClient(url, key);
-};
+import type { VercelRequest, VercelResponse } from '../../../server/vercel';
+import { createRequestSupabaseClient } from '../../../server/supabase';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -30,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "El objeto item es obligatorio" });
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = createRequestSupabaseClient(req);
 
     // 1. Validar: id_pedido debe existir y NO estar cobrado o cancelado
     const { data: pedido, error: pedidoError } = await supabase

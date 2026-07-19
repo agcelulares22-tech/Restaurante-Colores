@@ -1,9 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createScriptSupabaseClient } from './supabase-config';
 
-const url = 'https://msmaksbtetcmoaiyywto.supabase.co';
-const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-
-const supabase = createClient(url, key);
+const { url, supabase } = createScriptSupabaseClient();
 
 const tables = [
   'usuarios',

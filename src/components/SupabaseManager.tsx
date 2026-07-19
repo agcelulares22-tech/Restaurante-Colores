@@ -129,26 +129,11 @@ export default function SupabaseManager({
 
     // Initial load
     const config = getSupabaseConfig();
-    const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-    const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-    const effectiveUrl = config.url.startsWith('https://msmaksbtetcmoaiyywto') ? config.url : defaultUrl;
-    const effectiveKey = config.key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3Rv') ? config.key : defaultKey;
-
-    if (effectiveUrl !== config.url || effectiveKey !== config.key) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('colores_pizzeria_supabase_url', effectiveUrl);
-        localStorage.setItem('colores_pizzeria_supabase_anon_key', effectiveKey);
-        localStorage.removeItem('colores_pizzeria_cache_menu');
-        localStorage.removeItem('colores_pizzeria_cache_categorias');
-        localStorage.removeItem('colores_pizzeria_cache_proveedores');
-        localStorage.removeItem('colores_pizzeria_cache_insumos');
-        localStorage.removeItem('colores_pizzeria_cache_recetas');
-      }
-      resetSupabaseInstance();
-    }
+    const effectiveUrl = config.url;
+    const effectiveKey = config.key;
 
     setUrl(effectiveUrl);
-    setAnonKey(effectiveKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' ? '' : effectiveKey);
+    setAnonKey(effectiveKey);
 
     // Auto-test if config looks fully valid
     if (effectiveUrl && effectiveKey && !effectiveKey.includes('...')) {

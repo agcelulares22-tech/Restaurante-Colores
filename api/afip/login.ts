@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from '../../server/vercel';
 import crypto from "crypto";
 import https from "https";
 import forge from "node-forge";

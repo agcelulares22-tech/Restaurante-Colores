@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tag, Calendar, Plus, ToggleLeft, ToggleRight, Sparkles, Search, Edit2, Trash, Check, X, Image } from 'lucide-react';
+import { Tag, Calendar, Plus, ToggleLeft, ToggleRight, Sparkles, Search, Edit2, Trash, Check, X, Image as ImageIcon } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { promocionesService, Promocion } from '../services/promocionesService';
 import { promocionSchema } from '../lib/validations';
@@ -441,7 +441,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full min-h-10 flex items-center justify-center gap-1.5 border border-dashed border-stone-300 hover:border-stone-400 bg-stone-50 rounded-xl text-xs font-bold text-stone-600 cursor-pointer"
               >
-                <Image className="w-3.5 h-3.5 text-stone-450" />
+                <ImageIcon className="w-3.5 h-3.5 text-stone-450" />
                 Subir Archivo de Imagen
               </button>
               {imageFile && (

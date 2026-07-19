@@ -58,6 +58,25 @@ Usuario: sistema
 Contraseña: restaurante
 ```
 
+Estas credenciales deben configurarse en `.env.local` mediante `VITE_DEMO_USER` y
+`VITE_DEMO_PASSWORD`. El repositorio no incluye contraseñas operativas.
+
+Para comprobar la conectividad de todas las tablas sin modificar registros:
+
+```bash
+npx tsx scripts/diagnose_supabase_tables.ts
+```
+
+## Preparación de producción
+
+1. Crear las cuentas del personal en Supabase Auth.
+2. Asegurar que el email del primer superadmin coincida con `usuarios.username`.
+3. Ejecutar `supabase/SECURITY_HARDENING.sql`. El script usa una transacción y
+   aborta sin cambios si no encuentra un superadmin correctamente vinculado.
+4. Configurar en Vercel `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y
+   `VITE_ENABLE_DEMO_LOGIN=false`.
+5. Ejecutar `npm run verify` antes de publicar.
+
 ## Verificación
 
 ```bash
@@ -114,6 +133,6 @@ npm run clean
 - Configurar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` por separado en Production, Preview y Development.
 - Configurar `VITE_DEMO_USER` y `VITE_DEMO_PASSWORD` en Vercel mientras el acceso demo esté habilitado.
 - Desactivar el acceso demo con `VITE_ENABLE_DEMO_LOGIN=false` cuando Supabase Auth esté operativo.
-- `npm run verify` falla en Vercel Production si faltan variables Supabase o si `VITE_ENABLE_DEMO_LOGIN` no está en `false`.
+- El build de Vercel falla en Production si faltan variables Supabase o si `VITE_ENABLE_DEMO_LOGIN` no está en `false`.
 - Si Vercel muestra el error de configuración de Production, corregir las variables en Project Settings > Environment Variables y redistribuir el último commit.
-- Las políticas RLS de la migración son abiertas para desarrollo/demo. Para producción, restringirlas por usuario, rol y operación.
+- Las migraciones base conservan políticas abiertas para desarrollo/demo. Antes de publicar, ejecutar `supabase/SECURITY_HARDENING.sql` para exigir Supabase Auth y eliminar contraseñas heredadas.

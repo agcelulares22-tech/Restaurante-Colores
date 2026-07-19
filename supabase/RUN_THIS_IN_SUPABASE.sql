@@ -278,15 +278,15 @@ ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Usuarios iniciales
 INSERT INTO public.usuarios (id_usuario, nombre, apellido, username, password, rol, activo) VALUES
-    (1, 'Super Admin', '', 'super@admi.com', 'superadmi2026/', 'superadmin', true),
-    (2, 'Administrador', '', 'admin@colores.com', 'Pizzeriacolores2026/', 'administrador', true),
-    (3, 'Mozo', '', 'mozo@colores.com', 'Pizzeriacoloresmozo2026/', 'mozo', true),
-    (4, 'Enzo', 'Fernández', 'enzo', '1234', 'mozo', true),
-    (5, 'Micaela', 'Gómez', 'micaela', '1234', 'mozo', true),
-    (6, 'Damián', 'Martínez', 'damian', '1234', 'cocina', true),
-    (7, 'Sofía', 'Alegre', 'sofia', '1234', 'administrador', true),
-    (8, 'Nuevo', 'Usuario', 'nuevo', 'clave', 'mozo', true),
-    (9, 'Admin', '', 'admin', '1998', 'superadmin', true)
+    (1, 'Super Admin', '', 'superadmin', NULL, 'superadmin', true),
+    (2, 'Administrador', '', 'administrador', NULL, 'administrador', true),
+    (3, 'Mozo', '', 'mozo', NULL, 'mozo', true),
+    (4, 'Enzo', 'Fernández', 'enzo', NULL, 'mozo', true),
+    (5, 'Micaela', 'Gómez', 'micaela', NULL, 'mozo', true),
+    (6, 'Damián', 'Martínez', 'damian', NULL, 'cocina', true),
+    (7, 'Sofía', 'Alegre', 'sofia', NULL, 'administrador', true),
+    (8, 'Nuevo', 'Usuario', 'nuevo', NULL, 'mozo', true),
+    (9, 'Admin', '', 'admin', NULL, 'superadmin', true)
 ON CONFLICT (id_usuario) DO NOTHING;
 
 -- Mesas iniciales

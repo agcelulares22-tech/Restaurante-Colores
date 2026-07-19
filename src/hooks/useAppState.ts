@@ -9,7 +9,7 @@ import {
   INITIAL_PEDIDOS 
 } from '../data/initialData';
 import { useToast } from '../components/ToastContainer';
-import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { hasSupabaseConfig, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { AppView, canAccessView, getAllowedViews } from '../lib/permissions';
 import { lotesService } from '../services/lotesService';
 import { cajaService } from '../services/cajaService';
@@ -34,6 +34,21 @@ import {
   dbUpsertRecetas
 } from '../supabase';
 import { createClientPedidoId } from '../lib/pedidoIds';
+import { sanitizeAuthenticatedUser } from '../lib/loginAuth';
+
+const SESSION_STATUS_KEY = 'colores_pizzeria_session';
+const SESSION_USER_KEY = 'colores_pizzeria_session_user';
+
+const readStoredAuthenticatedUser = (): Usuario | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_USER_KEY);
+    return raw ? JSON.parse(raw) as Usuario : null;
+  } catch {
+    window.sessionStorage.removeItem(SESSION_USER_KEY);
+    return null;
+  }
+};
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
   const isP1Delivery = String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
@@ -58,8 +73,11 @@ export function useAppState() {
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // --- Global Synced States ---
+  const [authenticatedUser, setAuthenticatedUser] = useState<Usuario | null>(() => readStoredAuthenticatedUser());
   const [isStreamlitLoggedIn, setIsStreamlitLoggedIn] = useState<boolean>(() => (
-    typeof window !== 'undefined' && window.sessionStorage.getItem('colores_pizzeria_session') === 'active'
+    typeof window !== 'undefined'
+    && window.sessionStorage.getItem(SESSION_STATUS_KEY) === 'active'
+    && Boolean(readStoredAuthenticatedUser())
   ));
   const [showCover, setShowCover] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -177,8 +195,11 @@ export function useAppState() {
   // 1. Config loading effect (runs once on mount)
   useEffect(() => {
     const loadConfig = async () => {
+      if (hasSupabaseConfig()) return;
+
       try {
         const response = await fetch('/api/supabase-config');
+        if (!response.ok) return;
         const data = await response.json();
         if (data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
           const currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
@@ -440,10 +461,10 @@ export function useAppState() {
   const [activeMozo, setActiveMozo] = useState<string>('Sofía');
   const [activeView, setActiveView] = useState<AppView>('home');
   const activeUser = useMemo(
-    () => usuarios.find(usuario => usuario.nombre === activeMozo && usuario.activo !== false)
+    () => authenticatedUser
       || usuarios.find(usuario => usuario.activo !== false)
       || INITIAL_USUARIOS[0],
-    [usuarios, activeMozo]
+    [authenticatedUser, usuarios]
   );
 
   const allowedViews = useMemo(() => {
@@ -451,10 +472,11 @@ export function useAppState() {
   }, [activeUser.rol]);
 
   const applyAuthenticatedSession = useCallback((session: {
-    user?: { user_metadata?: Record<string, unknown> };
+    user?: { email?: string; user_metadata?: Record<string, unknown> };
   }) => {
     const metadata = session.user?.user_metadata;
     const requestedName = metadata?.nombre || metadata?.name;
+    const requestedEmail = session.user?.email?.trim().toLowerCase();
     const operator = (
       typeof requestedName === 'string'
         ? usuarios.find(usuario => (
@@ -462,11 +484,17 @@ export function useAppState() {
             && usuario.nombre.toLowerCase() === requestedName.trim().toLowerCase()
           ))
         : undefined
-    ) || usuarios.find(usuario => usuario.activo !== false && usuario.rol === 'mozo')
-      || usuarios.find(usuario => usuario.activo !== false && usuario.rol !== 'administrador')
-      || usuarios.find(usuario => usuario.activo !== false);
+    ) || usuarios.find(usuario => (
+      usuario.activo !== false
+      && Boolean(requestedEmail)
+      && usuario.username.trim().toLowerCase() === requestedEmail
+    ));
 
     if (operator) {
+      const safeUser = sanitizeAuthenticatedUser(operator);
+      setAuthenticatedUser(safeUser);
+      window.sessionStorage.setItem(SESSION_STATUS_KEY, 'active');
+      window.sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(safeUser));
       setActiveMozo(operator.nombre);
       setActiveView('home');
       setIsStreamlitLoggedIn(true);
@@ -664,8 +692,11 @@ export function useAppState() {
   };
 
   const handleLoginSuccess = (user: Usuario) => {
-    window.sessionStorage.setItem('colores_pizzeria_session', 'active');
-    setActiveMozo(user.nombre);
+    const safeUser = sanitizeAuthenticatedUser(user);
+    window.sessionStorage.setItem(SESSION_STATUS_KEY, 'active');
+    window.sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(safeUser));
+    setAuthenticatedUser(safeUser);
+    setActiveMozo(safeUser.nombre);
     setActiveView('home');
 
     setPostLoginLoading(true);
@@ -683,7 +714,9 @@ export function useAppState() {
   };
 
   const handleLogout = () => {
-    window.sessionStorage.removeItem('colores_pizzeria_session');
+    window.sessionStorage.removeItem(SESSION_STATUS_KEY);
+    window.sessionStorage.removeItem(SESSION_USER_KEY);
+    setAuthenticatedUser(null);
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
     setIsStreamlitLoggedIn(false);
   };

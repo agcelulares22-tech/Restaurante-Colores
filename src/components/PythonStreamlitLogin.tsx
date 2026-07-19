@@ -32,7 +32,7 @@ const getRuntimeEnv = (): Record<string, unknown> => (
 
 const getDemoUsers = (): Usuario[] => {
   const configuredCredentials = getConfiguredDemoCredentials(getRuntimeEnv());
-  if (!configuredCredentials) return INITIAL_USUARIOS;
+  if (!configuredCredentials) return [];
 
   return [
     {
@@ -109,11 +109,21 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
+      let { data: profile, error: profileError } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('id_usuario', authData.user.id)
-        .single();
+        .eq('auth_user_id', authData.user.id)
+        .maybeSingle();
+
+      if (profileError && (profileError.code === '42703' || profileError.code === 'PGRST204')) {
+        const legacyProfile = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('username', authData.user.email?.trim().toLowerCase() || '')
+          .maybeSingle();
+        profile = legacyProfile.data;
+        profileError = legacyProfile.error;
+      }
 
       if (profileError) throw profileError;
 

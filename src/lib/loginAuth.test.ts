@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { canLogin, findLocalLoginUser, getLoginErrorMessage, normalizeLoginIdentifier } from './loginAuth';
+import { canLogin, findLocalLoginUser, getLoginErrorMessage, normalizeLoginIdentifier, sanitizeAuthenticatedUser } from './loginAuth';
 
 const users = [
   { id_usuario: 1, nombre: 'Admin', apellido: '', username: 'ADMIN', password: '1234', rol: 'superadmin' as const },
@@ -20,6 +20,13 @@ test('canLogin bloquea usuarios desactivados', () => {
   assert.equal(canLogin(users[0]), true);
   assert.equal(canLogin(users[1]), false);
   assert.equal(canLogin(null), false);
+});
+
+test('sanitizeAuthenticatedUser no conserva contraseñas en la sesión', () => {
+  const user = sanitizeAuthenticatedUser(users[0]);
+  assert.equal(user.password, '');
+  assert.equal(user.username, 'ADMIN');
+  assert.equal(user.rol, 'superadmin');
 });
 
 test('getLoginErrorMessage traduce errores tecnicos a mensajes accionables', () => {
