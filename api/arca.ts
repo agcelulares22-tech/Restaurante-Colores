@@ -67,7 +67,7 @@ function buildTicketReqXml(service: string): string {
   const uniqueId = Math.floor(Math.random() * 1000000).toString();
   // Formato ISO-8601 completo compatible con xsd:dateTime sin milisegundos
   const genTime = new Date(Date.now() - 2 * 60 * 1000).toISOString().split('.')[0] + 'Z';
-  const expTime = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z';
+  const expTime = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <loginTicketRequest version="1.0">
@@ -134,12 +134,14 @@ function signTicket(xml: string, cert: string, key: string): string {
       },
       {
         type: forge.pki.oids.signingTime,
+        value: new Date(),
       },
     ],
   });
 
   p7.sign();
-  return forge.util.encode64(forge.asn1.toDer(p7.toAsn1()).getBytes());
+  const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
+  return forge.util.encode64(bytes).replace(/\r?\n|\r/g, "");
 }
 
 // Obtiene el token de WSAA enviando el ticket firmado
