@@ -573,7 +573,7 @@ export default function SupabaseManager({
         {showSqlSetupGuide && (
           <div className="space-y-2.5 animate-fadeIn">
             <p className="text-[10px] text-slate-500 leading-relaxed text-left">
-              Ejecute este script en el <strong>"SQL Editor"</strong> de su consola de Supabase para crear automáticamente todas las tablas relacionales y habilitar el acceso completo de subida/bajada sin restricciones de seguridad (RLS):
+              Este asistente crea la estructura inicial con RLS activado. Después aplique políticas para usuarios <strong>authenticated</strong>; nunca otorgue escritura al rol público <strong>anon</strong>.
             </p>
             <div className="bg-slate-900 text-slate-100 p-3 rounded-xl relative font-mono text-[9px] overflow-hidden group shadow-inner">
               <pre className="overflow-x-auto whitespace-pre max-h-56 leading-relaxed text-left pr-20">
@@ -696,20 +696,20 @@ CREATE TABLE IF NOT EXISTS public.pedido_detalle (
   categoria text NOT NULL
 );
 
--- 2. DESACTIVACIÓN DE RLS PARA PERMITIR LECTURA/ESCRITURA DIRECTA
-ALTER TABLE public.productos_menu DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usuarios DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.mesas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recetas_escandallo DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.promociones DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`}
+-- 2. SEGURIDAD: RLS DEBE PERMANECER ACTIVO
+ALTER TABLE public.productos_menu ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mesas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.insumos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recetas_escandallo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proveedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria_eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedidos_cabecera ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedido_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
+-- Aplique políticas authenticated de la migración de seguridad antes de sincronizar.`}
               </pre>
               <button
                 onClick={() => {
@@ -832,19 +832,20 @@ CREATE TABLE IF NOT EXISTS public.pedido_detalle (
   categoria text NOT NULL
 );
 
--- 2. DESACTIVACIÓN DE RLS PARA PERMITIR LECTURA/ESCRITURA DIRECTA
-ALTER TABLE public.productos_menu DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usuarios DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.mesas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.insumos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recetas_escandallo DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.promociones DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.proveedores DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reservas DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.auditoria_eventos DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedidos_cabecera DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_detalle DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
+-- 2. SEGURIDAD: RLS DEBE PERMANECER ACTIVO
+ALTER TABLE public.productos_menu ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mesas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.insumos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recetas_escandallo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proveedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria_eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedidos_cabecera ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedido_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
+-- Aplique políticas authenticated de la migración de seguridad antes de sincronizar.`;
                   navigator.clipboard.writeText(sqlCode);
                   setCopiedSql(true);
                   setTimeout(() => setCopiedSql(false), 2000);
@@ -1120,7 +1121,7 @@ ALTER TABLE public.lotes_insumo DISABLE ROW LEVEL SECURITY;`;
           <div className="flex items-start gap-1.5 text-[10px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
             <Info className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>Políticas de Acceso RLS:</strong> Asegúrese de habilitar los permisos de inserción, actualización y lectura para el rol de clave anónima (anon) en su consola de base de datos Supabase para habilitar la sync automática.
+              <strong>Políticas de Acceso RLS:</strong> la escritura operativa requiere una sesión Supabase autenticada. El rol público anon conserva únicamente la lectura del catálogo público.
             </p>
           </div>
         </div>
