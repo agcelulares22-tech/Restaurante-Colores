@@ -70,6 +70,7 @@ const ROLE_PERMISSIONS: Record<Usuario['rol'], AppView[]> = {
     'proveedores',
     'promociones',
     'reservas',
+    'sistema',
     'backups',
     'fichaje'
   ],
