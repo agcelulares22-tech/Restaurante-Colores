@@ -47,8 +47,8 @@ export const getSupabaseConfig = (): SupabaseConfig => {
   const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
   const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
 
-  // Si localUrl es un placeholder o no pertenece al proyecto actual, limpiamos localStorage
-  if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://msmaksbtetcmoaiyywto'))) {
+  // Si localUrl es un placeholder, limpiamos localStorage
+  if (localUrl && (localUrl.includes('xxx') || localUrl.includes('placeholder') || !localUrl.startsWith('https://'))) {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('colores_pizzeria_supabase_url');
       window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
