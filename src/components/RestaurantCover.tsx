@@ -483,7 +483,7 @@ export default function RestaurantCover({
  return (
  <div
  key={p.id_promo}
- className={`bg-white border-4 border-[#3b3b3b] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(59,59,59,1)] ${
+ className={`bg-[#3b3b3b] border-4 border-[#3b3b3b] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(59,59,59,1)] ${
  idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
  } flex flex-col h-full group`}
  >
@@ -502,7 +502,7 @@ export default function RestaurantCover({
  >
  {labelUpper}
  </span>
- <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-[#3b3b3b] text-[#fbd127] border-2 border-[#3b3b3b] text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
+ <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-stone-900 text-[#fbd127] border-2 border-[#3b3b3b] text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
  -{p.descuento_porcentaje}% OFF
  </span>
  </div>
@@ -510,15 +510,15 @@ export default function RestaurantCover({
  <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
  <div className="space-y-3">
  <div className="flex items-center justify-between gap-2">
- <h3 className="font-display text-2xl text-[#3b3b3b] uppercase leading-none group-hover:text-[#fc0000] transition-colors">
+ <h3 className="font-display text-2xl text-white uppercase leading-none group-hover:text-[#fbd127] transition-colors">
  {p.nombre}
  </h3>
  </div>
- <p className="text-xs font-bold text-[#3b3b3b] leading-relaxed italic">
+ <p className="text-xs font-bold text-stone-200 leading-relaxed italic">
  "{p.descripcion || 'Disfrutá de esta promoción especial en nuestro salón o a domicilio.'}"
  </p>
  {p.dias_vigentes && (
- <span className="inline-block text-[9px] font-extrabold text-[#fc0000] uppercase tracking-wider bg-stone-50 px-2 py-1 rounded border border-[#3b3b3b]/10">
+ <span className="inline-block text-[9px] font-extrabold text-[#fc0000] uppercase tracking-wider bg-stone-900 px-2 py-1 rounded border border-white/10">
  🗓️ {p.dias_vigentes}
  </span>
  )}
@@ -526,7 +526,7 @@ export default function RestaurantCover({
 
  <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
  <div>
- <span className="text-[9px] font-extrabold text-[#3b3b3b] uppercase tracking-widest block">Descuento</span>
+ <span className="text-[9px] font-extrabold text-stone-300 uppercase tracking-widest block">Descuento</span>
  <span className="font-display text-2xl text-[#fc0000]">
  {p.descuento_porcentaje}% OFF
  </span>
@@ -771,22 +771,22 @@ export default function RestaurantCover({
  </p>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
- <div className="bg-white p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
+ <div className="bg-[#3b3b3b] p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
  <div className="w-10 h-10 rounded-xl bg-[#fc0000] flex items-center justify-center shrink-0 border border-[#3b3b3b] text-white">
  <ChefHat className="w-5 h-5" />
  </div>
  <div>
- <h4 className="font-black text-xs uppercase text-[#3b3b3b] ">Hecho a Mano</h4>
- <p className="text-[10px] text-stone-500 font-semibold">Repulgues manuales y horneado en el acto.</p>
+ <h4 className="font-black text-xs uppercase text-white ">Hecho a Mano</h4>
+ <p className="text-[10px] text-stone-300 font-semibold">Repulgues manuales y horneado en el acto.</p>
  </div>
  </div>
- <div className="bg-white p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
+ <div className="bg-[#3b3b3b] p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
  <div className="w-10 h-10 rounded-xl bg-[#FF5722] flex items-center justify-center shrink-0 border border-[#3b3b3b] text-white">
  <Flame className="w-5 h-5" />
  </div>
  <div>
- <h4 className="font-black text-xs uppercase text-[#3b3b3b] ">Fuego & Leña</h4>
- <p className="text-[10px] text-stone-500 font-semibold">El inconfundible sabor ahumado del quebracho y espinillo.</p>
+ <h4 className="font-black text-xs uppercase text-white ">Fuego & Leña</h4>
+ <p className="text-[10px] text-stone-300 font-semibold">El inconfundible sabor ahumado del quebracho y espinillo.</p>
  </div>
  </div>
  </div>
@@ -812,7 +812,7 @@ export default function RestaurantCover({
 
 
  {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
- <section className="py-20 bg-stone-50 border-t-4 border-[#3b3b3b] text-[#3b3b3b] relative overflow-hidden">
+ <section className="py-20 bg-[#3b3b3b] border-t-4 border-[#3b3b3b] text-white relative overflow-hidden">
  <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
  
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
@@ -820,10 +820,10 @@ export default function RestaurantCover({
  <span className="inline-block px-3 py-1 bg-[#fc0000] text-white border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(59,59,59,1)] transform -rotate-1">
  💬 OPINIONES DEL BARRIO
  </span>
- <h2 className="font-display text-3xl sm:text-5xl text-[#3b3b3b] uppercase leading-none">
+ <h2 className="font-display text-3xl sm:text-5xl text-white uppercase leading-none">
  Lo Que Dicen Nuestros Clientes
  </h2>
- <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
+ <p className="text-xs sm:text-sm font-bold text-stone-300 uppercase tracking-wider">
  Opiniones reales de vecinos de Río Cuarto que disfrutan de nuestra cocina
  </p>
  <div className="w-16 h-1.5 bg-[#fbd127] mx-auto border-2 border-[#3b3b3b] rounded-full shadow-[2px_2px_0px_0px_rgba(59,59,59,1)]" />
@@ -855,26 +855,26 @@ export default function RestaurantCover({
  ].map((rev, idx) => (
  <div 
  key={idx}
- className="bg-white p-8 border-4 border-[#3b3b3b] rounded-3xl shadow-[6px_6px_0px_rgba(59,59,59,1)] flex flex-col justify-between space-y-6 text-left"
+ className="bg-stone-900 p-8 border-4 border-[#3b3b3b] rounded-3xl shadow-[6px_6px_0px_rgba(59,59,59,1)] flex flex-col justify-between space-y-6 text-left"
  >
  <div className="space-y-4">
  {/* Stars block */}
  <div className="flex gap-1">
  {Array.from({ length: rev.stars }).map((_, i) => (
- <Star key={i} className="w-4 h-4 fill-[#fbd127] text-[#3b3b3b] stroke-[1.5px]" />
+ <Star key={i} className="w-4 h-4 fill-[#fbd127] text-[#fbd127] stroke-[1.5px]" />
  ))}
  </div>
- <p className="text-xs font-bold text-[#3b3b3b] leading-relaxed italic">
+ <p className="text-xs font-bold text-stone-200 leading-relaxed italic">
  "{rev.comment}"
  </p>
  </div>
 
  <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
  <div>
- <h4 className="font-black text-xs uppercase text-[#3b3b3b] leading-none">{rev.name}</h4>
- <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">{rev.role}</span>
+ <h4 className="font-black text-xs uppercase text-white leading-none">{rev.name}</h4>
+ <span className="text-[9px] font-bold text-stone-300 uppercase tracking-widest">{rev.role}</span>
  </div>
- <span className="text-[9px] font-extrabold text-stone-450 uppercase">{rev.date}</span>
+ <span className="text-[9px] font-extrabold text-stone-300 uppercase">{rev.date}</span>
  </div>
  </div>
  ))}
@@ -885,7 +885,7 @@ export default function RestaurantCover({
  href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería dejarles mi opinión sobre el pedido..."
  target="_blank"
  rel="noopener noreferrer"
- className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#3b3b3b] text-white hover:bg-[#fc0000] hover:text-white border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] transition-all cursor-pointer"
+ className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#fbd127] text-[#3b3b3b] hover:bg-[#ffe163] border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] transition-all cursor-pointer"
  >
  <MessageSquare className="w-4 h-4" />
  Dejar una Opinión
@@ -981,11 +981,11 @@ export default function RestaurantCover({
  </section>
 
  {/* 6. CONTACT & LOCATION INFO */}
- <section id="contacto" className="py-12 border-t-4 border-[#3b3b3b] bg-stone-50 ">
+ <section id="contacto" className="py-12 border-t-4 border-[#3b3b3b] bg-[#3b3b3b] text-white">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
  <div className="space-y-6 text-left">
- <h3 className="font-display text-4xl text-[#3b3b3b] uppercase leading-none">Ubicación & Contacto</h3>
- <div className="space-y-4 text-[#3b3b3b] text-sm font-bold">
+ <h3 className="font-display text-4xl text-white uppercase leading-none">Ubicación & Contacto</h3>
+ <div className="space-y-4 text-white text-sm font-bold">
  <div className="flex items-center gap-3">
  <MapPin className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>Alvear 1362, Río Cuarto, Córdoba, X5800</span>
@@ -994,7 +994,7 @@ export default function RestaurantCover({
  href="https://wa.me/5493584024822" 
  target="_blank" 
  rel="noopener noreferrer"
- className="flex items-center gap-3 hover:text-[#fc0000] transition-colors"
+ className="flex items-center gap-3 hover:text-[#fbd127] transition-colors"
  >
  <Phone className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>+54 9 358 402-4822 (WhatsApp)</span>
@@ -1005,16 +1005,16 @@ export default function RestaurantCover({
  </div>
  <a 
  href="mailto:colores.pizzeria@gmail.com"
- className="flex items-center gap-3 hover:text-[#fc0000] transition-colors"
+ className="flex items-center gap-3 hover:text-[#fbd127] transition-colors"
  >
  <Mail className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>colores.pizzeria@gmail.com</span>
  </a>
  </div>
  </div>
- <div className="flex flex-col justify-center space-y-4 border-4 border-[#3b3b3b] p-8 rounded-3xl bg-white shadow-[4px_4px_0px_rgba(59,59,59,1)] text-left">
+ <div className="flex flex-col justify-center space-y-4 border-4 border-[#fbd127] p-8 rounded-3xl bg-[#3b3b3b] shadow-[4px_4px_0px_#fbd127] text-left">
  <h4 className="font-display text-2xl text-[#fc0000] uppercase leading-none">Reservá Hoy</h4>
- <p className="text-xs font-bold text-stone-500 leading-relaxed uppercase">
+ <p className="text-xs font-bold text-white leading-relaxed uppercase">
  Hacé clic en el botón para ingresar al panel de pedidos para mozos o solicitar tu mesa en el salón directamente en segundos.
  </p>
  </div>
