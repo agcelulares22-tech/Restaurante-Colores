@@ -64,7 +64,18 @@ CREATE TABLE public.mesas (
     id_mesa INT PRIMARY KEY,
     numero_mesa TEXT NOT NULL UNIQUE,
     estado TEXT NOT NULL DEFAULT 'libre',
-    comensales INT
+    comensales INT,
+    capacidad INT DEFAULT 4,
+    zona TEXT DEFAULT 'salon',
+    sector TEXT DEFAULT 'salon',
+    x NUMERIC,
+    y NUMERIC,
+    width NUMERIC,
+    height NUMERIC,
+    rx NUMERIC DEFAULT 6,
+    forma TEXT DEFAULT 'redonda',
+    parent_id INT REFERENCES public.mesas(id_mesa) ON DELETE SET NULL,
+    mesas_unidas INT[] DEFAULT '{}'
 );
 
 -- Tabla de Insumos / Inventario
