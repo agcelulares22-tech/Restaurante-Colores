@@ -402,11 +402,14 @@ export default function RestaurantCover({
  onClick={onEnterSystem}
  className="flex items-center gap-3 cursor-default select-none"
  >
-            <div className="w-12 h-12 bg-white border-2 border-[#3b3b3b] rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transition-all duration-150 p-0.5">
+            <div 
+              className="w-14 h-14 bg-white border-2 border-[#3b3b3b] rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transition-all duration-150 p-0 overflow-hidden"
+              style={{ backgroundColor: '#ffffff' }}
+            >
               <img 
                 src="/images/logo-colores-brand.jpg" 
                 alt="Logo Colores Pizza" 
-                className="w-full h-full object-contain rounded-lg" 
+                className="w-full h-full object-contain rounded-xl" 
               />
             </div>
  <div className="flex flex-col">
