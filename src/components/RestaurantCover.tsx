@@ -483,11 +483,11 @@ export default function RestaurantCover({
  return (
  <div
  key={p.id_promo}
- className={`bg-[#3b3b3b] border-4 border-[#3b3b3b] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(59,59,59,1)] ${
+ className={`bg-[#3b3b3b] border-4 border-[#fbd127] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_#fbd127] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_#fbd127] ${
  idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
  } flex flex-col h-full group`}
  >
- <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-[#3b3b3b]">
+ <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-[#fbd127]">
  <img
  src={cleanImage}
  alt={p.nombre}
