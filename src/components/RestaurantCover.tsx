@@ -40,13 +40,29 @@ export default function RestaurantCover({
  insumos = []
 }: RestaurantCoverProps) {
  // Booking states
- const [bookingForm, setBookingForm] = useState({
- nombre: '',
- telefono: '',
- personas: '2',
- fecha: '',
- hora: '21:00'
- });
+  const [bookingForm, setBookingForm] = useState({
+    nombre: '',
+    telefono: '',
+    personas: '2',
+    fecha: '',
+    hora: '21:00'
+  });
+
+  const [cateringImageIndex, setCateringImageIndex] = useState(0);
+  const CATERING_IMAGES = [
+    '/images/pizza_wood_oven.png',
+    '/images/provoleta_hierro.png',
+    '/images/pizza_usuario.jpg',
+    '/images/empanadas_usuario.jpg',
+    '/images/tarta_usuario.jpg'
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCateringImageIndex((prev) => (prev + 1) % CATERING_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
  const [showBookingSuccess, setShowBookingSuccess] = useState(false);
 
  const [promocionesList, setPromocionesList] = useState<Promocion[]>([]);
@@ -386,9 +402,11 @@ export default function RestaurantCover({
  onClick={onEnterSystem}
  className="flex items-center gap-3 cursor-default select-none"
  >
- <div className="w-12 h-12 bg-[#fc0000] border-2 border-[#3b3b3b] rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transition-all duration-150">
- <Pizza className="w-7 h-7 text-white" />
- </div>
+ <img 
+              src="/images/logo-colores-brand.jpg" 
+              alt="Logo Colores Pizza" 
+              className="w-12 h-12 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] object-cover transition-all duration-150" 
+            />
  <div className="flex flex-col">
  <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#fc0000] leading-none">
  COLORES
@@ -417,15 +435,12 @@ export default function RestaurantCover({
  {/* 2. HERO COMMERCIAL BOARD */}
  <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
  <div className="text-center space-y-6 max-w-4xl mx-auto">
- <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbd127] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-full font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transform -rotate-1">
- <Sparkles className="w-4 h-4 text-[#fc0000] fill-[#fc0000]" />
- ¡EL SABOR QUE TE VUELVE A ENAMORAR!
- </div>
+ 
 
  <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-[#3b3b3b] uppercase tracking-tight">
- PIZZERÍA COLORES <br />
- <span className="text-[#fc0000] italic underline decoration-wavy decoration-[#fbd127] tracking-wide">SABOR AL HORNO DE BARRO</span>
- </h1>
+            COLORES PIZZA<br />
+            <span className="text-[#fc0000] italic underline decoration-wavy decoration-[#fbd127] tracking-wide">CON ESTILO PROPIO 🍕 </span>
+          </h1>
 
  <p className="text-[#3b3b3b] text-base sm:text-xl font-bold leading-relaxed max-w-2xl mx-auto pl-4 border-l-4 border-[#fc0000]">
  Masa madre fermentada durante 48 hs, ingredientes frescos seleccionados y el toque único de la leña natural. Una mordida y entendés todo.
@@ -895,90 +910,67 @@ export default function RestaurantCover({
  </section>
 
  {/* 5. BOOKING FORM (McDonald's High Contrast Theme) */}
- <section id="reserva" className="py-20 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
- <div className="text-center space-y-3">
- <span className="text-xs uppercase font-extrabold text-[#fc0000] tracking-widest bg-[#fc0000]/10 px-4 py-1.5 rounded-full border border-[#fc0000]/20">
- ¡COMPARTÍ EL MOMENTO!
- </span>
- <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase">
- Reservar tu Mesa
- </h2>
- <p className="text-xs sm:text-sm text-stone-500 font-bold max-w-md mx-auto italic">
- Completá tus datos y enviá la solicitud. Te responderemos por WhatsApp para confirmar tu reserva al instante.
- </p>
- </div>
+ <section id="reserva" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+      {/* Left side: Pizza Description */}
+      <div className="md:col-span-6 space-y-6 text-left">
+        <span className="inline-block px-3 py-1 bg-[#fc0000] text-white border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(59,59,59,1)]">
+          Catering Exclusivo
+        </span>
+        <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase leading-none">
+          Catering de Pizza
+        </h2>
+        <div className="space-y-4">
+          <p className="text-stone-750 text-sm sm:text-base font-bold leading-relaxed">
+            Llevamos la experiencia única de nuestro horno de barro y la leña directamente a tu evento. Elaboramos pizzas artesanales de masa madre y empanadas criollas jugosas en vivo para tus invitados.
+          </p>
+          <p className="text-stone-750 text-sm sm:text-base font-bold leading-relaxed">
+            Ideal para cumpleaños, casamientos, eventos corporativos y reuniones íntimas en Río Cuarto. Disfrutá de materia prima premium y de un servicio profesional sin complicaciones.
+          </p>
+        </div>
+        <button 
+          onClick={() => setShowEventModal(true)}
+          className="w-full sm:w-auto px-8 py-5 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+        >
+          Pedir Presupuesto por WhatsApp 🚀
+        </button>
+      </div>
 
- <form onSubmit={handleBookingSubmit} className="bg-white p-8 sm:p-10 rounded-3xl border-4 border-[#3b3b3b] shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] space-y-6">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Nombre Completo *</label>
- <input 
- type="text" 
- required
- value={bookingForm.nombre}
- onChange={(e) => setBookingForm(prev => ({ ...prev, nombre: e.target.value }))}
- placeholder="Ej. Juan Pérez"
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
- />
- </div>
- <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">WhatsApp de contacto *</label>
- <input 
- type="tel" 
- required
- value={bookingForm.telefono}
- onChange={(e) => setBookingForm(prev => ({ ...prev, telefono: e.target.value }))}
- placeholder="Ej. 11 1234 5678"
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
- />
- </div>
- </div>
-
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
- <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Comensales</label>
- <select 
- value={bookingForm.personas}
- onChange={(e) => setBookingForm(prev => ({ ...prev, personas: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
- >
- {[1,2,3,4,5,6,7,8].map(n => (
- <option key={n} value={n}>{n} {n === 1 ? 'Persona' : 'Personas'}</option>
- ))}
- </select>
- </div>
- <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Fecha *</label>
- <input 
- type="date" 
- required
- value={bookingForm.fecha}
- onChange={(e) => setBookingForm(prev => ({ ...prev, fecha: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
- />
- </div>
- <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Hora</label>
- <select 
- value={bookingForm.hora}
- onChange={(e) => setBookingForm(prev => ({ ...prev, hora: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
- >
- {['12:00', '13:00', '14:00', '20:00', '21:00', '22:00', '23:00'].map(h => (
- <option key={h} value={h}>{h} hs</option>
- ))}
- </select>
- </div>
- </div>
-
- <button 
- type="submit"
- className="w-full py-5 bg-[#fc0000] hover:bg-[#ff2b2b] text-white border-2 border-[#3b3b3b] rounded-2xl font-black uppercase tracking-wider text-xs shadow-[4px_4px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer"
- >
- Solicitar Reserva por WhatsApp
- </button>
- </form>
- </section>
+      {/* Right side: Photo Carousel */}
+      <div className="md:col-span-6 flex flex-col items-center justify-center">
+        <div className="relative w-full h-80 sm:h-[450px] rounded-[2.5rem] border-4 border-[#3b3b3b] overflow-hidden shadow-[8px_8px_0px_0px_#fbd127] bg-[#3b3b3b] flex items-center justify-center group">
+          <img 
+            src={CATERING_IMAGES[cateringImageIndex]} 
+            alt="Catering de Pizza Colores" 
+            className="w-full h-full object-cover transition-all duration-700 ease-in-out transform hover:scale-105"
+          />
+          {/* Controls */}
+          <button 
+            onClick={() => setCateringImageIndex((prev) => (prev - 1 + CATERING_IMAGES.length) % CATERING_IMAGES.length)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-xl flex items-center justify-center font-black shadow-[2px_2px_0px_#3b3b3b] active:translate-y-[-48%] active:shadow-[1px_1px_0px_#3b3b3b] transition-all cursor-pointer opacity-0 group-hover:opacity-100 z-10 select-none"
+          >
+            ←
+          </button>
+          <button 
+            onClick={() => setCateringImageIndex((prev) => (prev + 1) % CATERING_IMAGES.length)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-xl flex items-center justify-center font-black shadow-[2px_2px_0px_#3b3b3b] active:translate-y-[-48%] active:shadow-[1px_1px_0px_#3b3b3b] transition-all cursor-pointer opacity-0 group-hover:opacity-100 z-10 select-none"
+          >
+            →
+          </button>
+          {/* Indicators */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-xs z-10">
+            {CATERING_IMAGES.map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setCateringImageIndex(i)} 
+                className={`w-2 h-2 rounded-full transition-all ${cateringImageIndex === i ? 'bg-[#fbd127] scale-110' : 'bg-white/60'}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
  {/* 6. CONTACT & LOCATION INFO */}
  <section id="contacto" className="py-12 border-t-4 border-[#3b3b3b] bg-[#3b3b3b] text-white">
