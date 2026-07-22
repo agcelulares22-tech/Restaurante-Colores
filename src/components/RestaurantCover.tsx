@@ -460,7 +460,7 @@ export default function RestaurantCover({
  <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase leading-none">
  Nuestras Promociones
  </h2>
- <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider max-w-lg mx-auto leading-relaxed">
+ <p className="text-xs sm:text-sm font-bold text-[#3b3b3b] uppercase tracking-wider max-w-lg mx-auto leading-relaxed">
  No hacemos todo el menú igual, seleccionamos tres productos firma elaborados a la leña con la mejor materia prima. ¡Entran por los ojos!
  </p>
  <div className="w-20 h-1.5 bg-[#fbd127] mx-auto border-2 border-[#3b3b3b] rounded-full shadow-[2px_2px_0px_0px_rgba(59,59,59,1)]" />
@@ -526,7 +526,7 @@ export default function RestaurantCover({
 
  <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
  <div>
- <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest block">Descuento</span>
+ <span className="text-[9px] font-extrabold text-[#3b3b3b] uppercase tracking-widest block">Descuento</span>
  <span className="font-display text-2xl text-[#fc0000]">
  {p.descuento_porcentaje}% OFF
  </span>
@@ -593,7 +593,7 @@ export default function RestaurantCover({
  className={`p-4 border-2 border-[#3b3b3b] rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] ${
  pizzaSize === sz.id 
  ? 'bg-[#fc0000] text-white shadow-[5px_5px_0px_rgba(59,59,59,1)] translate-y-[-2px]' 
- : 'bg-white hover:bg-stone-50 text-[#3b3b3b]'
+ : 'bg-[#3b3b3b] hover:bg-[#4a4a4a] text-white'
  }`}
  >
  <span className="block font-black text-xs uppercase leading-tight">{sz.name}</span>
@@ -633,7 +633,7 @@ export default function RestaurantCover({
  } ${
  isSelected
  ? 'bg-[#fbd127] text-[#3b3b3b] shadow-[4px_4px_0px_rgba(59,59,59,1)] font-extrabold translate-y-[-2px]'
- : 'bg-white hover:bg-stone-50 text-[#3b3b3b] font-semibold'
+ : 'bg-[#3b3b3b] hover:bg-[#4a4a4a] text-white font-semibold'
  } ${isLimitReached ? 'opacity-50 cursor-not-allowed' : ''}`}
  >
  {isSinStock && (
