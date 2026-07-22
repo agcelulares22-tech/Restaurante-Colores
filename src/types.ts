@@ -261,6 +261,7 @@ export interface TicketData {
     propina: number;
     iva: number;
     total: number;
+    neto?: number;
     metodosPago: { metodo: string; monto: number }[];
     vuelto: number;
     mensajePie: string;
