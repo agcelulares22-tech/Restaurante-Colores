@@ -922,10 +922,10 @@ export default function RestaurantCover({
         </h2>
         <div className="space-y-4">
           <p className="text-stone-750 text-sm sm:text-base font-bold leading-relaxed">
-            Llevamos la experiencia única de nuestro horno de barro y la leña directamente a tu evento. Elaboramos pizzas artesanales de masa madre y empanadas criollas jugosas en vivo para tus invitados.
+            Llevamos la experiencia única de nuestro horno de barro y la leña directamente a tu evento. Elaboramos pizzas artesanales de masa madre en vivo para tus invitados.
           </p>
           <p className="text-stone-750 text-sm sm:text-base font-bold leading-relaxed">
-            Ideal para cumpleaños, casamientos, eventos corporativos y reuniones íntimas en Río Cuarto. Disfrutá de materia prima premium y de un servicio profesional sin complicaciones.
+            Ideal para cumpleaños, casamientos, eventos corporativos y reuniones íntimas. Disfrutá de materia prima premium y de un servicio profesional sin complicaciones.
           </p>
         </div>
         <button 
