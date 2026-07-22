@@ -409,7 +409,13 @@ export function useAppState() {
   };
 
   // Terminal active configs & simulation states
-  const [activeMozo, setActiveMozo] = useState<string>('Sofía');
+  const [activeMozo, setActiveMozo] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.sessionStorage.getItem('colores_pizzeria_active_mozo');
+      if (saved) return saved;
+    }
+    return 'Sofía';
+  });
   const [activeView, setActiveView] = useState<AppView>('home');
   const activeUser = useMemo(
     () => usuarios.find(usuario => usuario.nombre === activeMozo && usuario.activo !== false)
@@ -620,6 +626,9 @@ export function useAppState() {
       return;
     }
     setActiveMozo(mozo);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('colores_pizzeria_active_mozo', mozo);
+    }
     if (!allowedViews.includes(activeView)) {
       setActiveView('home');
     }
@@ -637,6 +646,7 @@ export function useAppState() {
 
   const handleLoginSuccess = (user: Usuario) => {
     window.sessionStorage.setItem('colores_pizzeria_session', 'active');
+    window.sessionStorage.setItem('colores_pizzeria_active_mozo', user.nombre);
     setActiveMozo(user.nombre);
     setActiveView('home');
 
@@ -656,6 +666,7 @@ export function useAppState() {
 
   const handleLogout = () => {
     window.sessionStorage.removeItem('colores_pizzeria_session');
+    window.sessionStorage.removeItem('colores_pizzeria_active_mozo');
     getSupabaseClient()?.auth.signOut().catch(() => undefined);
     setIsStreamlitLoggedIn(false);
   };

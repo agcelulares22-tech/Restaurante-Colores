@@ -297,7 +297,7 @@ export default function App() {
                 activeRol={activeUser.rol}
                 mesas={mesas} pedidos={pedidos} insumos={insumos}
                 productosMenu={productosMenu} usuarios={usuarios}
-                allowedViews={allowedViews} canChangeUser={true}
+                allowedViews={allowedViews} canChangeUser={activeUser.rol === 'superadmin' || activeUser.rol === 'administrador'}
                 activeMozo={activeMozo} onMozoChange={setActiveMozo}
                 onNavigate={handleNavigate}
                 getSimulatedTimeStr={getSimulatedTimeStr}
