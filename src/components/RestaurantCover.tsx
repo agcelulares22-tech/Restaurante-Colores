@@ -408,13 +408,10 @@ export default function RestaurantCover({
               className="w-12 h-12 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] object-cover transition-all duration-150" 
             />
  <div className="flex flex-col">
- <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#fc0000] leading-none">
- COLORES
- </span>
- <span className="text-[9px] font-black uppercase text-[#fbd127] tracking-widest pl-0.5">
- Pizzería & Minutas
- </span>
- </div>
+              <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#fc0000] leading-none">
+                COLORES PIZZA
+              </span>
+            </div>
  </div>
 
  <div className="flex items-center gap-3">
