@@ -262,6 +262,65 @@ CREATE TABLE public.clientes (
     fecha_registro TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Tabla de Proveedores
+CREATE TABLE public.proveedores (
+    id_proveedor TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    contacto TEXT NOT NULL,
+    telefono TEXT,
+    categoria TEXT,
+    insumo_principal TEXT,
+    correo TEXT,
+    tiempo_entrega_dias INT DEFAULT 1
+);
+
+-- Tabla de Promociones
+CREATE TABLE public.promociones (
+    id_promo TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    descripcion TEXT,
+    descuento NUMERIC NOT NULL DEFAULT 0.0,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    activa BOOLEAN NOT NULL DEFAULT true,
+    imagen_url TEXT,
+    vigencia TEXT
+);
+
+-- Tabla de Reservas
+CREATE TABLE public.reservas (
+    id_reserva TEXT PRIMARY KEY,
+    cliente TEXT NOT NULL,
+    personas INT NOT NULL DEFAULT 1,
+    fecha DATE NOT NULL,
+    hora TEXT NOT NULL,
+    id_mesa INT REFERENCES public.mesas(id_mesa) ON DELETE SET NULL,
+    estado TEXT NOT NULL CHECK (estado IN ('confirmada', 'cancelada', 'pendiente')),
+    telefono TEXT,
+    email TEXT,
+    observaciones TEXT,
+    lista_espera BOOLEAN DEFAULT false,
+    prioridad_espera INT DEFAULT 0
+);
+
+-- Tabla de Auditoria / Logs
+CREATE TABLE public.auditoria_eventos (
+    id TEXT PRIMARY KEY,
+    tipo TEXT NOT NULL CHECK (tipo IN ('pedido_creado', 'descuento_stock', 'alerta_stock', 'comanda_estado', 'merma_registrada', 'sistema')),
+    mensaje TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Tabla de Backups
+CREATE TABLE public.backups (
+    id_backup TEXT PRIMARY KEY,
+    nombre_archivo TEXT NOT NULL,
+    fecha TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    tamano TEXT NOT NULL,
+    tablas TEXT NOT NULL,
+    contenido TEXT NOT NULL
+);
+
 -- ============================================================
 -- 3. INSERTAR DATOS MAESTROS DE PRODUCCIÓN
 -- ============================================================
@@ -274,6 +333,13 @@ INSERT INTO public.categorias (nombre, slug, orden, activa, icono) VALUES
     ('Postres', 'postres', 4, true, 'Coffee'),
     ('Sandwiches', 'sandwiches', 5, true, 'UtensilsCrossed')
 ON CONFLICT (nombre) DO UPDATE SET slug = EXCLUDED.slug, orden = EXCLUDED.orden, activa = EXCLUDED.activa, icono = EXCLUDED.icono;
+
+-- Promociones iniciales
+INSERT INTO public.promociones (id_promo, nombre, descripcion, descuento, activa, imagen_url) VALUES 
+    ('p_1', 'Pizza "Mega Colores" Llaxta', 'Masa aireada fermentada por 48hs al carbón activo, doble muzzarella fundida, panceta ahumada caramelizada, morrones al fuego y aceitunas seleccionadas.', 20.0, true, '/images/pizza_usuario.jpg'),
+    ('p_2', 'Empanada "Criolla Explosiva"', 'Horneada al barro y leña de espinillo. Rellena de lomo cortado a cuchillo, rehogada a mano con cebolla de verdeo dulce y huevo picado.', 15.0, true, '/images/empanadas_usuario.jpg'),
+    ('p_3', 'Calzone "Bastardo"', 'Masa rústica artesanal rellena generosamente con jamón cocido seleccionado, muzzarella, hongos salteados al malbec y gratinado de provolone.', 25.0, true, '/images/calzone_usuario.jpg')
+ON CONFLICT (id_promo) DO NOTHING;
 
 -- Configuración del Restaurante
 INSERT INTO public.configuracion (clave, valor) VALUES
@@ -571,6 +637,11 @@ ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registro_asistencia ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lotes_insumo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proveedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria_eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.backups ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE
@@ -579,7 +650,8 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'categorias', 'usuarios', 'mesas', 'insumos', 'productos_menu', 'recetas_escandallo', 
     'pedidos_cabecera', 'pedido_detalle', 'mermas', 'cierres_caja', 
-    'movimientos_inventario', 'clientes', 'configuracion', 'registro_asistencia', 'lotes_insumo'
+    'movimientos_inventario', 'clientes', 'configuracion', 'registro_asistencia', 'lotes_insumo',
+    'promociones', 'proveedores', 'reservas', 'auditoria_eventos', 'backups'
   ]
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', 'permitir_todo_demo_' || t, t);
