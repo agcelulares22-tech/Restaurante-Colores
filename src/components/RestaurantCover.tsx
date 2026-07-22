@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
  Calendar, 
@@ -76,6 +76,96 @@ export default function RestaurantCover({
  console.warn("Falla al cargar promociones para la portada:", err);
  });
  }, []);
+
+  // Combine both: database discount rules and database menu promos/combos
+  const unifiedPromos = useMemo(() => {
+    const list: any[] = [];
+    
+    // 1. Add discount rules from promocionesList
+    promocionesList.forEach(p => {
+      list.push({
+        id: p.id_promo,
+        nombre: p.nombre,
+        descripcion: p.descripcion,
+        badge: p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO',
+        badgeColor: p.tipo === 'happy_hour' ? '#fbd127' : p.tipo === 'combo' ? '#FF5722' : '#fc0000',
+        imagen: p.imagen_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+        descuentoTexto: `${p.descuento_porcentaje}% OFF`,
+        diasVigentes: p.dias_vigentes || 'Todos los días',
+        esBotonPedir: true,
+        whatsappText: `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n• ${p.nombre} (-${p.descuento_porcentaje}% OFF)\n• Detalle: ${p.descripcion}\n\n¡Muchas gracias!`
+      });
+    });
+
+    // 2. Add menu products that are promos/combos (only if they are active)
+    const menuPromos = (productosMenu || []).filter(p => 
+      p.activo && (
+        p.categoria?.toLowerCase().includes('promo') ||
+        p.categoria?.toLowerCase().includes('combo') ||
+        p.id_producto.includes('promo') ||
+        p.id_producto.includes('combo')
+      )
+    );
+
+    menuPromos.forEach(p => {
+      list.push({
+        id: p.id_producto,
+        nombre: p.nombre,
+        descripcion: p.descripcion || "Disfrutá de esta promoción especial en casa.",
+        badge: p.categoria || "🍕 COMBO",
+        badgeColor: '#FF5722',
+        imagen: p.imagen || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+        descuentoTexto: `$${p.precio_venta.toLocaleString()}`,
+        diasVigentes: p.requiere_cocina ? "Elaboración en el acto" : "Listo para consumir",
+        esBotonPedir: true,
+        whatsappText: `¡Hola Pizzería Colores! Me gustaría pedir la promoción:\n• ${p.nombre} ($${p.precio_venta.toLocaleString()})\n• Detalle: ${p.descripcion || ''}\n\n¡Muchas gracias!`
+      });
+    });
+
+    // 3. Fallback: if absolutely nothing is loaded yet, show the default combos
+    if (list.length === 0) {
+      return [
+        {
+          id: 'def_1',
+          nombre: "Combo Amigos",
+          descripcion: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
+          badge: "MÁS VENDIDO 🏆",
+          badgeColor: '#FF9800',
+          imagen: '/images/pizza_usuario.jpg',
+          descuentoTexto: "$28.000",
+          diasVigentes: "Ideal para 3-4 personas",
+          esBotonPedir: false,
+          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Amigos."
+        },
+        {
+          id: 'def_2',
+          nombre: "Combo Pareja",
+          descripcion: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
+          badge: "¡DE FIN DE SEMANA! 🍺",
+          badgeColor: '#fbd127',
+          imagen: '/images/calzone_usuario.jpg',
+          descuentoTexto: "$23.000",
+          diasVigentes: "Ideal para 2 personas",
+          esBotonPedir: false,
+          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Pareja."
+        },
+        {
+          id: 'def_3',
+          nombre: "Combo Familiar",
+          descripcion: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
+          badge: "¡SÚPER PROMO! 🔥",
+          badgeColor: '#fc0000',
+          imagen: '/images/empanadas_usuario.jpg',
+          descuentoTexto: "$42.000",
+          diasVigentes: "Ideal para 5-6 personas",
+          esBotonPedir: false,
+          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Familiar."
+        }
+      ];
+    }
+
+    return list;
+  }, [promocionesList, productosMenu]);
 
  const handleBookingSubmit = (e: React.FormEvent) => {
  e.preventDefault();
@@ -349,49 +439,6 @@ export default function RestaurantCover({
  const extraToppingsPrice = extraToppingsCount * 1500;
  const customPizzaPrice = basePrice + extraToppingsPrice;
 
- // Dynamic Promos list from database, fallback to initial/hardcoded combos if none found
- const promos = (productosMenu || []).filter(p => 
- p.activo && (
- p.categoria?.toLowerCase().includes('promo') ||
- p.categoria?.toLowerCase().includes('combo') ||
- p.categoria?.toLowerCase().includes('extras') ||
- p.id_producto.includes('promo') ||
- p.id_producto.includes('combo') ||
- p.id_producto.startsWith('prod_ext_')
- )
- );
-
- const displayPromos = promos.length > 0 ? promos.map(p => ({
- title: p.nombre,
- price: p.precio_venta,
- badge: p.categoria || "PROMO 🔥",
- desc: p.descripcion || "Disfrutá de esta promoción especial en casa.",
- note: p.requiere_cocina ? "Elaboración en el acto" : "Listo para consumir",
- id: p.id_producto
- })) : [
- {
- title: "Combo Amigos",
- price: 28000,
- badge: "MÁS VENDIDO 🏆",
- desc: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
- note: "Ideal para 3-4 personas"
- },
- {
- title: "Combo Pareja",
- price: 23000,
- badge: "¡DE FIN DE SEMANA! 🍺",
- desc: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
- note: "Ideal para 2 personas"
- },
- {
- title: "Combo Familiar",
- price: 42000,
- badge: "¡SÚPER PROMO! 🔥",
- desc: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
- note: "Ideal para 5-6 personas"
- }
- ];
-
  return (
  <div className="min-h-screen bg-[#FFFDF9] text-[#3b3b3b] font-sans selection:bg-[#fc0000] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] ">
  
@@ -483,93 +530,83 @@ export default function RestaurantCover({
  <div className="w-20 h-1.5 bg-[#fbd127] mx-auto border-2 border-[#3b3b3b] rounded-full shadow-[2px_2px_0px_0px_rgba(59,59,59,1)]" />
  </div>
 
- {/* 3 Signature Products Grid */}
- {/* 3 Signature Products Grid -> replaced dynamically with Active Database Promos */}
- <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-4 max-w-6xl mx-auto">
- {promocionesList.length === 0 ? (
- <div className="col-span-3 text-center py-12 text-stone-500 ">
- <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#fbd127]" />
- <p className="text-sm uppercase font-black text-[#3b3b3b] ">No hay promociones activas registradas en el sistema</p>
- </div>
- ) : (
- promocionesList.map((p, idx) => {
- const labelUpper = p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO';
- const labelColor = p.tipo === 'happy_hour' ? '#fbd127' : p.tipo === 'combo' ? '#FF5722' : '#fc0000';
- const cleanImage = p.imagen_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+  {/* 3 Signature Products Grid -> replaced dynamically with Active Database Promos */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-4 max-w-6xl mx-auto">
+  {unifiedPromos.length === 0 ? (
+  <div className="col-span-3 text-center py-12 text-stone-500 ">
+  <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#fbd127]" />
+  <p className="text-sm uppercase font-black text-[#3b3b3b] ">No hay promociones activas registradas en el sistema</p>
+  </div>
+  ) : (
+  unifiedPromos.map((p, idx) => {
+  return (
+  <div
+  key={p.id}
+  className={`bg-[#3b3b3b] border-4 border-[#fbd127] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_#fbd127] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_#fbd127] ${
+  idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
+  } flex flex-col h-full group`}
+  >
+  <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-[#fbd127]">
+  <img
+  src={p.imagen}
+  alt={p.nombre}
+  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+  onError={e => {
+  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+  }}
+  />
+  <span 
+  className="absolute top-4 left-4 px-4 py-2 text-[#3b3b3b] border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(59,59,59,1)] transform -rotate-2"
+  style={{ backgroundColor: p.badgeColor }}
+  >
+  {p.badge}
+  </span>
+  <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-stone-900 text-[#fbd127] border-2 border-[#3b3b3b] text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
+  {p.descuentoTexto}
+  </span>
+  </div>
 
- return (
- <div
- key={p.id_promo}
- className={`bg-[#3b3b3b] border-4 border-[#fbd127] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_#fbd127] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_#fbd127] ${
- idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
- } flex flex-col h-full group`}
- >
- <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-[#fbd127]">
- <img
- src={cleanImage}
- alt={p.nombre}
- className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
- onError={e => {
- (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
- }}
- />
- <span 
- className="absolute top-4 left-4 px-4 py-2 text-[#3b3b3b] border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(59,59,59,1)] transform -rotate-2"
- style={{ backgroundColor: labelColor }}
- >
- {labelUpper}
- </span>
- <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-stone-900 text-[#fbd127] border-2 border-[#3b3b3b] text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
- -{p.descuento_porcentaje}% OFF
- </span>
- </div>
+  <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
+  <div className="space-y-3">
+  <div className="flex items-center justify-between gap-2">
+  <h3 className="font-display text-2xl text-white uppercase leading-none group-hover:text-[#fbd127] transition-colors">
+  {p.nombre}
+  </h3>
+  </div>
+  <p className="text-xs font-bold text-stone-200 leading-relaxed italic">
+  "{p.descripcion}"
+  </p>
+  {p.diasVigentes && (
+  <span className="inline-block text-[9px] font-extrabold text-[#fc0000] uppercase tracking-wider bg-stone-900 px-2 py-1 rounded border border-white/10">
+  🗓️ {p.diasVigentes}
+  </span>
+  )}
+  </div>
 
- <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
- <div className="space-y-3">
- <div className="flex items-center justify-between gap-2">
- <h3 className="font-display text-2xl text-white uppercase leading-none group-hover:text-[#fbd127] transition-colors">
- {p.nombre}
- </h3>
- </div>
- <p className="text-xs font-bold text-stone-200 leading-relaxed italic">
- "{p.descripcion || 'Disfrutá de esta promoción especial en nuestro salón o a domicilio.'}"
- </p>
- {p.dias_vigentes && (
- <span className="inline-block text-[9px] font-extrabold text-[#fc0000] uppercase tracking-wider bg-stone-900 px-2 py-1 rounded border border-white/10">
- 🗓️ {p.dias_vigentes}
- </span>
- )}
- </div>
-
- <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
- <div>
- <span className="text-[9px] font-extrabold text-stone-300 uppercase tracking-widest block">Descuento</span>
- <span className="font-display text-2xl text-[#fc0000]">
- {p.descuento_porcentaje}% OFF
- </span>
- </div>
- <a
- href={`https://wa.me/5493584024822?text=${encodeURIComponent(
- `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n` +
- `• ${p.nombre} (-${p.descuento_porcentaje}% OFF)\n` +
- `• Detalle: ${p.descripcion}\n\n` +
- `¡Muchas gracias!`
- )}`}
- target="_blank"
- rel="noopener noreferrer"
- className="px-5 py-4 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(59,59,59,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
- >
- <ShoppingBag className="w-4 h-4" />
- Pedir Promo
- </a>
- </div>
- </div>
- </div>
- );
- })
- )}
- </div>
- </div>
+  <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
+  <div>
+  <span className="text-[9px] font-extrabold text-stone-300 uppercase tracking-widest block">Beneficio</span>
+  <span className="font-display text-2xl text-[#fc0000]">
+  {p.descuentoTexto}
+  </span>
+  </div>
+  <a
+  href={`https://wa.me/5493584024822?text=${encodeURIComponent(p.whatsappText)}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="px-5 py-4 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(59,59,59,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+  >
+  <ShoppingBag className="w-4 h-4" />
+  Pedir Promo
+  </a>
+  </div>
+  </div>
+  </div>
+  );
+  })
+  )}
+  </div>
+  </div>
 
  {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" (REDiseño ARCADE / MOBILE POP) */}
  <div className="bg-[#FFFDF9] border-4 border-[#3b3b3b] rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(59,59,59,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
