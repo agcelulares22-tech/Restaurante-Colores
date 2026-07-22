@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Lilita One', sans-serif;
+  --font-display: 'Anton', sans-serif;
   --font-sans: 'Inter', sans-serif;
-  --color-brand-yellow: #E8B800;
-  --color-brand-orange: #E85D00;
-  --color-brand-red: #D42B2B;
-  --color-brand-black: #121214;
+  --color-brand-yellow: #fbd127;
+  --color-brand-orange: #fe850d;
+  --color-brand-red: #fc0000;
+  --color-brand-black: #3b3b3b;
   --color-brand-white: #FFFFFF;
   
   --color-vintage-beige: var(--vintage-beige);

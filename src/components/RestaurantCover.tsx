@@ -312,7 +312,7 @@ export default function RestaurantCover({
 
  const TOPPINGS = [
  { id: 'ins_jamon_cocido', name: 'Jamón Cocido', price: 1500, icon: '🍖', color: '#E5989B' },
- { id: 'ins_morrones', name: 'Morrones Asados', price: 1500, icon: '🌶️', color: '#D90429' },
+ { id: 'ins_morrones', name: 'Morrones Asados', price: 1500, icon: '🌶️', color: '#fc0000' },
  { id: 'ins_panceta', name: 'Panceta Ahumada', price: 1800, icon: '🥓', color: '#B5828C' },
  { id: 'ins_huevo_fresco', name: 'Huevo Duro', price: 1000, icon: '🥚', color: '#F1FAEE' },
  { id: 'ins_aceitunas', name: 'Aceitunas', price: 1000, icon: '🟢', color: '#52B788' },
@@ -377,23 +377,23 @@ export default function RestaurantCover({
  ];
 
  return (
- <div className="min-h-screen bg-[#FFFDF9] text-stone-900 font-sans selection:bg-[#E63946] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] ">
+ <div className="min-h-screen bg-[#FFFDF9] text-[#3b3b3b] font-sans selection:bg-[#fc0000] selection:text-white transition-colors duration-300 pb-12 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] ">
  
  {/* 1. BRAND HEADER (McDonald's High Contrast Inspired) */}
- <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 border-b-4 border-black px-4 sm:px-6 lg:px-8 shadow-sm">
+ <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FFFDF9]/95 border-b-4 border-[#3b3b3b] px-4 sm:px-6 lg:px-8 shadow-sm">
  <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
  <div 
  onClick={onEnterSystem}
  className="flex items-center gap-3 cursor-default select-none"
  >
- <div className="w-12 h-12 bg-[#D90429] border-2 border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-150">
+ <div className="w-12 h-12 bg-[#fc0000] border-2 border-[#3b3b3b] rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transition-all duration-150">
  <Pizza className="w-7 h-7 text-white" />
  </div>
  <div className="flex flex-col">
- <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#D90429] leading-none">
+ <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#fc0000] leading-none">
  COLORES
  </span>
- <span className="text-[9px] font-black uppercase text-[#FFC300] tracking-widest pl-0.5">
+ <span className="text-[9px] font-black uppercase text-[#fbd127] tracking-widest pl-0.5">
  Pizzería & Minutas
  </span>
  </div>
@@ -405,7 +405,7 @@ export default function RestaurantCover({
  setMenuStep(1);
  setShowDigitalMenu(true);
  }}
- className="px-4 py-2.5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center gap-1.5"
+ className="px-4 py-2.5 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer flex items-center gap-1.5"
  >
  <ShoppingBag className="w-4 h-4 stroke-[2.5px]" />
  Ver Carta & Pedir
@@ -417,24 +417,24 @@ export default function RestaurantCover({
  {/* 2. HERO COMMERCIAL BOARD */}
  <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
  <div className="text-center space-y-6 max-w-4xl mx-auto">
- <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFC300] text-black border-2 border-black rounded-full font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transform -rotate-1">
- <Sparkles className="w-4 h-4 text-[#D90429] fill-[#D90429]" />
+ <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbd127] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-full font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(59,59,59,1)] transform -rotate-1">
+ <Sparkles className="w-4 h-4 text-[#fc0000] fill-[#fc0000]" />
  ¡EL SABOR QUE TE VUELVE A ENAMORAR!
  </div>
 
- <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-black uppercase tracking-tight">
+ <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-[#3b3b3b] uppercase tracking-tight">
  PIZZERÍA COLORES <br />
- <span className="text-[#D90429] italic underline decoration-wavy decoration-[#FFC300] tracking-wide">SABOR AL HORNO DE BARRO</span>
+ <span className="text-[#fc0000] italic underline decoration-wavy decoration-[#fbd127] tracking-wide">SABOR AL HORNO DE BARRO</span>
  </h1>
 
- <p className="text-stone-850 text-base sm:text-xl font-bold leading-relaxed max-w-2xl mx-auto pl-4 border-l-4 border-[#D90429]">
+ <p className="text-[#3b3b3b] text-base sm:text-xl font-bold leading-relaxed max-w-2xl mx-auto pl-4 border-l-4 border-[#fc0000]">
  Masa madre fermentada durante 48 hs, ingredientes frescos seleccionados y el toque único de la leña natural. Una mordida y entendés todo.
  </p>
 
  <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
  <button 
  onClick={() => setShowEventModal(true)}
- className="w-full sm:w-auto px-8 py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer text-center"
+ className="w-full sm:w-auto px-8 py-5 bg-[#fc0000] hover:bg-[#ff2b2b] text-white border-2 border-[#3b3b3b] rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer text-center"
  >
  Contactarnos para tu evento
  </button>
@@ -443,7 +443,7 @@ export default function RestaurantCover({
  setMenuStep(1);
  setShowDigitalMenu(true);
  }}
- className="w-full sm:w-auto px-8 py-5 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
+ className="w-full sm:w-auto px-8 py-5 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-[5px_5px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
  >
  <ShoppingBag className="w-5 h-5 stroke-[2.5px]" />
  Pedir Online & Ver Carta
@@ -454,16 +454,16 @@ export default function RestaurantCover({
  {/* 3. ESCAPARATE PUBLICITARIO ESTILO POP FAST-FOOD (McDONALD'S / BURGER KING) */}
  <div id="especialidades" className="space-y-12 pt-8">
  <div className="text-center space-y-3">
- <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
+ <span className="inline-block px-3 py-1 bg-[#fc0000] text-white border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(59,59,59,1)] transform -rotate-1">
  🍔 ¡LOS PREFERIDOS DE LA CASA!
  </span>
- <h2 className="font-display text-4xl sm:text-6xl text-black uppercase leading-none">
+ <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase leading-none">
  Nuestras Promociones
  </h2>
  <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider max-w-lg mx-auto leading-relaxed">
  No hacemos todo el menú igual, seleccionamos tres productos firma elaborados a la leña con la mejor materia prima. ¡Entran por los ojos!
  </p>
- <div className="w-20 h-1.5 bg-[#FFC300] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+ <div className="w-20 h-1.5 bg-[#fbd127] mx-auto border-2 border-[#3b3b3b] rounded-full shadow-[2px_2px_0px_0px_rgba(59,59,59,1)]" />
  </div>
 
  {/* 3 Signature Products Grid */}
@@ -471,23 +471,23 @@ export default function RestaurantCover({
  <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-4 max-w-6xl mx-auto">
  {promocionesList.length === 0 ? (
  <div className="col-span-3 text-center py-12 text-stone-500 ">
- <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#FFC300]" />
- <p className="text-sm uppercase font-black text-stone-600 ">No hay promociones activas registradas en el sistema</p>
+ <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#fbd127]" />
+ <p className="text-sm uppercase font-black text-[#3b3b3b] ">No hay promociones activas registradas en el sistema</p>
  </div>
  ) : (
  promocionesList.map((p, idx) => {
  const labelUpper = p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO';
- const labelColor = p.tipo === 'happy_hour' ? '#FFC300' : p.tipo === 'combo' ? '#FF5722' : '#D90429';
+ const labelColor = p.tipo === 'happy_hour' ? '#fbd127' : p.tipo === 'combo' ? '#FF5722' : '#fc0000';
  const cleanImage = p.imagen_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
 
  return (
  <div
  key={p.id_promo}
- className={`bg-white border-4 border-black rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] ${
+ className={`bg-white border-4 border-[#3b3b3b] rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] transition-all duration-300 hover:translate-y-[-8px] hover:shadow-[14px_14px_0px_0px_rgba(59,59,59,1)] ${
  idx % 2 === 0 ? 'hover:rotate-1' : 'hover:rotate-[-1]'
  } flex flex-col h-full group`}
  >
- <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-black">
+ <div className="h-64 relative overflow-hidden bg-stone-100 border-b-4 border-[#3b3b3b]">
  <img
  src={cleanImage}
  alt={p.nombre}
@@ -497,12 +497,12 @@ export default function RestaurantCover({
  }}
  />
  <span 
- className="absolute top-4 left-4 px-4 py-2 text-black border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(0,0,0,1)] transform -rotate-2"
+ className="absolute top-4 left-4 px-4 py-2 text-[#3b3b3b] border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[3px_3px_0px_rgba(59,59,59,1)] transform -rotate-2"
  style={{ backgroundColor: labelColor }}
  >
  {labelUpper}
  </span>
- <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-black text-[#FFC300] border-2 border-black text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
+ <span className="absolute bottom-4 right-4 px-3.5 py-1.5 bg-[#3b3b3b] text-[#fbd127] border-2 border-[#3b3b3b] text-xs font-black rounded-xl shadow-[2px_2px_0px_rgba(255,255,255,0.1)]">
  -{p.descuento_porcentaje}% OFF
  </span>
  </div>
@@ -510,24 +510,24 @@ export default function RestaurantCover({
  <div className="p-6 flex-grow flex flex-col justify-between space-y-6 text-left">
  <div className="space-y-3">
  <div className="flex items-center justify-between gap-2">
- <h3 className="font-display text-2xl text-black uppercase leading-none group-hover:text-[#D90429] transition-colors">
+ <h3 className="font-display text-2xl text-[#3b3b3b] uppercase leading-none group-hover:text-[#fc0000] transition-colors">
  {p.nombre}
  </h3>
  </div>
- <p className="text-xs font-bold text-stone-600 leading-relaxed italic">
+ <p className="text-xs font-bold text-[#3b3b3b] leading-relaxed italic">
  "{p.descripcion || 'Disfrutá de esta promoción especial en nuestro salón o a domicilio.'}"
  </p>
  {p.dias_vigentes && (
- <span className="inline-block text-[9px] font-extrabold text-[#D90429] uppercase tracking-wider bg-stone-50 px-2 py-1 rounded border border-black/10">
+ <span className="inline-block text-[9px] font-extrabold text-[#fc0000] uppercase tracking-wider bg-stone-50 px-2 py-1 rounded border border-[#3b3b3b]/10">
  🗓️ {p.dias_vigentes}
  </span>
  )}
  </div>
 
- <div className="pt-4 border-t border-black/10 flex items-center justify-between">
+ <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
  <div>
  <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest block">Descuento</span>
- <span className="font-display text-2xl text-[#D90429]">
+ <span className="font-display text-2xl text-[#fc0000]">
  {p.descuento_porcentaje}% OFF
  </span>
  </div>
@@ -540,7 +540,7 @@ export default function RestaurantCover({
  )}`}
  target="_blank"
  rel="noopener noreferrer"
- className="px-5 py-4 bg-[#FFC300] hover:bg-[#FFD000] text-black border-2 border-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+ className="px-5 py-4 bg-[#fbd127] hover:bg-[#ffe163] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[1px_1px_0px_rgba(59,59,59,1)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
  >
  <ShoppingBag className="w-4 h-4" />
  Pedir Promo
@@ -555,16 +555,16 @@ export default function RestaurantCover({
  </div>
 
  {/* 4. SIMULADOR INTERACTIVO "ARMA TU PIZZA" (REDiseño ARCADE / MOBILE POP) */}
- <div className="bg-[#FFFDF9] border-4 border-black rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
- <div className="absolute top-0 right-0 bg-[#FFC300] border-b-2 border-l-2 border-black text-black text-[9px] font-black px-4 py-2 uppercase tracking-widest rounded-bl-xl shadow-sm">
+ <div className="bg-[#FFFDF9] border-4 border-[#3b3b3b] rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(59,59,59,1)] space-y-8 text-left mt-16 max-w-5xl mx-auto relative overflow-hidden">
+ <div className="absolute top-0 right-0 bg-[#fbd127] border-b-2 border-l-2 border-[#3b3b3b] text-[#3b3b3b] text-[9px] font-black px-4 py-2 uppercase tracking-widest rounded-bl-xl shadow-sm">
  🕹️ MULTIPLAYER / FUN MODE
  </div>
 
  <div className="text-center space-y-2 max-w-xl mx-auto">
- <span className="inline-block px-3 py-1 bg-black text-[#FFC300] border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(255,255,255,0.1)] transform rotate-1">
+ <span className="inline-block px-3 py-1 bg-[#3b3b3b] text-[#fbd127] border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(255,255,255,0.1)] transform rotate-1">
  🍕 ¡SIMULADOR DIGITAL!
  </span>
- <h2 className="font-display text-4xl sm:text-5xl text-black uppercase leading-none">
+ <h2 className="font-display text-4xl sm:text-5xl text-[#3b3b3b] uppercase leading-none">
  Crea tu Propia Pizza
  </h2>
  <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wide">
@@ -577,8 +577,8 @@ export default function RestaurantCover({
  <div className="lg:col-span-7 space-y-6">
  {/* 1. Size Selection */}
  <div className="space-y-3">
- <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 flex items-center gap-2">
- <span className="w-5 h-5 rounded-full bg-[#D90429] text-white border border-black flex items-center justify-center text-[10px] font-bold">1</span>
+ <h4 className="text-xs font-black uppercase tracking-wider text-[#3b3b3b] flex items-center gap-2">
+ <span className="w-5 h-5 rounded-full bg-[#fc0000] text-white border border-[#3b3b3b] flex items-center justify-center text-[10px] font-bold">1</span>
  Elegir Tamaño de Base
  </h4>
  <div className="grid grid-cols-2 gap-4">
@@ -590,10 +590,10 @@ export default function RestaurantCover({
  key={sz.id}
  type="button"
  onClick={() => setPizzaSize(sz.id as any)}
- className={`p-4 border-2 border-black rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
+ className={`p-4 border-2 border-[#3b3b3b] rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] ${
  pizzaSize === sz.id 
- ? 'bg-[#D90429] text-white shadow-[5px_5px_0px_rgba(0,0,0,1)] translate-y-[-2px]' 
- : 'bg-white hover:bg-stone-50 text-black'
+ ? 'bg-[#fc0000] text-white shadow-[5px_5px_0px_rgba(59,59,59,1)] translate-y-[-2px]' 
+ : 'bg-white hover:bg-stone-50 text-[#3b3b3b]'
  }`}
  >
  <span className="block font-black text-xs uppercase leading-tight">{sz.name}</span>
@@ -605,8 +605,8 @@ export default function RestaurantCover({
 
  {/* 2. Toppings Selection */}
  <div className="space-y-3">
- <h4 className="text-xs font-black uppercase tracking-wider text-stone-600 flex items-center gap-2">
- <span className="w-5 h-5 rounded-full bg-[#D90429] text-white border border-black flex items-center justify-center text-[10px] font-bold">2</span>
+ <h4 className="text-xs font-black uppercase tracking-wider text-[#3b3b3b] flex items-center gap-2">
+ <span className="w-5 h-5 rounded-full bg-[#fc0000] text-white border border-[#3b3b3b] flex items-center justify-center text-[10px] font-bold">2</span>
  Sumar Toppings (Máx. 5 Toppings)
  </h4>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -628,16 +628,16 @@ export default function RestaurantCover({
  setSelectedToppings([...selectedToppings, top.id]);
  }
  }}
- className={`relative p-3 border-2 border-black rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] select-none ${
+ className={`relative p-3 border-2 border-[#3b3b3b] rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-[2px_2px_0px_rgba(59,59,59,1)] active:translate-y-[1px] select-none ${
  isSinStock ? 'opacity-40 filter grayscale pointer-events-none' : ''
  } ${
  isSelected
- ? 'bg-[#FFC300] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] font-extrabold translate-y-[-2px]'
- : 'bg-white hover:bg-stone-50 text-black font-semibold'
+ ? 'bg-[#fbd127] text-[#3b3b3b] shadow-[4px_4px_0px_rgba(59,59,59,1)] font-extrabold translate-y-[-2px]'
+ : 'bg-white hover:bg-stone-50 text-[#3b3b3b] font-semibold'
  } ${isLimitReached ? 'opacity-50 cursor-not-allowed' : ''}`}
  >
  {isSinStock && (
- <span className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-[#D90429] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border border-black shadow-sm">
+ <span className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-[#fc0000] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border border-[#3b3b3b] shadow-sm">
  SIN STOCK
  </span>
  )}
@@ -650,12 +650,12 @@ export default function RestaurantCover({
  checked={isSelected}
  disabled={isDisabled}
  onChange={() => {}}
- className="w-3.5 h-3.5 accent-[#D90429] cursor-pointer"
+ className="w-3.5 h-3.5 accent-[#fc0000] cursor-pointer"
  />
  </div>
 
  {selectedToppings.indexOf(top.id) >= 4 && (
- <span className="text-[8px] font-black text-white bg-black px-1.5 py-0.5 rounded border border-white/20 mt-1">
+ <span className="text-[8px] font-black text-white bg-[#3b3b3b] px-1.5 py-0.5 rounded border border-white/20 mt-1">
  +$1.500
  </span>
  )}
@@ -666,10 +666,10 @@ export default function RestaurantCover({
  </div>
 
  {/* Summary and WhatsApp button */}
- <div className="pt-4 border-t-2 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+ <div className="pt-4 border-t-2 border-[#3b3b3b] flex flex-col sm:flex-row items-center justify-between gap-4">
  <div>
  <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest block">Precio Total Estimado</span>
- <span className="font-display text-3xl sm:text-4xl text-[#D90429]">
+ <span className="font-display text-3xl sm:text-4xl text-[#fc0000]">
  ${customPizzaPrice.toLocaleString('es-AR')}
  </span>
  {selectedToppings.length > 4 && (
@@ -688,7 +688,7 @@ export default function RestaurantCover({
  )}`}
  target="_blank"
  rel="noopener noreferrer"
- className="w-full sm:w-auto px-6 py-4 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl text-xs font-black uppercase tracking-widest text-center shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[2px] transition-all cursor-pointer flex items-center justify-center gap-2"
+ className="w-full sm:w-auto px-6 py-4 bg-[#fc0000] hover:bg-[#ff2b2b] text-white border-2 border-[#3b3b3b] rounded-2xl text-xs font-black uppercase tracking-widest text-center shadow-[4px_4px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(59,59,59,1)] active:translate-y-[2px] transition-all cursor-pointer flex items-center justify-center gap-2"
  >
  <MessageCircle className="w-5 h-5 stroke-[2.5px]" />
  Pedir Pizza Armada
@@ -697,8 +697,8 @@ export default function RestaurantCover({
  </div>
 
  {/* Interactive Pizza Visual (Right Side - 5 cols) */}
- <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 border-4 border-black rounded-[2rem] bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] relative h-80 min-h-[300px]">
- <div className="absolute top-4 left-4 bg-black text-white text-[9px] font-black px-2 py-1 rounded border border-white/20 uppercase tracking-widest">
+ <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 border-4 border-[#3b3b3b] rounded-[2rem] bg-white shadow-[4px_4px_0px_rgba(59,59,59,1)] relative h-80 min-h-[300px]">
+ <div className="absolute top-4 left-4 bg-[#3b3b3b] text-white text-[9px] font-black px-2 py-1 rounded border border-white/20 uppercase tracking-widest">
  Vista Previa
  </div>
 
@@ -755,37 +755,37 @@ export default function RestaurantCover({
  </section>
 
  {/* 4. BRAND VALUES & HORNO EXPERIENCE */}
- <section className="py-20 bg-[#FFC300] border-y-4 border-black text-black relative overflow-hidden">
+ <section className="py-20 bg-[#fbd127] border-y-4 border-[#3b3b3b] text-[#3b3b3b] relative overflow-hidden">
  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
  
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
  <div className="space-y-6 text-left">
- <span className="inline-block px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+ <span className="inline-block px-3 py-1 bg-[#3b3b3b] text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_rgba(59,59,59,1)]">
  CALIDAD PREMIUM SIN VUELTAS
  </span>
- <h2 className="font-display text-4xl sm:text-6xl text-black uppercase leading-none">
+ <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase leading-none">
  El Secreto Está en el Horno
  </h2>
- <p className="text-stone-850 text-sm sm:text-base font-bold leading-relaxed">
+ <p className="text-[#3b3b3b] text-sm sm:text-base font-bold leading-relaxed">
  En Colores Pizzería no hacemos milagros, hacemos tradición. Calentamos nuestro horno a más de 400°C usando únicamente leña de espinillo seleccionada. Esto le da a la masa ese dorado rústico inconfundible y funde la muzzarella hasta crear hebras cremosas infinitas.
  </p>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
- <div className="bg-white p-4 border-2 border-black rounded-2xl shadow-[3px_3px_0px_rgba(0,0,0,1)] flex gap-3">
- <div className="w-10 h-10 rounded-xl bg-[#D90429] flex items-center justify-center shrink-0 border border-black text-white">
+ <div className="bg-white p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
+ <div className="w-10 h-10 rounded-xl bg-[#fc0000] flex items-center justify-center shrink-0 border border-[#3b3b3b] text-white">
  <ChefHat className="w-5 h-5" />
  </div>
  <div>
- <h4 className="font-black text-xs uppercase text-black ">Hecho a Mano</h4>
+ <h4 className="font-black text-xs uppercase text-[#3b3b3b] ">Hecho a Mano</h4>
  <p className="text-[10px] text-stone-500 font-semibold">Repulgues manuales y horneado en el acto.</p>
  </div>
  </div>
- <div className="bg-white p-4 border-2 border-black rounded-2xl shadow-[3px_3px_0px_rgba(0,0,0,1)] flex gap-3">
- <div className="w-10 h-10 rounded-xl bg-[#FF5722] flex items-center justify-center shrink-0 border border-black text-white">
+ <div className="bg-white p-4 border-2 border-[#3b3b3b] rounded-2xl shadow-[3px_3px_0px_rgba(59,59,59,1)] flex gap-3">
+ <div className="w-10 h-10 rounded-xl bg-[#FF5722] flex items-center justify-center shrink-0 border border-[#3b3b3b] text-white">
  <Flame className="w-5 h-5" />
  </div>
  <div>
- <h4 className="font-black text-xs uppercase text-black ">Fuego & Leña</h4>
+ <h4 className="font-black text-xs uppercase text-[#3b3b3b] ">Fuego & Leña</h4>
  <p className="text-[10px] text-stone-500 font-semibold">El inconfundible sabor ahumado del quebracho y espinillo.</p>
  </div>
  </div>
@@ -794,7 +794,7 @@ export default function RestaurantCover({
 
  {/* Interactive Map Block */}
  <div className="relative flex justify-center">
- <div className="w-full h-80 sm:h-96 rounded-3xl border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-stone-100 relative">
+ <div className="w-full h-80 sm:h-96 rounded-3xl border-4 border-[#3b3b3b] overflow-hidden shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] bg-stone-100 relative">
  <iframe 
  src="https://maps.google.com/maps?q=Alvear%201362,%20R%C3%ADo%20Cuarto,%20C%C3%B3rdoba,%20Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" 
  width="100%" 
@@ -812,21 +812,21 @@ export default function RestaurantCover({
 
 
  {/* 4.5. MURO DE RESEÑAS / TESTIMONIOS INTERACTIVO */}
- <section className="py-20 bg-stone-50 border-t-4 border-black text-black relative overflow-hidden">
+ <section className="py-20 bg-stone-50 border-t-4 border-[#3b3b3b] text-[#3b3b3b] relative overflow-hidden">
  <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
  
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
  <div className="text-center space-y-2">
- <span className="inline-block px-3 py-1 bg-[#D90429] text-white border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] transform -rotate-1">
+ <span className="inline-block px-3 py-1 bg-[#fc0000] text-white border-2 border-[#3b3b3b] text-[10px] font-black uppercase tracking-widest rounded-lg shadow-[2px_2px_0px_rgba(59,59,59,1)] transform -rotate-1">
  💬 OPINIONES DEL BARRIO
  </span>
- <h2 className="font-display text-3xl sm:text-5xl text-black uppercase leading-none">
+ <h2 className="font-display text-3xl sm:text-5xl text-[#3b3b3b] uppercase leading-none">
  Lo Que Dicen Nuestros Clientes
  </h2>
  <p className="text-xs sm:text-sm font-bold text-stone-500 uppercase tracking-wider">
  Opiniones reales de vecinos de Río Cuarto que disfrutan de nuestra cocina
  </p>
- <div className="w-16 h-1.5 bg-[#FFC300] mx-auto border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+ <div className="w-16 h-1.5 bg-[#fbd127] mx-auto border-2 border-[#3b3b3b] rounded-full shadow-[2px_2px_0px_0px_rgba(59,59,59,1)]" />
  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -855,23 +855,23 @@ export default function RestaurantCover({
  ].map((rev, idx) => (
  <div 
  key={idx}
- className="bg-white p-8 border-4 border-black rounded-3xl shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6 text-left"
+ className="bg-white p-8 border-4 border-[#3b3b3b] rounded-3xl shadow-[6px_6px_0px_rgba(59,59,59,1)] flex flex-col justify-between space-y-6 text-left"
  >
  <div className="space-y-4">
  {/* Stars block */}
  <div className="flex gap-1">
  {Array.from({ length: rev.stars }).map((_, i) => (
- <Star key={i} className="w-4 h-4 fill-[#FFC300] text-black stroke-[1.5px]" />
+ <Star key={i} className="w-4 h-4 fill-[#fbd127] text-[#3b3b3b] stroke-[1.5px]" />
  ))}
  </div>
- <p className="text-xs font-bold text-stone-700 leading-relaxed italic">
+ <p className="text-xs font-bold text-[#3b3b3b] leading-relaxed italic">
  "{rev.comment}"
  </p>
  </div>
 
- <div className="pt-4 border-t border-black/10 flex items-center justify-between">
+ <div className="pt-4 border-t border-[#3b3b3b]/10 flex items-center justify-between">
  <div>
- <h4 className="font-black text-xs uppercase text-black leading-none">{rev.name}</h4>
+ <h4 className="font-black text-xs uppercase text-[#3b3b3b] leading-none">{rev.name}</h4>
  <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">{rev.role}</span>
  </div>
  <span className="text-[9px] font-extrabold text-stone-450 uppercase">{rev.date}</span>
@@ -885,7 +885,7 @@ export default function RestaurantCover({
  href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería dejarles mi opinión sobre el pedido..."
  target="_blank"
  rel="noopener noreferrer"
- className="inline-flex items-center gap-2 px-6 py-3.5 bg-black text-white hover:bg-[#D90429] hover:text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[1px] transition-all cursor-pointer"
+ className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#3b3b3b] text-white hover:bg-[#fc0000] hover:text-white border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] transition-all cursor-pointer"
  >
  <MessageSquare className="w-4 h-4" />
  Dejar una Opinión
@@ -897,10 +897,10 @@ export default function RestaurantCover({
  {/* 5. BOOKING FORM (McDonald's High Contrast Theme) */}
  <section id="reserva" className="py-20 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
  <div className="text-center space-y-3">
- <span className="text-xs uppercase font-extrabold text-[#D90429] tracking-widest bg-[#D90429]/10 px-4 py-1.5 rounded-full border border-[#D90429]/20">
+ <span className="text-xs uppercase font-extrabold text-[#fc0000] tracking-widest bg-[#fc0000]/10 px-4 py-1.5 rounded-full border border-[#fc0000]/20">
  ¡COMPARTÍ EL MOMENTO!
  </span>
- <h2 className="font-display text-4xl sm:text-6xl text-black uppercase">
+ <h2 className="font-display text-4xl sm:text-6xl text-[#3b3b3b] uppercase">
  Reservar tu Mesa
  </h2>
  <p className="text-xs sm:text-sm text-stone-500 font-bold max-w-md mx-auto italic">
@@ -908,39 +908,39 @@ export default function RestaurantCover({
  </p>
  </div>
 
- <form onSubmit={handleBookingSubmit} className="bg-white p-8 sm:p-10 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
+ <form onSubmit={handleBookingSubmit} className="bg-white p-8 sm:p-10 rounded-3xl border-4 border-[#3b3b3b] shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] space-y-6">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-stone-600 ">Nombre Completo *</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Nombre Completo *</label>
  <input 
  type="text" 
  required
  value={bookingForm.nombre}
  onChange={(e) => setBookingForm(prev => ({ ...prev, nombre: e.target.value }))}
  placeholder="Ej. Juan Pérez"
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-stone-600 ">WhatsApp de contacto *</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">WhatsApp de contacto *</label>
  <input 
  type="tel" 
  required
  value={bookingForm.telefono}
  onChange={(e) => setBookingForm(prev => ({ ...prev, telefono: e.target.value }))}
  placeholder="Ej. 11 1234 5678"
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
  <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-stone-600 ">Comensales</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Comensales</label>
  <select 
  value={bookingForm.personas}
  onChange={(e) => setBookingForm(prev => ({ ...prev, personas: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  >
  {[1,2,3,4,5,6,7,8].map(n => (
  <option key={n} value={n}>{n} {n === 1 ? 'Persona' : 'Personas'}</option>
@@ -948,21 +948,21 @@ export default function RestaurantCover({
  </select>
  </div>
  <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-stone-600 ">Fecha *</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Fecha *</label>
  <input 
  type="date" 
  required
  value={bookingForm.fecha}
  onChange={(e) => setBookingForm(prev => ({ ...prev, fecha: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  <div className="space-y-2 text-left">
- <label className="text-xs font-black uppercase text-stone-600 ">Hora</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Hora</label>
  <select 
  value={bookingForm.hora}
  onChange={(e) => setBookingForm(prev => ({ ...prev, hora: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  >
  {['12:00', '13:00', '14:00', '20:00', '21:00', '22:00', '23:00'].map(h => (
  <option key={h} value={h}>{h} hs</option>
@@ -973,7 +973,7 @@ export default function RestaurantCover({
 
  <button 
  type="submit"
- className="w-full py-5 bg-[#D90429] hover:bg-[#EF233C] text-white border-2 border-black rounded-2xl font-black uppercase tracking-wider text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+ className="w-full py-5 bg-[#fc0000] hover:bg-[#ff2b2b] text-white border-2 border-[#3b3b3b] rounded-2xl font-black uppercase tracking-wider text-xs shadow-[4px_4px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all cursor-pointer"
  >
  Solicitar Reserva por WhatsApp
  </button>
@@ -981,39 +981,39 @@ export default function RestaurantCover({
  </section>
 
  {/* 6. CONTACT & LOCATION INFO */}
- <section id="contacto" className="py-12 border-t-4 border-black bg-stone-50 ">
+ <section id="contacto" className="py-12 border-t-4 border-[#3b3b3b] bg-stone-50 ">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12">
  <div className="space-y-6 text-left">
- <h3 className="font-display text-4xl text-black uppercase leading-none">Ubicación & Contacto</h3>
- <div className="space-y-4 text-stone-850 text-sm font-bold">
+ <h3 className="font-display text-4xl text-[#3b3b3b] uppercase leading-none">Ubicación & Contacto</h3>
+ <div className="space-y-4 text-[#3b3b3b] text-sm font-bold">
  <div className="flex items-center gap-3">
- <MapPin className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
+ <MapPin className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>Alvear 1362, Río Cuarto, Córdoba, X5800</span>
  </div>
  <a 
  href="https://wa.me/5493584024822" 
  target="_blank" 
  rel="noopener noreferrer"
- className="flex items-center gap-3 hover:text-[#D90429] transition-colors"
+ className="flex items-center gap-3 hover:text-[#fc0000] transition-colors"
  >
- <Phone className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
+ <Phone className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>+54 9 358 402-4822 (WhatsApp)</span>
  </a>
  <div className="flex items-center gap-3">
- <Clock className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
+ <Clock className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>Martes a Domingos: 12:00 a 16:00 hs & 20:00 a 00:00 hs</span>
  </div>
  <a 
  href="mailto:colores.pizzeria@gmail.com"
- className="flex items-center gap-3 hover:text-[#D90429] transition-colors"
+ className="flex items-center gap-3 hover:text-[#fc0000] transition-colors"
  >
- <Mail className="w-6 h-6 text-[#D90429] shrink-0 stroke-[2.5px]" />
+ <Mail className="w-6 h-6 text-[#fc0000] shrink-0 stroke-[2.5px]" />
  <span>colores.pizzeria@gmail.com</span>
  </a>
  </div>
  </div>
- <div className="flex flex-col justify-center space-y-4 border-4 border-black p-8 rounded-3xl bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] text-left">
- <h4 className="font-display text-2xl text-[#D90429] uppercase leading-none">Reservá Hoy</h4>
+ <div className="flex flex-col justify-center space-y-4 border-4 border-[#3b3b3b] p-8 rounded-3xl bg-white shadow-[4px_4px_0px_rgba(59,59,59,1)] text-left">
+ <h4 className="font-display text-2xl text-[#fc0000] uppercase leading-none">Reservá Hoy</h4>
  <p className="text-xs font-bold text-stone-500 leading-relaxed uppercase">
  Hacé clic en el botón para ingresar al panel de pedidos para mozos o solicitar tu mesa en el salón directamente en segundos.
  </p>
@@ -1022,12 +1022,12 @@ export default function RestaurantCover({
  </section>
 
  {/* 7. FOOTER */}
- <footer className="bg-black text-stone-400 py-12 px-4 border-t-4 border-black text-center space-y-6">
+ <footer className="bg-[#3b3b3b] text-stone-400 py-12 px-4 border-t-4 border-[#3b3b3b] text-center space-y-6">
  <div 
  className="flex items-center justify-center gap-2.5 cursor-pointer select-none" 
  onDoubleClick={onEnterSystem}
  >
- <div className="w-8 h-8 bg-[#D90429] rounded-lg flex items-center justify-center border border-white/20">
+ <div className="w-8 h-8 bg-[#fc0000] rounded-lg flex items-center justify-center border border-white/20">
  <Pizza className="w-5 h-5 text-white" />
  </div>
  <span className="font-display text-xl tracking-wider text-[#FFFDF9]">COLORES PIZZERÍA</span>
@@ -1040,21 +1040,21 @@ export default function RestaurantCover({
  {/* EVENT BOOKING DIALOG */}
  <AnimatePresence>
  {showEventModal && (
- <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-[#3b3b3b]/70 backdrop-blur-xs flex items-center justify-center p-4">
  <motion.div 
  initial={{ scale: 0.95, opacity: 0 }}
  animate={{ scale: 1, opacity: 1 }}
  exit={{ scale: 0.95, opacity: 0 }}
- className="bg-white p-8 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-5 border-4 border-black text-left"
+ className="bg-white p-8 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] space-y-5 border-4 border-[#3b3b3b] text-left"
  >
- <h3 className="font-display text-3xl text-black uppercase leading-none">Cotizá tu Evento 🎉</h3>
- <p className="text-xs text-stone-600 font-bold leading-relaxed">
+ <h3 className="font-display text-3xl text-[#3b3b3b] uppercase leading-none">Cotizá tu Evento 🎉</h3>
+ <p className="text-xs text-[#3b3b3b] font-bold leading-relaxed">
  Completá los datos y coordinamos el menú de forma directa por WhatsApp.
  </p>
  
  <form onSubmit={handleEventSubmit} className="space-y-4">
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-stone-600 ">Cantidad de personas aproximada *</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Cantidad de personas aproximada *</label>
  <input 
  type="number" 
  required
@@ -1062,46 +1062,46 @@ export default function RestaurantCover({
  value={eventForm.personas}
  onChange={(e) => setEventForm(prev => ({ ...prev, personas: e.target.value }))}
  placeholder="Ej. 30"
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-stone-600 ">Fecha aproximada *</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Fecha aproximada *</label>
  <input 
  type="date" 
  required
  value={eventForm.fecha}
  onChange={(e) => setEventForm(prev => ({ ...prev, fecha: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#FFC300] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-stone-600 ">Lugar / Localidad (Opcional)</label>
+ <label className="text-xs font-black uppercase text-[#3b3b3b] ">Lugar / Localidad (Opcional)</label>
  <input 
  type="text" 
  value={eventForm.lugar}
  onChange={(e) => setEventForm(prev => ({ ...prev, lugar: e.target.value }))}
  placeholder="Ej: Quincho, Club, Domicilio..."
- className="w-full p-4 rounded-xl border-2 border-black bg-[#FFFDF9] text-sm font-bold focus:outline-none"
+ className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none"
  />
  </div>
  
- <div className="flex justify-end gap-3 pt-4 border-t border-black/10">
+ <div className="flex justify-end gap-3 pt-4 border-t border-[#3b3b3b]/10">
  <button 
  type="button" 
  onClick={() => {
  setShowEventModal(false);
  setEventForm({ personas: '', fecha: '', lugar: '' });
  }} 
- className="px-5 py-3 bg-[#e0e0e0] text-black border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+ className="px-5 py-3 bg-[#e0e0e0] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(59,59,59,1)] active:translate-y-[1px] cursor-pointer"
  >
  Cancelar
  </button>
  <button 
  type="submit" 
- className="px-5 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
+ className="px-5 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(59,59,59,1)] active:translate-y-[1px] cursor-pointer"
  >
  Enviar a WhatsApp 🚀
  </button>
@@ -1115,25 +1115,25 @@ export default function RestaurantCover({
  {/* 8. BOOKING SUCCESS DIALOG */}
  <AnimatePresence>
  {showBookingSuccess && (
- <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-[#3b3b3b]/70 backdrop-blur-xs flex items-center justify-center p-4">
  <motion.div 
  initial={{ scale: 0.95, opacity: 0 }}
  animate={{ scale: 1, opacity: 1 }}
  exit={{ scale: 0.95, opacity: 0 }}
- className="bg-white p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-5 border-4 border-black"
+ className="bg-white p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] text-center space-y-5 border-4 border-[#3b3b3b]"
  >
- <div className="w-16 h-16 bg-[#FFC300] rounded-full flex items-center justify-center mx-auto border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
- <Utensils className="w-8 h-8 text-black" />
+ <div className="w-16 h-16 bg-[#fbd127] rounded-full flex items-center justify-center mx-auto border-2 border-[#3b3b3b] shadow-[2px_2px_0px_rgba(59,59,59,1)]">
+ <Utensils className="w-8 h-8 text-[#3b3b3b]" />
  </div>
  <div className="space-y-2">
- <h3 className="font-display text-3xl text-[#D90429] uppercase leading-none">¡SOLICITUD ENVIADA!</h3>
- <p className="text-xs sm:text-sm text-stone-600 font-bold leading-relaxed italic">
+ <h3 className="font-display text-3xl text-[#fc0000] uppercase leading-none">¡SOLICITUD ENVIADA!</h3>
+ <p className="text-xs sm:text-sm text-[#3b3b3b] font-bold leading-relaxed italic">
  Abrimos la conversación de WhatsApp con tu solicitud de reserva pre-armada. Respondemos las solicitudes a la brevedad. ¡Gracias por elegirnos!
  </p>
  </div>
  <button 
  onClick={closeBookingSuccess}
- className="w-full py-4 bg-black hover:bg-[#D90429] text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-[3px_3px_0px_rgba(0,0,0,0.2)] transition-all"
+ className="w-full py-4 bg-[#3b3b3b] hover:bg-[#fc0000] text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-[3px_3px_0px_rgba(0,0,0,0.2)] transition-all"
  >
  ¡Entendido!
  </button>
@@ -1145,7 +1145,7 @@ export default function RestaurantCover({
  {/* CARTA DIGITAL / SHOPPING MODAL */}
  <AnimatePresence>
  {showDigitalMenu && (
- <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-[#3b3b3b]/85 backdrop-blur-md flex items-center justify-center p-4">
  <motion.div 
  initial={{ scale: 0.95, opacity: 0 }}
  animate={{ scale: 1, opacity: 1 }}
@@ -1524,14 +1524,14 @@ export default function RestaurantCover({
  </AnimatePresence>
 \n\n {/* 9. FLOATING WHATSAPP BUTTON (Pulsing and modern) */}
  <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group">
- <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden sm:block">
+ <div className="bg-[#3b3b3b] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border-2 border-[#3b3b3b] shadow-[2px_2px_0px_rgba(59,59,59,1)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden sm:block">
  ¿Dudas? Escribinos
  </div>
  <a
  href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería hacerles una consulta..."
  target="_blank"
  rel="noopener noreferrer"
- className="w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 relative cursor-pointer"
+ className="w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-[#3b3b3b] rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all duration-150 relative cursor-pointer"
  title="Consultar por WhatsApp"
  >
  <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
