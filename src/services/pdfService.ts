@@ -665,7 +665,7 @@ export const pdfService = {
       // Non-factura simple ticket header
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5 * fontScale);
-      doc.text('TICKET DE CONSUMO', margin, y);
+      doc.text(compType.includes('nota_credito') ? 'NOTA DE CRÉDITO' : 'TICKET DE CONSUMO', margin, y);
       y += 4.5;
       
       doc.setFont('helvetica', 'normal');
