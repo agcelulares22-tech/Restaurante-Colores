@@ -159,19 +159,19 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
     <div className="min-h-screen bg-brand-black text-white font-sans flex items-center justify-center p-4 relative overflow-hidden" id="pos-login-container">
       <style>{`
         @keyframes float-slow {
-          0% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
-          50% { transform: translateY(-20px) rotate(180deg); opacity: 0.35; }
-          100% { transform: translateY(0px) rotate(360deg); opacity: 0.15; }
+          0% { transform: translateY(0px) rotate(0deg); opacity: 0.35; }
+          50% { transform: translateY(-25px) rotate(180deg); opacity: 0.65; }
+          100% { transform: translateY(0px) rotate(360deg); opacity: 0.35; }
         }
         @keyframes float-fast {
-          0% { transform: translateY(0px) rotate(0deg); opacity: 0.1; }
-          50% { transform: translateY(-15px) rotate(-90deg); opacity: 0.25; }
-          100% { transform: translateY(0px) rotate(-180deg); opacity: 0.1; }
+          0% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+          50% { transform: translateY(-20px) rotate(-90deg); opacity: 0.55; }
+          100% { transform: translateY(0px) rotate(-180deg); opacity: 0.3; }
         }
         @keyframes drift-right {
-          0% { transform: translateX(0px) translateY(0px) rotate(0deg); opacity: 0.1; }
-          50% { transform: translateX(30px) translateY(-10px) rotate(45deg); opacity: 0.25; }
-          100% { transform: translateX(0px) translateY(0px) rotate(0deg); opacity: 0.1; }
+          0% { transform: translateX(0px) translateY(0px) rotate(0deg); opacity: 0.3; }
+          50% { transform: translateX(40px) translateY(-15px) rotate(45deg); opacity: 0.55; }
+          100% { transform: translateX(0px) translateY(0px) rotate(0deg); opacity: 0.3; }
         }
       `}</style>
 
@@ -184,73 +184,73 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         {/* Pizza Slice 1 - Top Left */}
         <div className="absolute top-[10%] left-[8%] w-16 h-16" style={{ animation: 'float-slow 22s infinite ease-in-out' }}>
           <svg className="w-full h-full" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.12" />
-            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.2" />
-            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.2" />
-            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.2" />
-            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.2" />
+            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.25" />
+            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.35" />
+            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.35" />
+            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.35" />
+            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.35" />
           </svg>
         </div>
 
         {/* Pizza Slice 2 - Bottom Right */}
         <div className="absolute bottom-[12%] right-[10%] w-20 h-20" style={{ animation: 'float-slow 28s infinite ease-in-out', animationDelay: '-4s' }}>
           <svg className="w-full h-full transform rotate-[45deg]" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.15" />
-            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.25" />
-            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.25" />
-            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.25" />
-            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.25" />
+            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.3" />
+            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.4" />
+            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.4" />
+            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.4" />
+            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.4" />
           </svg>
         </div>
 
         {/* Pizza Slice 3 - Top Right */}
         <div className="absolute top-[15%] right-[15%] w-14 h-14" style={{ animation: 'float-fast 18s infinite ease-in-out', animationDelay: '-8s' }}>
           <svg className="w-full h-full transform rotate-[120deg]" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.1" />
-            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.18" />
-            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.18" />
-            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.18" />
-            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.18" />
+            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.22" />
+            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.32" />
+            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.32" />
+            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.32" />
+            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.32" />
           </svg>
         </div>
 
         {/* Pizza Slice 4 - Bottom Left */}
         <div className="absolute bottom-[15%] left-[12%] w-18 h-18" style={{ animation: 'float-slow 25s infinite ease-in-out', animationDelay: '-12s' }}>
           <svg className="w-full h-full transform rotate-[-60deg]" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.13" />
-            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.22" />
-            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.22" />
-            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.22" />
-            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.22" />
+            <path d="M12 2L2 19C2 20.66 3.34 22 5 22H19C20.66 22 22 20.66 22 19L12 2Z" fill="#FBD127" fillOpacity="0.26" />
+            <circle cx="12" cy="14" r="2" fill="#FC0000" fillOpacity="0.36" />
+            <circle cx="8" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.36" />
+            <circle cx="16" cy="18" r="1.5" fill="#FC0000" fillOpacity="0.36" />
+            <path d="M4 19C4 19.55 4.45 20 5 20H19C19.55 20 20 19.55 20 19" stroke="#FE850D" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.36" />
           </svg>
         </div>
 
         {/* Basil Leaves */}
         <div className="absolute top-[40%] left-[5%] w-8 h-8" style={{ animation: 'drift-right 20s infinite ease-in-out' }}>
-          <svg className="w-full h-full text-emerald-500/10" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C8 6 6 10 6 14C6 18 9 21 12 21C15 21 18 18 18 14C18 10 16 6 12 2Z" fillOpacity="0.15" />
+          <svg className="w-full h-full text-emerald-500/20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8 6 6 10 6 14C6 18 9 21 12 21C15 21 18 18 18 14C18 10 16 6 12 2Z" fillOpacity="0.28" />
           </svg>
         </div>
         <div className="absolute bottom-[40%] right-[5%] w-8 h-8" style={{ animation: 'drift-right 24s infinite ease-in-out', animationDelay: '-6s' }}>
-          <svg className="w-full h-full text-emerald-500/10 transform rotate-[90deg]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C8 6 6 10 6 14C6 18 9 21 12 21C15 21 18 18 18 14C18 10 16 6 12 2Z" fillOpacity="0.15" />
+          <svg className="w-full h-full text-emerald-500/20 transform rotate-[90deg]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8 6 6 10 6 14C6 18 9 21 12 21C15 21 18 18 18 14C18 10 16 6 12 2Z" fillOpacity="0.28" />
           </svg>
         </div>
 
         {/* Mushrooms */}
         <div className="absolute top-[60%] left-[8%] w-10 h-10" style={{ animation: 'float-fast 22s infinite ease-in-out', animationDelay: '-3s' }}>
-          <svg className="w-full h-full text-stone-300/10" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C7.58 2 4 5.58 4 10C4 11.5 5 13 6.5 13.5C7.5 13.8 8 14.5 8 15.5V20C8 21.1 8.9 22 10 22H14C15.1 22 16 21.1 16 20V15.5C16 14.5 16.5 13.8 17.5 13.5C19 13 20 11.5 20 10C20 5.58 16.42 2 12 2Z" fillOpacity="0.15" />
+          <svg className="w-full h-full text-stone-300/20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C7.58 2 4 5.58 4 10C4 11.5 5 13 6.5 13.5C7.5 13.8 8 14.5 8 15.5V20C8 21.1 8.9 22 10 22H14C15.1 22 16 21.1 16 20V15.5C16 14.5 16.5 13.8 17.5 13.5C19 13 20 11.5 20 10C20 5.58 16.42 2 12 2Z" fillOpacity="0.28" />
           </svg>
         </div>
         <div className="absolute top-[30%] right-[8%] w-10 h-10" style={{ animation: 'float-slow 26s infinite ease-in-out', animationDelay: '-10s' }}>
-          <svg className="w-full h-full text-stone-300/10 transform rotate-[45deg]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C7.58 2 4 5.58 4 10C4 11.5 5 13 6.5 13.5C7.5 13.8 8 14.5 8 15.5V20C8 21.1 8.9 22 10 22H14C15.1 22 16 21.1 16 20V15.5C16 14.5 16.5 13.8 17.5 13.5C19 13 20 11.5 20 10C20 5.58 16.42 2 12 2Z" fillOpacity="0.15" />
+          <svg className="w-full h-full text-stone-300/20 transform rotate-[45deg]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C7.58 2 4 5.58 4 10C4 11.5 5 13 6.5 13.5C7.5 13.8 8 14.5 8 15.5V20C8 21.1 8.9 22 10 22H14C15.1 22 16 21.1 16 20V15.5C16 14.5 16.5 13.8 17.5 13.5C19 13 20 11.5 20 10C20 5.58 16.42 2 12 2Z" fillOpacity="0.28" />
           </svg>
         </div>
       </div>
 
-      <div className="max-w-md w-full bg-zinc-950/85 backdrop-blur-md rounded-3xl border border-zinc-800/80 shadow-2xl p-6 sm:p-8 md:p-10 space-y-8 relative z-10">
+      <div className="max-w-md w-full bg-zinc-950/45 backdrop-blur-md rounded-3xl border border-zinc-800/40 shadow-2xl p-6 sm:p-8 md:p-10 space-y-8 relative z-10">
         <div className="text-center space-y-4 flex flex-col items-center">
           <ElPatronLogo className="w-32 h-32 sm:w-36 sm:h-36 drop-shadow-md" variant="badge" color="#E8B800" />
           <div className="space-y-1">

@@ -94,7 +94,7 @@ export default function ElPatronLogo({ className = 'w-16 h-16', color = '#5C4033
         src={logoSrc}
         alt="Colores Pizzería"
         loading="lazy" decoding="async"
-        className="w-full h-full object-contain rounded-full bg-white border border-stone-200 p-0.5 shadow-sm"
+        className="w-full h-full object-contain rounded-full bg-white border-4 border-white p-1 shadow-md"
         onError={() => {
           if (logoSrc !== DEFAULT_LOGO_SRC) {
             setLogoSrc(DEFAULT_LOGO_SRC);
