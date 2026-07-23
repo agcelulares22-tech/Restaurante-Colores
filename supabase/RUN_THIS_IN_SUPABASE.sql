@@ -202,7 +202,11 @@ CREATE TABLE public.facturas (
     tipo_comprobante TEXT NOT NULL DEFAULT 'Ticket Interno',
     metodo_pago TEXT NOT NULL DEFAULT 'Efectivo',
     cuit_cliente TEXT,
-    fecha_emision TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    fecha_emision TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    afip_cae TEXT,
+    afip_vto TEXT,
+    afip_qr TEXT,
+    afip_resultado TEXT
 );
 
 -- Tabla de Pagos
