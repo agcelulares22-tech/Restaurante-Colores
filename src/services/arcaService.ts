@@ -173,6 +173,7 @@ export interface ArcaInvoicePayload {
   neto: number;
   ivaTotal: number;
   ivaItems?: { Id: number; BaseImp: number; Importe: number }[];
+  cbtesAsoc?: Array<{ tipo: number; ptoVta?: number; nro: number; cuit?: string }>;
 }
 
 export interface ArcaInvoiceResult {
@@ -213,6 +214,9 @@ export const TIPOS_COMPROBANTE = {
   'factura_a': { id: 1, label: 'Factura A', requiereCuit: true, condicionIva: 1 },
   'factura_b': { id: 6, label: 'Factura B', requiereCuit: false, condicionIva: 5 },
   'factura_c': { id: 11, label: 'Factura C', requiereCuit: false, condicionIva: 6 },
+  'nota_credito_a': { id: 3, label: 'Nota de Crédito A', requiereCuit: true, condicionIva: 1 },
+  'nota_credito_b': { id: 8, label: 'Nota de Crédito B', requiereCuit: false, condicionIva: 5 },
+  'nota_credito_c': { id: 13, label: 'Nota de Crédito C', requiereCuit: false, condicionIva: 6 },
   'ticket_a': { id: 201, label: 'Ticket Factura A', requiereCuit: true, condicionIva: 1 },
   'ticket_b': { id: 206, label: 'Ticket Factura B', requiereCuit: false, condicionIva: 5 },
 } as const;

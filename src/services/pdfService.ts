@@ -137,18 +137,19 @@ export const pdfService = {
     const margin = 14;
     let y = 14;
     const compType = (data.tipoComprobante || '').toLowerCase();
+    const isNC = compType.includes('nota_credito');
     
     let letter = 'B';
-    let codComprobante = 'COD. 006';
-    if (compType === 'factura_a') {
+    let codComprobante = isNC ? 'COD. 008' : 'COD. 006';
+    if (compType === 'factura_a' || compType === 'nota_credito_a') {
       letter = 'A';
-      codComprobante = 'COD. 001';
-    } else if (compType === 'factura_b') {
+      codComprobante = isNC ? 'COD. 003' : 'COD. 001';
+    } else if (compType === 'factura_b' || compType === 'nota_credito_b') {
       letter = 'B';
-      codComprobante = 'COD. 006';
-    } else if (compType === 'factura_c') {
+      codComprobante = isNC ? 'COD. 008' : 'COD. 006';
+    } else if (compType === 'factura_c' || compType === 'nota_credito_c') {
       letter = 'C';
-      codComprobante = 'COD. 011';
+      codComprobante = isNC ? 'COD. 013' : 'COD. 011';
     } else if (compType === 'ticket_a') {
       letter = 'A';
       codComprobante = 'COD. 201';
@@ -231,7 +232,7 @@ export const pdfService = {
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text('FACTURA', rightColX, headerY + 6);
+    doc.text(isNC ? 'NOTA DE CRÉDITO' : 'FACTURA', rightColX, headerY + 6);
 
     const parts = (data.nroComprobante || '').split('-');
     const ptoVtaStr = parts.length === 3 ? parts[1] : '00003';
@@ -535,7 +536,7 @@ export const pdfService = {
     }));
     
     const compType = data.tipoComprobante as string;
-    const isFactura = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c';
+    const isFactura = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c' || compType.includes('nota_credito');
     const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * (is58 ? 3.4 : 4.2) + 8, 0);
     const paymentsHeight = data.metodosPago.length * (is58 ? 4.0 : 5.0);
     
@@ -590,8 +591,13 @@ export const pdfService = {
 
     // 3. Document type / invoice header
     if (isFactura) {
-      const letter = compType === 'factura_a' ? 'A' : (compType === 'factura_c' ? 'C' : 'B');
-      const codComprobante = compType === 'factura_a' ? 'COD. 001' : (compType === 'factura_c' ? 'COD. 011' : 'COD. 006');
+      const isNC = compType.includes('nota_credito');
+      const letter = (compType === 'factura_a' || compType === 'nota_credito_a') ? 'A' : ((compType === 'factura_c' || compType === 'nota_credito_c') ? 'C' : 'B');
+      const codComprobante = (compType === 'factura_a' || compType === 'nota_credito_a')
+        ? (isNC ? 'COD. 003' : 'COD. 001')
+        : ((compType === 'factura_c' || compType === 'nota_credito_c')
+          ? (isNC ? 'COD. 013' : 'COD. 011')
+          : (isNC ? 'COD. 008' : 'COD. 006'));
       
       // Draw Letter Badge
       const badgeSize = is58 ? 10 : 12;
@@ -613,7 +619,7 @@ export const pdfService = {
       doc.setTextColor(...BRAND.dark);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8 * fontScale);
-      doc.text(`FACTURA ${letter}`, margin, y + 3.5);
+      doc.text(`${isNC ? 'NOTA CRÉDITO' : 'FACTURA'} ${letter}`, margin, y + 3.5);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7 * fontScale);
       doc.text(`Nº: ${data.nroComprobante}`, margin, y + 7.5);

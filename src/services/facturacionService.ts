@@ -173,14 +173,46 @@ export const facturacionService = {
     }
   },
 
-  async markNotaCredito(id: string): Promise<void> {
+  async markNotaCredito(
+    id: string,
+    afipDetails?: {
+      cae: string;
+      vto: string;
+      qr: string;
+      resultado: 'A' | 'O' | 'R';
+      nro_ticket: string;
+    }
+  ): Promise<void> {
     writeLocalFacturas(readLocalFacturas().map(factura => (
-      factura.id_factura === id ? { ...factura, estado: 'nota_credito' } : factura
+      factura.id_factura === id
+        ? {
+            ...factura,
+            estado: 'nota_credito',
+            ...(afipDetails ? {
+              afip_cae: afipDetails.cae,
+              afip_vto: afipDetails.vto,
+              afip_qr: afipDetails.qr,
+              afip_resultado: afipDetails.resultado,
+              nro_ticket: afipDetails.nro_ticket
+            } : {})
+          }
+        : factura
     )));
     const supabase = getActiveSupabaseClient();
+    const updateData: Record<string, any> = {
+      tipo_comprobante: 'Nota Credito'
+    };
+    if (afipDetails) {
+      updateData.afip_cae = afipDetails.cae;
+      updateData.afip_vto = afipDetails.vto;
+      updateData.afip_qr = afipDetails.qr;
+      updateData.afip_resultado = afipDetails.resultado;
+      updateData.numero_factura = afipDetails.nro_ticket;
+    }
+
     const { error } = await supabase
       .from('facturas')
-      .update({ tipo_comprobante: 'Nota Credito' })
+      .update(updateData)
       .eq('id_factura', id);
     if (error) {
       console.error('Error marking invoice as credit note:', error);

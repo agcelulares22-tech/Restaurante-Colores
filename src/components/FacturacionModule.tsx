@@ -312,23 +312,161 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     }
   };
 
-  const handleNotaCredito = (id: string) => {
-    setFacturas(prev => prev.map(f => {
-      if (f.id_factura === id) {
-        addLog('sistema', `FACTURACION: Nota de credito fiscal anulando ${f.nro_ticket} por ${money(f.total)}.`);
-        facturacionService.markNotaCredito(id).catch(err => console.error(err));
-        toast.success(`Nota de credito aplicada a ${f.nro_ticket}.`);
-        return { ...f, estado: 'nota_credito' };
-      }
-      return f;
-    }));
-  };
-
-  const tipoToComprobante = (tipo: 'ticket' | 'A' | 'B' | 'C' | 'X'): TipoComprobante => {
+  const tipoToComprobante = (tipo: 'ticket' | 'A' | 'B' | 'C' | 'X', estado?: string): TipoComprobante => {
+    if (estado === 'nota_credito') {
+      if (tipo === 'A') return 'nota_credito_a';
+      if (tipo === 'B') return 'nota_credito_b';
+      if (tipo === 'C') return 'nota_credito_c';
+      return 'nota_credito_b';
+    }
     if (tipo === 'A') return 'factura_a';
     if (tipo === 'B') return 'factura_b';
     if (tipo === 'C') return 'factura_c';
     return 'ticket_consumo';
+  };
+
+  const emitNotaCreditoToArca = async (factura: FacturaExtendida): Promise<{ cae: string; vto: string; qr?: string; nroCmp?: number } | null> => {
+    if (!isArcaConfigured()) return null;
+    try {
+      let tipoComprobanteId = 8;
+      if (factura.tipo === 'A') tipoComprobanteId = 3;
+      if (factura.tipo === 'C') tipoComprobanteId = 13;
+
+      const { neto, iva } = calcIvaIncluido(factura.total, factura.iva_veintiuno > 0);
+      const nroDoc = factura.cuit === '99-99999999-9' ? 0 : parseInt(factura.cuit.replace(/-/g, '').slice(0, 11)) || 0;
+      const tipoDoc = nroDoc === 0 ? 99 : (factura.cuit.replace(/-/g, '').length >= 11 ? 80 : 96);
+      
+      let condicionIva = 5;
+      if (tipoDoc === 80) condicionIva = 1;
+      if (factura.tipo === 'C') condicionIva = 6;
+
+      const parts = factura.nro_ticket.split('-');
+      const ptoVtaOriginal = parts.length > 1 ? parseInt(parts[1]) : getArcaPuntoVenta();
+      const nroOriginal = parts.length > 2 ? parseInt(parts[2]) : 0;
+      let tipoOriginal = 6;
+      if (factura.tipo === 'A') tipoOriginal = 1;
+      if (factura.tipo === 'C') tipoOriginal = 11;
+
+      const payload: any = {
+        tipoComprobante: tipoComprobanteId,
+        puntoVenta: getArcaPuntoVenta(),
+        cliente: {
+          tipoDoc,
+          nroDoc,
+          condicionIva,
+        },
+        total: factura.total,
+        neto,
+        ivaTotal: iva,
+      };
+
+      if (nroOriginal > 0) {
+        payload.cbtesAsoc = [
+          {
+            tipo: tipoOriginal,
+            ptoVta: ptoVtaOriginal,
+            nro: nroOriginal
+          }
+        ];
+      }
+
+      const result = await createArcaInvoice(payload);
+      if (result.success && result.cae) {
+        return {
+          cae: result.cae,
+          vto: result.vencimiento || result.CAEFchVto || '',
+          qr: `https://www.afip.gob.ar/fe/qr/?p=${btoa(JSON.stringify({
+            ver: 1,
+            fecha: new Date().toISOString().split('T')[0],
+            cuit: getArcaCuit(),
+            ptoVta: getArcaPuntoVenta(),
+            tipoCmp: tipoComprobanteId,
+            nroCmp: result.nroCmp,
+            importe: factura.total,
+            moneda: 'PES',
+            ctz: 1,
+            tipoDocRec: tipoDoc,
+            nroDocRec: nroDoc,
+            tipoCodAut: 1,
+            codAut: parseInt(result.cae),
+          }))}`,
+          nroCmp: result.nroCmp,
+        };
+      }
+      return null;
+    } catch (err: any) {
+      console.error('ARCA NC error:', err);
+      throw err;
+    }
+  };
+
+  const handleNotaCredito = async (id: string) => {
+    const f = facturas.find(fact => fact.id_factura === id);
+    if (!f) return;
+
+    if (f.estado === 'nota_credito') {
+      toast.warning('Esta factura ya fue anulada.');
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de que deseas anular el comprobante ${f.nro_ticket} por un total de ${money(f.total)}?`)) {
+      return;
+    }
+
+    setIsEmitting(true);
+    try {
+      let afipDetails: any = undefined;
+
+      if (isArcaConfigured() && f.afip_cae) {
+        toast.info('Conectando con AFIP/ARCA para emitir la Nota de Crédito...');
+        const arcaResult = await emitNotaCreditoToArca(f);
+        if (arcaResult) {
+          const ptoVtaStr = String(getArcaPuntoVenta()).padStart(5, '0');
+          const cbteNroStr = String(arcaResult.nroCmp).padStart(8, '0');
+          const prefix = f.tipo === 'A' ? 'NC-A' : (f.tipo === 'C' ? 'NC-C' : 'NC-B');
+          const newNroTicket = `${prefix}-${ptoVtaStr}-${cbteNroStr}`;
+          
+          afipDetails = {
+            cae: arcaResult.cae,
+            vto: arcaResult.vto,
+            qr: arcaResult.qr || '',
+            resultado: 'A' as const,
+            nro_ticket: newNroTicket
+          };
+        }
+      }
+
+      await facturacionService.markNotaCredito(id, afipDetails);
+
+      setFacturas(prev => prev.map(fact => {
+        if (fact.id_factura === id) {
+          addLog('sistema', `FACTURACION: Nota de credito fiscal anulando ${fact.nro_ticket} por ${money(fact.total)}.${afipDetails ? ` CAE: ${afipDetails.cae}` : ''}`);
+          const updated = {
+            ...fact,
+            estado: 'nota_credito' as const,
+            ...(afipDetails ? {
+              afip_cae: afipDetails.cae,
+              afip_vto: afipDetails.vto,
+              afip_qr: afipDetails.qr,
+              afip_resultado: afipDetails.resultado,
+              nro_ticket: afipDetails.nro_ticket
+            } : {})
+          };
+
+          // Descargar PDF de la Nota de Crédito
+          downloadFacturaPdf(updated).catch(e => console.error(e));
+          return updated;
+        }
+        return fact;
+      }));
+
+      toast.success(`Nota de crédito emitida con éxito.`);
+    } catch (err: any) {
+      console.error('Error al emitir nota de crédito:', err);
+      toast.error(err.message || 'No se pudo emitir la nota de crédito electrónica.');
+    } finally {
+      setIsEmitting(false);
+    }
   };
 
   const emitToArca = async (factura: FacturaExtendida): Promise<{ cae: string; vto: string; qr?: string; nroCmp?: number } | null> => {
@@ -437,7 +575,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
     const ticketData: TicketData = {
       idPedido: factura.id_pedido || pedido?.id_pedido || "0",
       nroComprobante: factura.nro_ticket,
-      tipoComprobante: tipoToComprobante(tipo),
+      tipoComprobante: tipoToComprobante(tipo, factura.estado),
       fechaHora: factura.fecha,
       mesa: pedido?.numero_mesa || 'Venta manual',
       mozo: pedido?.mozo || 'Caja',

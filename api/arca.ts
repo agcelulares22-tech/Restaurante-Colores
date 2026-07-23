@@ -314,11 +314,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const lastCbteNum = parseInt(xmlLast.match(/<CbteNro>(\d+)<\/CbteNro>/)?.[1] || "0");
         const nextCbteNum = lastCbteNum + 1;
 
-        const isFacturaC = cbteTipo === 11;
-        const baseImp = isFacturaC ? payload.total : (payload.neto || (payload.total / 1.21));
-        const importeIva = isFacturaC ? 0 : (payload.ivaTotal || (payload.total - baseImp));
+        const isC = cbteTipo === 11 || cbteTipo === 13;
+        const baseImp = isC ? payload.total : (payload.neto || (payload.total / 1.21));
+        const importeIva = isC ? 0 : (payload.ivaTotal || (payload.total - baseImp));
 
-        const ivaBlock = isFacturaC ? "" : `
+        const ivaBlock = isC ? "" : `
             <fe:Iva>
               <fe:AlicIva>
                 <fe:Id>5</fe:Id>
@@ -326,6 +326,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 <fe:Importe>${importeIva.toFixed(2)}</fe:Importe>
               </fe:AlicIva>
             </fe:Iva>`;
+
+        let cbtesAsocBlock = "";
+        if (payload.cbtesAsoc && Array.isArray(payload.cbtesAsoc) && payload.cbtesAsoc.length > 0) {
+          cbtesAsocBlock = `
+            <fe:CbtesAsoc>
+              ${payload.cbtesAsoc.map((asoc: any) => `
+                <fe:CbteAsoc>
+                  <fe:Tipo>${asoc.tipo}</fe:Tipo>
+                  <fe:PtoVta>${asoc.ptoVta || ptoVta}</fe:PtoVta>
+                  <fe:Nro>${asoc.nro}</fe:Nro>
+                  ${asoc.cuit ? `<fe:Cuit>${asoc.cuit}</fe:Cuit>` : ""}
+                </fe:CbteAsoc>
+              `).join('')}
+            </fe:CbtesAsoc>`;
+        }
 
         const soapInvoice = `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fe="http://ar.gov.afip.dif.FEV1/">
@@ -360,6 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <fe:ImpIVA>${importeIva.toFixed(2)}</fe:ImpIVA>
             <fe:MonId>PES</fe:MonId>
             <fe:MonCotiz>1</fe:MonCotiz>
+            ${cbtesAsocBlock}
             ${ivaBlock}
           </fe:FECAEDetRequest>
         </fe:FeDetReq>

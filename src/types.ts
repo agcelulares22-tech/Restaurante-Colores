@@ -184,11 +184,13 @@ export interface EventoLog {
 // ---------------------------------------------------------------------------
 
 export type TipoComprobante =
-    | 'factura_a'
+  | 'factura_a'
   | 'factura_b'
   | 'factura_c'
   | 'ticket_consumo'
-  | 'nota_credito_b';
+  | 'nota_credito_a'
+  | 'nota_credito_b'
+  | 'nota_credito_c';
 
 export interface MovimientoCajaChica {
     id_movimiento: string;
