@@ -2718,9 +2718,9 @@ function CajaModule({
                       <span className="font-mono font-bold text-stone-900 dark:text-zinc-100">${cs.monto_ventas.toLocaleString('es-AR')}</span>
                     </div>
 
-                    <div className="bg-zinc-950 p-2 rounded border border-stone-200 min-w-[100px] text-center">
-                      <span className="text-[8px] text-zinc-500 block font-black uppercase">Monto Real</span>
-                      <span className="font-mono font-bold text-zinc-100">${(cs.monto_real || 0).toLocaleString('es-AR')}</span>
+                    <div className="bg-stone-50 dark:bg-zinc-900 p-2 rounded border border-stone-200 dark:border-zinc-800 min-w-[100px] text-center">
+                      <span className="text-[8px] text-stone-500 dark:text-zinc-400 block font-black uppercase">Monto Real</span>
+                      <span className="font-mono font-bold text-stone-900 dark:text-zinc-50">${(cs.monto_real || 0).toLocaleString('es-AR')}</span>
                     </div>
 
                     {hasDiff && (
