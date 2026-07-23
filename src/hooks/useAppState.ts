@@ -429,23 +429,48 @@ export function useAppState() {
   }, [activeUser.rol]);
 
   const applyAuthenticatedSession = useCallback((session: {
-    user?: { user_metadata?: Record<string, unknown> };
+    user?: { email?: string; user_metadata?: Record<string, unknown> };
   }) => {
+    const email = session.user?.email;
     const metadata = session.user?.user_metadata;
     const requestedName = metadata?.nombre || metadata?.name;
-    const operator = (
-      typeof requestedName === 'string'
-        ? usuarios.find(usuario => (
-            usuario.activo !== false
-            && usuario.nombre.toLowerCase() === requestedName.trim().toLowerCase()
-          ))
-        : undefined
-    ) || usuarios.find(usuario => usuario.activo !== false && usuario.rol === 'mozo')
-      || usuarios.find(usuario => usuario.activo !== false && usuario.rol !== 'administrador')
-      || usuarios.find(usuario => usuario.activo !== false);
+
+    // 1. Try to find the operator by email (username) first since it's the unique identifier
+    let operator = email
+      ? usuarios.find(usuario => (
+          usuario.activo !== false
+          && usuario.username?.toLowerCase() === email.toLowerCase()
+        ))
+      : undefined;
+
+    // 2. Try by metadata name
+    if (!operator && typeof requestedName === 'string') {
+      operator = usuarios.find(usuario => (
+        usuario.activo !== false
+        && usuario.nombre.toLowerCase() === requestedName.trim().toLowerCase()
+      ));
+    }
+
+    // 3. Try to reuse the mozo name from sessionStorage if matching an active user
+    if (!operator) {
+      const savedMozo = typeof window !== 'undefined' ? window.sessionStorage.getItem('colores_pizzeria_active_mozo') : null;
+      if (savedMozo) {
+        operator = usuarios.find(usuario => usuario.nombre === savedMozo && usuario.activo !== false);
+      }
+    }
+
+    // 4. Ultimate fallback if absolutely no user could be matched
+    if (!operator) {
+      operator = usuarios.find(usuario => usuario.activo !== false && usuario.rol === 'mozo')
+        || usuarios.find(usuario => usuario.activo !== false && usuario.rol !== 'administrador')
+        || usuarios.find(usuario => usuario.activo !== false);
+    }
 
     if (operator) {
       setActiveMozo(operator.nombre);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('colores_pizzeria_active_mozo', operator.nombre);
+      }
       setActiveView('home');
       setIsStreamlitLoggedIn(true);
     }
