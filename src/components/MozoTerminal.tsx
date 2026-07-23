@@ -1267,10 +1267,10 @@ function MozoTerminal({
 
       {/* RIGHT COLUMN: Active Comanda Cart Summary */}
       <div className="min-w-0 lg:col-span-3 order-2">
-        <div className="bg-zinc-900/40 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/5 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6">
-          <div className="flex items-center justify-between pb-3 border-b border-white/5">
-            <h3 className="font-bold text-zinc-150 text-sm md:text-base font-sans flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4 text-zinc-400" />
+        <div className="bg-[#FAF8F5] rounded-2xl p-4 sm:p-5 border border-stone-250 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+            <h3 className="font-bold text-stone-850 text-sm md:text-base font-sans flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-stone-500" />
               Nueva Comanda
             </h3>
             {selectedMesa && (
@@ -1282,53 +1282,53 @@ function MozoTerminal({
 
           {!selectedMesaId ? (
             <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
-              <div className="w-12 h-12 bg-zinc-950/60 text-zinc-500 rounded-full flex items-center justify-center mb-3 border border-white/5">
+              <div className="w-12 h-12 bg-stone-100 text-stone-500 rounded-full flex items-center justify-center mb-3 border border-stone-200">
                 <UtensilsCrossed className="w-5 h-5" />
               </div>
-              <h4 className="font-bold text-zinc-300 text-sm">Seleccione Mesa</h4>
-              <p className="text-zinc-500 text-xs mt-1 max-w-[180px]">
+              <h4 className="font-bold text-stone-900 text-sm">Seleccione Mesa</h4>
+              <p className="text-stone-500 text-xs mt-1 max-w-[180px]">
                 Marque una mesa disponible en el plano izquierdo para iniciar la comanda.
               </p>
             </div>
           ) : (
             <>
               {(selectedMesaId === 999 || selectedMesaId === 998) && (
-                <div className="p-3 border border-white/5 bg-zinc-950/60 rounded-xl space-y-2.5 mb-2.5">
-                  <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider block">
+                <div className="p-3 border border-stone-200 bg-stone-50 rounded-xl space-y-2.5 mb-2.5">
+                  <span className="text-[10px] font-black uppercase text-stone-550 tracking-wider block">
                     {selectedMesaId === 999 ? 'Datos del Cliente (Envío)' : 'Datos del Cliente (Retiro en Local)'}
                   </span>
                   
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-zinc-500 uppercase">Nombre y Apellido</label>
+                    <label className="text-[9px] font-bold text-stone-500 uppercase">Nombre y Apellido</label>
                     <input
                       type="text"
                       placeholder="Ej: Juan Pérez"
                       value={nombreCliente}
                       onChange={(e) => setNombreCliente(e.target.value)}
-                      className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
+                      className="w-full p-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-stone-900 placeholder-stone-400"
                     />
                   </div>
 
                   <div className={selectedMesaId === 999 ? "grid grid-cols-2 gap-2" : "space-y-1"}>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Teléfono (WhatsApp)</label>
+                      <label className="text-[9px] font-bold text-stone-500 uppercase">Teléfono (WhatsApp)</label>
                       <input
                         type="text"
                         placeholder="Ej: 3584123456"
                         value={telefonoCliente}
                         onChange={(e) => setTelefonoCliente(e.target.value)}
-                        className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
+                        className="w-full p-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-stone-900 placeholder-stone-400"
                       />
                     </div>
                     {selectedMesaId === 999 && (
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-500 uppercase">Dirección</label>
+                        <label className="text-[9px] font-bold text-stone-500 uppercase">Dirección</label>
                         <input
                           type="text"
                           placeholder="Ej: Alvear 1362"
                           value={direccionCliente}
                           onChange={(e) => setDireccionCliente(e.target.value)}
-                          className="w-full p-2.5 text-xs bg-zinc-950/80 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-zinc-100 placeholder-zinc-650"
+                          className="w-full p-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 text-stone-900 placeholder-stone-400"
                         />
                       </div>
                     )}
@@ -1340,32 +1340,32 @@ function MozoTerminal({
                         <button
                           type="button"
                           onClick={() => setShowEnvioConfig(!showEnvioConfig)}
-                          className="text-[10px] text-zinc-450 hover:text-zinc-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[10px] text-stone-500 hover:text-stone-850 font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         >
-                          <Settings className="w-3 h-3 text-zinc-500" />
+                          <Settings className="w-3 h-3 text-stone-400" />
                           {showEnvioConfig ? 'Ocultar Configuración' : 'Configurar Origen/Tarifas'}
                         </button>
                       </div>
 
                       {showEnvioConfig && (
-                        <div className="p-2.5 bg-zinc-950 border border-white/5 rounded-xl space-y-2 text-left">
+                        <div className="p-2.5 bg-white border border-stone-200 rounded-xl space-y-2 text-left">
                           <div className="space-y-0.5">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Dirección del Local</label>
+                            <label className="text-[9px] font-bold text-stone-500 uppercase block">Dirección del Local</label>
                             <input
                               type="text"
                               value={origenDireccion}
                               placeholder="Ej: Alvear 1362, Río Cuarto"
                               onChange={(e) => handleUpdateOrigenDireccionLocal(e.target.value)}
-                              className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-medium"
+                              className="w-full p-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-orange text-stone-900 font-medium"
                             />
-                            <span className="text-[8px] font-mono text-zinc-500 block">
+                            <span className="text-[8px] font-mono text-stone-400 block">
                               {isUpdatingOrigenLocal ? 'Buscando coordenadas...' : `Coordenadas: ${origenLat.toFixed(4)}, ${origenLng.toFixed(4)}`}
                             </span>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-0.5">
-                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Tarifa Base ($)</label>
+                              <label className="text-[9px] font-bold text-stone-500 uppercase block">Tarifa Base ($)</label>
                               <input
                                 type="number"
                                 value={tarifaBaseLocal}
@@ -1374,11 +1374,11 @@ function MozoTerminal({
                                   setTarifaBaseLocal(val);
                                   localStorage.setItem('deliv_tarifa_base', String(val));
                                 }}
-                                className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
+                                className="w-full p-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-orange text-stone-900 font-mono"
                               />
                             </div>
                             <div className="space-y-0.5">
-                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Costo por Km ($)</label>
+                              <label className="text-[9px] font-bold text-stone-500 uppercase block">Costo por Km ($)</label>
                               <input
                                 type="number"
                                 value={costoPorKmLocal}
@@ -1387,7 +1387,7 @@ function MozoTerminal({
                                   setCostoPorKmLocal(val);
                                   localStorage.setItem('deliv_costo_por_km', String(val));
                                 }}
-                                className="w-full p-2 text-xs bg-zinc-900 border border-white/10 rounded-xl focus:outline-none focus:border-brand-orange text-zinc-100 font-mono"
+                                className="w-full p-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-orange text-stone-900 font-mono"
                               />
                             </div>
                           </div>
@@ -1397,12 +1397,12 @@ function MozoTerminal({
                       {direccionCliente.trim() && (isCalculatingRoute || distanciaKm !== null || zonaResultado) && (
                         <div className={`p-2.5 rounded-xl text-[11px] font-medium border ${
                           isCalculatingRoute 
-                            ? 'bg-amber-950/20 text-amber-400 border-amber-500/20 animate-pulse' 
-                            : 'bg-emerald-950/20 text-emerald-450 border-emerald-500/20'
+                            ? 'bg-amber-55 text-amber-700 border-amber-200 animate-pulse' 
+                            : 'bg-emerald-55 text-emerald-800 border-emerald-250'
                         }`}>
                           {isCalculatingRoute ? (
                             <div className="flex items-center gap-1.5 justify-center">
-                              <RefreshCw className="w-3 h-3.5 animate-spin text-amber-500" />
+                              <RefreshCw className="w-3 h-3.5 animate-spin text-amber-600" />
                               <span>Calculando distancia en Río Cuarto...</span>
                             </div>
                           ) : (
@@ -1410,24 +1410,24 @@ function MozoTerminal({
                               {distanciaKm !== null ? (
                                 <>
                                   <div className="flex justify-between items-center">
-                                    <span className="text-zinc-400 font-bold flex items-center gap-1">
+                                    <span className="text-stone-600 font-bold flex items-center gap-1">
                                       <Bike className="w-3.5 h-3.5 text-brand-orange" />
                                       Distancia estimada:
                                     </span>
-                                    <span className="font-mono font-black text-zinc-200">{distanciaKm} km</span>
+                                    <span className="font-mono font-black text-stone-900">{distanciaKm} km</span>
                                   </div>
-                                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
-                                    <span className="text-zinc-400 font-bold">Costo de Envío:</span>
-                                    <span className="font-mono font-black text-emerald-450 text-xs">${costoEnvio}</span>
+                                  <div className="flex justify-between items-center pt-1 border-t border-stone-200">
+                                    <span className="text-stone-600 font-bold">Costo de Envío:</span>
+                                    <span className="font-mono font-black text-emerald-600 text-xs">${costoEnvio}</span>
                                   </div>
                                 </>
                               ) : zonaResultado?.status === 'success' ? (
                                 <div className="flex justify-between items-center">
-                                  <span className="text-zinc-400 font-bold">{zonaResultado.zona}</span>
-                                  <span className="font-mono font-bold text-emerald-450">Envío: ${zonaResultado.costo_envio}</span>
+                                  <span className="text-stone-600 font-bold">{zonaResultado.zona}</span>
+                                  <span className="font-mono font-bold text-emerald-600">Envío: ${zonaResultado.costo_envio}</span>
                                 </div>
                               ) : (
-                                <span className="text-rose-455">{zonaResultado?.mensaje || 'No se pudo estimar la ruta'}</span>
+                                <span className="text-rose-600">{zonaResultado?.mensaje || 'No se pudo estimar la ruta'}</span>
                               )}
                             </div>
                           )}
@@ -1440,11 +1440,11 @@ function MozoTerminal({
 
               {Object.keys(cart).length === 0 ? (
                 <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
-                  <div className="w-12 h-12 bg-emerald-950/20 text-emerald-400 rounded-full flex items-center justify-center mb-3 border border-emerald-500/20">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3 border border-emerald-150">
                     <Sparkles className="w-5 h-5" />
                   </div>
-                  <h4 className="font-bold text-zinc-300 text-sm">Comanda Vacía</h4>
-                  <p className="text-zinc-500 text-xs mt-1 max-w-[180px]">
+                  <h4 className="font-bold text-stone-900 text-sm">Comanda Vacía</h4>
+                  <p className="text-stone-550 text-xs mt-1 max-w-[180px]">
                     Toque los platos de la carta central para cargarlos a la mesa de forma interactiva.
                   </p>
                 </div>
@@ -1474,23 +1474,23 @@ function MozoTerminal({
                     {Object.entries(cart).map(([prodId, qty]) => {
                       const p = productosMenu.find(item => item.id_producto === prodId)!;
                       return (
-                        <div key={prodId} className="flex justify-between items-center text-xs bg-zinc-950/40 p-2.5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                        <div key={prodId} className="flex justify-between items-center text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-200 hover:border-stone-300 transition-colors">
                           <div className="flex-1 pr-1 font-sans">
-                            <span className="font-bold text-zinc-200 line-clamp-1">{p.nombre}</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">${(p.precio_venta).toLocaleString('es-AR')} u.</span>
+                            <span className="font-bold text-stone-850 line-clamp-1">{p.nombre}</span>
+                            <span className="text-[10px] text-stone-500 font-mono">${(p.precio_venta).toLocaleString('es-AR')} u.</span>
                           </div>
 
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleRemoveFromCart(prodId)}
-                              className="touch-target w-8 h-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded border border-white/5 flex items-center justify-center transition-colors"
+                              className="touch-target w-8 h-8 bg-white hover:bg-stone-100 text-stone-700 rounded border border-stone-300 flex items-center justify-center transition-colors"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="font-mono text-sm font-bold w-5 text-center text-zinc-100">{qty}</span>
+                            <span className="font-mono text-sm font-black w-5 text-center text-stone-900">{qty}</span>
                             <button
                               onClick={() => handleAddToCart(prodId)}
-                              className="touch-target w-8 h-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded border border-white/5 flex items-center justify-center transition-colors"
+                              className="touch-target w-8 h-8 bg-white hover:bg-stone-100 text-stone-700 rounded border border-stone-300 flex items-center justify-center transition-colors"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -1502,34 +1502,34 @@ function MozoTerminal({
 
                   {/* OBSERVATIONS INPUT */}
                   <div className="mt-2 space-y-1.5 pb-3">
-                    <label className="text-[10px] font-bold text-zinc-450 uppercase tracking-wider flex items-center gap-1">
-                      <Bookmark className="w-3 h-3 text-zinc-500" />
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1">
+                      <Bookmark className="w-3 h-3 text-stone-400" />
                       Observaciones de Comanda
                     </label>
                     <textarea
                       placeholder="Ej: Bife bien cocido, papas sin sal, agua a temperatura ambiente..."
                       value={observaciones}
                       onChange={(e) => setObservaciones(e.target.value)}
-                      className="w-full min-h-11 text-base text-zinc-200 p-2.5 bg-zinc-950/60 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 resize-none h-16"
+                      className="w-full min-h-11 text-xs text-stone-900 p-2.5 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35 resize-none h-16"
                     />
                   </div>
 
                   {/* Cart count badge */}
-                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-medium pb-1">
+                  <div className="flex items-center justify-between text-[10px] text-stone-550 font-medium pb-1">
                     <span>{Object.keys(cart).length} productos distintos</span>
                     <button
                       onClick={handleClearCart}
-                      className="touch-target text-red-400 hover:text-red-300 font-bold uppercase tracking-wider cursor-pointer text-xs"
+                      className="touch-target text-red-650 hover:text-red-750 font-bold uppercase tracking-wider cursor-pointer text-xs"
                     >
                       Vaciar Carrito
                     </button>
                   </div>
 
                   {/* FOOTER TOTAL & INJECT BTN */}
-                  <div className="pt-3 border-t border-white/5 space-y-3">
-                    <div className="flex justify-between items-center text-sm font-sans font-medium text-zinc-400">
+                  <div className="pt-3 border-t border-stone-200 space-y-3">
+                    <div className="flex justify-between items-center text-sm font-sans font-medium text-stone-600">
                       <span>Monto Total:</span>
-                      <span className="font-mono font-extrabold text-brand-yellow text-base">
+                      <span className="font-mono font-black text-stone-950 text-base">
                         ${totalCartValue.toLocaleString('es-AR')}
                       </span>
                     </div>
