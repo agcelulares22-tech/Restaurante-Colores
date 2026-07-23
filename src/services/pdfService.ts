@@ -95,9 +95,13 @@ const sanitizeFile = (value: string) => value.replace(/[\\/:*?"<>|]+/g, '_').rep
 export const pdfService = {
   async exportToPDF(data: TicketData, forceWidth?: 58 | 80): Promise<void> {
     const doc = await this.generateTicketPDF(data, forceWidth);
-    const filename = data.tipoComprobante.startsWith('factura')
+    const compType = (data.tipoComprobante || '').toLowerCase();
+    const isNC = compType.includes('nota_credito');
+    const filename = compType.startsWith('factura')
       ? `factura-pizzeria-colores-${sanitizeFile(data.nroComprobante)}.pdf`
-      : `ticket-pizzeria-colores-${sanitizeFile(data.nroComprobante || String(data.idPedido))}.pdf`;
+      : isNC
+        ? `nota-credito-pizzeria-colores-${sanitizeFile(data.nroComprobante)}.pdf`
+        : `ticket-pizzeria-colores-${sanitizeFile(data.nroComprobante || String(data.idPedido))}.pdf`;
     doc.save(filename);
   },
 

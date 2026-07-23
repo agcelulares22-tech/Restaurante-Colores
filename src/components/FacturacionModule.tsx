@@ -438,6 +438,8 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
 
       await facturacionService.markNotaCredito(id, afipDetails);
 
+      let updatedFactura: FacturaExtendida | undefined = undefined;
+
       setFacturas(prev => prev.map(fact => {
         if (fact.id_factura === id) {
           addLog('sistema', `FACTURACION: Nota de credito fiscal anulando ${fact.nro_ticket} por ${money(fact.total)}.${afipDetails ? ` CAE: ${afipDetails.cae}` : ''}`);
@@ -452,13 +454,15 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
               nro_ticket: afipDetails.nro_ticket
             } : {})
           };
-
-          // Descargar PDF de la Nota de Crédito
-          downloadFacturaPdf(updated).catch(e => console.error(e));
+          updatedFactura = updated;
           return updated;
         }
         return fact;
       }));
+
+      if (updatedFactura) {
+        downloadFacturaPdf(updatedFactura).catch(e => console.error(e));
+      }
 
       toast.success(`Nota de crédito emitida con éxito.`);
     } catch (err: any) {
