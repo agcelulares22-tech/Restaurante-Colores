@@ -80,6 +80,13 @@ export function useAppState() {
   const [postLoginLoading, setPostLoginLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [showDiagnostics, setShowDiagnostics] = useState<boolean>(false);
+  const [dataLoaded, setDataLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (dataLoaded && typeof window !== 'undefined') {
+      window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(pedidos));
+    }
+  }, [pedidos, dataLoaded]);
 
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [syncQueueSize, setSyncQueueSize] = useState<number>(0);
@@ -312,8 +319,10 @@ export function useAppState() {
           setMermas(dbMermas ?? []);
         }
         addLog('sistema', 'SUPABASE: Auto-sincronización exitosa con servidor Supabase.');
+        setDataLoaded(true);
       } catch (err) {
         console.warn('Supabase: Falló auto-sync en el arranque. Usando datos SQLite locales.', err);
+        setDataLoaded(true);
       }
     };
 
