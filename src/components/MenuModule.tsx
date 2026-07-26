@@ -104,37 +104,72 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
   const [sortBy, setSortBy] = useState<'nombre' | 'precio_asc' | 'precio_desc' | 'margen_desc'>('nombre');
 
 
-  const normalizeCategorySlug = (categoria: string): string => {
-    const norm = categoria.toLowerCase().trim()
+  const normalizeCategorySlug = (categoria: string, nombreProducto = ''): string => {
+    const normCat = (categoria || '').toLowerCase().trim()
       .normalize('NFD')
       .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
 
-    if (norm.includes('calzone') || norm.includes('empanada')) {
+    const normName = (nombreProducto || '').toLowerCase().trim()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+
+    const combined = `${normCat} ${normName}`;
+
+    const hasSingleBebidasTab = categories.some(c => c.slug === 'bebidas');
+
+    if (combined.includes('calzone') || combined.includes('empanada')) {
       return 'calzones-y-empanadas';
     }
-    if (norm.includes('pizza')) {
+    if (combined.includes('pizza')) {
       return 'pizzas';
     }
-    if (norm.includes('con-alcohol') || norm.includes('cerveza') || norm.includes('vino') || norm.includes('bodega')) {
-      return 'bebidas-con-alcohol';
+    if (
+      combined.includes('con-alcohol') || 
+      combined.includes('c-a') || 
+      normCat.endsWith('c-a') || 
+      combined.includes('cerveza') || 
+      combined.includes('gius') || 
+      combined.includes('stout') || 
+      combined.includes('lager') || 
+      combined.includes('ale') || 
+      combined.includes('ipa') || 
+      combined.includes('pinta') || 
+      combined.includes('vino') || 
+      combined.includes('bodega')
+    ) {
+      return hasSingleBebidasTab ? 'bebidas' : 'bebidas-con-alcohol';
     }
-    if (norm.includes('sin-alcohol') || norm.includes('bebida') || norm.includes('gaseosa') || norm.includes('agua') || norm.includes('jugo')) {
-      return 'bebidas-sin-alcohol';
+    if (
+      combined.includes('sin-alcohol') || 
+      combined.includes('s-a') || 
+      normCat.endsWith('s-a') || 
+      combined.includes('gaseosa') || 
+      combined.includes('coca') || 
+      combined.includes('sprite') || 
+      combined.includes('fanta') || 
+      combined.includes('bonaqua') || 
+      combined.includes('agua') || 
+      combined.includes('jugo') || 
+      combined.includes('bebida')
+    ) {
+      return hasSingleBebidasTab ? 'bebidas' : 'bebidas-sin-alcohol';
     }
-    if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
+    if (combined.includes('postre') || combined.includes('dulce') || combined.includes('helado')) {
       return 'postres';
     }
-    if (norm.includes('sandwich') || norm.includes('baguette') || norm.includes('lomo')) {
+    if (combined.includes('sandwich') || combined.includes('baguette') || combined.includes('lomo') || combined.includes('focaccia') || combined.includes('panuzzo')) {
       return 'sandwiches';
     }
-    return norm;
+    return normCat;
   };
 
-  const getCategorySlug = (catName: string) => {
+  const getCategorySlug = (catName: string, itemNombre = '') => {
     const cat = categories.find(c => c.nombre.toLowerCase() === catName.toLowerCase());
-    return cat ? cat.slug : normalizeCategorySlug(catName);
+    return cat ? cat.slug : normalizeCategorySlug(catName, itemNombre);
   };
 
   const isBusy = pendingAction !== null;
@@ -465,7 +500,8 @@ function MenuModule({ productosMenu, onProductosChange, recetas, insumos, addLog
   const filtered = useMemo(() => {
     const list = items.filter(item => {
       const matchesSearch = item.nombre.toLowerCase().includes(debouncedSearch.toLowerCase());
-      const matchesCat = selectedCategoria === 'todos' || getCategorySlug(item.categoria) === selectedCategoria;
+      const targetSlug = selectedCategoria === 'todos' ? 'todos' : normalizeCategorySlug(selectedCategoria);
+      const matchesCat = targetSlug === 'todos' || normalizeCategorySlug(item.categoria, item.nombre) === targetSlug;
       return matchesSearch && matchesCat;
     });
 

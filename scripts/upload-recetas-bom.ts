@@ -32,7 +32,7 @@ I-023,Guacamole,Salsas,gr
 I-024,Hongos,Verduras,gr
 I-025,Jamón cocido,Fiambres,gr
 I-026,Portobellos,Verduras,gr
-I-027,Masa pizza,Masas,unid
+I-027,Masa,Masas,gr
 I-028,Masa focaccia,Masas,unid
 I-029,Masa baguette,Masas,unid
 I-030,Masa calzone,Masas,unid
@@ -83,7 +83,33 @@ I-074,Pechuga apanada,Carnes,gr
 I-075,Cebolla morada,Verduras,gr
 I-076,Aceitunas,Conservas,gr
 I-077,Pesto,Salsas,gr
-I-078,Mayo de palta,Salsas,gr`;
+I-078,Mayo de palta,Salsas,gr
+I-079,Nalga,Carnes,gr
+I-080,Queso mantecoso,Quesos,gr
+I-081,Hummus,Preparados,gr
+I-082,Mascarpone,Lácteos,gr
+I-083,Crema de leche,Lácteos,gr
+I-084,Yema,Huevos,unid
+I-085,Azúcar,Almacén,gr
+I-086,Vainillas,Almacén,gr
+I-087,Café listo,Bebidas,ml
+I-088,Amaretto,Bebidas,ml
+I-089,Harina 0000,Almacén,gr
+I-090,Manteca,Lácteos,gr
+I-091,Ricota,Lácteos,gr
+I-092,Ralladura de naranja,Aromáticos,gr
+I-093,Esencia de vainilla,Almacén,ml
+I-094,Sal,Almacén,gr
+I-095,Comino,Especias,gr
+I-096,Pimienta,Especias,gr
+I-097,Laurel,Aromáticos,unid
+I-098,Romero,Aromáticos,gr
+I-099,Ajo,Verduras,gr
+I-100,Ají molido,Especias,gr
+I-101,Pimentón,Especias,gr
+I-102,Palta,Verduras,gr
+I-103,Leche,Lácteos,ml
+I-104,Limón,Verduras,gr`;
 
 const mappingInsumos: Record<string, string> = {
   'I-001': 'ins_pure_tomate',
@@ -100,6 +126,7 @@ const mappingInsumos: Record<string, string> = {
   'I-019': 'ins_aceitunas',
   'I-024': 'ins_hongos_pino',
   'I-025': 'ins_jamon_cocido',
+  'I-027': 'ins_masa_pizza',
   'I-032': 'ins_jamon_cocido',
   'I-037': 'ins_cheddar_fetas',
   'I-041': 'ins_aceite_oliva',
@@ -116,6 +143,32 @@ const mappingInsumos: Record<string, string> = {
   'I-071': 'ins_pollo_desmechado',
   'I-076': 'ins_aceitunas',
   'I-077': 'ins_pesto_albahaca',
+  'I-079': 'ins_nalga',
+  'I-080': 'ins_queso_mantecoso',
+  'I-081': 'ins_hummus',
+  'I-082': 'ins_mascarpone',
+  'I-083': 'ins_crema_leche',
+  'I-084': 'ins_yema',
+  'I-085': 'ins_azucar',
+  'I-086': 'ins_vainillas',
+  'I-087': 'ins_cafe',
+  'I-088': 'ins_amaretto',
+  'I-089': 'ins_harina',
+  'I-090': 'ins_manteca',
+  'I-091': 'ins_ricota',
+  'I-092': 'ins_ralladura_naranja',
+  'I-093': 'ins_esencia_vainilla',
+  'I-094': 'ins_sal',
+  'I-095': 'ins_comino',
+  'I-096': 'ins_pimienta',
+  'I-097': 'ins_laurel',
+  'I-098': 'ins_romero',
+  'I-099': 'ins_ajo',
+  'I-100': 'ins_aji_molido',
+  'I-101': 'ins_pimenton',
+  'I-102': 'ins_palta',
+  'I-103': 'ins_leche',
+  'I-104': 'ins_limon',
 };
 
 const productos = [
@@ -159,7 +212,7 @@ const productos = [
     precio_venta: 22000,
     categoria: 'Pizzas',
     activo: true,
-    descripcion: 'Prosciutto de Parma estacionado, morrón asado y aceite de albahaca.',
+    descripcion: 'Prosciutto de Parma de larga maduración, pimientos confitados y oliva.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 14,
     requiere_cocina: true
@@ -170,31 +223,9 @@ const productos = [
     precio_venta: 23000,
     categoria: 'Pizzas',
     activo: true,
-    descripcion: 'Blend de 5 quesos premium balanceado con higos dulces.',
+    descripcion: 'Blend de 5 quesos seleccionados y toque de higos dulces.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 15,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_anchovy_grande',
-    nombre: 'Pizza Cobalto Anchoas Cantábricas & Alcaparras Grande',
-    precio_venta: 23000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Anchoas del Cantábrico, tomates secos y alcaparras.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_tai_pizza_grande',
-    nombre: 'Pizza Índigo Langostinos al Curry Rojo & Coco Grande',
-    precio_venta: 25000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Langostinos salteados en curry rojo tailandés y coco.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 18,
     requiere_cocina: true
   },
   {
@@ -203,20 +234,9 @@ const productos = [
     precio_venta: 22000,
     categoria: 'Pizzas',
     activo: true,
-    descripcion: 'Bresaola, rúcula selvática y lascas de Parmigiano.',
+    descripcion: 'Rúcula fresca, bresaola feteada e hilos de oliva.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizz_arma_tu_pizza_grande',
-    nombre: 'Pizza Esmeralda Langostinos & Crema de Aguacate Grande',
-    precio_venta: 22000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Langostinos al limón, guacamole rústico y pico de gallo.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 16,
     requiere_cocina: true
   },
   {
@@ -225,9 +245,20 @@ const productos = [
     precio_venta: 24000,
     categoria: 'Pizzas',
     activo: true,
-    descripcion: 'Portobellos, champiñones, crema de porcini y aceite de trufa.',
+    descripcion: 'Portobellos salteados, salsa de hongos y aceite perfumado de trufa.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 14,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_pizza_guacamole_grande',
+    nombre: 'Guacamole Pizza',
+    precio_venta: 24000,
+    categoria: 'Pizzas',
+    activo: true,
+    descripcion: 'Masa artesanal con langostinos, cebolla fugazza y crema de guacamole.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 15,
     requiere_cocina: true
   },
 
@@ -266,72 +297,6 @@ const productos = [
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_pizza_colores_especial_individual',
-    nombre: 'Pizza Ámbar Prosciutto & Pimientos Dulces Individual',
-    precio_venta: 11000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Versión individual de prosciutto de Parma, morrón asado y aceite de albahaca.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 9,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_5_quesos_individual',
-    nombre: 'Pizza Cromática 5 Quesos & Higos al Malamado Individual',
-    precio_venta: 11500,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Versión individual con selección de 5 quesos e higos al oporto.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 10,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_anchovy_individual',
-    nombre: 'Pizza Cobalto Anchoas Cantábricas & Alcaparras Individual',
-    precio_venta: 11500,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Anchoas seleccionadas y alcaparras en tamaño individual.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_tai_pizza_individual',
-    nombre: 'Pizza Índigo Langostinos al Curry Rojo & Coco Individual',
-    precio_venta: 12500,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Langostinos al curry tailandés en versión individual.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizza_fresca_individual',
-    nombre: 'Pizza Jade Rúcula & Bresaola Individual',
-    precio_venta: 11000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Rúcula fresca, bresaola y parmesano individual.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_pizz_arma_tu_pizza_individual',
-    nombre: 'Pizza Esmeralda Langostinos & Crema de Aguacate Individual',
-    precio_venta: 11000,
-    categoria: 'Pizzas',
-    activo: true,
-    descripcion: 'Versión individual con langostinos, palta y pico de gallo.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 11,
-    requiere_cocina: true
-  },
-  {
     id_producto: 'prod_pizza_funghi_individual',
     nombre: 'Pizza Siena Funghi & Trufa Individual',
     precio_venta: 11500,
@@ -345,229 +310,80 @@ const productos = [
 
   // Focaccias
   {
-    id_producto: 'prod_foc_toscana',
-    nombre: 'Focaccia Toscana de Mortadela & Pistachos',
-    precio_venta: 12000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Focaccia de masa madre con mortadela, provolone y pistachos.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_dorada',
-    nombre: 'Focaccia Dorada de Pollo Crispy & Cheddar',
-    precio_venta: 12500,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Pollo crujiente al panko, cheddar inglés y cebolla caramelizada.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 12,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_bologna',
-    nombre: 'Focaccia Bologna de Mortadela & Stracciatella',
-    precio_venta: 13000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Mortadela bologna con stracciatella fresca y pesto verde.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_milano',
-    nombre: 'Focaccia Milano Milanesa Suprema & Huevo Frito',
+    id_producto: 'prod_foc_milanesa_completa',
+    nombre: 'Focaccia de Milanesa Completa',
     precio_venta: 14500,
     categoria: 'Focaccias',
     activo: true,
-    descripcion: 'Milanesa de ternera con prosciutto crudo y huevo campero.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 15,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_palermo',
-    nombre: 'Focaccia Palermo de Atún, Burrata & Alcaparras',
-    precio_venta: 14000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Atún en lomo, burrata entera, tomates secos y alcaparras.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_parma',
-    nombre: 'Focaccia Parma Jamón Crudo & Higos Asados',
-    precio_venta: 13500,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Jamón crudo, queso fynbo maduro, higos y aceto balsámico.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 10,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_bresaola',
-    nombre: 'Focaccia de Bresaola & Rúcula',
-    precio_venta: 14000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Focaccia artesanal con bresaola, provolone y rúcula selvática.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 7,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_pollo_desmechado',
-    nombre: 'Focaccia Pollo Desmechado al Verdeo & Queso',
-    precio_venta: 12000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Pollo desmechado salteado al verdeo con muzzarella fundida.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 11,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_foc_espanola',
-    nombre: 'Focaccia Española de Jamón Serrano & Tomates Cherry',
-    precio_venta: 13000,
-    categoria: 'Focaccias',
-    activo: true,
-    descripcion: 'Jamón crudo feteado fino, tomates cherry confitados y provolone.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 8,
-    requiere_cocina: true
-  },
-
-  // Baguettes
-  {
-    id_producto: 'prod_bag_serrano',
-    nombre: 'Baguette Serrano, Morbier & Rúcula',
-    precio_venta: 11000,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Baguette rústica con jamón serrano, queso morbier y rúcula.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_clasica',
-    nombre: 'Baguette Clásica Jamón Natural & Cheddar',
-    precio_venta: 10000,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Jamón cocido natural, cheddar maduro y rodajas de tomate.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 5,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_bologna',
-    nombre: 'Baguette Mortadela Bologna, Reggianito & Crema Olivas',
-    precio_venta: 10500,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Mortadela con pistachos, lascas de queso reggianito y olivas.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_albondiguette',
-    nombre: 'Baguette Albondiguette de Ternera & Provolone',
-    precio_venta: 11500,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Albóndigas estofadas al pomodoro y provolone fundido.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 10,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_lomo_premium',
-    nombre: 'Baguette Lomo Premium, Morbier & Encurtidos',
-    precio_venta: 12000,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Lomito ahumado, morbier, lechuga y cebolla encurtida morada.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 7,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_milan_queso',
-    nombre: 'Baguette Milán y Queso',
-    precio_venta: 9500,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Salame milán feteado fino con provolone y mayonesa artesanal.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_cruda_queso',
-    nombre: 'Baguette Cruda y Queso',
-    precio_venta: 11000,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Jamón crudo, queso fynbo, rúcula y mayonesa artesanal.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-  {
-    id_producto: 'prod_bag_lomo_queso',
-    nombre: 'Baguette Lomo y Queso',
-    precio_venta: 11500,
-    categoria: 'Baguettes',
-    activo: true,
-    descripcion: 'Lomito ahumado, queso morbier fundido y mayonesa clásica.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 6,
-    requiere_cocina: true
-  },
-
-  // Extras
-  {
-    id_producto: 'prod_ext_promo_baguette',
-    nombre: 'Promo Baguette + Gaseosa',
-    precio_venta: 1500,
-    categoria: 'Bebidas/Extras',
-    activo: true,
-    descripcion: 'Combo promocional de baguette rústica con gaseosa de 500cc.',
-    tipo: 'bebida',
-    tiempo_preparacion_estimado: 1,
-    requiere_cocina: false
-  },
-
-  // Calzones
-  {
-    id_producto: 'prod_calz_calzonne_de_la_reina',
-    nombre: 'Calzone Regina de Porchetta, Funghi & Provolone',
-    precio_venta: 22000,
-    categoria: 'Calzones y empanadas',
-    activo: true,
-    descripcion: 'Porchetta, portobellos asados, provolone y pomodoro.',
+    descripcion: 'Milanesa tierna, jamón cocido, muzzarella, papas rústicas, lechuga, tomate y mayonesa.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 12,
     requiere_cocina: true
   },
   {
-    id_producto: 'prod_calz_calzonne_napolitano',
-    nombre: 'Calzone Vesubio de Prosciutto & Cherries',
-    precio_venta: 20000,
-    categoria: 'Calzones y empanadas',
+    id_producto: 'prod_foc_clasica',
+    nombre: 'Focaccia Clásica de Jamón & Provolone',
+    precio_venta: 11000,
+    categoria: 'Focaccias',
     activo: true,
-    descripcion: 'Jamón crudo, cherries confitados, mozzarella y salsa napolitana.',
+    descripcion: 'Jamón cocido natural, queso provolone fundido, rodajas de tomate y lechuga fresca.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 7,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_foc_mortadela',
+    nombre: 'Focaccia de Mortadela & Queso Mantecoso',
+    precio_venta: 12000,
+    categoria: 'Focaccias',
+    activo: true,
+    descripcion: 'Mortadela feteada fina, queso mantecoso fundido, rúcula fresca y pesto.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 8,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_foc_lomo',
+    nombre: 'Focaccia de Lomo & Provolone',
+    precio_venta: 13500,
+    categoria: 'Focaccias',
+    activo: true,
+    descripcion: 'Nalga tiernizada, provolone derretido, jamón cocido y mayonesa clásica.',
     tipo: 'plato',
     tiempo_preparacion_estimado: 10,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_foc_milan',
+    nombre: 'Focaccia Milán & Milanesa',
+    precio_venta: 12500,
+    categoria: 'Focaccias',
+    activo: true,
+    descripcion: 'Milanesa con queso provolone, provenzal y mayonesa.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 9,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_foc_cruda',
+    nombre: 'Focaccia Cruda & Fynbo',
+    precio_venta: 13000,
+    categoria: 'Focaccias',
+    activo: true,
+    descripcion: 'Jamón crudo premium, queso fynbo, rúcula fresca, oliva y pesto.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 8,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_foc_garbanzo',
+    nombre: 'Focaccia de Garbanzo & Hummus',
+    precio_venta: 11500,
+    categoria: 'Focaccias',
+    activo: true,
+    descripcion: 'Hummus untuoso de garbanzos, tomates secos, rúcula fresca y huevo.',
+    tipo: 'plato',
+    tiempo_preparacion_estimado: 8,
     requiere_cocina: true
   },
 
@@ -595,345 +411,216 @@ const productos = [
     requiere_cocina: true
   },
 
-  // Panuzzo
+  // Postres
   {
-    id_producto: 'prod_pan_capri',
-    nombre: 'Panuzzo Capri de Langostinos & Palta',
-    precio_venta: 18000,
-    categoria: 'Panuzzo',
+    id_producto: 'prod_post_tiramisu',
+    nombre: 'Tiramisú',
+    precio_venta: 9000,
+    categoria: 'Postres',
     activo: true,
-    descripcion: 'Pan de pizza horneado con langostinos, palta y coleslaw dulce.',
-    tipo: 'plato',
-    tiempo_preparacion_estimado: 14,
+    descripcion: 'Clásico postre italiano a base de mascarpone, café y vainillas.',
+    tipo: 'postre',
+    tiempo_preparacion_estimado: 15,
+    requiere_cocina: true
+  },
+  {
+    id_producto: 'prod_post_tarta_de_ricotta',
+    nombre: 'Tarta de Ricotta',
+    precio_venta: 6000,
+    categoria: 'Postres',
+    activo: true,
+    descripcion: 'Clásica tarta de ricota con ralladura de naranja y esencia de vainilla.',
+    tipo: 'postre',
+    tiempo_preparacion_estimado: 15,
     requiere_cocina: true
   }
 ];
 
 const ingredientesBOM = [
-  // PZ-001 (Pizza Rosso Clásica Grande) -> prod_pizza_comun_grande
-  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-041', cantidad_a_descontar: 10.0, unidad_medida: 'ml' },
-  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-045', cantidad_a_descontar: 5.0, unidad_medida: 'gr' },
+  // Muzzarella (Grande) -> prod_pizza_comun_grande
+  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_comun_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
 
-  // PZ-001 Ind -> prod_pizza_comun_individual
-  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-041', cantidad_a_descontar: 5.0, unidad_medida: 'ml' },
-  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-045', cantidad_a_descontar: 3.0, unidad_medida: 'gr' },
+  // Muzzarella (Individual) -> prod_pizza_comun_individual
+  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-027', cantidad_a_descontar: 230.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-001', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_comun_individual', id_insumo: 'I-002', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
 
-  // PZ-002 (Pizza Rubí Pepperoni Grande) -> prod_pizza_pepperoni_grande
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-069', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-041', cantidad_a_descontar: 10.0, unidad_medida: 'ml' },
-  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-045', cantidad_a_descontar: 5.0, unidad_medida: 'gr' },
+  // Margarita (Grande) -> prod_pizza_napolitana_grande
+  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-004', cantidad_a_descontar: 35.0, unidad_medida: 'gr' },
 
-  // PZ-002 Ind -> prod_pizza_pepperoni_individual
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-069', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-041', cantidad_a_descontar: 5.0, unidad_medida: 'ml' },
-  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-045', cantidad_a_descontar: 3.0, unidad_medida: 'gr' },
+  // Margarita (Individual) -> prod_pizza_napolitana_individual
+  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-027', cantidad_a_descontar: 230.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-001', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-002', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-004', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
 
-  // PZ-003 (Pizza Esmeralda Margarita Grande) -> prod_pizza_napolitana_grande
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-057', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-077', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_grande', id_insumo: 'I-045', cantidad_a_descontar: 5.0, unidad_medida: 'gr' },
+  // Especial (Grande) -> prod_pizza_colores_especial_grande
+  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-006', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-005', cantidad_a_descontar: 85.0, unidad_medida: 'gr' },
 
-  // PZ-003 Ind -> prod_pizza_napolitana_individual
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-057', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-077', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_napolitana_individual', id_insumo: 'I-045', cantidad_a_descontar: 3.0, unidad_medida: 'gr' },
+  // Pepperoni (Grande) -> prod_pizza_pepperoni_grande
+  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_grande', id_insumo: 'I-069', cantidad_a_descontar: 65.0, unidad_medida: 'gr' },
 
-  // PZ-004 (Pizza Ámbar Prosciutto Grande) -> prod_pizza_colores_especial_grande
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-047', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-057', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_grande', id_insumo: 'I-048', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
+  // Pepperoni (Individual) -> prod_pizza_pepperoni_individual
+  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-027', cantidad_a_descontar: 230.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-001', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-002', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_pepperoni_individual', id_insumo: 'I-069', cantidad_a_descontar: 35.0, unidad_medida: 'gr' },
 
-  // PZ-004 Ind -> prod_pizza_colores_especial_individual
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-047', cantidad_a_descontar: 45.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-057', cantidad_a_descontar: 45.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_colores_especial_individual', id_insumo: 'I-048', cantidad_a_descontar: 5.0, unidad_medida: 'gr' },
+  // Funghi (Grande) -> prod_pizza_funghi_grande
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-054', cantidad_a_descontar: 220.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-005', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-026', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-075', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-011', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
 
-  // PZ-005 (Pizza Cromática 5 Quesos Grande) -> prod_pizza_5_quesos_grande
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-007', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-008', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-009', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-010', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-011', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-018', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
+  // Funghi (Individual) -> prod_pizza_funghi_individual
+  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-027', cantidad_a_descontar: 230.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-054', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-026', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-075', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-011', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
 
-  // PZ-005 Ind -> prod_pizza_5_quesos_individual
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-007', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-008', cantidad_a_descontar: 35.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-009', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-010', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-011', cantidad_a_descontar: 18.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_5_quesos_individual', id_insumo: 'I-018', cantidad_a_descontar: 35.0, unidad_medida: 'gr' },
+  // Cinco Quesos -> prod_pizza_5_quesos_grande
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-007', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-008', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-010', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-011', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_5_quesos_grande', id_insumo: 'I-004', cantidad_a_descontar: 4.0, unidad_medida: 'gr' },
 
-  // PZ-006 (Pizza Cobalto Anchoas Grande) -> prod_pizza_anchovy_grande
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-012', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-076', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_grande', id_insumo: 'I-018', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  // Fresca -> prod_pizza_fresca_grande
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-018', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-019', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-011', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-017', cantidad_a_descontar: 150.0, unidad_medida: 'gr' },
 
-  // PZ-006 Ind -> prod_pizza_anchovy_individual
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-012', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-076', cantidad_a_descontar: 12.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_anchovy_individual', id_insumo: 'I-018', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
+  // Guacamole Pizza -> prod_pizza_guacamole_grande
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-027', cantidad_a_descontar: 440.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-001', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-002', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-014', cantidad_a_descontar: 150.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-022', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-102', cantidad_a_descontar: 26.67, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-103', cantidad_a_descontar: 13.33, unidad_medida: 'gr' },
+  { id_producto: 'prod_pizza_guacamole_grande', id_insumo: 'I-104', cantidad_a_descontar: 5.0, unidad_medida: 'gr' },
 
-  // PZ-007 (Pizza Índigo Langostinos Grande) -> prod_pizza_tai_pizza_grande
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-014', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-015', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_grande', id_insumo: 'I-016', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
+  // Focaccia Milanesa Completa -> prod_foc_milanesa_completa
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-042', cantidad_a_descontar: 170.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-005', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-002', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-061', cantidad_a_descontar: 130.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-034', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-033', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-035', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milanesa_completa', id_insumo: 'I-062', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
 
-  // PZ-007 Ind -> prod_pizza_tai_pizza_individual
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-014', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-015', cantidad_a_descontar: 8.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_tai_pizza_individual', id_insumo: 'I-016', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
+  // Focaccia Clásica -> prod_foc_clasica
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-035', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-034', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-025', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-008', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_clasica', id_insumo: 'I-033', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
 
-  // PZ-008 (Pizza Jade Rúcula Grande) -> prod_pizza_fresca_grande
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-047', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-017', cantidad_a_descontar: 45.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-018', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_grande', id_insumo: 'I-011', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  // Focaccia Mortadela -> prod_foc_mortadela
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-035', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-040', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-080', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-017', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_mortadela', id_insumo: 'I-004', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
 
-  // PZ-008 Ind -> prod_pizza_fresca_individual
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-047', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-017', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-018', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_fresca_individual', id_insumo: 'I-011', cantidad_a_descontar: 18.0, unidad_medida: 'gr' },
+  // Focaccia Lomo -> prod_foc_lomo
+  { id_producto: 'prod_foc_lomo', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_lomo', id_insumo: 'I-079', cantidad_a_descontar: 200.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_lomo', id_insumo: 'I-008', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_lomo', id_insumo: 'I-035', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_lomo', id_insumo: 'I-025', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
 
-  // PZ-009 (Pizza Esmeralda Langostinos Grande) -> prod_pizz_arma_tu_pizza_grande
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-014', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-023', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_grande', id_insumo: 'I-065', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
+  // Focaccia Milán -> prod_foc_milan
+  { id_producto: 'prod_foc_milan', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milan', id_insumo: 'I-042', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milan', id_insumo: 'I-008', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milan', id_insumo: 'I-035', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_milan', id_insumo: 'I-056', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
 
-  // PZ-009 Ind -> prod_pizz_arma_tu_pizza_individual
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-014', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-023', cantidad_a_descontar: 45.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizz_arma_tu_pizza_individual', id_insumo: 'I-065', cantidad_a_descontar: 35.0, unidad_medida: 'gr' },
+  // Focaccia Cruda -> prod_foc_cruda
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-047', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-010', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-017', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-041', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_cruda', id_insumo: 'I-004', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
 
-  // PZ-010 (Pizza Siena Funghi Grande) -> prod_pizza_funghi_grande
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-001', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-002', cantidad_a_descontar: 250.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-026', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-024', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_grande', id_insumo: 'I-011', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  // Focaccia Garbanzo -> prod_foc_garbanzo
+  { id_producto: 'prod_foc_garbanzo', id_insumo: 'I-027', cantidad_a_descontar: 300.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_garbanzo', id_insumo: 'I-081', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_garbanzo', id_insumo: 'I-018', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_garbanzo', id_insumo: 'I-017', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_foc_garbanzo', id_insumo: 'I-062', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
 
-  // PZ-010 Ind -> prod_pizza_funghi_individual
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-001', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-002', cantidad_a_descontar: 140.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-026', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-024', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pizza_funghi_individual', id_insumo: 'I-011', cantidad_a_descontar: 18.0, unidad_medida: 'gr' },
-
-  // FC-001
-  { id_producto: 'prod_foc_toscana', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_toscana', id_insumo: 'I-040', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_toscana', id_insumo: 'I-008', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_toscana', id_insumo: 'I-017', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_toscana', id_insumo: 'I-035', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // FC-002
-  { id_producto: 'prod_foc_dorada', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_dorada', id_insumo: 'I-074', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_dorada', id_insumo: 'I-037', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_dorada', id_insumo: 'I-038', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_dorada', id_insumo: 'I-039', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // FC-003
-  { id_producto: 'prod_foc_bologna', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_bologna', id_insumo: 'I-040', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bologna', id_insumo: 'I-002', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bologna', id_insumo: 'I-077', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bologna', id_insumo: 'I-041', cantidad_a_descontar: 10.0, unidad_medida: 'ml' },
-
-  // FC-004
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-042', cantidad_a_descontar: 150.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-002', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-005', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-043', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_milano', id_insumo: 'I-034', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-
-  // FC-005
-  { id_producto: 'prod_foc_palermo', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_palermo', id_insumo: 'I-064', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_palermo', id_insumo: 'I-044', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_palermo', id_insumo: 'I-018', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_palermo', id_insumo: 'I-076', cantidad_a_descontar: 15.0, unidad_medida: 'gr' },
-
-  // FC-006
-  { id_producto: 'prod_foc_parma', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_parma', id_insumo: 'I-047', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_parma', id_insumo: 'I-010', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_parma', id_insumo: 'I-017', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_parma', id_insumo: 'I-039', cantidad_a_descontar: 15.0, unidad_medida: 'gr' },
-
-  // FC-007
-  { id_producto: 'prod_foc_bresaola', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_bresaola', id_insumo: 'I-047', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bresaola', id_insumo: 'I-008', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bresaola', id_insumo: 'I-017', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_bresaola', id_insumo: 'I-039', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // FC-008
-  { id_producto: 'prod_foc_pollo_desmechado', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_pollo_desmechado', id_insumo: 'I-071', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_pollo_desmechado', id_insumo: 'I-016', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_pollo_desmechado', id_insumo: 'I-002', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_pollo_desmechado', id_insumo: 'I-039', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-
-  // FC-009
-  { id_producto: 'prod_foc_espanola', id_insumo: 'I-028', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_foc_espanola', id_insumo: 'I-047', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_espanola', id_insumo: 'I-057', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_espanola', id_insumo: 'I-008', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_foc_espanola', id_insumo: 'I-039', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-
-  // BG-001
-  { id_producto: 'prod_bag_serrano', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_serrano', id_insumo: 'I-047', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_serrano', id_insumo: 'I-009', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_serrano', id_insumo: 'I-017', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_serrano', id_insumo: 'I-039', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-
-  // BG-002
-  { id_producto: 'prod_bag_clasica', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_clasica', id_insumo: 'I-005', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_clasica', id_insumo: 'I-037', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_clasica', id_insumo: 'I-034', cantidad_a_descontar: 40.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_clasica', id_insumo: 'I-070', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-
-  // BG-003
-  { id_producto: 'prod_bag_bologna', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_bologna', id_insumo: 'I-040', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_bologna', id_insumo: 'I-011', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_bologna', id_insumo: 'I-049', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_bologna', id_insumo: 'I-017', cantidad_a_descontar: 15.0, unidad_medida: 'gr' },
-
-  // BG-004
-  { id_producto: 'prod_bag_albondiguette', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_albondiguette', id_insumo: 'I-051', cantidad_a_descontar: 120.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_albondiguette', id_insumo: 'I-001', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_albondiguette', id_insumo: 'I-002', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_albondiguette', id_insumo: 'I-048', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-
-  // BG-005
-  { id_producto: 'prod_bag_lomo_premium', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_lomo_premium', id_insumo: 'I-052', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_lomo_premium', id_insumo: 'I-009', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_lomo_premium', id_insumo: 'I-033', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_lomo_premium', id_insumo: 'I-075', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // BG-006
-  { id_producto: 'prod_bag_milan_queso', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_milan_queso', id_insumo: 'I-068', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_milan_queso', id_insumo: 'I-008', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_milan_queso', id_insumo: 'I-039', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // BG-007
-  { id_producto: 'prod_bag_cruda_queso', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_cruda_queso', id_insumo: 'I-047', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_cruda_queso', id_insumo: 'I-010', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_cruda_queso', id_insumo: 'I-039', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // BG-008
-  { id_producto: 'prod_bag_lomo_queso', id_insumo: 'I-029', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_bag_lomo_queso', id_insumo: 'I-052', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_lomo_queso', id_insumo: 'I-009', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_bag_lomo_queso', id_insumo: 'I-035', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-
-  // EX-001
-  { id_producto: 'prod_ext_promo_baguette', id_insumo: 'I-067', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-
-  // CZ-001
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-030', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-054', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-025', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-002', cantidad_a_descontar: 150.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-055', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_de_la_reina', id_insumo: 'I-008', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-
-  // CZ-002
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-030', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-056', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-002', cantidad_a_descontar: 150.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-025', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-011', cantidad_a_descontar: 30.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_calzonne_napolitano', id_insumo: 'I-057', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-
-  // EM-001
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-031', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-058', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-061', cantidad_a_descontar: 20.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-016', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-060', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-062', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
-
-  // EM-002
+  // Empanada Criolla -> prod_calz_empa_criolla
   { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-031', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-063', cantidad_a_descontar: 70.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-059', cantidad_a_descontar: 25.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-062', cantidad_a_descontar: 10.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-063', cantidad_a_descontar: 31.4, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-059', cantidad_a_descontar: 31.4, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-090', cantidad_a_descontar: 1.05, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-094', cantidad_a_descontar: 0.76, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-095', cantidad_a_descontar: 0.25, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-096', cantidad_a_descontar: 0.12, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_criolla', id_insumo: 'I-062', cantidad_a_descontar: 0.135, unidad_medida: 'unid' },
 
-  // PN-001
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-027', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-002', cantidad_a_descontar: 80.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-014', cantidad_a_descontar: 90.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-065', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-066', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-023', cantidad_a_descontar: 60.0, unidad_medida: 'gr' },
-  { id_producto: 'prod_pan_capri', id_insumo: 'I-078', cantidad_a_descontar: 25.0, unidad_medida: 'gr' }
+  // Empanada Salteña -> prod_calz_empa_saltena
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-031', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-058', cantidad_a_descontar: 25.64, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-059', cantidad_a_descontar: 25.64, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-094', cantidad_a_descontar: 1.06, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-097', cantidad_a_descontar: 0.026, unidad_medida: 'unid' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-098', cantidad_a_descontar: 0.026, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-099', cantidad_a_descontar: 0.16, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-100', cantidad_a_descontar: 0.128, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-101', cantidad_a_descontar: 0.192, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-096', cantidad_a_descontar: 0.064, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-061', cantidad_a_descontar: 4.74, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-060', cantidad_a_descontar: 4.03, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-016', cantidad_a_descontar: 3.08, unidad_medida: 'gr' },
+  { id_producto: 'prod_calz_empa_saltena', id_insumo: 'I-062', cantidad_a_descontar: 0.095, unidad_medida: 'unid' },
+
+  // Tiramisú -> prod_post_tiramisu
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-082', cantidad_a_descontar: 66.67, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-083', cantidad_a_descontar: 88.33, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-084', cantidad_a_descontar: 1.0, unidad_medida: 'unid' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-085', cantidad_a_descontar: 13.33, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-086', cantidad_a_descontar: 111.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-087', cantidad_a_descontar: 91.67, unidad_medida: 'ml' },
+  { id_producto: 'prod_post_tiramisu', id_insumo: 'I-088', cantidad_a_descontar: 2.5, unidad_medida: 'ml' },
+
+  // Tarta de Ricota -> prod_post_tarta_de_ricotta
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-089', cantidad_a_descontar: 50.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-085', cantidad_a_descontar: 46.67, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-090', cantidad_a_descontar: 33.33, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-062', cantidad_a_descontar: 0.83, unidad_medida: 'unid' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-091', cantidad_a_descontar: 100.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-083', cantidad_a_descontar: 16.67, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-092', cantidad_a_descontar: 1.0, unidad_medida: 'gr' },
+  { id_producto: 'prod_post_tarta_de_ricotta', id_insumo: 'I-093', cantidad_a_descontar: 1.0, unidad_medida: 'ml' }
 ];
 
 async function run() {

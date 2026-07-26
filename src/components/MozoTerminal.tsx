@@ -1055,38 +1055,80 @@ function MozoTerminal({
               { id: 'todo', label: 'Todos' },
               ...categories.map(c => ({ id: c.slug, label: c.nombre }))
             ].map(cat => {
+              const normalizeCategorySlug = (categoria: string, nombreProducto = ''): string => {
+                const normCat = (categoria || '').toLowerCase().trim()
+                  .normalize('NFD')
+                  .replace(/[̀-ͯ]/g, '')
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)+/g, '');
+
+                const normName = (nombreProducto || '').toLowerCase().trim()
+                  .normalize('NFD')
+                  .replace(/[̀-ͯ]/g, '')
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)+/g, '');
+
+                const combined = `${normCat} ${normName}`;
+
+                const hasSingleBebidasTab = categories.some(c => c.slug === 'bebidas');
+
+                if (combined.includes('calzone') || combined.includes('empanada')) {
+                  return 'calzones-y-empanadas';
+                }
+                if (combined.includes('pizza')) {
+                  return 'pizzas';
+                }
+                if (
+                  combined.includes('con-alcohol') || 
+                  combined.includes('c-a') || 
+                  combined.includes('bebidas-c-a') || 
+                  combined.includes('bebidas-con-alcohol') || 
+                  normCat.endsWith('c-a') || 
+                  combined.includes('cerveza') || 
+                  combined.includes('gius') || 
+                  combined.includes('stout') || 
+                  combined.includes('lager') || 
+                  combined.includes('ale') || 
+                  combined.includes('ipa') || 
+                  combined.includes('pinta') || 
+                  combined.includes('vino') || 
+                  combined.includes('bodega')
+                ) {
+                  return hasSingleBebidasTab ? 'bebidas' : 'bebidas-con-alcohol';
+                }
+                if (
+                  combined.includes('sin-alcohol') || 
+                  combined.includes('s-a') || 
+                  combined.includes('bebidas-s-a') || 
+                  combined.includes('bebidas-sin-alcohol') || 
+                  normCat.endsWith('s-a') || 
+                  combined.includes('gaseosa') || 
+                  combined.includes('coca') || 
+                  combined.includes('sprite') || 
+                  combined.includes('fanta') || 
+                  combined.includes('bonaqua') || 
+                  combined.includes('agua') || 
+                  combined.includes('jugo') || 
+                  combined.includes('bebida')
+                ) {
+                  return hasSingleBebidasTab ? 'bebidas' : 'bebidas-sin-alcohol';
+                }
+                if (combined.includes('postre') || combined.includes('dulce') || combined.includes('helado')) {
+                  return 'postres';
+                }
+                if (combined.includes('sandwich') || combined.includes('baguette') || combined.includes('lomo') || combined.includes('focaccia') || combined.includes('panuzzo')) {
+                  return 'sandwiches';
+                }
+                return normCat;
+              };
+
+              const targetSlug = cat.id === 'todo' ? 'todo' : normalizeCategorySlug(cat.id || cat.label);
+
               const count = cat.id === 'todo' 
                 ? productosMenu.filter(p => p.activo).length 
                 : productosMenu.filter(p => {
                     if (!p.activo) return false;
-                    const normalizeCategorySlug = (categoria: string): string => {
-                      const norm = categoria.toLowerCase().trim()
-                        .normalize('NFD')
-                        .replace(/[̀-ͯ]/g, '')
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/(^-|-$)+/g, '');
-
-                      if (norm.includes('calzone') || norm.includes('empanada')) {
-                        return 'calzones-y-empanadas';
-                      }
-                      if (norm.includes('pizza')) {
-                        return 'pizzas';
-                      }
-                      if (norm.includes('con-alcohol') || norm.includes('cerveza') || norm.includes('vino') || norm.includes('bodega')) {
-                        return 'bebidas-con-alcohol';
-                      }
-                      if (norm.includes('sin-alcohol') || norm.includes('bebida') || norm.includes('gaseosa') || norm.includes('agua') || norm.includes('jugo')) {
-                        return 'bebidas-sin-alcohol';
-                      }
-                      if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
-                        return 'postres';
-                      }
-                      if (norm.includes('sandwich') || norm.includes('baguette') || norm.includes('lomo')) {
-                        return 'sandwiches';
-                      }
-                      return norm;
-                    };
-                    return normalizeCategorySlug(p.categoria) === cat.id;
+                    return normalizeCategorySlug(p.categoria, p.nombre) === targetSlug;
                   }).length;
               return (
                 <button

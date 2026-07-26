@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog, TicketData } from '../../../types';
 import { clearMozoCartDraft, createMozoCartIdempotencyKey, MozoCart, readMozoCartDraft, writeMozoCartDraft } from '../../../lib/mozoCartDraft';
 import { pdfService } from '../../../services/pdfService';
+import { useCategories } from '../../../hooks/useCategories';
 
 const CHECKOUT_TIMEOUT_MS = 12000;
 
@@ -56,6 +57,7 @@ export function useMozoTerminal({
   permitirVentaSinStock = false,
   toast
 }: UseMozoTerminalProps) {
+  const { categories } = useCategories();
   const checkoutInFlightRef = useRef(false);
   const cartMesaIdRef = useRef<number | null>(null);
 
@@ -275,40 +277,81 @@ export function useMozoTerminal({
   // Filter products by category and search
   const filteredProducts = useMemo(() => {
     return productosMenu.filter(p => {
-      const normalizeCategorySlug = (categoria: string): string => {
-        const norm = categoria.toLowerCase().trim()
+      const normalizeCategorySlug = (categoria: string, nombreProducto = ''): string => {
+        const normCat = (categoria || '').toLowerCase().trim()
           .normalize('NFD')
           .replace(/[̀-ͯ]/g, '')
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, '');
 
-        if (norm.includes('calzone') || norm.includes('empanada')) {
+        const normName = (nombreProducto || '').toLowerCase().trim()
+          .normalize('NFD')
+          .replace(/[̀-ͯ]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+
+        const combined = `${normCat} ${normName}`;
+
+        const hasSingleBebidasTab = categories.some(c => c.slug === 'bebidas');
+
+        if (combined.includes('calzone') || combined.includes('empanada')) {
           return 'calzones-y-empanadas';
         }
-        if (norm.includes('pizza')) {
+        if (combined.includes('pizza')) {
           return 'pizzas';
         }
-        if (norm.includes('con-alcohol') || norm.includes('cerveza') || norm.includes('vino') || norm.includes('bodega')) {
-          return 'bebidas-con-alcohol';
+        if (
+          combined.includes('con-alcohol') || 
+          combined.includes('c-a') || 
+          combined.includes('bebidas-c-a') || 
+          combined.includes('bebidas-con-alcohol') || 
+          normCat.endsWith('c-a') || 
+          combined.includes('cerveza') || 
+          combined.includes('gius') || 
+          combined.includes('stout') || 
+          combined.includes('lager') || 
+          combined.includes('ale') || 
+          combined.includes('ipa') || 
+          combined.includes('pinta') || 
+          combined.includes('vino') || 
+          combined.includes('bodega')
+        ) {
+          return hasSingleBebidasTab ? 'bebidas' : 'bebidas-con-alcohol';
         }
-        if (norm.includes('sin-alcohol') || norm.includes('bebida') || norm.includes('gaseosa') || norm.includes('agua') || norm.includes('jugo')) {
-          return 'bebidas-sin-alcohol';
+        if (
+          combined.includes('sin-alcohol') || 
+          combined.includes('s-a') || 
+          combined.includes('bebidas-s-a') || 
+          combined.includes('bebidas-sin-alcohol') || 
+          normCat.endsWith('s-a') || 
+          combined.includes('gaseosa') || 
+          combined.includes('coca') || 
+          combined.includes('sprite') || 
+          combined.includes('fanta') || 
+          combined.includes('bonaqua') || 
+          combined.includes('agua') || 
+          combined.includes('jugo') || 
+          combined.includes('bebida')
+        ) {
+          return hasSingleBebidasTab ? 'bebidas' : 'bebidas-sin-alcohol';
         }
-        if (norm.includes('postre') || norm.includes('dulce') || norm.includes('helado')) {
+        if (combined.includes('postre') || combined.includes('dulce') || combined.includes('helado')) {
           return 'postres';
         }
-        if (norm.includes('sandwich') || norm.includes('baguette') || norm.includes('lomo')) {
+        if (combined.includes('sandwich') || combined.includes('baguette') || combined.includes('lomo') || combined.includes('focaccia') || combined.includes('panuzzo')) {
           return 'sandwiches';
         }
-        return norm;
+        return normCat;
       };
-      const pSlug = normalizeCategorySlug(p.categoria);
+
+      const targetSlug = selectedCategoria === 'todo' ? 'todo' : normalizeCategorySlug(selectedCategoria);
+      const pSlug = normalizeCategorySlug(p.categoria, p.nombre);
       
-      const matchCat = selectedCategoria === 'todo' || pSlug === selectedCategoria;
+      const matchCat = targetSlug === 'todo' || pSlug === targetSlug;
       const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase());
       return p.activo && matchCat && matchSearch;
     });
-  }, [productosMenu, selectedCategoria, searchQuery]);
+  }, [productosMenu, selectedCategoria, searchQuery, categories]);
 
   // Helper: check how much of an insumo would be required by the current cart
   const calculateCartInsumoRequirements = useCallback((tempCart: MozoCart) => {
