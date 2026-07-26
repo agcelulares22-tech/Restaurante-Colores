@@ -294,53 +294,65 @@ export function useMozoTerminal({
 
         const hasSingleBebidasTab = categories.some(c => c.slug === 'bebidas');
 
-        if (combined.includes('calzone') || combined.includes('empanada')) {
-          return 'calzones-y-empanadas';
-        }
-        if (combined.includes('pizza')) {
+        // 1. Food categories first (explicit check by category or name)
+        if (normCat.includes('pizza') || normName.includes('pizza')) {
           return 'pizzas';
         }
+        if (normCat.includes('calzone') || normCat.includes('empanada') || normName.includes('calzone') || normName.includes('empanada')) {
+          return 'calzones-y-empanadas';
+        }
+        if (normCat.includes('postre') || normCat.includes('dulce') || normCat.includes('helado') || normName.includes('tiramisu') || normName.includes('tarta-de-ricotta')) {
+          return 'postres';
+        }
         if (
-          combined.includes('con-alcohol') || 
-          combined.includes('c-a') || 
-          combined.includes('bebidas-c-a') || 
-          combined.includes('bebidas-con-alcohol') || 
-          normCat.endsWith('c-a') || 
-          combined.includes('cerveza') || 
-          combined.includes('gius') || 
-          combined.includes('stout') || 
-          combined.includes('lager') || 
-          combined.includes('ale') || 
-          combined.includes('ipa') || 
-          combined.includes('pinta') || 
-          combined.includes('vino') || 
-          combined.includes('bodega')
+          normCat.includes('sandwich') || normCat.includes('focaccia') || normCat.includes('baguette') || normCat.includes('panuzzo') || normCat.includes('lomo') ||
+          normName.includes('focaccia') || normName.includes('sandwich') || normName.includes('baguette') || normName.includes('panuzzo')
+        ) {
+          return 'sandwiches';
+        }
+
+        // 2. Alcoholic beverages
+        if (
+          normCat.includes('con-alcohol') || 
+          normCat === 'bebidas-c-a' || 
+          normCat === 'c-a' || 
+          normCat.includes('cerveza') || 
+          normCat.includes('bodega') || 
+          normCat.includes('vino') || 
+          normName.includes('cerveza') || 
+          normName.includes('gius') || 
+          normName.includes('stout') || 
+          normName.includes('lager') || 
+          normName.includes('ale') || 
+          normName.includes('ipa') || 
+          normName.includes('pinta') || 
+          normName.includes('fernet') || 
+          normName.includes('aperol') || 
+          normName.includes('vino')
         ) {
           return hasSingleBebidasTab ? 'bebidas' : 'bebidas-con-alcohol';
         }
+
+        // 3. Non-alcoholic beverages
         if (
-          combined.includes('sin-alcohol') || 
-          combined.includes('s-a') || 
-          combined.includes('bebidas-s-a') || 
-          combined.includes('bebidas-sin-alcohol') || 
-          normCat.endsWith('s-a') || 
-          combined.includes('gaseosa') || 
-          combined.includes('coca') || 
-          combined.includes('sprite') || 
-          combined.includes('fanta') || 
-          combined.includes('bonaqua') || 
-          combined.includes('agua') || 
-          combined.includes('jugo') || 
-          combined.includes('bebida')
+          normCat.includes('sin-alcohol') || 
+          normCat === 'bebidas-s-a' || 
+          normCat === 's-a' || 
+          normCat.includes('gaseosa') || 
+          normCat.includes('agua') || 
+          normCat.includes('jugo') || 
+          normCat.includes('bebida') || 
+          normName.includes('coca') || 
+          normName.includes('sprite') || 
+          normName.includes('fanta') || 
+          normName.includes('bonaqua') || 
+          normName.includes('gaseosa') || 
+          normName.includes('agua-de-manantial') || 
+          normName.includes('jugo')
         ) {
           return hasSingleBebidasTab ? 'bebidas' : 'bebidas-sin-alcohol';
         }
-        if (combined.includes('postre') || combined.includes('dulce') || combined.includes('helado')) {
-          return 'postres';
-        }
-        if (combined.includes('sandwich') || combined.includes('baguette') || combined.includes('lomo') || combined.includes('focaccia') || combined.includes('panuzzo')) {
-          return 'sandwiches';
-        }
+
         return normCat;
       };
 
