@@ -11,7 +11,7 @@ export const mesasService = {
     }
     return (data || []).map(m => ({
       ...m,
-      comensales: m.comensales_actuales || undefined,
+      comensales: m.comensales ?? m.comensales_actuales ?? undefined,
     }));
   },
 
@@ -22,7 +22,7 @@ export const mesasService = {
       console.error(`Error fetching mesa ${id}:`, error);
       return null;
     }
-    return data ? { ...data, comensales: data.comensales_actuales || undefined } : null;
+    return data ? { ...data, comensales: data.comensales ?? data.comensales_actuales ?? undefined } : null;
   },
 
   async create(mesa: Mesa): Promise<Mesa> {
@@ -31,7 +31,7 @@ export const mesasService = {
       id_mesa: mesa.id_mesa,
       numero_mesa: mesa.numero_mesa,
       estado: mesa.estado,
-      comensales_actuales: mesa.comensales || null,
+      comensales: mesa.comensales || null,
       capacidad: mesa.capacidad || 4,
       zona: mesa.zona || 'salon',
       x: mesa.x ?? null,
@@ -46,7 +46,7 @@ export const mesasService = {
       console.error('Error creating mesa:', error);
       throw error;
     }
-    return { ...data, comensales: data.comensales_actuales || undefined };
+    return { ...data, comensales: data.comensales ?? data.comensales_actuales ?? undefined };
   },
 
   async update(id: number, mesa: Partial<Mesa>): Promise<Mesa> {
@@ -54,7 +54,7 @@ export const mesasService = {
     const dbMesa: any = {};
     if (mesa.numero_mesa !== undefined) dbMesa.numero_mesa = mesa.numero_mesa;
     if (mesa.estado !== undefined) dbMesa.estado = mesa.estado;
-    if (mesa.comensales !== undefined) dbMesa.comensales_actuales = mesa.comensales;
+    if (mesa.comensales !== undefined) dbMesa.comensales = mesa.comensales;
     if (mesa.capacidad !== undefined) dbMesa.capacidad = mesa.capacidad;
     if (mesa.zona !== undefined) dbMesa.zona = mesa.zona;
     if (mesa.x !== undefined) dbMesa.x = mesa.x;
@@ -69,7 +69,7 @@ export const mesasService = {
       console.error('Error updating mesa:', error);
       throw error;
     }
-    return { ...data, comensales: data.comensales_actuales || undefined };
+    return { ...data, comensales: data.comensales ?? data.comensales_actuales ?? undefined };
   },
 
   async upsert(mesas: Mesa[]): Promise<Mesa[]> {
@@ -78,7 +78,7 @@ export const mesasService = {
       id_mesa: m.id_mesa,
       numero_mesa: m.numero_mesa,
       estado: m.estado,
-      comensales_actuales: m.comensales || null,
+      comensales: m.comensales || null,
       capacidad: m.capacidad || 4,
       zona: m.zona || 'salon',
       x: m.x ?? null,
@@ -95,7 +95,7 @@ export const mesasService = {
     }
     return (data || []).map(m => ({
       ...m,
-      comensales: m.comensales_actuales || undefined
+      comensales: m.comensales ?? m.comensales_actuales ?? undefined
     }));
   },
 

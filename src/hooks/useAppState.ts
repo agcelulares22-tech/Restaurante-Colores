@@ -10,6 +10,7 @@ import {
 } from '../data/initialData';
 import { useToast } from '../components/ToastContainer';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { clearMozoCartDraft } from '../lib/mozoCartDraft';
 import { AppView, canAccessView, getAllowedViews } from '../lib/permissions';
 import { lotesService } from '../services/lotesService';
 import { cajaService } from '../services/cajaService';
@@ -875,7 +876,13 @@ export function useAppState() {
 
     const orderIds = ordersToBill.map(o => o.id_pedido);
 
-    setPedidos(prev => prev.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' } : p));
+    setPedidos(prev => {
+      const next = prev.map(p => orderIds.includes(p.id_pedido) ? { ...p, estado_comanda: 'entregado_cobrado' as const } : p);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('colores_pizzeria_pedidos_local', JSON.stringify(next));
+      }
+      return next;
+    });
 
     const updatedMesas = mesas.map(m => {
       const matchId = (m.id_mesa !== undefined && m.id_mesa !== null && target.id_mesa !== undefined && target.id_mesa !== null && String(m.id_mesa) === String(target.id_mesa));
@@ -885,6 +892,10 @@ export function useAppState() {
       return (matchId || matchNum) ? { ...m, estado: 'libre' as const, comensales: undefined } : m;
     });
     setMesas(updatedMesas);
+
+    if (target.id_mesa) {
+      clearMozoCartDraft(target.id_mesa);
+    }
 
     addLog('sistema', `CAJA: Facturación completa cobrada correctamente de la mesa ${target.numero_mesa} por Pedido(s) #${orderIds.join(', #')}`);
 
