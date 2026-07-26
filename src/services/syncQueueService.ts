@@ -107,16 +107,22 @@ export const syncQueueService = {
       if (success) {
         console.log(`SyncQueue: Task ${item.id} (${item.action}) successfully synchronized.`);
       } else {
-        // Keep in queue if it hasn't exceeded too many retries (e.g. 50 attempts)
-        if (item.attempts < 50) {
+        // Keep in queue if it hasn't exceeded 5 attempts
+        if (item.attempts < 5) {
           remaining.push(item);
         } else {
-          console.error(`SyncQueue: Task ${item.id} exceeded maximum retry threshold. Discarding.`);
+          console.warn(`SyncQueue: Task ${item.id} exceeded 5 retries. Discarding to prevent blocking.`);
         }
       }
     }
 
     this.saveQueue(remaining);
+  },
+
+  clearQueue(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(QUEUE_KEY);
+    window.dispatchEvent(new CustomEvent('sync-queue-changed'));
   },
 
   initBackgroundSync(): void {

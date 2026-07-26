@@ -301,9 +301,22 @@ export const pedidosService = {
         console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data, affectedRows: data?.length });
 
         if (!error && (!data || data.length === 0)) {
-          const errMsg = `[pedidosService.update] El update no afectó ninguna fila. Probablemente el pedido ${id} no existe en Supabase.`;
-          console.warn(errMsg);
-          error = { message: errMsg, code: 'ZERO_ROWS_AFFECTED' } as any;
+          console.warn(`[pedidosService.update] El update no afectó filas. Creando o actualizando cabecera id=${id}...`);
+          const headerObj = {
+            id_pedido: id,
+            numero_mesa: fields.numero_mesa || 'Mesa',
+            mozo: fields.mozo || 'Mozo',
+            estado_comanda: fields.estado_comanda || 'pendiente',
+            items: fields.items ? (typeof fields.items === 'string' ? fields.items : JSON.stringify(fields.items)) : '[]',
+            fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
+            ...headerFields
+          };
+          const { error: upsertErr } = await supabase.from('pedidos_cabecera').upsert([headerObj]);
+          if (upsertErr) {
+            console.error('[pedidosService.update] Fallback upsert error:', upsertErr);
+            throw upsertErr;
+          }
+          error = null;
         }
 
         // Dynamic schema fallback: if idempotency_key is missing, strip and retry
