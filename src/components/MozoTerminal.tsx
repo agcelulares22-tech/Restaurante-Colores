@@ -1856,26 +1856,26 @@ function MozoTerminal({
       {/* MODAL MITAD Y MITAD */}
       {showHalfHalfModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-zinc-150">
-            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+          <div className="bg-zinc-900 border border-white/20 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <h3 className="font-extrabold text-white text-base uppercase tracking-wider flex items-center gap-2">
                 🍕 Armar Pizza Mitad y Mitad
               </h3>
-              <button onClick={() => setShowHalfHalfModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
+              <button onClick={() => setShowHalfHalfModal(false)} className="text-white hover:text-stone-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">Primera Mitad:</label>
+                <label className="block text-xs font-bold text-white uppercase mb-1">Primera Mitad:</label>
                 <select
                   value={halfPizzaA}
                   onChange={(e) => setHalfPizzaA(e.target.value)}
-                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/10 rounded-xl text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35"
+                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/20 rounded-xl text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35"
                 >
                   {pizzaProducts.map(p => (
-                    <option key={p.id_producto} value={p.id_producto} className="bg-zinc-950 text-zinc-200">
+                    <option key={p.id_producto} value={p.id_producto} className="bg-zinc-950 text-white">
                       {p.nombre} (${p.precio_venta.toLocaleString('es-AR')})
                     </option>
                   ))}
@@ -1883,14 +1883,14 @@ function MozoTerminal({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">Segunda Mitad:</label>
+                <label className="block text-xs font-bold text-white uppercase mb-1">Segunda Mitad:</label>
                 <select
                   value={halfPizzaB}
                   onChange={(e) => setHalfPizzaB(e.target.value)}
-                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/10 rounded-xl text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35"
+                  className="w-full min-h-11 px-3 bg-zinc-950 border border-white/20 rounded-xl text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-brand-yellow/35 focus:border-brand-yellow/35"
                 >
                   {pizzaProducts.map(p => (
-                    <option key={p.id_producto} value={p.id_producto} className="bg-zinc-950 text-zinc-200">
+                    <option key={p.id_producto} value={p.id_producto} className="bg-zinc-950 text-white">
                       {p.nombre} (${p.precio_venta.toLocaleString('es-AR')})
                     </option>
                   ))}
@@ -1903,8 +1903,8 @@ function MozoTerminal({
                 if (!prodA || !prodB) return null;
                 const avgPrice = Math.round((prodA.precio_venta + prodB.precio_venta) / 2);
                 return (
-                  <div className="bg-amber-950/20 border border-amber-500/20 rounded-xl p-3 text-center">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase block">Precio Proporcional Estimado:</span>
+                  <div className="bg-amber-950/30 border border-amber-500/30 rounded-xl p-3 text-center">
+                    <span className="text-xs font-bold text-amber-300 uppercase block">Precio Proporcional Estimado:</span>
                     <span className="font-mono text-lg font-black text-brand-yellow">${avgPrice.toLocaleString('es-AR')}</span>
                   </div>
                 );
@@ -1914,7 +1914,7 @@ function MozoTerminal({
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowHalfHalfModal(false)}
-                className="flex-1 min-h-11 bg-zinc-950/60 hover:bg-zinc-900 text-zinc-400 rounded-xl text-sm cursor-pointer transition-colors border border-white/5 active:scale-95"
+                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-sm cursor-pointer transition-colors border border-white/10 active:scale-95"
               >
                 Cancelar
               </button>
@@ -1936,21 +1936,21 @@ function MozoTerminal({
 
       {/* MODAL ARMÁ TU PIZZA */}
       {showCustomPizzaModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl flex flex-col gap-4 text-zinc-150 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-zinc-900 border border-white/20 rounded-2xl p-6 w-full max-w-lg shadow-2xl flex flex-col gap-4 text-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <h3 className="font-extrabold text-white text-base md:text-lg uppercase tracking-wider flex items-center gap-2">
                 🍕 Armar Pizza Personalizada
               </h3>
-              <button onClick={() => setShowCustomPizzaModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowCustomPizzaModal(false)} className="text-white hover:text-stone-300 cursor-pointer p-1">
+                <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-4">
               {/* A) Tamaño de la Pizza */}
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">A) Tamaño de la Pizza</label>
+                <label className="block text-xs font-bold text-white uppercase mb-2">A) TAMAÑO DE LA PIZZA</label>
                 <div className="flex gap-3">
                   {[
                     { id: '8 porciones', label: '8 porciones (Grande)' },
@@ -1962,8 +1962,8 @@ function MozoTerminal({
                       onClick={() => setCustomPizzaSize(size.id as any)}
                       className={`flex-1 py-2.5 px-4 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
                         customPizzaSize === size.id
-                          ? 'bg-[#0ea5e9] text-zinc-950 border-[#0ea5e9]'
-                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                          ? 'bg-[#0ea5e9] text-white font-black border-[#0ea5e9] shadow-md'
+                          : 'bg-zinc-950/80 text-white border-white/20 hover:bg-zinc-800'
                       }`}
                     >
                       {size.label}
@@ -1974,7 +1974,7 @@ function MozoTerminal({
 
               {/* B) Color / Tipo de Masa */}
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">B) Color / Tipo de Masa</label>
+                <label className="block text-xs font-bold text-white uppercase mb-2">B) COLOR / TIPO DE MASA</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { id: 'Masa tradicional', label: 'Tradicional' },
@@ -1988,8 +1988,8 @@ function MozoTerminal({
                       onClick={() => setCustomPizzaColor(color.id)}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
                         customPizzaColor === color.id
-                          ? 'bg-[#2a9d8f] text-white border-[#2a9d8f]'
-                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                          ? 'bg-[#2a9d8f] text-white font-black border-[#2a9d8f] shadow-md'
+                          : 'bg-zinc-950/80 text-white border-white/20 hover:bg-zinc-800'
                       }`}
                     >
                       {color.label}
@@ -2000,7 +2000,7 @@ function MozoTerminal({
 
               {/* C) Salsa de Base */}
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">C) Salsa de Base</label>
+                <label className="block text-xs font-bold text-white uppercase mb-2">C) SALSA DE BASE</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: 'Salsa de tomate', label: 'Tomate 🍅' },
@@ -2013,8 +2013,8 @@ function MozoTerminal({
                       onClick={() => setCustomPizzaSalsa(salsa.id)}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
                         customPizzaSalsa === salsa.id
-                          ? 'bg-[#2a9d8f] text-white border-[#2a9d8f]'
-                          : 'bg-zinc-950/40 text-zinc-400 border-white/5 hover:bg-zinc-950/80'
+                          ? 'bg-[#2a9d8f] text-white font-black border-[#2a9d8f] shadow-md'
+                          : 'bg-zinc-950/80 text-white border-white/20 hover:bg-zinc-800'
                       }`}
                     >
                       {salsa.label}
@@ -2026,20 +2026,20 @@ function MozoTerminal({
               {/* D) Toppings Seleccionados */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-zinc-400 uppercase">D) Toppings Seleccionados</label>
+                  <label className="text-xs font-bold text-white uppercase">D) TOPPINGS SELECCIONADOS</label>
                   <span className={`text-xs font-mono font-bold ${
-                    customSelectedToppings.length >= 5 ? 'text-brand-orange animate-pulse' : 'text-zinc-500'
+                    customSelectedToppings.length >= 5 ? 'text-brand-orange animate-pulse font-black' : 'text-white'
                   }`}>
                     ({customSelectedToppings.length}/5)
                   </span>
                 </div>
 
-                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
                   {['Verduras', 'Quesos', 'Fiambres', 'Hongos'].map(cat => {
                     const topsInCat = CUSTOM_PIZZA_TOPPINGS.filter(t => t.category === cat);
                     return (
-                      <div key={cat} className="bg-zinc-950/30 border border-white/5 rounded-2xl p-3 space-y-2">
-                        <span className="text-[10px] font-black tracking-wider text-zinc-500 uppercase block">{cat}</span>
+                      <div key={cat} className="bg-zinc-950/60 border border-white/10 rounded-2xl p-3 space-y-2">
+                        <span className="text-xs font-black tracking-wider text-white uppercase block">{cat}</span>
                         <div className="grid grid-cols-2 gap-2">
                           {topsInCat.map(topping => {
                             const isChecked = customSelectedToppings.includes(topping.id);
@@ -2052,12 +2052,12 @@ function MozoTerminal({
                             return (
                               <label
                                 key={topping.id}
-                                className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                                   isDisabled 
-                                    ? 'opacity-40 cursor-not-allowed border-dashed border-white/5 bg-zinc-950/10'
+                                    ? 'opacity-40 cursor-not-allowed border-dashed border-white/10 bg-zinc-950/20 text-white'
                                     : isChecked 
-                                      ? 'border-[#2a9d8f] bg-[#2a9d8f]/10 text-zinc-100 font-bold cursor-pointer' 
-                                      : 'border-white/5 bg-zinc-950/40 text-zinc-400 hover:bg-zinc-950/80 hover:text-zinc-300 cursor-pointer'
+                                      ? 'border-[#2a9d8f] bg-[#2a9d8f]/20 text-white font-extrabold cursor-pointer shadow-sm' 
+                                      : 'border-white/20 bg-zinc-950/80 text-white hover:bg-zinc-800 font-medium cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">
@@ -2072,14 +2072,14 @@ function MozoTerminal({
                                         setCustomSelectedToppings(prev => [...prev, topping.id]);
                                       }
                                     }}
-                                    className="w-4 h-4 rounded text-[#2a9d8f] focus:ring-[#2a9d8f]/30 bg-zinc-950"
+                                    className="w-4 h-4 rounded text-[#2a9d8f] focus:ring-[#2a9d8f]/30 bg-zinc-950 border-white/20 cursor-pointer"
                                   />
-                                  <span className="text-xs truncate">{topping.icon} {topping.name}</span>
+                                  <span className="text-xs truncate text-white font-semibold">{topping.icon} {topping.name}</span>
                                 </div>
                                 <div className="text-right shrink-0">
-                                  <span className="font-mono text-[10px] text-brand-yellow font-black block">+${topping.price}</span>
+                                  <span className="font-mono text-[11px] text-brand-yellow font-black block">+${topping.price}</span>
                                   {isOutOfStock && (
-                                    <span className="text-[8px] bg-red-950/40 text-red-400 border border-red-900/30 px-1 rounded-sm block">SIN STOCK</span>
+                                    <span className="text-[8px] bg-red-950/80 text-red-300 border border-red-800/50 px-1 rounded-sm block font-bold">SIN STOCK</span>
                                   )}
                                 </div>
                               </label>
@@ -2100,22 +2100,22 @@ function MozoTerminal({
                   .reduce((sum, t) => sum + t.price, 0);
                 const totalPrice = basePrice + toppingsPrice;
                 return (
-                  <div className="bg-zinc-950 text-white rounded-xl p-3 flex justify-between items-center border border-white/5">
+                  <div className="bg-zinc-950 text-white rounded-xl p-3.5 flex justify-between items-center border border-white/10 shadow-inner">
                     <div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase block">Total Estimado:</span>
-                      <span className="font-mono text-base font-black text-brand-yellow">${totalPrice.toLocaleString('es-AR')}</span>
+                      <span className="text-xs font-bold text-white uppercase block">TOTAL ESTIMADO:</span>
+                      <span className="font-mono text-lg font-black text-brand-yellow">${totalPrice.toLocaleString('es-AR')}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-450 font-bold">Base: ${basePrice.toLocaleString('es-AR')}</span>
+                    <span className="text-xs text-white font-bold">Base: ${basePrice.toLocaleString('es-AR')}</span>
                   </div>
                 );
               })()}
             </div>
 
-            <div className="flex gap-3 pt-2 border-t border-white/5 mt-2">
+            <div className="flex gap-3 pt-2 border-t border-white/10 mt-2">
               <button
                 type="button"
                 onClick={() => setShowCustomPizzaModal(false)}
-                className="flex-1 min-h-11 bg-zinc-950/60 hover:bg-zinc-900 text-zinc-400 rounded-xl text-sm cursor-pointer transition-colors border border-white/5 active:scale-95"
+                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-sm cursor-pointer transition-colors border border-white/10 active:scale-95"
               >
                 Cancelar
               </button>
