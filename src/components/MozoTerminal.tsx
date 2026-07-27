@@ -1319,8 +1319,8 @@ function MozoTerminal({
 
       {/* RIGHT COLUMN: Active Comanda Cart Summary */}
       <div className="min-w-0 lg:col-span-3 order-2">
-        <div className="bg-[#FAF8F5] rounded-2xl p-4 sm:p-5 border border-stone-250 shadow-md flex flex-col min-h-[320px] sm:min-h-[400px] lg:h-[520px] lg:sticky lg:top-6">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+        <div className="bg-[#FAF8F5] rounded-2xl p-4 sm:p-5 border border-stone-250 shadow-md flex flex-col h-auto lg:max-h-[calc(100vh-3rem)] lg:sticky lg:top-6 transition-all duration-200">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-200 shrink-0">
             <h3 className="font-bold text-stone-850 text-sm md:text-base font-sans flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-stone-500" />
               Nueva Comanda
@@ -1333,7 +1333,7 @@ function MozoTerminal({
           </div>
 
           {!selectedMesaId ? (
-            <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
+            <div className="flex-1 flex flex-col justify-center items-center text-center p-4 min-h-[220px]">
               <div className="w-12 h-12 bg-stone-100 text-stone-500 rounded-full flex items-center justify-center mb-3 border border-stone-200">
                 <UtensilsCrossed className="w-5 h-5" />
               </div>
@@ -1345,7 +1345,7 @@ function MozoTerminal({
           ) : (
             <>
               {(selectedMesaId === 999 || selectedMesaId === 998) && (
-                <div className="p-3 border border-stone-200 bg-stone-50 rounded-xl space-y-2.5 mb-2.5">
+                <div className="p-3 border border-stone-200 bg-stone-50 rounded-xl space-y-2.5 mb-2.5 shrink-0">
                   <span className="text-[10px] font-black uppercase text-stone-550 tracking-wider block">
                     {selectedMesaId === 999 ? 'Datos del Cliente (Envío)' : 'Datos del Cliente (Retiro en Local)'}
                   </span>
@@ -1491,7 +1491,7 @@ function MozoTerminal({
               )}
 
               {Object.keys(cart).length === 0 ? (
-                <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
+                <div className="flex-1 flex flex-col justify-center items-center text-center p-4 min-h-[180px]">
                   <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3 border border-emerald-150">
                     <Sparkles className="w-5 h-5" />
                   </div>
@@ -1503,7 +1503,7 @@ function MozoTerminal({
               ) : (
                 <>
                   {criticalCartItems.length > 0 && (
-                    <div className="bg-red-950/20 border border-red-500/25 rounded-xl p-3 mb-2.5 animate-pulse mx-1 mt-1">
+                    <div className="bg-red-950/20 border border-red-500/25 rounded-xl p-3 mb-2.5 animate-pulse mx-1 mt-1 shrink-0">
                       <div className="flex gap-2 text-red-400 text-xs font-bold items-start">
                         <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                         <div>
@@ -1521,18 +1521,18 @@ function MozoTerminal({
                     </div>
                   )}
 
-                  {/* CART ITEMS LIST */}
-                  <div className="flex-1 overflow-y-auto py-3 space-y-2 pr-1 scrollbar-thin">
+                  {/* CART ITEMS LIST - Dynamic height growth */}
+                  <div className="py-2.5 space-y-2 pr-1 overflow-y-auto max-h-[420px] lg:max-h-[500px] scrollbar-thin transition-all duration-200">
                     {Object.entries(cart).map(([prodId, qty]) => {
                       const p = productosMenu.find(item => item.id_producto === prodId)!;
                       return (
                         <div key={prodId} className="flex justify-between items-center text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-200 hover:border-stone-300 transition-colors">
-                          <div className="flex-1 pr-1 font-sans">
-                            <span className="font-bold text-stone-850 line-clamp-1">{p.nombre}</span>
-                            <span className="text-[10px] text-stone-500 font-mono">${(p.precio_venta).toLocaleString('es-AR')} u.</span>
+                          <div className="flex-1 pr-2 font-sans min-w-0">
+                            <span className="font-bold text-stone-850 text-xs leading-snug block break-words">{p?.nombre || 'Producto'}</span>
+                            <span className="text-[10px] text-stone-500 font-mono">${(p?.precio_venta || 0).toLocaleString('es-AR')} u.</span>
                           </div>
 
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               onClick={() => handleRemoveFromCart(prodId)}
                               className="touch-target w-8 h-8 bg-white hover:bg-stone-100 text-stone-700 rounded border border-stone-300 flex items-center justify-center transition-colors"
