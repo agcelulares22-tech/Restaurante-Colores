@@ -1056,9 +1056,11 @@ function DeliveryModule({
   const handleSendWhatsApp = (pedido: Pedido) => {
     const clientNameVal = pedido.nombre_cliente || parseClientInfo(pedido.numero_mesa).name;
     const clientAddressVal = pedido.direccion_cliente || parseClientInfo(pedido.numero_mesa).address;
-    const clientPhoneVal = pedido.telefono_cliente || pedido.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || '';
+    const clientPhoneVal = pedido.telefono_cliente || pedido.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || '3584024822';
     
-    const cleanPhone = clientPhoneVal.replace(/\D/g, '');
+    let cleanPhone = clientPhoneVal.replace(/\D/g, '');
+    if (!cleanPhone) cleanPhone = '3584024822';
+    
     let formattedPhone = cleanPhone;
     if (formattedPhone.length > 0 && !formattedPhone.startsWith('54')) {
       if (formattedPhone.length === 10) {

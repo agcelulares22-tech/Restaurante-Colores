@@ -720,11 +720,12 @@ function KitchenMonitor({
                 )}
               </button>
 
-              {(isDelivery || isRetiro) && p.telefono_cliente && (
+              {(isDelivery || isRetiro) && (
                 <button
                   type="button"
                   onClick={() => {
-                    const cleanPhone = p.telefono_cliente!.replace(/\D/g, '');
+                    const phoneVal = p.telefono_cliente || p.observaciones?.match(/Tel:\s*([^\s|]+)/)?.[1] || '3584024822';
+                    let cleanPhone = phoneVal.replace(/\D/g, '') || '3584024822';
                     let formattedPhone = cleanPhone;
                     if (!formattedPhone.startsWith('54')) {
                       if (formattedPhone.length === 10) {
