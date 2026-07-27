@@ -16,6 +16,22 @@ const parseHeaderItems = (items: unknown): PedidoItem[] => {
   }
 };
 
+export const sanitizePedidoId = (idInput: string | number | undefined | null): number | null => {
+  if (idInput === undefined || idInput === null) return null;
+  if (typeof idInput === 'number') return Number.isFinite(idInput) && idInput > 0 ? Math.floor(idInput) : null;
+  const str = String(idInput).trim();
+  if (/^\d+$/.test(str)) {
+    const num = Number(str);
+    return Number.isFinite(num) && num > 0 ? num : null;
+  }
+  const digitsOnly = str.replace(/\D+/g, '');
+  if (digitsOnly.length > 0) {
+    const num = Number(digitsOnly);
+    return Number.isFinite(num) && num > 0 ? num : null;
+  }
+  return null;
+};
+
 export const hydratePedido = (
   header: PedidoHeaderRow,
   details: PedidoDetailRow[] = []
@@ -65,8 +81,9 @@ export const hydratePedido = (
   };
 };
 
-export const serializePedidoHeader = (pedido: Pedido) => ({
-  id_pedido: pedido.id_pedido,
+export const serializePedidoHeader = (pedido: Pedido): PedidoHeaderRow => ({
+  id_pedido: sanitizePedidoId(pedido.id_pedido) || pedido.id_pedido,
+  idempotency_key: pedido.idempotency_key ?? null,
   id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
   numero_mesa: pedido.numero_mesa,
   mozo: pedido.mozo || 'Sistema',
@@ -89,7 +106,7 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   fecha_listo: pedido.fecha_listo
     ? new Date(pedido.fecha_listo).toISOString()
     : null,
-  items: JSON.stringify(pedido.items),
+  items: JSON.stringify(pedido.items || []),
   nombre_cliente: pedido.nombre_cliente ?? null,
   telefono_cliente: pedido.telefono_cliente ?? null,
   direccion_cliente: pedido.direccion_cliente ?? null,
@@ -97,9 +114,9 @@ export const serializePedidoHeader = (pedido: Pedido) => ({
   zona_envio_id: pedido.zona_envio_id ?? null
 });
 
-export const serializePedidoDetails = (pedido: Pedido) => pedido.items.map((item, index) => ({
+export const serializePedidoDetails = (pedido: Pedido): PedidoDetailRow[] => (pedido.items || []).map((item, index) => ({
   id_detalle: `${pedido.id_pedido}_${String(index).padStart(4, '0')}`,
-  id_pedido: pedido.id_pedido,
+  id_pedido: sanitizePedidoId(pedido.id_pedido) || pedido.id_pedido,
   id_producto: item.id_producto,
   nombre: item.nombre,
   cantidad: item.cantidad,
@@ -238,23 +255,27 @@ export const pedidosService = {
 
   async update(id: string, fields: Partial<Pedido>, fromSyncQueue: boolean = false): Promise<void> {
     invalidateCache();
+    const cleanNumericId = sanitizePedidoId(id);
+    if (!cleanNumericId) {
+      console.warn(`[pedidosService.update] ID no numérico o inválido descartado: ${id}`);
+      if (fromSyncQueue) return;
+      return;
+    }
+    const cleanId = String(cleanNumericId);
+
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       if (!fromSyncQueue) {
-        console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${id}`);
+        console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${cleanId}`);
         const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('update_pedido_estado', { id, fields });
+        syncQueueService.enqueue('update_pedido_estado', { id: cleanId, fields });
       } else {
         throw new Error('Supabase client not available during sync queue processing');
       }
       return;
     }
 
-    if (!id || !id.trim()) {
-      throw new Error(`[pedidosService.update] ID vacío o inválido: ${id}`);
-    }
-
-    console.log(`[pedidosService.update] Inicio id=${id}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
+    console.log(`[pedidosService.update] Inicio id=${cleanId}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
 
     // Map fields to header columns
     const headerFields: any = {};

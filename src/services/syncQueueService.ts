@@ -83,13 +83,21 @@ export const syncQueueService = {
 
       try {
         if (item.action === 'upsert_pedido') {
-          if (item.payload.is_accumulation) {
-            await pedidosService.agregarItemsAComandaExistente(item.payload.id_pedido, item.payload.items, true);
+          const rawId = item.payload?.id_pedido ?? item.payload?.id;
+          const { sanitizePedidoId } = await import('./pedidosService');
+          const cleanId = sanitizePedidoId(rawId);
+          if (!cleanId) {
+            console.warn(`SyncQueue: Tarea ${item.id} descartada por ID no numérico inválido "${rawId}"`);
+            success = true;
           } else {
-            // Serialize and push header & details
-            await pedidosService.upsert([item.payload], true);
+            const cleanPayload = { ...item.payload, id_pedido: String(cleanId) };
+            if (cleanPayload.is_accumulation) {
+              await pedidosService.agregarItemsAComandaExistente(cleanPayload.id_pedido, cleanPayload.items, true);
+            } else {
+              await pedidosService.upsert([cleanPayload], true);
+            }
+            success = true;
           }
-          success = true;
         } else if (item.action === 'upsert_factura') {
           await facturacionService.upsert([item.payload], true);
           success = true;
@@ -97,8 +105,16 @@ export const syncQueueService = {
           await mermasService.create(item.payload);
           success = true;
         } else if (item.action === 'update_pedido_estado') {
-          await pedidosService.update(item.payload.id, item.payload.fields, true);
-          success = true;
+          const rawId = item.payload?.id ?? item.payload?.id_pedido;
+          const { sanitizePedidoId } = await import('./pedidosService');
+          const cleanId = sanitizePedidoId(rawId);
+          if (!cleanId) {
+            console.warn(`SyncQueue: Tarea ${item.id} descartada por ID no numérico inválido "${rawId}"`);
+            success = true;
+          } else {
+            await pedidosService.update(String(cleanId), item.payload?.fields || item.payload, true);
+            success = true;
+          }
         }
       } catch (err) {
         console.error(`SyncQueue: Failed synchronization attempt #${item.attempts} for task ${item.id}:`, err);
@@ -107,11 +123,11 @@ export const syncQueueService = {
       if (success) {
         console.log(`SyncQueue: Task ${item.id} (${item.action}) successfully synchronized.`);
       } else {
-        // Keep in queue if it hasn't exceeded 5 attempts
-        if (item.attempts < 5) {
+        // Keep in queue if it hasn't exceeded 2 attempts
+        if (item.attempts < 2) {
           remaining.push(item);
         } else {
-          console.warn(`SyncQueue: Task ${item.id} exceeded 5 retries. Discarding to prevent blocking.`);
+          console.warn(`SyncQueue: Tarea ${item.id} descartada tras 2 reintentos para no bloquear la cola.`);
         }
       }
     }
