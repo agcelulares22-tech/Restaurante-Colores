@@ -97,14 +97,39 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      let authData = null;
+      let authError = null;
 
-      if (authError) throw authError;
+      try {
+        const res = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+        authData = res.data;
+        authError = res.error;
+      } catch (err) {
+        authError = err;
+      }
 
-      if (!authData.user) {
+      if (authError || !authData?.user) {
+        // Fallback: Check public.usuarios table directly matching username (case insensitive) and password
+        const { data: dbUser } = await supabase
+          .from('usuarios')
+          .select('*')
+          .ilike('username', email.trim())
+          .eq('password', password)
+          .maybeSingle();
+
+        if (dbUser) {
+          if (!canLogin(dbUser as Usuario)) {
+            setError('Este usuario está desactivado.');
+            return;
+          }
+          await completeLogin(dbUser as Usuario);
+          return;
+        }
+
+        if (authError) throw authError;
         setError('No pudimos validar la sesión. Intentá nuevamente.');
         return;
       }
@@ -125,7 +150,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
           const { data: profileByEmail, error: errByEmail } = await supabase
             .from('usuarios')
             .select('*')
-            .eq('username', authData.user.email)
+            .ilike('username', authData.user.email || '')
             .maybeSingle();
           profile = profileByEmail;
           profileError = errByEmail;
