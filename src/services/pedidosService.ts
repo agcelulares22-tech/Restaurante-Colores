@@ -232,8 +232,8 @@ async function fetchAndAssemblePedidosColores(client: any): Promise<Pedido[]> {
 }
 
 export const pedidosService = {
-  async list(): Promise<Pedido[]> {
-    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(CACHE_KEY) : null;
+  async list(forceFresh: boolean = false): Promise<Pedido[]> {
+    const cached = (!forceFresh && typeof localStorage !== 'undefined') ? localStorage.getItem(CACHE_KEY) : null;
     const client = tryGetActiveSupabaseClient();
 
     if (cached) {

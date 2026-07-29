@@ -329,6 +329,8 @@ export function useAppState() {
 
     loadData();
 
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+
     if (client) {
       channel = client
         .channel('realtime_pedidos_app')
@@ -398,12 +400,20 @@ export function useAppState() {
               }
             });
 
-            // Mark table occupied automatically if order is active
-            if (newRow.id_mesa && ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(newRow.estado_comanda)) {
-              setMesas(prev => prev.map(m => String(m.id_mesa) === String(newRow.id_mesa) ? {
-                ...m,
-                estado: 'ocupada'
-              } : m));
+            // Mark table occupied/free automatically based on comanda state
+            if (newRow.id_mesa) {
+              if (['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(newRow.estado_comanda)) {
+                setMesas(prev => prev.map(m => String(m.id_mesa) === String(newRow.id_mesa) ? {
+                  ...m,
+                  estado: 'ocupada'
+                } : m));
+              } else if (['entregado_cobrado', 'cancelado'].includes(newRow.estado_comanda)) {
+                setMesas(prev => prev.map(m => String(m.id_mesa) === String(newRow.id_mesa) ? {
+                  ...m,
+                  estado: 'libre',
+                  comensales: undefined
+                } : m));
+              }
             }
 
             // 2. Fetch full detail single order in background to maintain complete item metadata & prices
@@ -468,10 +478,25 @@ export function useAppState() {
           }
         })
         .subscribe();
+
+      // Live 3-second polling backup (queries Supabase live via forceFresh) to guarantee instant status sync across all devices
+      pollInterval = setInterval(async () => {
+        if (!active) return;
+        try {
+          const { pedidosService } = await import('../services/pedidosService');
+          const livePedidos = await pedidosService.list(true);
+          if (active && Array.isArray(livePedidos) && livePedidos.length > 0) {
+            setPedidos(livePedidos);
+          }
+        } catch {
+          // Silent catch
+        }
+      }, 3000);
     }
 
     return () => {
       active = false;
+      if (pollInterval) clearInterval(pollInterval);
       if (client && channel) {
         client.removeChannel(channel);
       }
