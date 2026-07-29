@@ -312,19 +312,19 @@ export const pedidosService = {
 
     try {
       if (Object.keys(headerFields).length > 0) {
-        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${id}:`, headerFields);
+        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${cleanId}:`, headerFields);
         let { error, data } = await supabase
           .from('pedidos_cabecera')
           .update(headerFields)
-          .eq('id_pedido', id)
+          .eq('id_pedido', cleanId)
           .select();
 
-        console.log(`[pedidosService.update] Respuesta update id=${id}:`, { error, data, affectedRows: data?.length });
+        console.log(`[pedidosService.update] Respuesta update id=${cleanId}:`, { error, data, affectedRows: data?.length });
 
         if (!error && (!data || data.length === 0)) {
-          console.warn(`[pedidosService.update] El update no afectó filas. Creando o actualizando cabecera id=${id}...`);
+          console.warn(`[pedidosService.update] El update no afectó filas. Creando o actualizando cabecera id=${cleanId}...`);
           const headerObj = {
-            id_pedido: id,
+            id_pedido: cleanId,
             numero_mesa: fields.numero_mesa || 'Mesa',
             mozo: fields.mozo || 'Mozo',
             estado_comanda: fields.estado_comanda || 'pendiente',
@@ -345,14 +345,14 @@ export const pedidosService = {
           console.warn('idempotency_key column missing in update, retrying without it...');
           const fallbackFields = { ...headerFields };
           delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', id).select();
+          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', cleanId).select();
           error = res.error;
           data = res.data;
-          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${id}:`, { error: res.error, data: res.data });
+          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${cleanId}:`, { error: res.error, data: res.data });
         }
 
         if (error) {
-          console.error(`Error updating header for pedido ${id}:`, error);
+          console.error(`Error updating header for pedido ${cleanId}:`, error);
           throw error;
         }
       }

@@ -329,6 +329,8 @@ export function useAppState() {
 
     loadData();
 
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
     if (client) {
       channel = client
         .channel('realtime_pedidos_app')
@@ -340,19 +342,51 @@ export function useAppState() {
           if (eventType === 'DELETE') {
             const idToDelete = String(oldRow.id_pedido);
             setPedidos(prev => prev.filter(p => String(p.id_pedido) !== idToDelete));
-          } else {
-            const idToFetch = String(newRow.id_pedido);
-            const { pedidosService } = await import('../services/pedidosService');
-            const updatedPedido = await pedidosService.fetchSingle(idToFetch);
-            if (updatedPedido && active) {
-              setPedidos(prev => {
-                const exists = prev.some(p => String(p.id_pedido) === idToFetch);
-                if (exists) {
-                  return prev.map(p => String(p.id_pedido) === idToFetch ? updatedPedido : p);
-                } else {
-                  return [updatedPedido, ...prev];
-                }
-              });
+          } else if (newRow && newRow.id_pedido) {
+            const targetId = String(newRow.id_pedido);
+
+            // 1. Instant optimistic sync: update existing order immediately with newRow data
+            setPedidos(prev => {
+              const exists = prev.some(p => String(p.id_pedido) === targetId);
+              if (exists) {
+                return prev.map(p => {
+                  if (String(p.id_pedido) !== targetId) return p;
+                  let parsedItems = p.items;
+                  if (newRow.items) {
+                    try {
+                      parsedItems = typeof newRow.items === 'string' ? JSON.parse(newRow.items) : newRow.items;
+                    } catch {
+                      parsedItems = p.items;
+                    }
+                  }
+                  return {
+                    ...p,
+                    ...newRow,
+                    id_pedido: targetId,
+                    estado_comanda: newRow.estado_comanda || p.estado_comanda,
+                    items: Array.isArray(parsedItems) ? parsedItems : p.items
+                  };
+                });
+              }
+              return prev;
+            });
+
+            // 2. Fetch full detail single order in background to maintain complete item metadata
+            try {
+              const { pedidosService } = await import('../services/pedidosService');
+              const updatedPedido = await pedidosService.fetchSingle(targetId);
+              if (updatedPedido && active) {
+                setPedidos(prev => {
+                  const exists = prev.some(p => String(p.id_pedido) === targetId);
+                  if (exists) {
+                    return prev.map(p => String(p.id_pedido) === targetId ? updatedPedido : p);
+                  } else {
+                    return [updatedPedido, ...prev];
+                  }
+                });
+              }
+            } catch (err) {
+              console.warn('[Realtime] Background single fetch failed:', err);
             }
           }
         })
@@ -363,17 +397,21 @@ export function useAppState() {
           
           const targetOrderId = String((newRow && newRow.id_pedido) || (oldRow && oldRow.id_pedido));
           if (targetOrderId && targetOrderId !== 'undefined') {
-            const { pedidosService } = await import('../services/pedidosService');
-            const updatedPedido = await pedidosService.fetchSingle(targetOrderId);
-            if (updatedPedido && active) {
-              setPedidos(prev => {
-                const exists = prev.some(p => String(p.id_pedido) === targetOrderId);
-                if (exists) {
-                  return prev.map(p => String(p.id_pedido) === targetOrderId ? updatedPedido : p);
-                } else {
-                  return [updatedPedido, ...prev];
-                }
-              });
+            try {
+              const { pedidosService } = await import('../services/pedidosService');
+              const updatedPedido = await pedidosService.fetchSingle(targetOrderId);
+              if (updatedPedido && active) {
+                setPedidos(prev => {
+                  const exists = prev.some(p => String(p.id_pedido) === targetOrderId);
+                  if (exists) {
+                    return prev.map(p => String(p.id_pedido) === targetOrderId ? updatedPedido : p);
+                  } else {
+                    return [updatedPedido, ...prev];
+                  }
+                });
+              }
+            } catch (err) {
+              console.warn('[Realtime] Background detail order fetch failed:', err);
             }
           }
         })
@@ -390,11 +428,28 @@ export function useAppState() {
             } : m));
           }
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          console.log('[Realtime] App subscription status:', status);
+        });
+
+      // Background auto-polling (every 4s) to guarantee multi-device live sync even on dropped WebSockets
+      pollTimer = setInterval(async () => {
+        if (!active) return;
+        try {
+          const { pedidosService } = await import('../services/pedidosService');
+          const latestPedidos = await pedidosService.list();
+          if (latestPedidos && active && latestPedidos.length > 0) {
+            setPedidos(latestPedidos);
+          }
+        } catch {
+          // Silent catch for background poll
+        }
+      }, 4000);
     }
 
     return () => {
       active = false;
+      if (pollTimer) clearInterval(pollTimer);
       if (client && channel) {
         client.removeChannel(channel);
       }
