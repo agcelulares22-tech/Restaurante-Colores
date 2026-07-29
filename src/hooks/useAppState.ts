@@ -329,8 +329,6 @@ export function useAppState() {
 
     loadData();
 
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-
     if (client) {
       channel = client
         .channel('realtime_pedidos_app')
@@ -345,41 +343,80 @@ export function useAppState() {
           } else if (newRow && newRow.id_pedido) {
             const targetId = String(newRow.id_pedido);
 
-            // 1. Instant optimistic sync: update existing order immediately with newRow data
+            // 1. Instant optimistic state update (for BOTH Insert and Update)
             setPedidos(prev => {
-              const exists = prev.some(p => String(p.id_pedido) === targetId);
-              if (exists) {
-                return prev.map(p => {
-                  if (String(p.id_pedido) !== targetId) return p;
-                  let parsedItems = p.items;
-                  if (newRow.items) {
-                    try {
-                      parsedItems = typeof newRow.items === 'string' ? JSON.parse(newRow.items) : newRow.items;
-                    } catch {
-                      parsedItems = p.items;
-                    }
-                  }
-                  return {
-                    ...p,
-                    ...newRow,
-                    id_pedido: targetId,
-                    estado_comanda: newRow.estado_comanda || p.estado_comanda,
-                    items: Array.isArray(parsedItems) ? parsedItems : p.items
-                  };
-                });
+              const existsIndex = prev.findIndex(p => String(p.id_pedido) === targetId);
+              let parsedItems: any[] = [];
+              if (newRow.items) {
+                try {
+                  parsedItems = typeof newRow.items === 'string' ? JSON.parse(newRow.items) : newRow.items;
+                } catch {
+                  parsedItems = [];
+                }
               }
-              return prev;
+
+              if (existsIndex >= 0) {
+                // Order exists -> update it with newRow values
+                const existing = prev[existsIndex];
+                const updated = {
+                  ...existing,
+                  ...newRow,
+                  id_pedido: targetId,
+                  estado_comanda: newRow.estado_comanda || existing.estado_comanda,
+                  items: Array.isArray(parsedItems) && parsedItems.length > 0 ? parsedItems : existing.items
+                };
+                const copy = [...prev];
+                copy[existsIndex] = updated;
+                return copy;
+              } else {
+                // Order is NEW (INSERT) -> Construct and append immediately!
+                const isDelivery = newRow.id_mesa === null && String(newRow.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+                const idMesa = isDelivery ? 999 : newRow.id_mesa;
+                const newPedidoObj: Pedido = {
+                  id_pedido: targetId,
+                  idempotency_key: newRow.idempotency_key ?? undefined,
+                  id_mesa: idMesa,
+                  numero_mesa: newRow.numero_mesa || 'Mesa',
+                  mozo: newRow.mozo || 'Mozo',
+                  estado_comanda: newRow.estado_comanda || 'pendiente',
+                  items: Array.isArray(parsedItems) ? parsedItems : [],
+                  observaciones: newRow.observaciones || undefined,
+                  fecha_hora: newRow.fecha_hora ? new Date(newRow.fecha_hora) : new Date(),
+                  minutos_transcurridos: newRow.minutos_transcurridos || 0,
+                  origen: newRow.origen,
+                  tiempo_despacho_minutos: newRow.tiempo_despacho_minutos ?? undefined,
+                  segundos_en_listo: newRow.segundos_en_listo ?? undefined,
+                  stock_descontado: Boolean(newRow.stock_descontado),
+                  fecha_descuento_stock: newRow.fecha_descuento_stock ? new Date(newRow.fecha_descuento_stock) : undefined,
+                  nombre_cliente: newRow.nombre_cliente ?? undefined,
+                  telefono_cliente: newRow.telefono_cliente ?? undefined,
+                  direccion_cliente: newRow.direccion_cliente ?? undefined,
+                  costo_envio: newRow.costo_envio ?? undefined,
+                  zona_envio_id: newRow.zona_envio_id ?? undefined
+                };
+                return [newPedidoObj, ...prev];
+              }
             });
 
-            // 2. Fetch full detail single order in background to maintain complete item metadata
+            // Mark table occupied automatically if order is active
+            if (newRow.id_mesa && ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(newRow.estado_comanda)) {
+              setMesas(prev => prev.map(m => String(m.id_mesa) === String(newRow.id_mesa) ? {
+                ...m,
+                estado: 'ocupada'
+              } : m));
+            }
+
+            // 2. Fetch full detail single order in background to maintain complete item metadata & prices
             try {
               const { pedidosService } = await import('../services/pedidosService');
               const updatedPedido = await pedidosService.fetchSingle(targetId);
               if (updatedPedido && active) {
                 setPedidos(prev => {
-                  const exists = prev.some(p => String(p.id_pedido) === targetId);
-                  if (exists) {
-                    return prev.map(p => String(p.id_pedido) === targetId ? updatedPedido : p);
+                  const existsIndex = prev.findIndex(p => String(p.id_pedido) === targetId);
+                  if (existsIndex >= 0) {
+                    const copy = [...prev];
+                    copy[existsIndex] = updatedPedido;
+                    return copy;
                   } else {
                     return [updatedPedido, ...prev];
                   }
@@ -402,9 +439,11 @@ export function useAppState() {
               const updatedPedido = await pedidosService.fetchSingle(targetOrderId);
               if (updatedPedido && active) {
                 setPedidos(prev => {
-                  const exists = prev.some(p => String(p.id_pedido) === targetOrderId);
-                  if (exists) {
-                    return prev.map(p => String(p.id_pedido) === targetOrderId ? updatedPedido : p);
+                  const existsIndex = prev.findIndex(p => String(p.id_pedido) === targetOrderId);
+                  if (existsIndex >= 0) {
+                    const copy = [...prev];
+                    copy[existsIndex] = updatedPedido;
+                    return copy;
                   } else {
                     return [updatedPedido, ...prev];
                   }
@@ -428,28 +467,11 @@ export function useAppState() {
             } : m));
           }
         })
-        .subscribe((status: string) => {
-          console.log('[Realtime] App subscription status:', status);
-        });
-
-      // Background auto-polling (every 4s) to guarantee multi-device live sync even on dropped WebSockets
-      pollTimer = setInterval(async () => {
-        if (!active) return;
-        try {
-          const { pedidosService } = await import('../services/pedidosService');
-          const latestPedidos = await pedidosService.list();
-          if (latestPedidos && active && latestPedidos.length > 0) {
-            setPedidos(latestPedidos);
-          }
-        } catch {
-          // Silent catch for background poll
-        }
-      }, 4000);
+        .subscribe();
     }
 
     return () => {
       active = false;
-      if (pollTimer) clearInterval(pollTimer);
       if (client && channel) {
         client.removeChannel(channel);
       }
