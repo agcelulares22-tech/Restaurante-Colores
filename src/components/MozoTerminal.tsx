@@ -2139,18 +2139,18 @@ function MozoTerminal({
       {/* MODAL TOPPINGS / EXTRAS */}
       {showToppingsModal && toppingsBaseProduct && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-zinc-150">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-white">
             <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <h3 className="font-extrabold text-zinc-100 text-base uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-extrabold text-white text-base uppercase tracking-wider flex items-center gap-2">
                 🍕 Adicionales: {toppingsBaseProduct.nombre}
               </h3>
-              <button onClick={() => setShowToppingsModal(false)} className="text-zinc-400 hover:text-zinc-300 cursor-pointer">
+              <button onClick={() => setShowToppingsModal(false)} className="text-white hover:text-zinc-200 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs text-zinc-450 font-medium">Seleccioná los ingredientes adicionales que querés sumar a la pizza:</p>
+              <p className="text-xs text-white font-medium">Seleccioná los ingredientes adicionales que querés sumar a la pizza:</p>
               
               <div className="space-y-2">
                 {AVAILABLE_TOPPINGS.map(topping => {
@@ -2160,8 +2160,8 @@ function MozoTerminal({
                       key={topping.id}
                       className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
                         isChecked 
-                          ? 'border-brand-yellow bg-brand-yellow/10 text-zinc-100 font-bold' 
-                          : 'border-white/5 bg-zinc-950/40 text-zinc-400 hover:bg-zinc-950/80 hover:text-zinc-300'
+                          ? 'border-brand-yellow bg-brand-yellow/10 text-white font-bold' 
+                          : 'border-white/10 bg-zinc-950/40 text-white hover:bg-zinc-950/80 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
@@ -2177,7 +2177,7 @@ function MozoTerminal({
                           }}
                           className="w-4 h-4 rounded text-brand-yellow focus:ring-brand-yellow/30 bg-zinc-950"
                         />
-                        <span className="text-sm">{topping.nombre}</span>
+                        <span className="text-sm text-white font-medium">{topping.nombre}</span>
                       </div>
                       <span className="font-mono text-xs text-brand-yellow font-black">+${topping.precio}</span>
                     </label>
@@ -2191,12 +2191,12 @@ function MozoTerminal({
                   .reduce((sum, t) => sum + t.precio, 0);
                 const finalPrice = toppingsBaseProduct.precio_venta + toppingsTotal;
                 return (
-                  <div className="bg-zinc-950 text-white rounded-xl p-3 flex justify-between items-center mt-2 border border-white/5">
+                  <div className="bg-zinc-950 text-white rounded-xl p-3 flex justify-between items-center mt-2 border border-white/10">
                     <div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase block">Total con Adicionales:</span>
+                      <span className="text-[10px] font-bold text-white uppercase block">Total con Adicionales:</span>
                       <span className="font-mono text-base font-black text-brand-yellow">${finalPrice.toLocaleString('es-AR')}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-450 font-bold">Base: ${toppingsBaseProduct.precio_venta.toLocaleString('es-AR')}</span>
+                    <span className="text-[10px] text-white font-bold">Base: ${toppingsBaseProduct.precio_venta.toLocaleString('es-AR')}</span>
                   </div>
                 );
               })()}
@@ -2205,7 +2205,7 @@ function MozoTerminal({
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowToppingsModal(false)}
-                className="flex-1 min-h-11 bg-zinc-950/60 hover:bg-zinc-900 text-zinc-400 rounded-xl text-sm cursor-pointer transition-colors border border-white/5 active:scale-95"
+                className="flex-1 min-h-11 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-sm cursor-pointer transition-colors border border-white/10 active:scale-95"
               >
                 Cancelar
               </button>
