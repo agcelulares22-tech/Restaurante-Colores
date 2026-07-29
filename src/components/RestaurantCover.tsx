@@ -50,11 +50,10 @@ export default function RestaurantCover({
 
   const [cateringImageIndex, setCateringImageIndex] = useState(0);
   const CATERING_IMAGES = [
-    '/images/pizza_wood_oven.png',
-    '/images/provoleta_hierro.png',
-    '/images/pizza_usuario.jpg',
-    '/images/empanadas_usuario.jpg',
-    '/images/tarta_usuario.jpg'
+    '/images/catering_pizza_1.jpg',
+    '/images/catering_pizza_2.png',
+    '/images/catering_pizza_3.png',
+    '/images/catering_pizza_4.png'
   ];
 
   useEffect(() => {
