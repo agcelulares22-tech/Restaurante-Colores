@@ -80,91 +80,29 @@ export default function RestaurantCover({
   const unifiedPromos = useMemo(() => {
     const list: any[] = [];
     
-    // 1. Add discount rules from promocionesList
+    // Only display promotions created and managed in the Módulo de Promociones
     promocionesList.forEach(p => {
+      const img = (p as any).imagen_url || (
+        p.nombre.toLowerCase().includes('calzone') ? '/images/calzone_usuario.jpg' :
+        p.nombre.toLowerCase().includes('empanada') ? '/images/empanadas_usuario.jpg' :
+        '/images/pizza_usuario.jpg'
+      );
       list.push({
         id: p.id_promo,
         nombre: p.nombre,
         descripcion: p.descripcion,
         badge: p.tipo === 'happy_hour' ? '🍺 HAPPY HOUR' : p.tipo === 'combo' ? '🍕 COMBO' : '🔥 DESCUENTO',
         badgeColor: p.tipo === 'happy_hour' ? '#fbd127' : p.tipo === 'combo' ? '#FF5722' : '#fc0000',
-        imagen: p.imagen_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
-        descuentoTexto: `${p.descuento_porcentaje}% OFF`,
+        imagen: img,
+        descuentoTexto: p.descuento_porcentaje ? `${p.descuento_porcentaje}% OFF` : 'PROMO',
         diasVigentes: p.dias_vigentes || 'Todos los días',
         esBotonPedir: true,
-        whatsappText: `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n• ${p.nombre} (-${p.descuento_porcentaje}% OFF)\n• Detalle: ${p.descripcion}\n\n¡Muchas gracias!`
+        whatsappText: `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n• ${p.nombre}${p.descuento_porcentaje ? ` (-${p.descuento_porcentaje}% OFF)` : ''}\n• Detalle: ${p.descripcion || ''}\n\n¡Muchas gracias!`
       });
     });
-
-    // 2. Add menu products that are promos/combos (only if they are active)
-    const menuPromos = (productosMenu || []).filter(p => 
-      p.activo && (
-        p.categoria?.toLowerCase().includes('promo') ||
-        p.categoria?.toLowerCase().includes('combo') ||
-        p.id_producto.includes('promo') ||
-        p.id_producto.includes('combo')
-      )
-    );
-
-    menuPromos.forEach(p => {
-      list.push({
-        id: p.id_producto,
-        nombre: p.nombre,
-        descripcion: p.descripcion || "Disfrutá de esta promoción especial en casa.",
-        badge: p.categoria || "🍕 COMBO",
-        badgeColor: '#FF5722',
-        imagen: p.imagen || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
-        descuentoTexto: `$${p.precio_venta.toLocaleString()}`,
-        diasVigentes: p.requiere_cocina ? "Elaboración en el acto" : "Listo para consumir",
-        esBotonPedir: true,
-        whatsappText: `¡Hola Pizzería Colores! Me gustaría pedir la promoción:\n• ${p.nombre} ($${p.precio_venta.toLocaleString()})\n• Detalle: ${p.descripcion || ''}\n\n¡Muchas gracias!`
-      });
-    });
-
-    // 3. Fallback: if absolutely nothing is loaded yet, show the default combos
-    if (list.length === 0) {
-      return [
-        {
-          id: 'def_1',
-          nombre: "Combo Amigos",
-          descripcion: "🍕 1 Pizza Especial Grande + 🥟 6 Empanadas Criollas + 🥤 1 Gaseosa de 1.5L",
-          badge: "MÁS VENDIDO 🏆",
-          badgeColor: '#FF9800',
-          imagen: '/images/pizza_usuario.jpg',
-          descuentoTexto: "$28.000",
-          diasVigentes: "Ideal para 3-4 personas",
-          esBotonPedir: false,
-          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Amigos."
-        },
-        {
-          id: 'def_2',
-          nombre: "Combo Pareja",
-          descripcion: "🍕 1 Pizza Muzzarella Grande + 🍺 2 Pintas de Cerveza Artesanal GIUS",
-          badge: "¡DE FIN DE SEMANA! 🍺",
-          badgeColor: '#fbd127',
-          imagen: '/images/calzone_usuario.jpg',
-          descuentoTexto: "$23.000",
-          diasVigentes: "Ideal para 2 personas",
-          esBotonPedir: false,
-          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Pareja."
-        },
-        {
-          id: 'def_3',
-          nombre: "Combo Familiar",
-          descripcion: "🍕 2 Pizzas Grandes a elección + 🥯 2 Fainá + 🥤 1 Gaseosa de 1.5L",
-          badge: "¡SÚPER PROMO! 🔥",
-          badgeColor: '#fc0000',
-          imagen: '/images/empanadas_usuario.jpg',
-          descuentoTexto: "$42.000",
-          diasVigentes: "Ideal para 5-6 personas",
-          esBotonPedir: false,
-          whatsappText: "¡Hola Pizzería Colores! Me gustaría solicitar el Combo Familiar."
-        }
-      ];
-    }
 
     return list;
-  }, [promocionesList, productosMenu]);
+  }, [promocionesList]);
 
  const handleBookingSubmit = (e: React.FormEvent) => {
  e.preventDefault();
