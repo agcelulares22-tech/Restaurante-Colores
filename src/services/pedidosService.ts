@@ -81,38 +81,49 @@ export const hydratePedido = (
   };
 };
 
-export const serializePedidoHeader = (pedido: Pedido): PedidoHeaderRow => ({
-  id_pedido: sanitizePedidoId(pedido.id_pedido) || pedido.id_pedido,
-  idempotency_key: pedido.idempotency_key ?? null,
-  id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
-  numero_mesa: pedido.numero_mesa,
-  mozo: pedido.mozo || 'Sistema',
-  estado_comanda: pedido.estado_comanda,
-  observaciones: pedido.observaciones || null,
-  fecha_hora: pedido.fecha_hora instanceof Date
-    ? pedido.fecha_hora.toISOString()
-    : new Date(pedido.fecha_hora).toISOString(),
-  minutos_transcurridos: pedido.minutos_transcurridos,
-  origen: pedido.origen,
-  tiempo_despacho_minutos: pedido.tiempo_despacho_minutos ?? null,
-  segundos_en_listo: pedido.segundos_en_listo ?? null,
-  stock_descontado: Boolean(pedido.stock_descontado),
-  fecha_descuento_stock: pedido.fecha_descuento_stock
-    ? new Date(pedido.fecha_descuento_stock).toISOString()
-    : null,
-  fecha_inicio_cocina: pedido.fecha_inicio_cocina
-    ? new Date(pedido.fecha_inicio_cocina).toISOString()
-    : null,
-  fecha_listo: pedido.fecha_listo
-    ? new Date(pedido.fecha_listo).toISOString()
-    : null,
-  items: JSON.stringify(pedido.items || []),
-  nombre_cliente: pedido.nombre_cliente ?? null,
-  telefono_cliente: pedido.telefono_cliente ?? null,
-  direccion_cliente: pedido.direccion_cliente ?? null,
-  costo_envio: pedido.costo_envio ?? null,
-  zona_envio_id: pedido.zona_envio_id ?? null
-});
+export const serializePedidoHeader = (pedido: Pedido): PedidoHeaderRow => {
+  const header: PedidoHeaderRow = {
+    id_pedido: sanitizePedidoId(pedido.id_pedido) || pedido.id_pedido,
+    id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
+    numero_mesa: pedido.numero_mesa,
+    mozo: pedido.mozo || 'Sistema',
+    estado_comanda: pedido.estado_comanda,
+    observaciones: pedido.observaciones || null,
+    fecha_hora: pedido.fecha_hora instanceof Date
+      ? pedido.fecha_hora.toISOString()
+      : new Date(pedido.fecha_hora).toISOString(),
+    minutos_transcurridos: pedido.minutos_transcurridos,
+    origen: pedido.origen,
+    tiempo_despacho_minutos: pedido.tiempo_despacho_minutos ?? null,
+    segundos_en_listo: pedido.segundos_en_listo ?? null,
+    stock_descontado: Boolean(pedido.stock_descontado),
+    fecha_descuento_stock: pedido.fecha_descuento_stock
+      ? new Date(pedido.fecha_descuento_stock).toISOString()
+      : null,
+    fecha_inicio_cocina: pedido.fecha_inicio_cocina
+      ? new Date(pedido.fecha_inicio_cocina).toISOString()
+      : null,
+    fecha_listo: pedido.fecha_listo
+      ? new Date(pedido.fecha_listo).toISOString()
+      : null,
+    items: JSON.stringify(pedido.items || []),
+    nombre_cliente: pedido.nombre_cliente ?? null,
+    telefono_cliente: pedido.telefono_cliente ?? null,
+    direccion_cliente: pedido.direccion_cliente ?? null
+  };
+
+  if (pedido.idempotency_key) {
+    header.idempotency_key = pedido.idempotency_key;
+  }
+  if (pedido.costo_envio !== undefined && pedido.costo_envio !== null) {
+    header.costo_envio = pedido.costo_envio;
+  }
+  if (pedido.zona_envio_id !== undefined && pedido.zona_envio_id !== null) {
+    header.zona_envio_id = pedido.zona_envio_id;
+  }
+
+  return header;
+};
 
 export const serializePedidoDetails = (pedido: Pedido): PedidoDetailRow[] => (pedido.items || []).map((item, index) => ({
   id_detalle: `${pedido.id_pedido}_${String(index).padStart(4, '0')}`,
@@ -131,6 +142,64 @@ const invalidateCache = () => {
     localStorage.removeItem(CACHE_KEY);
   }
 };
+
+async function safeUpsertHeader(supabase: any, cabeceraObj: Record<string, any>): Promise<{ data: any; error: any }> {
+  const payload: Record<string, any> = { ...cabeceraObj };
+  if (payload.costo_envio == null) delete payload.costo_envio;
+  if (payload.zona_envio_id == null) delete payload.zona_envio_id;
+  if (payload.idempotency_key == null) delete payload.idempotency_key;
+
+  let res = await supabase.from('pedidos_cabecera').upsert([payload]).select();
+
+  let attempts = 0;
+  while (res.error && attempts < 5) {
+    attempts++;
+    const errMsg = res.error.message || '';
+    const match = errMsg.match(/Could not find the '([^']+)' column/) ||
+                  errMsg.match(/column "([^"]+)" of relation/) ||
+                  errMsg.match(/column '([^']+)'/);
+
+    if (match && match[1]) {
+      const missingCol = match[1];
+      console.warn(`[pedidosService] Auto-stripping missing schema column '${missingCol}' from upsert and retrying (attempt ${attempts})...`);
+      delete payload[missingCol];
+      res = await supabase.from('pedidos_cabecera').upsert([payload]).select();
+    } else {
+      break;
+    }
+  }
+
+  return res;
+}
+
+async function safeUpdateHeader(supabase: any, id_pedido: string, headerFields: Record<string, any>): Promise<{ data: any; error: any }> {
+  const payload: Record<string, any> = { ...headerFields };
+  if (payload.costo_envio == null) delete payload.costo_envio;
+  if (payload.zona_envio_id == null) delete payload.zona_envio_id;
+  if (payload.idempotency_key == null) delete payload.idempotency_key;
+
+  let res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', id_pedido).select();
+
+  let attempts = 0;
+  while (res.error && attempts < 5) {
+    attempts++;
+    const errMsg = res.error.message || '';
+    const match = errMsg.match(/Could not find the '([^']+)' column/) ||
+                  errMsg.match(/column "([^"]+)" of relation/) ||
+                  errMsg.match(/column '([^']+)'/);
+
+    if (match && match[1]) {
+      const missingCol = match[1];
+      console.warn(`[pedidosService] Auto-stripping missing schema column '${missingCol}' from update and retrying (attempt ${attempts})...`);
+      delete payload[missingCol];
+      res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', id_pedido).select();
+    } else {
+      break;
+    }
+  }
+
+  return res;
+}
 
 async function fetchAndAssemblePedidosColores(client: any): Promise<Pedido[]> {
   const thirtyDaysAgo = new Date();
@@ -313,11 +382,7 @@ export const pedidosService = {
     try {
       if (Object.keys(headerFields).length > 0) {
         console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${cleanId}:`, headerFields);
-        let { error, data } = await supabase
-          .from('pedidos_cabecera')
-          .update(headerFields)
-          .eq('id_pedido', cleanId)
-          .select();
+        let { error, data } = await safeUpdateHeader(supabase, cleanId, headerFields);
 
         console.log(`[pedidosService.update] Respuesta update id=${cleanId}:`, { error, data, affectedRows: data?.length });
 
@@ -332,23 +397,8 @@ export const pedidosService = {
             fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
             ...headerFields
           };
-          const { error: upsertErr } = await supabase.from('pedidos_cabecera').upsert([headerObj]);
-          if (upsertErr) {
-            console.error('[pedidosService.update] Fallback upsert error:', upsertErr);
-            throw upsertErr;
-          }
-          error = null;
-        }
-
-        // Dynamic schema fallback: if idempotency_key is missing, strip and retry
-        if (error && error.message?.includes('idempotency_key')) {
-          console.warn('idempotency_key column missing in update, retrying without it...');
-          const fallbackFields = { ...headerFields };
-          delete fallbackFields.idempotency_key;
-          const res = await supabase.from('pedidos_cabecera').update(fallbackFields).eq('id_pedido', cleanId).select();
-          error = res.error;
-          data = res.data;
-          console.log(`[pedidosService.update] Respuesta retry sin idempotency_key id=${cleanId}:`, { error: res.error, data: res.data });
+          const resUpsert = await safeUpsertHeader(supabase, headerObj);
+          error = resUpsert.error;
         }
 
         if (error) {
@@ -493,16 +543,11 @@ export const pedidosService = {
 
           // A. Ya existe una comanda activa -> Se actualiza la cabecera completa y se sincronizan los detalles
           const cabeceraUpdate = serializePedidoHeader(ped);
-          // Importante: no borrar id_mesa ni id_pedido para que Supabase pueda filtrar/relacionar correctamente
           delete (cabeceraUpdate as any).idempotency_key;
 
           console.log(`[pedidosService.upsert] Actualizando cabecera id=${activeId}:`, cabeceraUpdate);
 
-          const { data: updateData, error: hError } = await supabase
-            .from('pedidos_cabecera')
-            .update(cabeceraUpdate)
-            .eq('id_pedido', activeId)
-            .select();
+          const { data: updateData, error: hError } = await safeUpdateHeader(supabase, activeId, cabeceraUpdate);
 
           console.log(`[pedidosService.upsert] Respuesta update cabecera id=${activeId}:`, { updateData, hError });
 
@@ -546,7 +591,7 @@ export const pedidosService = {
           // B. No existe comanda activa -> Crear cabecera y luego insertar detalles
           const cabecera = serializePedidoHeader(ped);
           console.log(`[pedidosService.upsert] Insertando nueva cabecera id=${ped.id_pedido}:`, cabecera);
-          let { data: insertData, error: hError } = await supabase.from('pedidos_cabecera').upsert(cabecera).select();
+          let { data: insertData, error: hError } = await safeUpsertHeader(supabase, cabecera);
           
           console.log(`[pedidosService.upsert] Respuesta insert cabecera id=${ped.id_pedido}:`, { insertData, hError });
 
