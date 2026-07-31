@@ -18,18 +18,18 @@ export default defineConfig(() => {
         ]
       },
       manifest: {
-        name: 'El Patrón Pro - Gestión Gastronómica',
-        short_name: 'El Patrón',
-        description: 'Sistema integral de gestión gastronómica',
-        theme_color: '#4A2D1B',
-        background_color: '#F5F1E9',
+        name: 'Colores Pizza - Gestión Gastronómica',
+        short_name: 'Colores Pizza',
+        description: 'Sistema integral de gestión gastronómica para Colores Pizzería',
+        theme_color: '#3b3b3b',
+        background_color: '#3b3b3b',
         display: 'standalone',
         display_override: ['window-controls-overlay', 'standalone'],
         orientation: 'any',
         categories: ['business', 'food', 'productivity'],
         icons: [
-          { src: '/logo-el-patron-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/logo-el-patron-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          { src: '/logo-colores-pizzeria.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/logo-colores-pizzeria.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ],
         shortcuts: [
           { name: 'Nuevo Pedido', short_name: 'Pedido', description: 'Abrir terminal de mozo', url: '/?view=mozo' },
