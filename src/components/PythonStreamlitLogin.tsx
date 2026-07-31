@@ -362,18 +362,11 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
             </button>
             
             <div className="pt-2 text-center flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => setShowDiagnostics(true)}
-                className="text-xs font-semibold text-zinc-500 hover:text-brand-yellow hover:underline transition-all cursor-pointer flex items-center justify-center gap-1 mx-auto"
-              >
-                🔧 ¿Problemas de conexión? Ejecutar diagnóstico
-              </button>
               {onBackToCover && (
                 <button
                   type="button"
                   onClick={onBackToCover}
-                  className="text-xs font-semibold text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1 mx-auto mt-2"
+                  className="text-xs font-semibold text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1 mx-auto"
                 >
                   🍕 Volver a la Portada Publicitaria
                 </button>
