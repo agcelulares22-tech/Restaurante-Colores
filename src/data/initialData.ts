@@ -10,6 +10,11 @@ export const INITIAL_USUARIOS: Usuario[] = [
   { id_usuario: 7, nombre: 'Sofía', apellido: 'Alegre', username: 'sofia', password: '1234', rol: 'administrador' },
   { id_usuario: 8, nombre: 'Nuevo', apellido: 'Usuario', username: 'nuevo', password: 'clave', rol: 'mozo' },
   { id_usuario: 9, nombre: 'Admin', apellido: '', username: 'admin', password: '1998', rol: 'superadmin' },
+  { id_usuario: 10, nombre: 'Nicolás', apellido: 'Torres', username: 'nicolas', password: '1234', rol: 'mozo' },
+  { id_usuario: 11, nombre: 'Pablo', apellido: 'Funes', username: 'pablo', password: '1234', rol: 'mozo' },
+  { id_usuario: 12, nombre: 'Manu', apellido: 'Acrich', username: 'manu', password: '1234', rol: 'mozo' },
+  { id_usuario: 13, nombre: 'Agustín', apellido: 'Gilardi', username: 'agustin', password: '1234', rol: 'administrador' },
+  { id_usuario: 14, nombre: 'Karina', apellido: 'Gilardi', username: 'karina', password: '1234', rol: 'administrador' },
 ];
 
 export const INITIAL_MESAS: Mesa[] = [
