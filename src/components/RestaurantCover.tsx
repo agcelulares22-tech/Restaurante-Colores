@@ -1009,21 +1009,21 @@ export default function RestaurantCover({
  {/* EVENT BOOKING DIALOG */}
  <AnimatePresence>
  {showEventModal && (
- <div className="fixed inset-0 z-50 bg-[#3b3b3b]/70 backdrop-blur-xs flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-[#121214]/85 backdrop-blur-md flex items-center justify-center p-4">
  <motion.div 
  initial={{ scale: 0.95, opacity: 0 }}
  animate={{ scale: 1, opacity: 1 }}
  exit={{ scale: 0.95, opacity: 0 }}
- className="bg-white p-8 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] space-y-5 border-4 border-[#3b3b3b] text-left"
+ className="bg-[#181E2A] p-8 rounded-3xl max-w-md w-full shadow-2xl space-y-5 border-2 border-white/20 text-left text-white"
  >
- <h3 className="font-display text-3xl text-[#3b3b3b] uppercase leading-none">Cotizá tu Evento 🎉</h3>
- <p className="text-xs text-[#3b3b3b] font-bold leading-relaxed">
+ <h3 className="font-display text-3xl text-white uppercase leading-none">Cotizá tu Evento 🎉</h3>
+ <p className="text-xs text-stone-200 font-bold leading-relaxed">
  Completá los datos y coordinamos el menú de forma directa por WhatsApp.
  </p>
  
  <form onSubmit={handleEventSubmit} className="space-y-4">
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Cantidad de personas aproximada *</label>
+ <label className="text-xs font-black uppercase text-white tracking-wider">Cantidad de personas aproximada *</label>
  <input 
  type="number" 
  required
@@ -1031,46 +1031,46 @@ export default function RestaurantCover({
  value={eventForm.personas}
  onChange={(e) => setEventForm(prev => ({ ...prev, personas: e.target.value }))}
  placeholder="Ej. 30"
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-white/20 bg-white text-stone-900 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all placeholder-stone-400"
  />
  </div>
  
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Fecha aproximada *</label>
+ <label className="text-xs font-black uppercase text-white tracking-wider">Fecha aproximada *</label>
  <input 
  type="date" 
  required
  value={eventForm.fecha}
  onChange={(e) => setEventForm(prev => ({ ...prev, fecha: e.target.value }))}
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
+ className="w-full p-4 rounded-xl border-2 border-white/20 bg-white text-stone-900 text-sm font-black focus:outline-none focus:ring-4 focus:ring-[#fbd127] transition-all"
  />
  </div>
  
  <div className="flex flex-col gap-2">
- <label className="text-xs font-black uppercase text-[#3b3b3b] ">Lugar / Localidad (Opcional)</label>
+ <label className="text-xs font-black uppercase text-white tracking-wider">Lugar / Localidad (Opcional)</label>
  <input 
  type="text" 
  value={eventForm.lugar}
  onChange={(e) => setEventForm(prev => ({ ...prev, lugar: e.target.value }))}
  placeholder="Ej: Quincho, Club, Domicilio..."
- className="w-full p-4 rounded-xl border-2 border-[#3b3b3b] bg-[#FFFDF9] text-sm font-bold focus:outline-none"
+ className="w-full p-4 rounded-xl border-2 border-white/20 bg-white text-stone-900 text-sm font-bold focus:outline-none placeholder-stone-400"
  />
  </div>
  
- <div className="flex justify-end gap-3 pt-4 border-t border-[#3b3b3b]/10">
+ <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
  <button 
  type="button" 
  onClick={() => {
  setShowEventModal(false);
  setEventForm({ personas: '', fecha: '', lugar: '' });
  }} 
- className="px-5 py-3 bg-[#e0e0e0] text-[#3b3b3b] border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(59,59,59,1)] active:translate-y-[1px] cursor-pointer"
+ className="px-5 py-3 bg-stone-700 hover:bg-stone-600 text-white border border-white/20 rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 cursor-pointer transition-colors"
  >
  Cancelar
  </button>
  <button 
  type="submit" 
- className="px-5 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_rgba(59,59,59,1)] active:translate-y-[1px] cursor-pointer"
+ className="px-5 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white border border-white/20 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg active:scale-95 cursor-pointer transition-all flex items-center gap-1.5"
  >
  Enviar a WhatsApp 🚀
  </button>
@@ -1084,25 +1084,25 @@ export default function RestaurantCover({
  {/* 8. BOOKING SUCCESS DIALOG */}
  <AnimatePresence>
  {showBookingSuccess && (
- <div className="fixed inset-0 z-50 bg-[#3b3b3b]/70 backdrop-blur-xs flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-[#121214]/85 backdrop-blur-md flex items-center justify-center p-4">
  <motion.div 
  initial={{ scale: 0.95, opacity: 0 }}
  animate={{ scale: 1, opacity: 1 }}
  exit={{ scale: 0.95, opacity: 0 }}
- className="bg-white p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-[8px_8px_0px_0px_rgba(59,59,59,1)] text-center space-y-5 border-4 border-[#3b3b3b]"
+ className="bg-[#181E2A] p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-5 border-2 border-white/20 text-white"
  >
- <div className="w-16 h-16 bg-[#fbd127] rounded-full flex items-center justify-center mx-auto border-2 border-[#3b3b3b] shadow-[2px_2px_0px_rgba(59,59,59,1)]">
+ <div className="w-16 h-16 bg-[#fbd127] rounded-full flex items-center justify-center mx-auto border-2 border-white/20 shadow-lg">
  <Utensils className="w-8 h-8 text-[#3b3b3b]" />
  </div>
  <div className="space-y-2">
- <h3 className="font-display text-3xl text-[#fc0000] uppercase leading-none">¡SOLICITUD ENVIADA!</h3>
- <p className="text-xs sm:text-sm text-[#3b3b3b] font-bold leading-relaxed italic">
- Abrimos la conversación de WhatsApp con tu solicitud de reserva pre-armada. Respondemos las solicitudes a la brevedad. ¡Gracias por elegirnos!
+ <h3 className="font-display text-3xl text-amber-400 uppercase leading-none">¡SOLICITUD ENVIADA!</h3>
+ <p className="text-xs sm:text-sm text-stone-200 font-bold leading-relaxed italic">
+ Abrimos la conversación de WhatsApp con tu solicitud pre-armada. Respondemos las solicitudes a la brevedad. ¡Gracias por elegirnos!
  </p>
  </div>
  <button 
  onClick={closeBookingSuccess}
- className="w-full py-4 bg-[#3b3b3b] hover:bg-[#fc0000] text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-[3px_3px_0px_rgba(0,0,0,0.2)] transition-all"
+ className="w-full py-4 bg-[#fbd127] hover:bg-[#ffe163] text-stone-900 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-lg transition-all"
  >
  ¡Entendido!
  </button>
