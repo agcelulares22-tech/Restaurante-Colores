@@ -734,7 +734,28 @@ function KitchenMonitor({
                         formattedPhone = '54' + formattedPhone;
                       }
                     }
-                    const clientName = p.nombre_cliente || 'Cliente';
+
+                    // Extract client name from p.nombre_cliente, numero_mesa (e.g., RETIRO: ANITA), or observaciones
+                    let rawName = p.nombre_cliente?.trim();
+                    if (!rawName) {
+                      const matchMesa = p.numero_mesa?.match(/(?:RETIRO|DELIVERY):\s*([^\s-]+(?:[ \t]+[^\s-]+)*)/i);
+                      if (matchMesa && matchMesa[1]) {
+                        rawName = matchMesa[1].trim();
+                      }
+                    }
+                    if (!rawName) {
+                      const matchObs = p.observaciones?.match(/(?:Cliente|Nombre):\s*([^\s|]+)/i);
+                      if (matchObs && matchObs[1]) {
+                        rawName = matchObs[1].trim();
+                      }
+                    }
+
+                    let clientName = 'Cliente';
+                    if (rawName) {
+                      const firstName = rawName.split(' ')[0];
+                      clientName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                    }
+
                     const msgText = isRetiro
                       ? `Hola *${clientName}*, tu pedido en *Colores Pizza* ya está listo para retirar! 🍕 ¡Te esperamos!`
                       : `Hola *${clientName}*, tu pedido en *Colores Pizza* ya está listo y va en camino! 🛵`;
