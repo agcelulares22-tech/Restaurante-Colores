@@ -31,18 +31,18 @@ const cacheUsuario = (usuario: Usuario) => {
 
 export const usuariosService = {
   async list(): Promise<Usuario[]> {
-    const local = readLocalUsers();
     try {
       const supabase = getActiveSupabaseClient();
       const { data, error } = await supabase.from('usuarios').select('*').order('id_usuario', { ascending: true });
       if (error) throw error;
-      const merged = mergeUsuarios(data || [], local);
-      writeLocalUsers(merged);
-      return merged;
+      if (data && data.length > 0) {
+        writeLocalUsers(data);
+        return data;
+      }
     } catch (error) {
       console.warn('No se pudieron leer usuarios remotos; usando copia local.', error);
-      return local;
     }
+    return readLocalUsers();
   },
 
   async getById(id: number): Promise<Usuario | null> {

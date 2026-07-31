@@ -11,7 +11,7 @@ import {
 import ElPatronLogo from './ElPatronLogo';
 import { Usuario } from '../types';
 import { INITIAL_USUARIOS } from '../data/initialData';
-import { canLogin, getLoginErrorMessage } from '../lib/loginAuth';
+import { canLogin, findLocalLoginUser, getLoginErrorMessage } from '../lib/loginAuth';
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import {
   findDemoLoginUser,
@@ -79,6 +79,32 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
     setIsLoggingIn(true);
 
     try {
+      const supabase = tryGetActiveSupabaseClient();
+
+      // 1. Direct Live Query against Supabase usuarios table
+      if (supabase) {
+        try {
+          const { data: dbUsers, error: dbErr } = await supabase
+            .from('usuarios')
+            .select('*')
+            .order('id_usuario', { ascending: true });
+
+          if (!dbErr && dbUsers && dbUsers.length > 0) {
+            const matchedUser = findLocalLoginUser(dbUsers as Usuario[], email, password);
+            if (matchedUser) {
+              if (!canLogin(matchedUser as Usuario)) {
+                setError('Este usuario está desactivado.');
+                return;
+              }
+              await completeLogin(matchedUser as Usuario);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Error al consultar usuarios en Supabase live:', err);
+        }
+      }
+
       const demoEnabled = isDemoLoginEnabled(getRuntimeEnv());
       const demoUser = findDemoLoginUser(getDemoUsers(), email, password, demoEnabled);
 
@@ -91,87 +117,13 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
         return;
       }
 
-      const supabase = tryGetActiveSupabaseClient();
       if (!supabase) {
-        setError(demoEnabled ? 'Usuario o contraseña incorrectos.' : 'Acceso demo desactivado. Iniciá con Supabase Auth.');
+        setError('No pudimos conectar con el servidor de base de datos.');
         return;
       }
 
-      let authData = null;
-      let authError = null;
-
-      try {
-        const res = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
-        });
-        authData = res.data;
-        authError = res.error;
-      } catch (err) {
-        authError = err;
-      }
-
-      if (authError || !authData?.user) {
-        // Fallback: Check public.usuarios table directly matching username (case insensitive) and password
-        const { data: dbUser } = await supabase
-          .from('usuarios')
-          .select('*')
-          .ilike('username', email.trim())
-          .eq('password', password)
-          .maybeSingle();
-
-        if (dbUser) {
-          if (!canLogin(dbUser as Usuario)) {
-            setError('Este usuario está desactivado.');
-            return;
-          }
-          await completeLogin(dbUser as Usuario);
-          return;
-        }
-
-        if (authError) throw authError;
-        setError('No pudimos validar la sesión. Intentá nuevamente.');
-        return;
-      }
-
-      let profile = null;
-      let profileError = null;
-
-      try {
-        const { data: profileById, error: errById } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id_usuario', authData.user.id)
-          .maybeSingle();
-
-        if (profileById) {
-          profile = profileById;
-        } else {
-          const { data: profileByEmail, error: errByEmail } = await supabase
-            .from('usuarios')
-            .select('*')
-            .ilike('username', authData.user.email || '')
-            .maybeSingle();
-          profile = profileByEmail;
-          profileError = errByEmail;
-        }
-      } catch (err) {
-        console.warn('Profile fetch error, using email fallback:', err);
-      }
-
-      if (profileError) throw profileError;
-
-      if (!profile) {
-        setError('Tu cuenta no tiene un perfil operativo asignado.');
-        return;
-      }
-
-      if (!canLogin(profile as Usuario)) {
-        setError('Este usuario está desactivado.');
-        return;
-      }
-
-      await completeLogin(profile as Usuario);
+      setError('Usuario o contraseña incorrectos.');
+      return;
     } catch (err: unknown) {
       setError(getLoginErrorMessage(err));
     } finally {
