@@ -40,9 +40,9 @@ export const reservaSchema = z.object({
 });
 
 export const promocionSchema = z.object({
-    nombre:               z.string().trim().min(2, 'Nombre de promoción requerido').max(100),
-    descuento_porcentaje: z.number().int().min(1, 'Mínimo 1%').max(100, 'Máximo 100%'),
-    tipo:                 z.enum(['happy_hour', 'combo', 'descuento_directo']),
+    nombre:               z.string().trim().max(100).optional(),
+    descuento_porcentaje: z.number().int().min(0, 'El descuento no puede ser negativo').max(100, 'Máximo 100%').optional(),
+    tipo:                 z.enum(['happy_hour', 'combo', 'descuento_directo']).optional(),
     vigencia:             z.string().max(100).optional(),
     descripcion:          z.string().max(300).optional(),
     fecha_vencimiento:    z.string().max(30).optional().nullable(),

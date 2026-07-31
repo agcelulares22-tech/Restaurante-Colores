@@ -147,9 +147,10 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
 
   // ── Validar con Zod ──────────────────────────────────────────────────────
   const validateForm = (): boolean => {
+    const descVal = descuento !== '' ? parseInt(descuento, 10) : 0;
     const result = promocionSchema.safeParse({
-      nombre,
-      descuento_porcentaje: parseInt(descuento, 10) || 0,
+      nombre: nombre.trim() || undefined,
+      descuento_porcentaje: isNaN(descVal) ? 0 : descVal,
       tipo,
       vigencia: vigencia || undefined,
       descripcion: desc || undefined,
@@ -187,10 +188,12 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       }
     }
 
+    const parsedDesc = descuento !== '' ? (parseInt(descuento, 10) || 0) : 0;
+
     const newPr: Promocion = {
       id_promo: `p_${Date.now()}`,
-      nombre: nombre.trim(),
-      descuento_porcentaje: parseInt(descuento, 10),
+      nombre: nombre.trim() || 'Promoción Especial',
+      descuento_porcentaje: parsedDesc,
       tipo,
       dias_vigentes: vigencia.trim() || 'Todos los días',
       activo: true,
@@ -206,7 +209,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
     try {
       await promocionesService.create(newPr);
       toast.success(`Promoción "${newPr.nombre}" creada y sincronizada.`);
-      addLog('sistema', `PROMOS: Nueva campaña "${newPr.nombre}" con ${newPr.descuento_porcentaje}% de descuento.`);
+      addLog('sistema', `PROMOS: Nueva campaña "${newPr.nombre}".`);
     } catch {
       setPromos(previous);
       toast.error('No se pudo crear la promoción. Se revirtió el cambio.');
@@ -219,7 +222,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
   const handleEditPromo = (p: Promocion) => {
     setEditingId(p.id_promo);
     setNombre(p.nombre);
-    setDescuento(String(p.descuento_porcentaje));
+    setDescuento(p.descuento_porcentaje ? String(p.descuento_porcentaje) : '');
     setTipo(p.tipo);
     setVigencia(p.dias_vigentes ?? '');
     setDesc(p.descripcion ?? '');
@@ -252,10 +255,12 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
       }
     }
 
+    const parsedDesc = descuento !== '' ? (parseInt(descuento, 10) || 0) : 0;
+
     const updated: Promocion = {
       id_promo: editingId,
-      nombre: nombre.trim(),
-      descuento_porcentaje: parseInt(descuento, 10),
+      nombre: nombre.trim() || 'Promoción',
+      descuento_porcentaje: parsedDesc,
       tipo,
       dias_vigentes: vigencia.trim() || 'Todos los días',
       activo: promos.find(p => p.id_promo === editingId)?.activo ?? true,
@@ -352,7 +357,7 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             )}
 
             <div>
-              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Nombre Promoción *</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Nombre Promoción</label>
               <input
                 type="text"
                 value={nombre}
@@ -363,10 +368,10 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Descuento % *</label>
+              <label className="text-[10px] font-black text-stone-700 dark:text-stone-300 uppercase block mb-1">Descuento %</label>
               <input
                 type="number"
-                min={1}
+                min={0}
                 max={100}
                 value={descuento}
                 onChange={e => setDescuento(e.target.value)}
@@ -527,9 +532,11 @@ export default function PromocionesModule({ addLog }: PromocionesModuleProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-stone-800 text-sm">{p.nombre}</span>
-                      <span className="bg-[#624A3E]/10 text-[#624A3E] font-black text-xs px-2 py-0.5 rounded-full">
-                        -{p.descuento_porcentaje}%
-                      </span>
+                      {p.descuento_porcentaje > 0 && (
+                        <span className="bg-[#624A3E]/10 text-[#624A3E] font-black text-xs px-2 py-0.5 rounded-full">
+                          -{p.descuento_porcentaje}%
+                        </span>
+                      )}
                     </div>
                     {p.descripcion && (
                       <p className="text-xs text-stone-750 dark:text-stone-300 mt-0.5 line-clamp-2">{p.descripcion}</p>
