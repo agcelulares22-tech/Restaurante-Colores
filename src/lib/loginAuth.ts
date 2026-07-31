@@ -8,9 +8,21 @@ export function normalizeLoginIdentifier(value: string): string {
 
 export function findLocalLoginUser(users: LoginUser[], identifier: string, password: string): LoginUser | null {
   const normalized = normalizeLoginIdentifier(identifier);
-  return users.find(user => (
-    normalizeLoginIdentifier(user.username) === normalized && user.password === password
-  )) ?? null;
+  return users.find(user => {
+    if (user.password !== password) return false;
+    const normUsername = normalizeLoginIdentifier(user.username);
+    const normName = normalizeLoginIdentifier(user.nombre);
+    const normFullName = normalizeLoginIdentifier(`${user.nombre}${user.apellido}`);
+    const normDotName = normalizeLoginIdentifier(`${user.nombre}.${user.apellido}`);
+
+    return (
+      normUsername === normalized ||
+      normName === normalized ||
+      normFullName === normalized ||
+      normDotName === normalized ||
+      normUsername.split('@')[0] === normalized
+    );
+  }) ?? null;
 }
 
 export function canLogin(user: Pick<Usuario, 'activo'> | null | undefined): boolean {
