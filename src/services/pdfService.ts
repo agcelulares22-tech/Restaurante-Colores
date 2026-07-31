@@ -528,273 +528,144 @@ export const pdfService = {
     const width = forceWidth || 80;
     const is58 = width === 58;
     const pageWidth = is58 ? 58 : 80;
-    const margin = is58 ? 3 : 5;
+    const margin = is58 ? 3 : 4;
     const centerCol = pageWidth / 2;
     const rightAlignCol = pageWidth - margin;
-    const descWidth = is58 ? 32 : 48;
-    const fontScale = is58 ? 0.85 : 1.0;
 
     const wrappedRows = data.items.map(item => ({
       item,
       lines: Math.max(1, Math.ceil(item.descripcion.length / (is58 ? 16 : 22)))
     }));
     
-    const compType = data.tipoComprobante as string;
+    const compType = (data.tipoComprobante || '') as string;
     const isFactura = compType === 'factura_a' || compType === 'factura_b' || compType === 'factura_c' || compType.includes('nota_credito');
-    const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * (is58 ? 3.4 : 4.2) + 8, 0);
-    const paymentsHeight = data.metodosPago.length * (is58 ? 4.0 : 5.0);
+    const itemsHeight = wrappedRows.reduce((sum, row) => sum + row.lines * (is58 ? 3.4 : 4.2) + 6, 0);
+    const paymentsHeight = ((data.metodosPago?.length || 0) + 3) * (is58 ? 4.0 : 4.5);
     
-    const baseHeight = isFactura ? (is58 ? 160 : 190) : (is58 ? 115 : 135);
+    const baseHeight = isFactura ? (is58 ? 150 : 175) : (is58 ? 110 : 130);
     const ticketHeight = Math.max(
-      is58 ? 150 : 180,
+      is58 ? 140 : 160,
       baseHeight + itemsHeight + paymentsHeight
     );
 
     const doc = new jsPDF('p', 'mm', [pageWidth, ticketHeight]);
-    let y = 6;
 
-    const center = (text: string, size = 8, bold = false) => {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      const lines = String(text).split('\n');
-      lines.forEach(lineText => {
-        doc.text(lineText, centerCol, y, { align: 'center' });
-        y += size * 0.45 + (is58 ? 0.9 : 1.2);
+    const formatMoneyVal = (val: number) => {
+      return Number(val || 0).toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
     };
 
-    const line = (offset = 0) => {
-      doc.setDrawColor(...BRAND.line);
-      doc.setLineWidth(0.15);
-      doc.line(margin, y + offset, rightAlignCol, y + offset);
-      y += 3;
-    };
-
-    // 1. Logo
-    if (logo) {
-      const logoSize = is58 ? 16 : 22;
-      const logoX = centerCol - (logoSize / 2);
-      addLogo(doc, logo, logoX, y, logoSize);
-      y += logoSize + 5;
-    } else {
-      y += 2;
-    }
-
-    // 2. Brand details
-    center(data.nombreComercial.toUpperCase(), 11 * fontScale, true);
-    center('SISTEMA DE GESTIÓN GASTRONÓMICA', 6.5 * fontScale, false);
-    y += 1.5;
-
-    doc.setTextColor(...BRAND.dark);
-    center(data.razonSocial, 7 * fontScale);
-    center(`CUIT ${data.cuit}`, 7 * fontScale);
-    center(data.direccion.slice(0, is58 ? 32 : 42), 6.5 * fontScale);
-    center(`Tel: ${data.telefono}`, 6.5 * fontScale);
-    y += 1.5;
-    line();
-
-    // 3. Document type / invoice header
-    if (isFactura) {
-      const isNC = compType.includes('nota_credito');
-      const letter = (compType === 'factura_a' || compType === 'nota_credito_a') ? 'A' : ((compType === 'factura_c' || compType === 'nota_credito_c') ? 'C' : 'B');
-      const codComprobante = (compType === 'factura_a' || compType === 'nota_credito_a')
-        ? (isNC ? 'COD. 003' : 'COD. 001')
-        : ((compType === 'factura_c' || compType === 'nota_credito_c')
-          ? (isNC ? 'COD. 013' : 'COD. 011')
-          : (isNC ? 'COD. 008' : 'COD. 006'));
-      
-      // Draw Letter Badge
-      const badgeSize = is58 ? 10 : 12;
-      const badgeX = rightAlignCol - badgeSize - (is58 ? 2 : 3);
-      doc.setFillColor(...BRAND.cream);
-      doc.rect(badgeX, y, badgeSize, badgeSize, 'F');
-      doc.setDrawColor(...BRAND.brown);
-      doc.setLineWidth(0.25);
-      doc.rect(badgeX, y, badgeSize, badgeSize, 'D');
-
-      doc.setTextColor(...BRAND.brown);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(is58 ? 10 : 12);
-      doc.text(letter, badgeX + (badgeSize / 2), y + (badgeSize * 0.58), { align: 'center' });
-      doc.setFontSize(is58 ? 4 : 5);
-      doc.text(codComprobante, badgeX + (badgeSize / 2), y + (badgeSize * 0.85), { align: 'center' });
-
-      // Left info
-      doc.setTextColor(...BRAND.dark);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8 * fontScale);
-      doc.text(`${isNC ? 'NOTA CRÉDITO' : 'FACTURA'} ${letter}`, margin, y + 3.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7 * fontScale);
-      doc.text(`Nº: ${data.nroComprobante}`, margin, y + 7.5);
-      doc.text(`Fecha: ${data.fechaHora}`, margin, y + 11.5);
-      y += 15;
-      line();
-
-      // Client info
-      const cliente = data.clienteNombre || 'Consumidor Final';
-      const clienteCuit = data.clienteCuit || (data.cuit.startsWith('99') ? 'Consumidor Final' : data.cuit);
-      const IVA_cond = compType === 'factura_a' ? 'IVA Responsable Inscripto' : 'IVA Consumidor Final';
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5 * fontScale);
-      doc.text('DATOS DEL CLIENTE', margin, y);
-      y += 3.8;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7 * fontScale);
-      doc.text(`Cliente: ${cliente.slice(0, is58 ? 24 : 36)}`, margin, y);
-      y += 3.5;
-      doc.text(`CUIT/DNI: ${clienteCuit}`, margin, y);
-      y += 3.5;
-      doc.text(IVA_cond, margin, y);
-      y += 4;
-      line();
-      
-      // Mesa / Mozo info
-      doc.setFontSize(7 * fontScale);
-      doc.setTextColor(...BRAND.muted);
-      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, margin, y);
-      doc.text(`Mozo: ${data.mozo.slice(0, is58 ? 10 : 16)}`, rightAlignCol, y, { align: 'right' });
-      y += 3.5;
-      doc.text(`Cajero: ${data.cajero.slice(0, is58 ? 10 : 16)}`, margin, y);
-      doc.text(`Pedido ID: PC-${data.idPedido}`, rightAlignCol, y, { align: 'right' });
-      y += 4.5;
-      line();
-
-    } else {
-      // Non-factura simple ticket header
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5 * fontScale);
-      doc.text(compType.includes('nota_credito') ? 'NOTA DE CRÉDITO' : 'TICKET DE CONSUMO', margin, y);
-      y += 4.5;
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7 * fontScale);
-      doc.setTextColor(...BRAND.muted);
-      doc.text(`Nº: ${data.nroComprobante || 'PREVENTA'}`, margin, y);
-      doc.text(`Fecha: ${data.fechaHora}`, rightAlignCol, y, { align: 'right' });
-      y += 4;
-      doc.text(`Mesa: ${data.mesa.toUpperCase()}`, margin, y);
-      doc.text(`Mozo: ${data.mozo.slice(0, is58 ? 10 : 16)}`, rightAlignCol, y, { align: 'right' });
-      y += 4;
-      doc.text(`Cajero: ${data.cajero.slice(0, is58 ? 10 : 16)}`, margin, y);
-      doc.text(`Pedido ID: PC-${data.idPedido}`, rightAlignCol, y, { align: 'right' });
-      y += 4.5;
-      line();
-    }
-
-    // 4. Table Header
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5 * fontScale);
-    doc.setTextColor(...BRAND.dark);
-    doc.text('Cant.  Producto', margin, y);
-    doc.text('Importe', rightAlignCol, y, { align: 'right' });
-    y += 3.5;
-    line(-1);
-
-    // 5. Items list
-    doc.setFont('helvetica', 'normal');
-    data.items.forEach((item) => {
-      const { descripcion, cantidad, subtotal } = item;
-      const unitPrice = itemUnit(item);
-      
-      // Draw product name
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5 * fontScale);
-      doc.setTextColor(...BRAND.dark);
-      
-      const lines = doc.splitTextToSize(descripcion, descWidth) as string[];
-      lines.forEach((text, index) => {
-        doc.text(text, margin, y + index * 3.8);
-      });
-      y += (lines.length - 1) * 3.8;
-
-      // Draw quantity and price details
-      y += 3.8;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.8 * fontScale);
-      doc.setTextColor(...BRAND.muted);
-      
-      const priceStr = `   ${cantidad} x ${money(unitPrice)}`;
-      doc.text(priceStr, margin, y);
-      
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5 * fontScale);
-      doc.setTextColor(...BRAND.dark);
-      doc.text(money(subtotal), rightAlignCol, y, { align: 'right' });
-      
-      y += 5;
-    });
-
-    y += 1;
-    line();
-
-    // 6. Totals
-    const sum = (label: string, value: string, bold = false) => {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(bold ? (8.5 * fontScale) : (7 * fontScale));
-      doc.setTextColor(bold ? BRAND.brown[0] : BRAND.dark[0], bold ? BRAND.brown[1] : BRAND.dark[1], bold ? BRAND.brown[2] : BRAND.dark[2]);
-      doc.text(label, margin, y);
-      doc.text(value, rightAlignCol, y, { align: 'right' });
-      y += bold ? 5.5 : 4.5;
-    };
-
-    sum('Subtotal Neto:', money(data.subtotal));
-    if (data.descuento > 0) sum('Bonificación:', `-${money(data.descuento)}`);
-    if (data.propina > 0) sum('Propina Sugerida:', money(data.propina));
-    sum('IVA 21% Incluido:', money(data.iva));
-
-    y += 1;
-    doc.setDrawColor(...BRAND.brown);
-    doc.setLineWidth(0.4);
-    doc.line(margin, y, rightAlignCol, y);
-    y += 4.5;
-    
-    sum('TOTAL GENERAL:', money(data.total), true);
-    
-    y += 1;
-    doc.setDrawColor(...BRAND.brown);
-    doc.setLineWidth(0.4);
-    doc.line(margin, y, rightAlignCol, y);
-    y += 5;
-
-    // 7. Payment Methods
-    doc.setTextColor(...BRAND.dark);
-    center('MEDIOS DE PAGO', 7 * fontScale, true);
-    y += 1;
-    
-    data.metodosPago.forEach(mp => {
-      sum(`  ${mp.metodo.toUpperCase()}:`, money(mp.monto));
-    });
-    if (data.vuelto > 0) {
-      sum('  Vuelto Efectivo:', money(data.vuelto));
-    }
-
-    y += 2;
-    line();
-
-    // 8. AFIP CAE + QR Code for Facturas
-    if (isFactura && qrImage) {
-      try {
-        const qrSize = is58 ? 16 : 20;
-        const qrX = centerCol - (qrSize / 2);
-        doc.addImage(qrImage, 'PNG', qrX, y, qrSize, qrSize);
-        y += qrSize + 2;
-        
-        doc.setTextColor(...BRAND.muted);
-        doc.setFontSize(7 * fontScale);
-        doc.setFont('helvetica', 'normal');
-        center(`CAE Nro: ${data.cae || '732049182390'}`, 6.5 * fontScale);
-        center(`Vto CAE: ${data.vto || '15/12/2026'}`, 6.5 * fontScale);
-        center('Comprobante autorizado por AFIP / ARCA', 5.8 * fontScale);
-        y += 1;
-      } catch (err) {
-        console.warn('Error al insertar QR en ticket térmico:', err);
+    const renderSingleCopy = (copyIndex: number) => {
+      if (copyIndex > 0) {
+        doc.addPage([pageWidth, ticketHeight], 'p');
       }
-    }
+      let y = 6;
 
-    center(data.mensajePie || 'Gracias por su visita.', 7 * fontScale);
-    center('Conserve este comprobante', 6.2 * fontScale);
+      const centerText = (text: string, size = 8.5, bold = false) => {
+        doc.setFont('courier', bold ? 'bold' : 'normal');
+        doc.setFontSize(size);
+        doc.setTextColor(20, 20, 20);
+        const lines = String(text).split('\n');
+        lines.forEach(lineText => {
+          doc.text(lineText, centerCol, y, { align: 'center' });
+          y += size * 0.4 + 1.2;
+        });
+      };
+
+      const lineDivider = (char = '-') => {
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(80, 80, 80);
+        const lineStr = char.repeat(is58 ? 32 : 42);
+        doc.text(lineStr, centerCol, y, { align: 'center' });
+        y += 3.5;
+      };
+
+      const rowTwoCols = (left: string, right: string, bold = false, size = 8) => {
+        doc.setFont('courier', bold ? 'bold' : 'normal');
+        doc.setFontSize(size);
+        doc.setTextColor(20, 20, 20);
+        doc.text(left, margin, y);
+        doc.text(right, rightAlignCol, y, { align: 'right' });
+        y += size * 0.45 + 1.2;
+      };
+
+      // 1. Header (Nombre, Dirección, Título)
+      centerText(data.nombreComercial || 'Colores Pizza', 11, true);
+      centerText('Alvear 1362', 8.5, false);
+
+      const rawMesa = data.mesa || 'Consumo';
+      const formattedMesa = rawMesa.toUpperCase().includes('TICKET')
+        ? rawMesa
+        : `Ticket (${rawMesa})`;
+      centerText(formattedMesa, 9.5, true);
+      y += 1;
+      lineDivider('-');
+
+      // 2. Metadata Block (Comanda, Fecha, Comensales, Camarero)
+      rowTwoCols('Comanda', String(data.idPedido || data.nroComprobante || ''));
+      rowTwoCols('Fecha', data.fechaHora || '');
+      rowTwoCols('Comensales', String(data.comensales || 1));
+      rowTwoCols('Camarero', data.mozo || 'Agustín Gilardi');
+      lineDivider('-');
+
+      // 3. Table Headers (Cant Producto Total)
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Cant', margin, y);
+      doc.text('Producto', margin + 7, y);
+      doc.text('Total', rightAlignCol, y, { align: 'right' });
+      y += 4;
+      lineDivider('-');
+
+      // 4. Item Rows
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(8);
+      data.items.forEach(it => {
+        const qtyStr = String(it.cantidad);
+        const subtotalStr = formatMoneyVal(it.subtotal);
+        const desc = it.descripcion;
+
+        doc.text(qtyStr, margin, y);
+
+        const descMaxWidth = rightAlignCol - margin - 26;
+        const descLines = doc.splitTextToSize(desc, descMaxWidth) as string[];
+        descLines.forEach((dLine, idx) => {
+          doc.text(dLine, margin + 7, y + (idx * 3.5));
+        });
+
+        doc.text(subtotalStr, rightAlignCol, y, { align: 'right' });
+        y += Math.max(1, descLines.length) * 3.5 + 1.5;
+      });
+
+      lineDivider('-');
+
+      // 5. Total General Mesa
+      rowTwoCols('Total General Mesa', formatMoneyVal(data.total), true, 9);
+      y += 1;
+
+      // 6. Payment Methods & Change
+      if (data.metodosPago && data.metodosPago.length > 0) {
+        data.metodosPago.forEach(mp => {
+          rowTwoCols(mp.metodo.toUpperCase(), formatMoneyVal(mp.monto), false, 8);
+        });
+        const totalPagos = data.metodosPago.reduce((s, mp) => s + mp.monto, 0);
+        rowTwoCols('Total Pagos', formatMoneyVal(totalPagos), true, 8.5);
+        rowTwoCols('Cambio', formatMoneyVal(data.vuelto || 0), false, 8);
+        lineDivider('-');
+      }
+
+      // 7. Footer
+      y += 1;
+      centerText('¡Gracias por su preferencia!', 8.5, true);
+    };
+
+    // Render DOUBLE COPY (2 COPIES for thermal printer)
+    renderSingleCopy(0); // Copy 1
+    renderSingleCopy(1); // Copy 2
 
     return doc;
   },

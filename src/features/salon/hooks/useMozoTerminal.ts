@@ -663,7 +663,8 @@ export function useMozoTerminal({
         total: total,
         metodosPago: [],
         vuelto: 0,
-        mensajePie: rInfo.mensajePie || 'Gracias por elegir Colores Pizza! Pre-comprobante generado por Terminal Mozo.'
+        mensajePie: rInfo.mensajePie || '¡Gracias por su preferencia!',
+        comensales: selectedMesa?.comensales || 1
       };
 
       await pdfService.exportToPDF(ticketData);

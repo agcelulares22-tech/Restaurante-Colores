@@ -276,6 +276,7 @@ export interface TicketData {
     puntosCanjeados?: number;
     puntosGanados?: number;
     descuentoFidelidad?: number;
+    comensales?: number;
 }
 
 /** Factura persistida en BD */

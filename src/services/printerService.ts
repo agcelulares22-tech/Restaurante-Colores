@@ -11,11 +11,11 @@ export const printerService = {
       }
     }
     return {
-      printerName: 'Epson TM-T20 Thermal',
+      printerName: 'SAM4S GIANT-100S Thermal 80mm',
       paperWidth: '80mm',
       autoCut: true,
       openDrawer: true,
-      copies: 1
+      copies: 2
     };
   },
 
