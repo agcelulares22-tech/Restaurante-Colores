@@ -36,7 +36,11 @@ import {
 } from '../supabase';
 import { createClientPedidoId } from '../lib/pedidoIds';
 
-function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
+function isSameTable(p1: { id_pedido?: string; id_mesa?: any; numero_mesa?: string }, p2: { id_pedido?: string; id_mesa?: any; numero_mesa?: string }): boolean {
+  if (p1.id_pedido && p2.id_pedido && String(p1.id_pedido) === String(p2.id_pedido)) {
+    return true;
+  }
+
   const isP1NonTable = p1.id_mesa === 999 || p1.id_mesa === 998 || String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(p1.numero_mesa || '').toUpperCase().startsWith('RETIRO');
   const isP2NonTable = p2.id_mesa === 999 || p2.id_mesa === 998 || String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(p2.numero_mesa || '').toUpperCase().startsWith('RETIRO');
   
