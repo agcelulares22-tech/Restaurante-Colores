@@ -237,16 +237,17 @@ export default function RestaurantCover({
  }
  }
 
- const cartItems = Object.entries(menuCart).map(([id, qty]) => {
- const p = productosMenu.find(prod => prod.id_producto === id);
- return {
- id_producto: id,
- nombre: p?.nombre || 'Producto',
- cantidad: qty,
- categoria: p?.categoria || 'Pizzas',
- precio_unitario: p?.precio_venta || 0
- };
- });
+  const cartItems = Object.entries(menuCart).map(([id, qty]) => {
+  const p = productosMenu.find(prod => prod.id_producto === id);
+  const promo = unifiedPromos.find(pr => pr.id === id);
+  return {
+  id_producto: id,
+  nombre: p?.nombre || promo?.nombre || 'Promoción Especial',
+  cantidad: qty,
+  categoria: p?.categoria || 'Promociones',
+  precio_unitario: p?.precio_venta || (promo?.descuentoTexto ? (parseInt(promo.descuentoTexto.replace(/\D/g, ''), 10) || 0) : 0)
+  };
+  });
 
  const total = cartItems.reduce((sum, it) => sum + it.precio_unitario * it.cantidad, 0);
  const orderId = `PED_ON_${Date.now()}`;
@@ -1143,10 +1144,11 @@ export default function RestaurantCover({
  <div className="flex-1 overflow-y-auto py-6 space-y-6 pr-1 flex flex-col min-h-0">
  {/* Category Tabs */}
  <div className="flex gap-2 overflow-x-auto pb-3 shrink-0 scrollbar-none border-b border-stone-900">
- {Array.from(
+ {['Promociones', ...Array.from(
  new Set((productosMenu || []).filter(p => p.activo !== false).map(p => p.categoria))
- ).filter(Boolean).map(cat => {
- const isActive = menuActiveCategory === cat || (menuActiveCategory === '' && cat === 'Pizzas');
+ ).filter(Boolean).filter(c => c !== 'Promociones')].map(cat => {
+ const currentCat = menuActiveCategory || 'Promociones';
+ const isActive = currentCat === cat;
  return (
  <button
  key={cat}
@@ -1158,7 +1160,7 @@ export default function RestaurantCover({
  : 'bg-[#1C1C1E] text-stone-400 border border-stone-850 hover:text-stone-200'
  }`}
  >
- {cat}
+ {cat === 'Promociones' ? '🔥 PROMOCIONES' : cat}
  </button>
  );
  })}
@@ -1167,10 +1169,86 @@ export default function RestaurantCover({
  {/* Products Grid */}
  <div className="flex-1 overflow-y-auto pr-1">
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
- {(productosMenu || [])
+ {(() => {
+ const currentCat = menuActiveCategory || 'Promociones';
+
+ if (currentCat === 'Promociones') {
+ if (unifiedPromos.length === 0) {
+ return (
+ <div className="col-span-full py-12 text-center text-stone-400">
+ <p className="text-sm font-bold">No hay promociones activas en este momento.</p>
+ </div>
+ );
+ }
+ return unifiedPromos.map((pr) => {
+ const qty = menuCart[pr.id] || 0;
+ return (
+ <div 
+ key={pr.id}
+ className="bg-[#1C1C1E] border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-400 transition-all duration-300 shadow-md group"
+ >
+ <div className="flex gap-4">
+ {pr.imagen && (
+ <img 
+ src={pr.imagen} 
+ alt={pr.nombre} 
+ className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-stone-800 shrink-0 group-hover:scale-105 transition-transform duration-300" 
+ />
+ )}
+ <div className="flex-1 min-w-0">
+ <div className="flex justify-between items-start gap-2">
+ <h5 className="font-extrabold text-base sm:text-lg text-stone-100 group-hover:text-amber-400 transition-colors leading-tight">{pr.nombre}</h5>
+ <span className="bg-red-600/90 text-white font-mono text-xs font-black px-2 py-1 rounded-lg shrink-0">
+ {pr.descuentoTexto}
+ </span>
+ </div>
+ <p className="text-xs sm:text-sm text-stone-300 mt-1.5 leading-relaxed line-clamp-4">
+ {pr.descripcion || 'Promoción especial disponible para pedir por WhatsApp.'}
+ </p>
+ </div>
+ </div>
+
+ <div className="flex justify-between items-center mt-4 pt-3 border-t border-stone-900">
+ <span className="text-[10px] font-bold text-amber-450 uppercase tracking-wider flex items-center gap-1">
+ 🏷️ {pr.badge || 'PROMO'}
+ </span>
+
+ {qty > 0 ? (
+ <div className="flex items-center bg-[#121214] rounded-xl p-0.5 border border-stone-850">
+ <button 
+ type="button"
+ onClick={() => handleRemoveFromCart(pr.id)}
+ className="w-8 h-8 flex items-center justify-center font-bold text-base bg-[#1C1C1E] hover:bg-stone-850 border border-stone-800 rounded-lg active:scale-90 text-stone-300 cursor-pointer"
+ >
+ -
+ </button>
+ <span className="px-3 font-mono font-bold text-sm text-stone-100">{qty}</span>
+ <button 
+ type="button"
+ onClick={() => handleAddToCart(pr.id)}
+ className="w-8 h-8 flex items-center justify-center font-bold text-base bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg active:scale-90 cursor-pointer"
+ >
+ +
+ </button>
+ </div>
+ ) : (
+ <button 
+ type="button"
+ onClick={() => handleAddToCart(pr.id)}
+ className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-md"
+ >
+ Agregar Promo
+ </button>
+ )}
+ </div>
+ </div>
+ );
+ });
+ }
+
+ return (productosMenu || [])
  .filter(p => {
  if (p.activo === false) return false;
- const currentCat = menuActiveCategory || 'Pizzas';
  return p.categoria === currentCat;
  })
  .map((p) => {
@@ -1236,7 +1314,7 @@ export default function RestaurantCover({
  </div>
  </div>
  );
- })}
+ })})()}
  </div>
  </div>
  </div>
