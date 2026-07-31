@@ -20,7 +20,7 @@ export default defineConfig(() => {
       manifest: {
         name: 'Colores Pizza - Gestión Gastronómica',
         short_name: 'Colores Pizza',
-        description: 'Sistema integral de gestión gastronómica para Colores Pizzería',
+        description: 'Sistema integral de gestión gastronómica para Colores Pizza',
         theme_color: '#3b3b3b',
         background_color: '#3b3b3b',
         display: 'standalone',

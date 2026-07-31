@@ -736,8 +736,8 @@ function KitchenMonitor({
                     }
                     const clientName = p.nombre_cliente || 'Cliente';
                     const msgText = isRetiro
-                      ? `Hola *${clientName}*, tu pedido en *Pizzería Colores* ya está listo para retirar! 🍕 ¡Te esperamos!`
-                      : `Hola *${clientName}*, tu pedido en *Pizzería Colores* ya está listo y va en camino! 🛵`;
+                      ? `Hola *${clientName}*, tu pedido en *Colores Pizza* ya está listo para retirar! 🍕 ¡Te esperamos!`
+                      : `Hola *${clientName}*, tu pedido en *Colores Pizza* ya está listo y va en camino! 🛵`;
                     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msgText)}`;
                     window.open(url, '_blank');
                   }}

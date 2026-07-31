@@ -248,7 +248,7 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
 
   const handleResetDefaults = () => {
     if (typeof window === 'undefined') return;
-    if (confirm('¿Restablecer credenciales al servidor institucional por defecto de Pizzería Colores?')) {
+    if (confirm('¿Restablecer credenciales al servidor institucional por defecto de Colores Pizza?')) {
       window.localStorage.removeItem('colores_pizzeria_supabase_url');
       window.localStorage.removeItem('colores_pizzeria_supabase_anon_key');
       setCustomUrl('');

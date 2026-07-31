@@ -221,7 +221,7 @@ function InventoryModule({
       itemText += `• *${item.nombre}*: ${item.neededQty} ${item.unidad_medida}\n`;
     });
 
-    const msg = `Hola *${group.supplierInfo?.contacto || group.supplierName}*, te escribo de *Pizzería Colores* para realizar el siguiente pedido:\n\n${itemText}\nTotal estimado: *$${group.totalCost.toLocaleString('es-AR')}*\n\nPor favor, confirmar disponibilidad y fecha de entrega. ¡Muchas gracias!`;
+    const msg = `Hola *${group.supplierInfo?.contacto || group.supplierName}*, te escribo de *Colores Pizza* para realizar el siguiente pedido:\n\n${itemText}\nTotal estimado: *$${group.totalCost.toLocaleString('es-AR')}*\n\nPor favor, confirmar disponibilidad y fecha de entrega. ¡Muchas gracias!`;
     
     const url = `https://wa.me/${cleanPhone || '5491100000000'}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
@@ -238,8 +238,8 @@ function InventoryModule({
       itemText += `- ${item.nombre}: ${item.neededQty} ${item.unidad_medida} (Costo unitario est.: $${item.costo_unitario})\n`;
     });
 
-    const subject = `Solicitud de Compra - Pizzería Colores`;
-    const body = `Hola ${group.supplierInfo?.contacto || group.supplierName},\n\nLe escribimos de Pizzería Colores para realizar el siguiente pedido de mercadería:\n\n${itemText}\nTotal estimado: $${group.totalCost.toLocaleString('es-AR')}\n\nPor favor, confirme la recepción de este pedido y el tiempo estimado de entrega.\n\nAtentamente,\nPizzería Colores`;
+    const subject = `Solicitud de Compra - Colores Pizza`;
+    const body = `Hola ${group.supplierInfo?.contacto || group.supplierName},\n\nLe escribimos de Colores Pizza para realizar el siguiente pedido de mercadería:\n\n${itemText}\nTotal estimado: $${group.totalCost.toLocaleString('es-AR')}\n\nPor favor, confirme la recepción de este pedido y el tiempo estimado de entrega.\n\nAtentamente,\nColores Pizza`;
     
     const url = `mailto:${email || 'proveedor@correo.com'}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(url, '_blank');
@@ -315,7 +315,7 @@ function InventoryModule({
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
-      doc.text("PIZZERÍA COLORES", 15, 22);
+      doc.text("Colores Pizza", 15, 22);
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -374,7 +374,7 @@ function InventoryModule({
 
       doc.setFontSize(8);
       doc.setTextColor(120, 113, 108);
-      doc.text("Este documento sirve como remito de solicitud de cotización interna de Pizzería Colores.", 15, 280);
+      doc.text("Este documento sirve como remito de solicitud de cotización interna de Colores Pizza.", 15, 280);
 
       doc.save(`Cotizacion_Pizzeria_Colores_${group.supplierName.replace(/\s+/g, '_')}.pdf`);
       toast.success("Solicitud de cotización exportada a PDF correctamente.");
@@ -417,7 +417,7 @@ function InventoryModule({
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
-      doc.text("PIZZERÍA COLORES", 15, 22);
+      doc.text("Colores Pizza", 15, 22);
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -491,7 +491,7 @@ function InventoryModule({
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(120, 113, 108);
-      doc.text("Este documento sirve como remito de solicitud de cotización interna de Pizzería Colores.", 15, 280);
+      doc.text("Este documento sirve como remito de solicitud de cotización interna de Colores Pizza.", 15, 280);
 
       doc.save(`Orden_Compra_Pizzeria_Colores_${ocId}.pdf`);
       toast.success("Orden de Compra exportada a PDF correctamente.");

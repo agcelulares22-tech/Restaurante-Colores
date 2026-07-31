@@ -198,14 +198,14 @@ export default function ProveedoresModule({ addLog }: ProveedoresModuleProps) {
 
     const draft = `Estimado/a ${prov.contacto} de ${prov.nombre}:
 
-Solicitamos cotización y plazo de entrega para el reabastecimiento de los siguientes insumos en la pizzería "Pizzería Colores":
+Solicitamos cotización y plazo de entrega para el reabastecimiento de los siguientes insumos en la pizzería "Colores Pizza":
 
 ${itemsText}
 
 Quedamos a la espera de su confirmación para proceder con la orden de compra.
 
 Atentamente,
-Administración de "Pizzería Colores"`;
+Administración de "Colores Pizza"`;
 
     setRequisitionText(draft);
     setRequisitionModalProv(prov);

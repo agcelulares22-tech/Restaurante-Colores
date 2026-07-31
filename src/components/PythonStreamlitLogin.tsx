@@ -333,7 +333,7 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
       )}
 
       <div className="absolute bottom-4 left-0 right-0 text-center text-[10px] text-zinc-600">
-        Colores Pizzería • Terminal POS Autorizada
+        Colores Pizza • Terminal POS Autorizada
       </div>
     </div>
   );

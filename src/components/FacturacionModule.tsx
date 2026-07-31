@@ -560,13 +560,13 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       }];
 
     let rInfo = {
-      nombreComercial: 'Pizzería Colores',
-      razonSocial: 'Pizzería Colores S.A.S.',
+      nombreComercial: 'Colores Pizza',
+      razonSocial: 'Colores Pizza S.A.S.',
       cuit: '30-71649251-4',
       direccion: 'Alvear 1362, X5800 Río Cuarto, Córdoba',
       telefono: '+54 358 4123456',
       email: 'contacto@pizzeriacolores.com.ar',
-      mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.'
+      mensajePie: '¡Gracias por elegir Colores Pizza! El verdadero sabor italiano.'
     };
     try {
       const saved = localStorage.getItem('colores_pizzeria_restaurante_info');
@@ -598,7 +598,7 @@ function FacturacionModule({ pedidos, productosMenu, addLog }: FacturacionModule
       total: factura.total,
       metodosPago: [{ metodo: medioLabel(factura.medio_pago), monto: factura.total }],
       vuelto: 0,
-      mensajePie: rInfo.mensajePie || 'Gracias por su visita. Comprobante generado por Pizzería Colores.',
+      mensajePie: rInfo.mensajePie || 'Gracias por su visita. Comprobante generado por Colores Pizza.',
       clienteNombre: factura.cliente,
       clienteCuit: factura.cuit,
       cae: factura.afip_cae,

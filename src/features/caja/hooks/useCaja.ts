@@ -133,15 +133,15 @@ export function useCaja({
       } catch (e) {}
     }
     return {
-      nombreComercial: 'Pizzería Colores',
-      razonSocial: 'Pizzería Colores S.A.S.',
+      nombreComercial: 'Colores Pizza',
+      razonSocial: 'Colores Pizza S.A.S.',
       cuit: '30-71649251-4',
       direccion: 'Alvear 1362, X5800 Río Cuarto, Córdoba',
       telefono: '+54 358 4123456',
       email: 'contacto@pizzeriacolores.com.ar',
       inicioActividades: '15/04/2022',
       condicionIva: 'Responsable Inscripto',
-      mensajePie: '¡Gracias por elegir Pizzería Colores! El verdadero sabor italiano.',
+      mensajePie: '¡Gracias por elegir Colores Pizza! El verdadero sabor italiano.',
       moneda: 'ARS'
     };
   });
@@ -737,7 +737,7 @@ export function useCaja({
     addLog('sistema', `CAJA: Turno fiscal cerrado por ${finalShift.usuario_cajero}. Arqueo Real: $${finalShift.monto_real?.toLocaleString('es-AR')}. Diferencia: ARS $${finalShift.diferencia?.toLocaleString('es-AR')}`);
 
     const csvRows = [
-      ['PIZZERIA COLORES - REPORTE DE BALANCE DIARIO'],
+      ['Colores Pizza - REPORTE DE BALANCE DIARIO'],
       ['Cajero Responsable', finalShift.usuario_cajero],
       ['Apertura', finalShift.fecha_apertura],
       ['Cierre de Turno', finalShift.fecha_cierre || 'N/A'],

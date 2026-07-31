@@ -660,7 +660,7 @@ function DeliveryModule({
           });
           L.marker([origenLat, origenLng], { icon: pizzeriaIcon })
             .addTo(trackingMapRef.current)
-            .bindPopup('Pizzería Colores (Origen)');
+            .bindPopup('Colores Pizza (Origen)');
 
           let destLat = origenLat;
           let destLng = origenLng;
@@ -1071,7 +1071,7 @@ function DeliveryModule({
     }
     
     const trackingLink = `https://colores.menu/track/${pedido.id_pedido}`;
-    const msg = `Hola *${clientNameVal}*! Tu pedido de *Colores Pizzería* está listo y el cadete ya salió hacia tu domicilio: *${clientAddressVal}*. Podés seguir el recorrido en tiempo real acá: ${trackingLink} ¡Gracias por elegirnos!`;
+    const msg = `Hola *${clientNameVal}*! Tu pedido de *Colores Pizza* está listo y el cadete ya salió hacia tu domicilio: *${clientAddressVal}*. Podés seguir el recorrido en tiempo real acá: ${trackingLink} ¡Gracias por elegirnos!`;
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   };
@@ -1081,14 +1081,14 @@ function DeliveryModule({
       const printerConfig = printerService.getDefaultConfig();
       const savedRestaurant = localStorage.getItem('colores_pizzeria_restaurante');
       const restaurante = savedRestaurant ? JSON.parse(savedRestaurant) : {
-        nombreComercial: 'Pizzería Colores',
-        razonSocial: 'Pizzería Colores S.A.S.',
+        nombreComercial: 'Colores Pizza',
+        razonSocial: 'Colores Pizza S.A.S.',
         cuit: '30-71649251-4',
         direccion: 'Alvear 1362, Río Cuarto',
         telefono: '+54 358 4123456',
         email: 'contacto@pizzeriacolores.com.ar',
         condicionIva: 'Responsable Inscripto',
-        mensajePie: '¡Gracias por elegir Pizzería Colores!'
+        mensajePie: '¡Gracias por elegir Colores Pizza!'
       };
 
       const clientParsed = parseClientInfo(pedido.numero_mesa);

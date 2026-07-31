@@ -1488,7 +1488,7 @@ function CajaModule({
                 {/* FIDELIZACION Y CLUB EL PATRON */}
                 <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-2">
                   <h4 className="text-[10px] font-black text-stone-850 uppercase tracking-widest flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-amber-700" /> Fidelización de Clientes (Club Pizzería Colores)
+                    <Users className="w-3.5 h-3.5 text-amber-700" /> Fidelización de Clientes (Club Colores Pizza)
                   </h4>
                   
                   <div className="flex gap-2">
@@ -2385,7 +2385,7 @@ function CajaModule({
                 </div>
 
                 <div className="mt-3 text-[10px] text-zinc-400 max-w-xs text-center font-bold">
-                  ✓ Pizzería Colores POS emitirá este ticket y enviará el string compilado en bytes ESC/POS.
+                  ✓ Colores Pizza POS emitirá este ticket y enviará el string compilado en bytes ESC/POS.
                 </div>
               </div>
 
@@ -2396,7 +2396,7 @@ function CajaModule({
                 <Receipt className="w-10 h-10" />
               </div>
               <h3 className="font-black text-slate-800 dark:text-white text-lg uppercase tracking-tight transition-colors duration-300">
-                Terminal de Cobro Pizzería Colores Pro
+                Terminal de Cobro Colores Pizza Pro
               </h3>
               <p className="text-slate-500 dark:text-zinc-400 text-xs mt-2 max-w-md leading-relaxed font-semibold transition-colors duration-300">
                 Seleccione una mesa ocupada desde la lista lateral. Se iniciará el panel interactivo de check-out, permitiéndole coordinar pagos mixtos, aplicar deducciones manuales, configurar datos de CUIT, fraccionar saldos por comensales u artículos indivisos, y emitir comprobantes en PDF y thermal roll.
@@ -2965,7 +2965,7 @@ function CajaModule({
               </div>
               <div>
                 <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Voucher de Recompensa</h3>
-                <p className="text-[11px] text-zinc-400 font-medium font-bold text-[#E8B800]">Club Pizzería Colores</p>
+                <p className="text-[11px] text-zinc-400 font-medium font-bold text-[#E8B800]">Club Colores Pizza</p>
               </div>
             </div>
 

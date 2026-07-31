@@ -81,7 +81,7 @@ function BusinessIntelligence({
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
       doc.setTextColor(255, 255, 255);
-      doc.text('PIZZERÍA COLORES', 15, 11);
+      doc.text('Colores Pizza', 15, 11);
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);

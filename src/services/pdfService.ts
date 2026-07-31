@@ -132,7 +132,7 @@ export const pdfService = {
       } catch (e) {}
     }
 
-    // For Pizzería Colores, they want ONLY thermal tickets for their tiketera
+    // For Colores Pizza, they want ONLY thermal tickets for their tiketera
     return this.generateThermalTicket(data, logo, qrImage, width);
   },
 
@@ -806,7 +806,7 @@ export const pdfService = {
 
     const isReporteX = !data.fecha_cierre || data.fecha_cierre.toLowerCase().includes('curso');
 
-    let nombreFantasia = 'Pizzería Colores';
+    let nombreFantasia = 'Colores Pizza';
     let direccion = 'Alvear 1362, X5800 Río Cuarto, Córdoba';
     let telefono = '+54 358 4123456';
     let email = 'contacto@pizzeriacolores.com.ar';
@@ -1237,7 +1237,7 @@ export const pdfService = {
     
     doc.setTextColor(98, 74, 62);
     y += 4;
-    center('PIZZERÍA COLORES', 9, true);
+    center('Colores Pizza', 9, true);
     center(`COMANDA DE ${tipo.toUpperCase()}`, 7.5, false);
     y += 6;
 

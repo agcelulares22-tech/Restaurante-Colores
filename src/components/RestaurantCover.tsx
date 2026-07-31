@@ -97,7 +97,7 @@ export default function RestaurantCover({
         descuentoTexto: p.descuento_porcentaje ? `${p.descuento_porcentaje}% OFF` : 'PROMO',
         diasVigentes: p.dias_vigentes || 'Todos los días',
         esBotonPedir: true,
-        whatsappText: `¡Hola Pizzería Colores! Me gustaría solicitar la promoción especial:\n• ${p.nombre}${p.descuento_porcentaje ? ` (-${p.descuento_porcentaje}% OFF)` : ''}\n• Detalle: ${p.descripcion || ''}\n\n¡Muchas gracias!`
+        whatsappText: `¡Hola Colores Pizza! Me gustaría solicitar la promoción especial:\n• ${p.nombre}${p.descuento_porcentaje ? ` (-${p.descuento_porcentaje}% OFF)` : ''}\n• Detalle: ${p.descripcion || ''}\n\n¡Muchas gracias!`
       });
     });
 
@@ -114,8 +114,8 @@ export default function RestaurantCover({
  const parts = bookingForm.fecha.split('-');
  const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : bookingForm.fecha;
 
- const cleanPhone = '5493584024822'; // Colores Pizzería WhatsApp line
- const text = `¡Hola Colores Pizzería! Me gustaría solicitar una reserva:\n\n` +
+ const cleanPhone = '5493584024822'; // Colores Pizza WhatsApp line
+ const text = `¡Hola Colores Pizza! Me gustaría solicitar una reserva:\n\n` +
  `• Nombre: ${bookingForm.nombre}\n` +
  `• Teléfono: ${bookingForm.telefono}\n` +
  `• Comensales: ${bookingForm.personas} ${parseInt(bookingForm.personas) === 1 ? 'persona' : 'personas'}\n` +
@@ -290,7 +290,7 @@ export default function RestaurantCover({
  `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
  }
 
- const msg = `🍕 *NUEVO PEDIDO - PIZZERÍA COLORES* 🍕\n` +
+ const msg = `🍕 *NUEVO PEDIDO - Colores Pizza* 🍕\n` +
  `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
  `📋 *Pedido N°:* #${orderId}\n` +
  `👤 *Cliente:* ${menuForm.nombre}\n` +
@@ -336,8 +336,8 @@ export default function RestaurantCover({
  const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : eventForm.fecha;
  const lugarText = eventForm.lugar.trim() || 'No especificado';
 
- const cleanPhone = '5493584024822'; // Colores Pizzería WhatsApp line
- const text = `¡Hola Pizzería Colores! Me gustaría cotizar un evento. Datos:\n\n` +
+ const cleanPhone = '5493584024822'; // Colores Pizza WhatsApp line
+ const text = `¡Hola Colores Pizza! Me gustaría cotizar un evento. Datos:\n\n` +
  `• Cantidad de personas: ${eventForm.personas}\n` +
  `• Fecha aproximada: ${formattedDate}\n` +
  `• Lugar/Localidad: ${lugarText}\n\n` +
@@ -672,7 +672,7 @@ export default function RestaurantCover({
  </div>
  <a
  href={`https://wa.me/5493584024822?text=${encodeURIComponent(
- `¡Hola Pizzería Colores! Armé una pizza personalizada en el simulador:\n` +
+ `¡Hola Colores Pizza! Armé una pizza personalizada en el simulador:\n` +
  `• Tamaño: Pizza ${pizzaSize === 'individual' ? 'Chica/Individual (4 porciones)' : 'Familiar/Grande (8 porciones)'}\n` +
  `• Toppings: ${selectedToppings.length > 0 ? selectedToppings.map(tid => TOPPINGS.find(t => t.id === tid)?.name).join(', ') : 'Solo Queso Muzzarella'}\n` +
  `• Total: $${customPizzaPrice.toLocaleString('es-AR')}\n\n` +
@@ -759,7 +759,7 @@ export default function RestaurantCover({
  El Secreto Está en el Horno
  </h2>
  <p className="text-[#3b3b3b] text-sm sm:text-base font-bold leading-relaxed">
- En Colores Pizzería no hacemos milagros, hacemos tradición. Calentamos nuestro horno a más de 400°C usando únicamente leña de espinillo seleccionada. Esto le da a la masa ese dorado rústico inconfundible y funde la muzzarella hasta crear hebras cremosas infinitas.
+ En Colores Pizza no hacemos milagros, hacemos tradición. Calentamos nuestro horno a más de 400°C usando únicamente leña de espinillo seleccionada. Esto le da a la masa ese dorado rústico inconfundible y funde la muzzarella hasta crear hebras cremosas infinitas.
  </p>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
@@ -794,7 +794,7 @@ export default function RestaurantCover({
  style={{ border: 0 }} 
  allowFullScreen={true} 
  loading="lazy"
- title="Ubicación de Colores Pizzería"
+ title="Ubicación de Colores Pizza"
  />
  </div>
  </div>
@@ -874,7 +874,7 @@ export default function RestaurantCover({
 
  <div className="pt-4 text-center">
  <a
- href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería dejarles mi opinión sobre el pedido..."
+ href="https://wa.me/5493584024822?text=¡Hola Colores Pizza! Quería dejarles mi opinión sobre el pedido..."
  target="_blank"
  rel="noopener noreferrer"
  className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#fbd127] text-[#3b3b3b] hover:bg-[#ffe163] border-2 border-[#3b3b3b] rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_rgba(59,59,59,1)] active:translate-y-[1px] transition-all cursor-pointer"
@@ -918,7 +918,7 @@ export default function RestaurantCover({
         <div className="relative w-full h-80 sm:h-[450px] rounded-[2.5rem] border-4 border-[#3b3b3b] overflow-hidden shadow-[8px_8px_0px_0px_#fbd127] bg-[#3b3b3b] flex items-center justify-center group">
           <img 
             src={CATERING_IMAGES[cateringImageIndex]} 
-            alt="Catering de Pizza Colores" 
+            alt="Catering de Colores Pizza" 
             className="w-full h-full object-cover transition-all duration-700 ease-in-out transform hover:scale-105"
           />
           {/* Controls */}
@@ -1002,7 +1002,7 @@ export default function RestaurantCover({
  <span className="font-display text-xl tracking-wider text-[#FFFDF9]">COLORES PIZZERÍA</span>
  </div>
  <p className="text-[10px] font-bold tracking-widest max-w-sm mx-auto uppercase">
- © {new Date().getFullYear()} Colores Pizzería. Todos los derechos reservados. Hecho con pasión criolla e italiana.
+ © {new Date().getFullYear()} Colores Pizza. Todos los derechos reservados. Hecho con pasión criolla e italiana.
  </p>
  </footer>
 
@@ -1574,7 +1574,7 @@ export default function RestaurantCover({
  ¿Dudas? Escribinos
  </div>
  <a
- href="https://wa.me/5493584024822?text=¡Hola Pizzería Colores! Quería hacerles una consulta..."
+ href="https://wa.me/5493584024822?text=¡Hola Colores Pizza! Quería hacerles una consulta..."
  target="_blank"
  rel="noopener noreferrer"
  className="w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white border-2 border-[#3b3b3b] rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(59,59,59,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(59,59,59,1)] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(59,59,59,1)] transition-all duration-150 relative cursor-pointer"

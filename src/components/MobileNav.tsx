@@ -109,7 +109,7 @@ export default function MobileNav({
             }
           }}
           className="flex items-center gap-2 min-w-0 flex-1 justify-center px-2 cursor-pointer select-none active:opacity-75"
-          title={activeUser?.rol === 'superadmin' ? "Ver estado de conexión" : "Colores Pizzería"}
+          title={activeUser?.rol === 'superadmin' ? "Ver estado de conexión" : "Colores Pizza"}
         >
           <div className="w-7 h-7 bg-stone-100 rounded-lg flex items-center justify-center p-0.5 border border-stone-250 overflow-hidden shrink-0 relative">
             <ElPatronLogo className="w-6 h-6 object-contain rounded" variant="icon" color="#E8B800" />
@@ -118,7 +118,7 @@ export default function MobileNav({
             }`} />
           </div>
           <div className="min-w-0 text-left">
-            <span className="font-extrabold text-sm text-[#624A3E] drop-shadow block leading-tight truncate">Colores Pizzería</span>
+            <span className="font-extrabold text-sm text-[#624A3E] drop-shadow block leading-tight truncate">Colores Pizza</span>
             <div className="flex items-center gap-1.5 leading-none mt-0.5">
               <span className="text-[7px] uppercase font-bold text-stone-550 tracking-wider block leading-none">
                 {isOnline ? 'En línea' : 'Sin conexión'}
@@ -175,7 +175,7 @@ export default function MobileNav({
                   }
                 }}
                 className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 select-none active:scale-[0.98]"
-                title={activeUser?.rol === 'superadmin' ? "Abrir Diagnóstico" : "Colores Pizzería"}
+                title={activeUser?.rol === 'superadmin' ? "Abrir Diagnóstico" : "Colores Pizza"}
               >
                 <div className="w-9 h-9 bg-stone-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center p-0.5 border border-stone-250 dark:border-zinc-800 overflow-hidden shrink-0 relative">
                   <ElPatronLogo className="w-8 h-8 object-contain rounded" variant="icon" color="#E8B800" />
@@ -184,7 +184,7 @@ export default function MobileNav({
                   }`} />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-extrabold text-sm text-[#624A3E] dark:text-brand-yellow block leading-tight">Colores Pizzería</span>
+                  <span className="font-extrabold text-sm text-[#624A3E] dark:text-brand-yellow block leading-tight">Colores Pizza</span>
                   <span className="text-[7px] uppercase font-bold text-stone-500 dark:text-zinc-500 tracking-wider block leading-tight">
                     {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                   </span>

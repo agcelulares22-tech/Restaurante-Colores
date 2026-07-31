@@ -88,7 +88,7 @@ export const RECIPES_DETAILS: Record<string, { pasos_preparacion: string[]; aler
   prod_post_tiramisu: {
     pasos_preparacion: [
       'Preparar la base del postre Tiramisú.',
-      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizza.',
       'Decorar y refrigerar/hornear según corresponda.'
     ],
     alergenos: [
@@ -98,7 +98,7 @@ export const RECIPES_DETAILS: Record<string, { pasos_preparacion: string[]; aler
   prod_post_bombas_de_crema_chantilly: {
     pasos_preparacion: [
       'Preparar la base del postre Bombas de Crema Chantilly.',
-      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizza.',
       'Decorar y refrigerar/hornear según corresponda.'
     ],
     alergenos: [
@@ -108,7 +108,7 @@ export const RECIPES_DETAILS: Record<string, { pasos_preparacion: string[]; aler
   prod_post_tarta_de_ricotta: {
     pasos_preparacion: [
       'Preparar la base del postre Tarta de Ricotta.',
-      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizzería.',
+      'Ensamblar las capas o porciones según la receta artesanal de Colores Pizza.',
       'Decorar y refrigerar/hornear según corresponda.'
     ],
     alergenos: [

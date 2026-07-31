@@ -167,7 +167,7 @@ export default function App() {
                 setShowDiagnostics(true);
               }
             }} 
-            title={activeUser?.rol === 'superadmin' ? "Ver diagnóstico" : "Colores Pizzería"}
+            title={activeUser?.rol === 'superadmin' ? "Ver diagnóstico" : "Colores Pizza"}
           >
             <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center shadow-sm border border-stone-250 p-0.5 overflow-hidden shrink-0 relative">
               <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
@@ -177,7 +177,7 @@ export default function App() {
             </div>
             {!isSidebarCollapsed && (
               <div className="ml-3 min-w-0">
-                <span className="font-bold text-sm text-[#624A3E] block leading-tight truncate">Colores Pizzería</span>
+                <span className="font-bold text-sm text-[#624A3E] block leading-tight truncate">Colores Pizza</span>
                 <span className="text-[7px] uppercase font-bold text-stone-550 tracking-wider block leading-tight">
                   {isOnline ? '🟢 En línea (Cloud)' : '🔴 Sin conexión'}
                 </span>

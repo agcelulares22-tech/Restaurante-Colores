@@ -182,7 +182,7 @@ export default function SistemaModule({
     
     // Simulate printing dummy ESC/POS ticket
     const dummyTicket: any = {
-      nombreComercial: 'Pizzería Colores',
+      nombreComercial: 'Colores Pizza',
       razonSocial: 'COLORES S.A.S.',
       cuit: '30-71829384-9',
       direccion: 'Av. Corrientes 1234, CABA',
@@ -289,7 +289,7 @@ export default function SistemaModule({
           </div>
           <div>
             <h2 className="text-xl font-bold text-[#4A2D1B] tracking-tight">Marca Institucional & Control del Sistema</h2>
-            <p className="text-xs text-stone-500 mt-0.5">Pizzería Colores • Sistema Operativo Sincronizado</p>
+            <p className="text-xs text-stone-500 mt-0.5">Colores Pizza • Sistema Operativo Sincronizado</p>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-[#22C55E]/10 px-4 py-1.5 rounded-full border border-[#22C55E]/20">

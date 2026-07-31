@@ -92,7 +92,7 @@ export default function ElPatronLogo({ className = 'w-16 h-16', color = '#5C4033
     <div className={`relative ${className} select-none overflow-hidden flex items-center justify-center`} id="el-patron-image-logo">
       <img
         src={logoSrc}
-        alt="Colores Pizzería"
+        alt="Colores Pizza"
         loading="lazy" decoding="async"
         className="w-full h-full object-contain rounded-full bg-white border-4 border-white p-1 shadow-md"
         onError={() => {

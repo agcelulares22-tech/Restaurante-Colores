@@ -26,7 +26,7 @@ const DEFAULT_CLIENTES: Cliente[] = [
   {
     id_cliente: 'cli_003',
     dni_cuit: '30-71649251-4',
-    nombre: 'Pizzería Colores S.A.S.',
+    nombre: 'Colores Pizza S.A.S.',
     email: 'administracion@pizzeriacolores.com.ar',
     telefono: '+54 358 412-3456',
     puntos: 1200,

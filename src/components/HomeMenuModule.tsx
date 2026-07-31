@@ -369,7 +369,7 @@ export default function HomeMenuModule({
  
         <div className="flex-1 space-y-2.5 relative z-10 text-center md:text-left">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50 font-display uppercase tracking-wider transition-colors duration-300">
-            Bienvenido a Pizzería Colores
+            Bienvenido a Colores Pizza
           </h2>
           <p className="text-base md:text-lg text-slate-600 dark:text-zinc-300 font-medium leading-relaxed max-w-xl transition-colors duration-300">
             Sistema de gestión gastronómica diseñado para el control operativo absoluto en cocina, salón, caja e inventario.
