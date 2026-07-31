@@ -52,8 +52,9 @@ export const hydratePedido = (
       };
     });
 
-  const isDelivery = header.id_mesa === null && String(header.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-  const idMesa = isDelivery ? 999 : header.id_mesa;
+  const isDelivery = (header.id_mesa === null || header.id_mesa === 999) && String(header.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  const isRetiro = (header.id_mesa === null || header.id_mesa === 998) && String(header.numero_mesa || '').toUpperCase().startsWith('RETIRO');
+  const idMesa = isDelivery ? 999 : (isRetiro ? 998 : header.id_mesa);
 
   return {
     id_pedido: String(header.id_pedido),
@@ -82,9 +83,16 @@ export const hydratePedido = (
 };
 
 export const serializePedidoHeader = (pedido: Pedido): PedidoHeaderRow => {
+  const isNonTable = (
+    pedido.id_mesa === 999 ||
+    pedido.id_mesa === 998 ||
+    String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY') ||
+    String(pedido.numero_mesa || '').toUpperCase().startsWith('RETIRO')
+  );
+
   const header: PedidoHeaderRow = {
     id_pedido: sanitizePedidoId(pedido.id_pedido) || pedido.id_pedido,
-    id_mesa: (pedido.id_mesa === 999 || String(pedido.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) ? null : (pedido.id_mesa || null),
+    id_mesa: isNonTable ? null : (pedido.id_mesa || null),
     numero_mesa: pedido.numero_mesa,
     mozo: pedido.mozo || 'Sistema',
     estado_comanda: pedido.estado_comanda,
@@ -508,7 +516,9 @@ export const pedidosService = {
           ped.estado_comanda !== 'entregado_cobrado' &&
           ped.estado_comanda !== 'cancelado' &&
           ped.id_mesa !== 999 &&
-          !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY')
+          ped.id_mesa !== 998 &&
+          !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY') &&
+          !String(ped.numero_mesa || '').toUpperCase().startsWith('RETIRO')
         ) {
           // 2. Si no existe y es una comanda activa nueva, buscar si la mesa tiene otra activa
           const { data: activeHeaders, error: findError } = await supabase

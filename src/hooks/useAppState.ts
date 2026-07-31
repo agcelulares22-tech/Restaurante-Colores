@@ -37,13 +37,11 @@ import {
 import { createClientPedidoId } from '../lib/pedidoIds';
 
 function isSameTable(p1: { id_mesa?: any; numero_mesa?: string }, p2: { id_mesa?: any; numero_mesa?: string }): boolean {
-  const isP1Delivery = String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-  const isP2Delivery = String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+  const isP1NonTable = p1.id_mesa === 999 || p1.id_mesa === 998 || String(p1.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(p1.numero_mesa || '').toUpperCase().startsWith('RETIRO');
+  const isP2NonTable = p2.id_mesa === 999 || p2.id_mesa === 998 || String(p2.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(p2.numero_mesa || '').toUpperCase().startsWith('RETIRO');
   
-  if (isP1Delivery || isP2Delivery) {
-    const norm1 = String(p1.numero_mesa || '').toLowerCase().trim();
-    const norm2 = String(p2.numero_mesa || '').toLowerCase().trim();
-    return norm1 !== '' && norm1 === norm2;
+  if (isP1NonTable || isP2NonTable) {
+    return false;
   }
 
   if (p1.id_mesa !== undefined && p1.id_mesa !== null && p2.id_mesa !== undefined && p2.id_mesa !== null) {
@@ -623,8 +621,8 @@ export function useAppState() {
     }
 
     console.log('[DEBUG] handleCrearPedido called with:', newPedidoData);
-    const isDelivery = newPedidoData.id_mesa === 999 || String(newPedidoData.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-    const existingActivePedido = isDelivery ? undefined : pedidos.find(p => {
+    const isNonTable = newPedidoData.id_mesa === 999 || newPedidoData.id_mesa === 998 || String(newPedidoData.numero_mesa || '').toUpperCase().startsWith('DELIVERY') || String(newPedidoData.numero_mesa || '').toUpperCase().startsWith('RETIRO');
+    const existingActivePedido = isNonTable ? undefined : pedidos.find(p => {
       const match = isSameTable(p, newPedidoData) && 
         p.estado_comanda !== 'entregado_cobrado' && 
         p.estado_comanda !== 'cancelado';
