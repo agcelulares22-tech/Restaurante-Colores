@@ -317,6 +317,40 @@ export default function DiagnosticsTester({ onClose }: DiagnosticsTesterProps) {
     return `${key.slice(0, 10)}...${key.slice(-10)}`;
   };
 
+  const isSuperAdmin = (() => {
+    try {
+      const activeMozo = localStorage.getItem('elpatron_active_mozo') || '';
+      const usuariosStr = localStorage.getItem('elpatron_usuarios') || '[]';
+      const usuarios: Array<{ nombre: string; rol: string }> = JSON.parse(usuariosStr);
+      const user = usuarios.find(u => u.nombre.toLowerCase() === activeMozo.toLowerCase());
+      return user?.rol === 'superadmin';
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border-2 border-stone-200 dark:border-zinc-800">
+          <div className="w-14 h-14 bg-red-100 dark:bg-red-950/50 rounded-2xl flex items-center justify-center mx-auto text-red-600 dark:text-red-400 font-bold text-2xl">
+            🔒
+          </div>
+          <h3 className="font-extrabold text-xl text-stone-900 dark:text-zinc-100">Acceso Restringido</h3>
+          <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium leading-relaxed">
+            El módulo de diagnóstico y credenciales de la base de datos está reservado exclusivamente para el usuario <strong>Superadmin</strong>.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-stone-900 hover:bg-stone-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl w-full max-w-2xl border border-stone-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-scaleUp my-4 text-stone-850">

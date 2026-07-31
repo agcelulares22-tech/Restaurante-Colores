@@ -160,7 +160,15 @@ export default function App() {
         <div 
           className={`flex flex-col border-b border-stone-200 ${isSidebarCollapsed ? 'items-center px-2' : 'px-3'} py-3 select-none`}
         >
-          <div className="flex items-center cursor-pointer" onClick={() => setShowDiagnostics(true)} title="Ver diagnóstico">
+          <div 
+            className="flex items-center cursor-pointer" 
+            onClick={() => {
+              if (activeUser?.rol === 'superadmin') {
+                setShowDiagnostics(true);
+              }
+            }} 
+            title={activeUser?.rol === 'superadmin' ? "Ver diagnóstico" : "Colores Pizzería"}
+          >
             <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center shadow-sm border border-stone-250 p-0.5 overflow-hidden shrink-0 relative">
               <ElPatronLogo className="w-7 h-7 object-contain rounded" variant="icon" color="#E8B800" />
               <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white ${
@@ -399,7 +407,7 @@ export default function App() {
         </RetryErrorWrapper>
       </main>
 
-      {showDiagnostics && (
+      {showDiagnostics && activeUser?.rol === 'superadmin' && (
         <DiagnosticsTester onClose={() => setShowDiagnostics(false)} />
       )}
 
