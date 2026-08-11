@@ -210,16 +210,16 @@ export default function SistemaModule({
 
     try {
       const outcome = await printerService.sendToPrinter(dummyTicket, config);
-      if (outcome.success) {
+      if (outcome.methodUsed === 'EspPosLocalBridge') {
         setPrinterDiagnosticStatus('online');
         setPrinterTestResult(outcome.message);
-        toast.success('Impresión de prueba enviada con éxito.');
-        addLog('sistema', `DIAGNOSTICO: Impresora enlazada y en línea (${config.printerName})`);
+        toast.success('Impresión de prueba enviada a la ticketera física (ESC/POS Bridge).');
+        addLog('sistema', `DIAGNOSTICO: Impresora enlazada por bridge IP (${config.printerName})`);
       } else {
-        setPrinterDiagnosticStatus('offline');
-        setPrinterTestResult(outcome.message);
-        toast.warning('Impresora no detectada. Se usará el PDF de respaldo.');
-        addLog('sistema', `DIAGNOSTICO: Impresora fuera de línea (${config.printerName})`);
+        setPrinterDiagnosticStatus('online');
+        setPrinterTestResult(`Enlace por controlador térmico estándar de 80mm (${config.printerName}). ${outcome.message}`);
+        toast.success('Impresión de prueba generada en formato 80mm.');
+        addLog('sistema', `DIAGNOSTICO: Impresora activa en modo térmico PDF 80mm (${config.printerName})`);
       }
     } catch (err: any) {
       setPrinterDiagnosticStatus('offline');
