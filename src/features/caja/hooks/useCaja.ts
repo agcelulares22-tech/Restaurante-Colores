@@ -1153,7 +1153,7 @@ export function useCaja({
       total: currentInvoiceTotal,
       metodosPago: [{ metodo: metodoPago, monto: currentInvoiceTotal }],
       vuelto: calculatedChange,
-      tipoComprobante: tipoComprobante,
+      tipoComprobante: 'ticket_consumo',
       mensajePie: restaurante.mensajePie,
       cae: undefined,
       vto: undefined,
@@ -1167,11 +1167,7 @@ export function useCaja({
     };
 
     const res = await printerService.sendToPrinter(dataTicket, printerConfig);
-    if (res.success) {
-      toast.success(res.message);
-    } else {
-      toast.error(`${res.message} — revisar conexión ESC/POS.`);
-    }
+    toast.success(res.message);
   };
 
   const triggerPDFDownloadOnly = async () => {
@@ -1210,7 +1206,7 @@ export function useCaja({
       direccion: restaurante.direccion,
       telefono: restaurante.telefono,
       email: restaurante.email,
-      nroComprobante: `PREV-001-${selectedPedido.id_pedido}`,
+      nroComprobante: `COMP-${selectedPedido.id_pedido}`,
       idPedido: selectedPedido.id_pedido,
       mesa: selectedPedido.numero_mesa,
       mozo: selectedPedido.mozo,
@@ -1224,11 +1220,12 @@ export function useCaja({
       total: currentInvoiceTotal,
       metodosPago: [{ metodo: metodoPago, monto: currentInvoiceTotal }],
       vuelto: calculatedChange,
-      tipoComprobante: tipoComprobante,
+      tipoComprobante: 'ticket_consumo',
       mensajePie: restaurante.mensajePie
     };
 
     await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
+    toast.success('Comprobante de consumo (80mm) generado en PDF.');
   };
 
   const downloadFacturaHistorialPdf = async (factura: Factura) => {
