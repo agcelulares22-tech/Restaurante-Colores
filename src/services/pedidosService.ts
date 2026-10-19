@@ -1,5 +1,6 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Pedido, PedidoItem } from '../types';
+import { sheetsService } from './sheetsService';
 
 type PedidoHeaderRow = Record<string, any>;
 type PedidoDetailRow = Record<string, any>;
@@ -239,10 +240,75 @@ async function fetchAndAssemblePedidosColores(client: any): Promise<Pedido[]> {
   return headers.map(header => hydratePedido(header, details || []));
 }
 
+async function fetchAndAssemblePedidosFromSheets(): Promise<Pedido[]> {
+  try {
+    const [headers, details] = await Promise.all([
+      sheetsService.getRows('pedidos_cabecera'),
+      sheetsService.getRows('pedido_detalle')
+    ]);
+    if (!headers || !Array.isArray(headers) || headers.length === 0) return [];
+    return headers.map(header => hydratePedido(header, details || []));
+  } catch (err) {
+    console.warn('[pedidosService] Error fetching pedidos from Google Sheets:', err);
+    return [];
+  }
+}
+
+let lastFreshSheetsFetch = 0;
+const SHEETS_FETCH_THROTTLE_MS = 4000;
+
 export const pedidosService = {
   async list(forceFresh: boolean = false): Promise<Pedido[]> {
     const cached = (!forceFresh && typeof localStorage !== 'undefined') ? localStorage.getItem(CACHE_KEY) : null;
     const client = tryGetActiveSupabaseClient();
+
+    // 1. Google Sheets como almacenamiento de pedidos
+    if (sheetsService.isConfigured()) {
+      const now = Date.now();
+      const isThrottled = (now - lastFreshSheetsFetch) < SHEETS_FETCH_THROTTLE_MS;
+
+      if (cached && (!forceFresh || isThrottled)) {
+        if (!isThrottled) {
+          setTimeout(async () => {
+            try {
+              const assembled = await fetchAndAssemblePedidosFromSheets();
+              if (assembled.length > 0) {
+                lastFreshSheetsFetch = Date.now();
+                localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+              }
+            } catch (e) {
+              console.warn('Background sheets pedidos cache refresh failed:', e);
+            }
+          }, 500);
+        }
+
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            return parsed.map(p => ({
+              ...p,
+              fecha_hora: new Date(p.fecha_hora),
+              fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
+              fecha_inicio_cocina: p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina) : undefined,
+              fecha_listo: p.fecha_listo ? new Date(p.fecha_listo) : undefined
+            }));
+          }
+        } catch {}
+      }
+
+      try {
+        const assembled = await fetchAndAssemblePedidosFromSheets();
+        if (assembled.length > 0) {
+          lastFreshSheetsFetch = Date.now();
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+          }
+          return assembled;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for pedidos failed, falling back:', err);
+      }
+    }
 
     if (cached) {
       if (client) {
@@ -277,41 +343,54 @@ export const pedidosService = {
       return [];
     }
 
-    const assembled = await fetchAndAssemblePedidosColores(client);
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
-      } catch {}
+    try {
+      const assembled = await fetchAndAssemblePedidosColores(client);
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+        } catch {}
+      }
+      return assembled;
+    } catch {
+      return [];
     }
-    return assembled;
   },
 
   async fetchSingle(id: string): Promise<Pedido | null> {
+    if (sheetsService.isConfigured()) {
+      const list = await this.list();
+      return list.find(p => String(p.id_pedido) === String(id)) || null;
+    }
+
     const client = tryGetActiveSupabaseClient();
     if (!client) return null;
 
-    const { data: header, error: hError } = await client
-      .from('pedidos_cabecera')
-      .select('*')
-      .eq('id_pedido', id)
-      .maybeSingle();
+    try {
+      const { data: header, error: hError } = await client
+        .from('pedidos_cabecera')
+        .select('*')
+        .eq('id_pedido', id)
+        .maybeSingle();
 
-    if (hError || !header) {
-      console.warn(`[pedidosService.fetchSingle] Error or no header found for order #${id}:`, hError);
+      if (hError || !header) {
+        console.warn(`[pedidosService.fetchSingle] Error or no header found for order #${id}:`, hError);
+        return null;
+      }
+
+      const { data: details, error: dError } = await client
+        .from('pedido_detalle')
+        .select('*')
+        .eq('id_pedido', id);
+
+      if (dError) {
+        console.error(`[pedidosService.fetchSingle] Error fetching details for order #${id}:`, dError);
+        return null;
+      }
+
+      return hydratePedido(header, details || []);
+    } catch {
       return null;
     }
-
-    const { data: details, error: dError } = await client
-      .from('pedido_detalle')
-      .select('*')
-      .eq('id_pedido', id);
-
-    if (dError) {
-      console.error(`[pedidosService.fetchSingle] Error fetching details for order #${id}:`, dError);
-      return null;
-    }
-
-    return hydratePedido(header, details || []);
   },
 
   async getById(id: string): Promise<Pedido | null> {
@@ -339,20 +418,6 @@ export const pedidosService = {
       return;
     }
     const cleanId = String(cleanNumericId);
-
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) {
-      if (!fromSyncQueue) {
-        console.warn(`[pedidosService.update] Supabase no disponible. Encolando actualización offline para pedido ${cleanId}`);
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('update_pedido_estado', { id: cleanId, fields });
-      } else {
-        throw new Error('Supabase client not available during sync queue processing');
-      }
-      return;
-    }
-
-    console.log(`[pedidosService.update] Inicio id=${cleanId}, campos:`, JSON.stringify(fields, (k, v) => v instanceof Date ? v.toISOString() : v));
 
     // Map fields to header columns
     const headerFields: any = {};
@@ -385,96 +450,102 @@ export const pedidosService = {
     if (fields.costo_envio !== undefined) headerFields.costo_envio = fields.costo_envio;
     if (fields.zona_envio_id !== undefined) headerFields.zona_envio_id = fields.zona_envio_id;
 
-    console.log(`[pedidosService.update] headerFields preparados id=${id}:`, Object.keys(headerFields));
+    console.log(`[pedidosService.update] Inicio id=${cleanId}, campos:`, Object.keys(headerFields));
 
-    try {
-      if (Object.keys(headerFields).length > 0) {
-        console.log(`[pedidosService.update] Enviando update a pedidos_cabecera id=${cleanId}:`, headerFields);
-        let { error, data } = await safeUpdateHeader(supabase, cleanId, headerFields);
+    let savedToSheets = false;
 
-        console.log(`[pedidosService.update] Respuesta update id=${cleanId}:`, { error, data, affectedRows: data?.length });
+    // 1. Guardar en Google Sheets como almacenamiento de pedidos
+    if (sheetsService.isConfigured()) {
+      try {
+        const sheetHeader: any = { id_pedido: cleanId, ...headerFields };
+        if (fields.items !== undefined) {
+          sheetHeader.items = JSON.stringify(fields.items);
+        }
+        await sheetsService.upsert('pedidos_cabecera', sheetHeader, 'id_pedido');
 
-        if (!error && (!data || data.length === 0)) {
-          console.warn(`[pedidosService.update] El update no afectó filas. Creando o actualizando cabecera id=${cleanId}...`);
-          const headerObj = {
+        if (fields.items !== undefined && Array.isArray(fields.items) && fields.items.length > 0) {
+          const details = serializePedidoDetails({
+            ...fields,
             id_pedido: cleanId,
-            numero_mesa: fields.numero_mesa || 'Mesa',
-            mozo: fields.mozo || 'Mozo',
-            estado_comanda: fields.estado_comanda || 'pendiente',
-            items: fields.items ? (typeof fields.items === 'string' ? fields.items : JSON.stringify(fields.items)) : '[]',
-            fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
-            ...headerFields
-          };
-          const resUpsert = await safeUpsertHeader(supabase, headerObj);
-          error = resUpsert.error;
+            id_mesa: fields.id_mesa ?? 0,
+            numero_mesa: fields.numero_mesa ?? '',
+            mozo: fields.mozo ?? '',
+            estado_comanda: fields.estado_comanda ?? 'pendiente',
+            items: fields.items,
+            fecha_hora: fields.fecha_hora ?? new Date(),
+            minutos_transcurridos: fields.minutos_transcurridos ?? 0,
+            origen: fields.origen ?? 'Mozo'
+          } as Pedido);
+          await sheetsService.upsert('pedido_detalle', details, 'id_detalle');
         }
-
-        if (error) {
-          console.error(`Error updating header for pedido ${cleanId}:`, error);
-          throw error;
-        }
+        savedToSheets = true;
+      } catch (sheetsErr) {
+        console.warn('[pedidosService.update] Error guardando en Google Sheets:', sheetsErr);
       }
+    }
 
-      if (fields.items !== undefined) {
-        // Re-upsert details
-        const details = serializePedidoDetails({
-          ...fields,
-          id_pedido: id,
-          id_mesa: fields.id_mesa ?? 0,
-          numero_mesa: fields.numero_mesa ?? '',
-          mozo: fields.mozo ?? '',
-          estado_comanda: fields.estado_comanda ?? 'pendiente',
-          items: fields.items,
-          fecha_hora: fields.fecha_hora ?? new Date(),
-          minutos_transcurridos: fields.minutos_transcurridos ?? 0,
-          origen: fields.origen ?? 'Mozo'
-        });
-
-        // Delete existing details
-        const { error: deleteError } = await supabase
-          .from('pedido_detalle')
-          .delete()
-          .eq('id_pedido', id);
-        if (deleteError) {
-          console.error('Error deleting previous order details:', deleteError);
-          throw deleteError;
-        }
-
-        if (details.length > 0) {
-          let { error: detError } = await supabase.from('pedido_detalle').insert(details);
-          
-          // Dynamic schema fallback: if precio_unitario is missing, strip and retry
-          if (detError && detError.message?.includes('precio_unitario')) {
-            console.warn('precio_unitario column missing in update details insert, retrying without it...');
-            const fallbackDetails = details.map(d => {
-              const copy = { ...d };
-              delete copy.precio_unitario;
-              return copy;
-            });
-            const res = await supabase.from('pedido_detalle').insert(fallbackDetails);
-            detError = res.error;
-          }
-
-          if (detError) {
-            console.error('Error inserting details in update:', detError);
-            throw detError;
+    // 2. Intentar Supabase si aún existen las tablas
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      try {
+        if (Object.keys(headerFields).length > 0) {
+          let { error, data } = await safeUpdateHeader(supabase, cleanId, headerFields);
+          if (!error && (!data || data.length === 0)) {
+            const headerObj = {
+              id_pedido: cleanId,
+              numero_mesa: fields.numero_mesa || 'Mesa',
+              mozo: fields.mozo || 'Mozo',
+              estado_comanda: fields.estado_comanda || 'pendiente',
+              items: fields.items ? (typeof fields.items === 'string' ? fields.items : JSON.stringify(fields.items)) : '[]',
+              fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
+              ...headerFields
+            };
+            await safeUpsertHeader(supabase, headerObj);
           }
         }
-      }
 
-      if (fields.estado_comanda === 'entregado' || fields.estado_comanda === 'entregado_cobrado') {
-        const { insumosService } = await import('./insumosService');
-        insumosService.descontarStockPorPedido(id).catch(err =>
-          console.error('Error in deferred stock deduction:', err)
-        );
+        if (fields.items !== undefined) {
+          const details = serializePedidoDetails({
+            ...fields,
+            id_pedido: id,
+            id_mesa: fields.id_mesa ?? 0,
+            numero_mesa: fields.numero_mesa ?? '',
+            mozo: fields.mozo ?? '',
+            estado_comanda: fields.estado_comanda ?? 'pendiente',
+            items: fields.items,
+            fecha_hora: fields.fecha_hora ?? new Date(),
+            minutos_transcurridos: fields.minutos_transcurridos ?? 0,
+            origen: fields.origen ?? 'Mozo'
+          });
+
+          await supabase.from('pedido_detalle').delete().eq('id_pedido', id);
+          if (details.length > 0) {
+            let { error: detError } = await supabase.from('pedido_detalle').insert(details);
+            if (detError && detError.message?.includes('precio_unitario')) {
+              const fallbackDetails = details.map(d => {
+                const copy = { ...d };
+                delete copy.precio_unitario;
+                return copy;
+              });
+              await supabase.from('pedido_detalle').insert(fallbackDetails);
+            }
+          }
+        }
+      } catch (supaErr) {
+        console.log('[pedidosService.update] Supabase update skipped/migrated:', supaErr);
       }
-    } catch (error) {
-      console.warn(`Error in remote update for pedido ${id}. Enqueueing action to SyncQueue.`, error);
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('update_pedido_estado', { id, fields });
-      }
-      throw error;
+    }
+
+    if (!supabase && !savedToSheets && !fromSyncQueue) {
+      const { syncQueueService } = await import('./syncQueueService');
+      syncQueueService.enqueue('update_pedido_estado', { id: cleanId, fields });
+    }
+
+    if (fields.estado_comanda === 'entregado' || fields.estado_comanda === 'entregado_cobrado') {
+      const { insumosService } = await import('./insumosService');
+      insumosService.descontarStockPorPedido(id).catch(err =>
+        console.error('Error in deferred stock deduction:', err)
+      );
     }
   },
 
@@ -484,30 +555,35 @@ export const pedidosService = {
       ped.items.forEach(item => stockEngine.validatePedidoItem(item));
     }
     invalidateCache();
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) {
-      if (fromSyncQueue) {
-        throw new Error('Supabase client not available during sync queue processing');
+
+    // 1. Guardar en Google Sheets como almacenamiento de pedidos
+    if (sheetsService.isConfigured()) {
+      try {
+        const headers = pedidos.map(serializePedidoHeader);
+        const details = pedidos.flatMap(serializePedidoDetails);
+        await sheetsService.upsert('pedidos_cabecera', headers, 'id_pedido');
+        if (details.length > 0) {
+          await sheetsService.upsert('pedido_detalle', details, 'id_detalle');
+        }
+      } catch (sheetErr) {
+        console.warn('[pedidosService.upsert] Error guardando pedidos en Google Sheets:', sheetErr);
       }
-      console.warn('Supabase is not configured or offline. Skipping database upsert.');
-      return;
     }
-    
+
+    // 2. Supabase como almacenamiento si estuvieran las tablas
+    const supabase = tryGetActiveSupabaseClient();
+    if (!supabase) return;
+
     for (const ped of pedidos) {
       try {
-        console.log(`[pedidosService.upsert] Procesando pedido id=${ped.id_pedido}, estado=${ped.estado_comanda}, mesa=${ped.numero_mesa}`);
         let activeId: string | null = null;
         let isExisting = false;
 
-        // 1. Verificar si esta comanda específica ya existe en la base de datos por ID
-        console.log(`[pedidosService.upsert] Buscando id=${ped.id_pedido} en pedidos_cabecera`);
-        const { data: existingHeader, error: checkError } = await supabase
+        const { data: existingHeader } = await supabase
           .from('pedidos_cabecera')
           .select('id_pedido')
           .eq('id_pedido', ped.id_pedido)
           .maybeSingle();
-
-        console.log(`[pedidosService.upsert] Resultado búsqueda id=${ped.id_pedido}:`, { existingHeader, checkError });
 
         if (existingHeader) {
           isExisting = true;
@@ -520,17 +596,11 @@ export const pedidosService = {
           !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY') &&
           !String(ped.numero_mesa || '').toUpperCase().startsWith('RETIRO')
         ) {
-          // 2. Si no existe y es una comanda activa nueva, buscar si la mesa tiene otra activa
-          const { data: activeHeaders, error: findError } = await supabase
+          const { data: activeHeaders } = await supabase
             .from('pedidos_cabecera')
             .select('id_pedido')
             .eq('id_mesa', ped.id_mesa)
             .in('estado_comanda', ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado']);
-
-          if (findError) {
-            console.error('Error searching active comanda for table:', findError);
-            throw findError;
-          }
 
           if (activeHeaders && activeHeaders.length > 0) {
             isExisting = true;
@@ -539,7 +609,6 @@ export const pedidosService = {
         }
 
         if (isExisting && activeId !== null) {
-          // Evitar que colas de sincronización offline (SyncQueue) reviertan comandas ya cobradas o canceladas
           const { data: dbHeader } = await supabase
             .from('pedidos_cabecera')
             .select('estado_comanda')
@@ -547,185 +616,154 @@ export const pedidosService = {
             .maybeSingle();
 
           if (dbHeader && ['entregado_cobrado', 'cancelado'].includes(dbHeader.estado_comanda)) {
-            console.log(`[upsert] Pedido #${activeId} ya está cobrado/cancelado (${dbHeader.estado_comanda}). Omitiendo para evitar reversiones.`);
             continue;
           }
 
-          // A. Ya existe una comanda activa -> Se actualiza la cabecera completa y se sincronizan los detalles
           const cabeceraUpdate = serializePedidoHeader(ped);
           delete (cabeceraUpdate as any).idempotency_key;
 
-          console.log(`[pedidosService.upsert] Actualizando cabecera id=${activeId}:`, cabeceraUpdate);
+          await safeUpdateHeader(supabase, activeId, cabeceraUpdate);
 
-          const { data: updateData, error: hError } = await safeUpdateHeader(supabase, activeId, cabeceraUpdate);
-
-          console.log(`[pedidosService.upsert] Respuesta update cabecera id=${activeId}:`, { updateData, hError });
-
-          if (hError) {
-            console.error('Error updating active order header in upsert:', hError);
-            throw hError;
-          }
-
-          // Sincronizar todos los detalles (borrar viejos e insertar los actuales)
-          const { error: deleteError } = await supabase
-            .from('pedido_detalle')
-            .delete()
-            .eq('id_pedido', activeId);
-
-          if (deleteError) {
-            console.error('Error deleting previous order details in upsert:', deleteError);
-            throw deleteError;
-          }
+          await supabase.from('pedido_detalle').delete().eq('id_pedido', activeId);
 
           if (ped.items && ped.items.length > 0) {
             const details = serializePedidoDetails({ ...ped, id_pedido: activeId });
             let { error: dError } = await supabase.from('pedido_detalle').insert(details);
-            
             if (dError && dError.message?.includes('precio_unitario')) {
               const fallbackDetails = details.map(d => {
                 const copy = { ...d };
                 delete copy.precio_unitario;
                 return copy;
               });
-              const res = await supabase.from('pedido_detalle').insert(fallbackDetails);
-              dError = res.error;
-            }
-
-            if (dError) {
-              console.error('Error inserting details in upsert update:', dError);
-              throw dError;
+              await supabase.from('pedido_detalle').insert(fallbackDetails);
             }
           }
-
         } else {
-          // B. No existe comanda activa -> Crear cabecera y luego insertar detalles
           const cabecera = serializePedidoHeader(ped);
-          console.log(`[pedidosService.upsert] Insertando nueva cabecera id=${ped.id_pedido}:`, cabecera);
-          let { data: insertData, error: hError } = await safeUpsertHeader(supabase, cabecera);
-          
-          console.log(`[pedidosService.upsert] Respuesta insert cabecera id=${ped.id_pedido}:`, { insertData, hError });
-
-          if (hError) {
-            console.error('Error creating order header:', hError);
-            throw hError;
-          }
+          await safeUpsertHeader(supabase, cabecera);
 
           if (ped.items && ped.items.length > 0) {
             const details = serializePedidoDetails(ped);
             let { error: dError } = await supabase.from('pedido_detalle').insert(details);
-            
             if (dError && dError.message?.includes('precio_unitario')) {
               const fallbackDetails = details.map(d => {
                 const copy = { ...d };
                 delete copy.precio_unitario;
                 return copy;
               });
-              const res = await supabase.from('pedido_detalle').insert(fallbackDetails);
-              dError = res.error;
-            }
-
-            if (dError) {
-              console.error('Error inserting order details:', dError);
-              throw dError;
+              await supabase.from('pedido_detalle').insert(fallbackDetails);
             }
           }
         }
       } catch (err) {
-        console.warn(`Error in remote upsert for order ${ped.id_pedido}. Enqueueing to SyncQueue.`, err);
-        if (!fromSyncQueue) {
-          const { syncQueueService } = await import('./syncQueueService');
-          syncQueueService.enqueue('upsert_pedido', ped);
-        }
-        throw err;
+        console.warn(`[pedidosService.upsert] Supabase upsert skipped/migrated for order ${ped.id_pedido}:`, err);
       }
     }
   },
 
   async agregarItemsAComandaExistente(idPedido: string, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
     invalidateCache();
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) {
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('upsert_pedido', {
+
+    // 1. Google Sheets
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = nuevosItems.map((item, index) => ({
+          id_detalle: `${idPedido}_${item.id_producto}_${Date.now()}_${index}`,
           id_pedido: idPedido,
-          items: nuevosItems,
-          is_accumulation: true
-        });
-      } else {
-        throw new Error('Supabase client not available during sync queue processing');
+          id_producto: item.id_producto,
+          nombre: item.nombre,
+          cantidad: item.cantidad,
+          categoria: item.categoria,
+          precio_unitario: item.precio_unitario ?? 0,
+          estado: 'pendiente'
+        }));
+        await sheetsService.upsert('pedido_detalle', rows, 'id_detalle');
+
+        const currentList = await this.list();
+        const existing = currentList.find(p => String(p.id_pedido) === String(idPedido));
+        if (existing) {
+          const combinedItems = [...existing.items, ...nuevosItems];
+          await sheetsService.upsert('pedidos_cabecera', {
+            id_pedido: String(idPedido),
+            items: JSON.stringify(combinedItems)
+          }, 'id_pedido');
+        }
+      } catch (e) {
+        console.warn('[pedidosService] Sheets agregarItems warning:', e);
       }
-      return;
     }
 
-    // Insert each item as detail row
-    const rows = nuevosItems.map((item, index) => ({
-      id_detalle: `${idPedido}_${item.id_producto}_${Date.now()}_${index}`,
-      id_pedido: idPedido,
-      id_producto: item.id_producto,
-      nombre: item.nombre,
-      cantidad: item.cantidad,
-      categoria: item.categoria,
-      precio_unitario: item.precio_unitario ?? 0,
-      estado: 'pendiente'
-    }));
+    // 2. Supabase
+    const supabase = tryGetActiveSupabaseClient();
+    if (!supabase) return;
 
-    const { error: insertError } = await supabase
-      .from('pedido_detalle')
-      .insert(rows);
+    try {
+      const rows = nuevosItems.map((item, index) => ({
+        id_detalle: `${idPedido}_${item.id_producto}_${Date.now()}_${index}`,
+        id_pedido: idPedido,
+        id_producto: item.id_producto,
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        categoria: item.categoria,
+        precio_unitario: item.precio_unitario ?? 0,
+        estado: 'pendiente'
+      }));
 
-    if (insertError) {
-      console.error('Error inserting details in accumulation:', insertError);
-      throw insertError;
-    }
+      await supabase.from('pedido_detalle').insert(rows);
 
-    // Update items list in cabecera (JSON fallback)
-    const { data: todosLosDetalles, error: selectError } = await supabase
-      .from('pedido_detalle')
-      .select('*')
-      .eq('id_pedido', idPedido);
+      const { data: todosLosDetalles } = await supabase
+        .from('pedido_detalle')
+        .select('*')
+        .eq('id_pedido', idPedido);
 
-    if (selectError) {
-      console.error('Error fetching all details to synchronize header items:', selectError);
-      throw selectError;
-    }
+      if (todosLosDetalles) {
+        const updatedItems = todosLosDetalles.map(d => ({
+          id_producto: d.id_producto || '',
+          nombre: d.nombre,
+          readonly: true,
+          cantidad: d.cantidad,
+          categoria: d.categoria,
+          precio_unitario: d.precio_unitario ?? undefined
+        }));
 
-    const updatedItems = (todosLosDetalles || []).map(d => ({
-      id_producto: d.id_producto || '',
-      nombre: d.nombre,
-      readonly: true,
-      cantidad: d.cantidad,
-      categoria: d.categoria,
-      precio_unitario: d.precio_unitario ?? undefined
-    }));
-
-    const { error: updateError } = await supabase
-      .from('pedidos_cabecera')
-      .update({ items: JSON.stringify(updatedItems) })
-      .eq('id_pedido', idPedido);
-
-    if (updateError) {
-      console.error('Error updating items JSON in header:', updateError);
-      throw updateError;
+        await supabase
+          .from('pedidos_cabecera')
+          .update({ items: JSON.stringify(updatedItems) })
+          .eq('id_pedido', idPedido);
+      }
+    } catch (err) {
+      console.warn('[pedidosService] Supabase agregarItems skipped/migrated:', err);
     }
   },
 
   async remove(id: string): Promise<boolean> {
     invalidateCache();
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) return false;
-    
-    try {
-      const { error } = await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
-      if (error) {
-        console.error('Error deleting order:', error);
-        return false;
+    let handled = false;
+
+    // 1. Google Sheets
+    if (sheetsService.isConfigured()) {
+      try {
+        await sheetsService.upsert('pedidos_cabecera', {
+          id_pedido: String(id),
+          estado_comanda: 'cancelado'
+        }, 'id_pedido');
+        handled = true;
+      } catch (e) {
+        console.warn('[pedidosService.remove] Sheets cancel warning:', e);
       }
-      return true;
-    } catch (err) {
-      console.warn('Failed to delete remote order:', err);
-      return false;
     }
+
+    // 2. Supabase
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
+        handled = true;
+      } catch (err) {
+        // Ignored if table dropped
+      }
+    }
+    return handled;
   },
 
   subscribe(callback: (payload: any) => void) {

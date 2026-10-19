@@ -54,6 +54,52 @@ const toDbProductoMenu = (prod: ProductoMenu | Partial<ProductoMenu>) => ({
 
 export const menuService = {
   async list(): Promise<ProductoMenu[]> {
+    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
+    const client = tryGetActiveSupabaseClient();
+
+    // 1. Supabase como almacenamiento principal de productos_menu
+    if (client) {
+      if (cached) {
+        setTimeout(async () => {
+          try {
+            const { data, error } = await client.from('productos_menu').select('*').order('id_producto', { ascending: true });
+            if (!error && data && data.length > 0) {
+              try {
+                localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data));
+              } catch (storageError) {
+                console.warn('LocalStorage quota exceeded on background update:', storageError);
+              }
+            }
+          } catch (e) {
+            console.warn('Background menu cache refresh failed:', e);
+          }
+        }, 500);
+
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map(normalizeProductoMenu);
+          }
+        } catch (e) {
+          console.warn('Failed parsing menu cache:', e);
+        }
+      }
+
+      try {
+        const { data, error } = await client.from('productos_menu').select('*').order('id_producto', { ascending: true });
+        if (!error && data && data.length > 0) {
+          const normalized = data.map(normalizeProductoMenu);
+          try {
+            localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data));
+          } catch {}
+          return normalized;
+        }
+      } catch (err) {
+        console.warn('Supabase fetch for productos_menu failed, falling back:', err);
+      }
+    }
+
+    // 2. Fallback a Google Sheets
     if (sheetsService.isConfigured()) {
       try {
         const rows = await sheetsService.getRows('Productos_menu');
@@ -66,37 +112,6 @@ export const menuService = {
         }
       } catch (err) {
         console.warn('Sheets fetch for productos_menu failed, falling back:', err);
-      }
-    }
-
-    const cached = localStorage.getItem('colores_pizzeria_cache_menu');
-    const client = tryGetActiveSupabaseClient();
-
-    if (cached) {
-      if (client) {
-        setTimeout(async () => {
-          try {
-            const { data, error } = await client.from('productos_menu').select('*').order('id_producto', { ascending: true });
-            if (!error && data) {
-              try {
-                localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(data));
-              } catch (storageError) {
-                console.warn('LocalStorage quota exceeded on background update:', storageError);
-              }
-            }
-          } catch (e) {
-            console.warn('Background menu cache refresh failed:', e);
-          }
-        }, 500);
-      }
-
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(normalizeProductoMenu);
-        }
-      } catch (e) {
-        console.warn('Failed parsing menu cache:', e);
       }
     }
 

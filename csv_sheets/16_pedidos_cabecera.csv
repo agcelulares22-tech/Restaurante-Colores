@@ -1,0 +1,1 @@
+id_pedido,id_mesa,numero_mesa,mozo,estado_comanda,observaciones,fecha_hora,minutos_transcurridos,origen,tiempo_despacho_minutos,segundos_en_listo,stock_descontado,fecha_descuento_stock,fecha_inicio_cocina,fecha_listo,items,nombre_cliente,telefono_cliente,direccion_cliente,costo_envio,zona_envio_id

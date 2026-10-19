@@ -13,6 +13,51 @@ export const DEFAULT_CATEGORIAS: Categoria[] = [
 
 export const categoriasService = {
   async list(): Promise<Categoria[]> {
+    const cached = localStorage.getItem('colores_pizzeria_cache_categorias');
+    const client = tryGetActiveSupabaseClient();
+
+    // 1. Supabase como almacenamiento principal de categorias
+    if (client) {
+      if (cached) {
+        setTimeout(async () => {
+          try {
+            const { data, error } = await client
+              .from('categorias')
+              .select('*')
+              .eq('activa', true)
+              .order('orden', { ascending: true });
+            if (!error && data && data.length > 0) {
+              localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(data));
+            }
+          } catch (e) {
+            console.warn('Background categories cache refresh failed:', e);
+          }
+        }, 500);
+
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        } catch {}
+      }
+
+      try {
+        const { data, error } = await client
+          .from('categorias')
+          .select('*')
+          .eq('activa', true)
+          .order('orden', { ascending: true });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        console.warn('Supabase fetch for categorias failed, falling back to Sheets/Cache:', err);
+      }
+    }
+
+    // 2. Fallback a Google Sheets si estuvieran allí
     if (sheetsService.isConfigured()) {
       try {
         const rows = await sheetsService.getRows<Categoria>('categorias');
@@ -23,41 +68,7 @@ export const categoriasService = {
           } catch {}
           return active;
         }
-      } catch (err) {
-        console.warn('Sheets fetch for categorias failed, falling back:', err);
-      }
-    }
-
-    const cached = localStorage.getItem('colores_pizzeria_cache_categorias');
-    const client = tryGetActiveSupabaseClient();
-
-    if (cached) {
-      if (client) {
-        // Refresh cache in the background
-        setTimeout(async () => {
-          try {
-            const { data, error } = await client
-              .from('categorias')
-              .select('*')
-              .eq('activa', true)
-              .order('orden', { ascending: true });
-            if (!error && data) {
-              localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(data));
-            }
-          } catch (e) {
-            console.warn('Background categories cache refresh failed:', e);
-          }
-        }, 500);
-      }
-
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      } catch (e) {
-        console.warn('Failed parsing categories cache:', e);
-      }
+      } catch {}
     }
 
     if (!client) {
