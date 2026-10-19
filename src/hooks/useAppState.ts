@@ -190,10 +190,17 @@ export function useAppState() {
         const response = await fetch('/api/supabase-config');
         const data = await response.json();
         if (data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
-          const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-          const currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
-          const currentKey = localStorage.getItem('colores_pizzeria_supabase_anon_key');
+          const defaultUrl = 'https://rasisomlemuaxpxlzqsg.supabase.co';
+          let currentUrl = localStorage.getItem('colores_pizzeria_supabase_url');
+          let currentKey = localStorage.getItem('colores_pizzeria_supabase_anon_key');
           
+          if (currentUrl && !currentUrl.includes('rasisomlemuaxpxlzqsg')) {
+            localStorage.removeItem('colores_pizzeria_supabase_url');
+            localStorage.removeItem('colores_pizzeria_supabase_anon_key');
+            currentUrl = null;
+            currentKey = null;
+          }
+
           // Only overwrite if the user has no local configuration OR if the API returns a custom (non-default) URL
           if (!currentUrl || data.SUPABASE_URL !== defaultUrl) {
             if (currentUrl !== data.SUPABASE_URL || currentKey !== data.SUPABASE_ANON_KEY) {

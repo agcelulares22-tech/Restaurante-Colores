@@ -1,5 +1,6 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { RegistroAsistencia } from '../types';
+import { sheetsService } from './sheetsService';
 
 const OFFLINE_STORAGE_KEY = 'colores_pizzeria_fichajes_offline';
 
@@ -27,6 +28,10 @@ export const asistenciaService = {
       ...fichaje,
       fecha_hora: new Date(fichaje.fecha_hora).toISOString()
     };
+
+    if (sheetsService.isConfigured()) {
+      sheetsService.append('registro_asistencias', newFichaje).catch(() => {});
+    }
 
     if (!client) {
       // Guardar localmente si está desconectado
@@ -81,8 +86,21 @@ export const asistenciaService = {
    * Si está online, los une con los locales que falte sincronizar.
    */
   async list(): Promise<RegistroAsistencia[]> {
-    const client = tryGetActiveSupabaseClient();
     const offlineList = this.getOfflineFichajes();
+
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<RegistroAsistencia>('registro_asistencias');
+        if (rows && rows.length > 0) {
+          const all = [...offlineList, ...rows];
+          return all.sort((a, b) => new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime());
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for registro_asistencias failed, falling back:', err);
+      }
+    }
+
+    const client = tryGetActiveSupabaseClient();
 
     if (!client) {
       return [...offlineList].sort((a, b) => new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime());

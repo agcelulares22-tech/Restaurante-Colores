@@ -1,0 +1,3 @@
+﻿id_cierre,fecha_apertura,fecha_cierre,monto_apertura,monto_ventas,monto_real,diferencia,observaciones,usuario_cajero
+cie_901,2026-06-11 08:00,2026-06-11 16:00,40000,185000,225000,0,Arqueo vespertino cuadrado sin novedades,Clara Scaglia
+cie_902,2026-06-11 16:30,2026-06-11 23:55,50000,342000,341500,-500,Faltante minimo de caja chica por cambio,Mariano Closs

@@ -2,6 +2,7 @@ import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supa
 import { Insumo, PedidoItem, RecetaEscandallo } from '../types';
 import { INITIAL_INSUMOS } from '../data/initialData';
 import { insumoSchema } from '../lib/validations';
+import { sheetsService } from './sheetsService';
 
 export function calcularDescuentosInventario(items: PedidoItem[], recetas: RecetaEscandallo[]): Record<string, number> {
   const descuentos: Record<string, number> = {};
@@ -25,6 +26,20 @@ const invalidateCache = () => {
 
 export const insumosService = {
   async list(): Promise<Insumo[]> {
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<Insumo>('insumos');
+        if (rows && rows.length > 0) {
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(rows));
+          } catch {}
+          return rows;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for insumos failed, falling back:', err);
+      }
+    }
+
     const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(CACHE_KEY) : null;
     const client = tryGetActiveSupabaseClient();
 

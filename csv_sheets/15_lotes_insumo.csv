@@ -1,0 +1,3 @@
+id_lote,id_insumo,cantidad,fecha_vencimiento,creado_at
+lot_demo_1,ins_harina_000,50,2026-11-30,2026-10-19T10:00:00.000Z
+lot_demo_2,ins_muzzarella,25,2026-10-28,2026-10-19T10:00:00.000Z

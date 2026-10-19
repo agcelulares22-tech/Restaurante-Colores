@@ -1,0 +1,4 @@
+﻿id_promo,nombre,descripcion,descuento,fecha_inicio,fecha_fin,activa,imagen_url,vigencia
+p_1,"Pizza ""Mega Colores"" Llaxta","Masa aireada fermentada por 48hs al carbón activo, doble muzzarella fundida, panceta ahumada caramelizada, morrones al fuego y aceitunas seleccionadas.",20,2026-06-01,2026-12-31,true,/images/pizza_usuario.jpg,De Martes a Domingos
+p_2,"Empanada ""Criolla Explosiva""","Horneada al barro y leña de espinillo. Rellena de lomo cortado a cuchillo, rehogada a mano con cebolla de verdeo dulce y huevo picado.",15,2026-06-01,2026-12-31,true,/images/empanadas_usuario.jpg,Todos los días
+p_3,"Calzone ""Bastardo""","Masa rústica artesanal rellena generosamente con jamón cocido seleccionado, muzzarella, hongos salteados al malbec y gratinado de provolone.",25,2026-06-01,2026-12-31,true,/images/calzone_usuario.jpg,Miércoles y Jueves

@@ -1,10 +1,32 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { sheetsService } from './sheetsService';
 import { LoteInsumo } from '../types';
 
 const LOCAL_STORAGE_KEY = 'colores_pizzeria_lotes_insumo';
 
 export const lotesService = {
   async list(): Promise<LoteInsumo[]> {
+    // 1. Google Sheets como almacenamiento principal
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<LoteInsumo>('lotes_insumo');
+        if (rows && Array.isArray(rows)) {
+          const mapped = rows.map(r => ({
+            id_lote: String(r.id_lote),
+            id_insumo: String(r.id_insumo),
+            cantidad: Number(r.cantidad) || 0,
+            fecha_vencimiento: String(r.fecha_vencimiento || ''),
+            creado_at: r.creado_at ? String(r.creado_at) : undefined
+          }));
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(mapped));
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('[lotesService] Fallo lectura de Google Sheets, intentando fallback:', err);
+      }
+    }
+
+    // 2. Fallback a Supabase si existiera la tabla
     const client = tryGetActiveSupabaseClient();
     if (client) {
       try {
@@ -20,12 +42,23 @@ export const lotesService = {
         console.warn('Supabase fetch for lotes_insumo failed, falling back to localStorage:', e);
       }
     }
+
+    // 3. Fallback a localStorage
     const local = localStorage.getItem(LOCAL_STORAGE_KEY);
     return local ? JSON.parse(local) : [];
   },
 
   async saveAll(lotes: LoteInsumo[]): Promise<void> {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(lotes));
+
+    // 1. Google Sheets
+    if (sheetsService.isConfigured()) {
+      sheetsService.upsert('lotes_insumo', lotes, 'id_lote').catch(err => {
+        console.warn('[lotesService] Fallo upsert en Google Sheets:', err);
+      });
+    }
+
+    // 2. Supabase si existiera la tabla
     const client = tryGetActiveSupabaseClient();
     if (client) {
       try {
@@ -56,6 +89,11 @@ export const lotesService = {
     const list = await this.list();
     const filtered = list.filter(l => l.id_lote !== id_lote);
     await this.saveAll(filtered);
+
+    if (sheetsService.isConfigured()) {
+      sheetsService.upsert('lotes_insumo', { id_lote, cantidad: 0, estado: 'baja' }, 'id_lote').catch(() => {});
+    }
+
     const client = tryGetActiveSupabaseClient();
     if (client) {
       try {

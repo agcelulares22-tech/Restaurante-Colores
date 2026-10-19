@@ -1,0 +1,174 @@
+﻿id_insumo,nombre,stock_actual,stock_minimo,unidad_medida,categoria,subcategoria,proveedor,costo_unitario,es_bebida_directa
+ins_harina_trigo,Harina de Trigo sémola,40000,10000,g,secos,Harinas,Molino Cañuelas,0.8,false
+ins_levadura,Levadura seca de cerveza,5000,1000,g,secos,Levaduras,Distribuidora Altiplano,3.5,false
+ins_pure_tomate,Puré de Tomate Triturado,30000,8000,g,secos,Conservas,Mercado de Abasto,2.2,false
+ins_aceite_oliva,Aceite de oliva extra virgen,20000,4000,ml,secos,Aceites,Gourmet Imports,12,false
+ins_mozzarella,Queso Mozzarella en Barra,35000,8000,g,frescos,Lácteos,Lácteos La Bocha,8.5,false
+ins_fior_di_latte,Mozzarella Fior di Latte artesanal,40,10,unidades,frescos,Lácteos,Lácteos La Bocha,850,false
+ins_parmesano,Queso Parmesano Rallado,10000,2000,g,frescos,Lácteos,Lácteos La Bocha,11.5,false
+ins_provolone,Queso Provolone Hilado de Campo,12000,3000,g,frescos,Lácteos,Lácteos La Bocha,7.5,false
+ins_queso_azul,Queso Azul Premium,5000,1000,g,frescos,Lácteos,Lácteos La Bocha,9.8,false
+ins_jamon_cocido,Jamón cocido de primera calidad,15000,4000,g,frescos,Fiambrería,Frigorífico El Triunfo,5.5,false
+ins_jamon_crudo,Jamón crudo estacionado 12 meses,8000,2000,g,frescos,Fiambrería,Frigorífico El Triunfo,14.5,false
+ins_cantimpalo,Salame Cantimpalo / Calabresa,10000,2000,g,secos,Fiambrería,Frigorífico El Triunfo,8.2,false
+ins_panceta,Panceta Ahumada Laminada,12000,3000,g,frescos,Fiambrería,Frigorífico El Triunfo,9,false
+ins_aceitunas,Aceitunas verdes rellenas y descarozadas,5000,1500,g,secos,Conservas,Distribuidora Altiplano,3.8,false
+ins_albahaca,Albahaca fresca de huerta,3000,1000,g,frescos,Vegetales,Mercado de Abasto,2.5,false
+ins_morrones,Pimientos rojos (Morrón en conserva),12000,3000,g,secos,Conservas,Distribuidora Altiplano,4.8,false
+ins_cebolla,Cebolla blanca seleccionada,40000,10000,g,frescos,Vegetales,Mercado de Abasto,1.2,false
+ins_empanada_relleno,Relleno criollo de carne cortado a cuchillo,15000,4000,g,frescos,Rellenos,Cocina Central,6.8,false
+ins_faina_preparacion,Harina de Garbanzo base fainá,10000,2000,g,secos,Harinas,Molino Cañuelas,2.5,false
+ins_dulce_leche,Dulce de Leche repostero,16000,4000,g,secos,Dulces,Lácteos La Bocha,3.5,false
+ins_chocolate_belga,Chocolate amargo belga 70%,5000,1500,g,secos,Especialidades,Gourmet Imports,16,false
+ins_helado_crema,Helado Cream Americana,30,5,unidades,frescos,Postres,Gourmet Imports,350,false
+ins_peras_und,Peras frescas premium,80,15,unidades,frescos,Vegetales,Mercado de Abasto,90,false
+ins_vin_trumpeter_malbec,Trumpeter Malbec Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,3200,true
+ins_vin_trumpeter_red_blend,Trumpeter Red Blend Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,3000,true
+ins_vin_trumpeter_chardonnay,Trumpeter Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,La Rural Winery,2900,true
+ins_vin_trumpeter_doux,Trumpeter Doux Botella,20,4,unidades,bodega,Vinos blancos,La Rural Winery,2900,true
+ins_vin_encuentro_malbec,Encuentro Malbec Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,4800,true
+ins_vin_rutini_malbec,GIUS Blonde runner (Blonde Ale) Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,6800,true
+ins_vin_rutini_cabernet_sauvignon,Rutini Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,6800,true
+ins_vin_rutini_cabernet_franc,Rutini Cabernet Franc Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,7200,true
+ins_vin_rutini_merlot,Rutini Merlot Botella,20,4,unidades,bodega,Vinos tintos,La Rural Winery,6500,true
+ins_vin_escorihuela_gascon_malbec,Escorihuela Gascón Malbec Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,4200,true
+ins_vin_escorihuela_gascon_cabernet_sauvignon,Escorihuela Gascón Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,4200,true
+ins_vin_escorihuela_gascon_pinot_noir,Escorihuela Gascón Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,4500,true
+ins_vin_escorihuela_gascon_chardonnay,Escorihuela Gascón Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Escorihuela Gascón S.A.,4100,true
+ins_vin_escorihuela_gascon_sauvignon_blanc,Escorihuela Gascón Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Escorihuela Gascón S.A.,4100,true
+ins_vin_eg_gran_reserva_malbec,E.G Gran Reserva Malbec Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,6800,true
+ins_vin_pequenas_producciones_malbec,Pequeñas Producciones Malbec Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,9500,true
+ins_vin_pequenas_producciones_cabernet_franc,Pequeñas Producciones Cabernet Franc Botella,20,4,unidades,bodega,Vinos tintos,Escorihuela Gascón S.A.,9500,true
+ins_vin_capitulo_2_malbec,Capítulo 2 Malbec Botella,20,4,unidades,bodega,Vinos tintos,Ruca Malen S.A.,3800,true
+ins_vin_capitulo_2_cabernet_sauvignon,Capítulo 2 Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Ruca Malen S.A.,3800,true
+ins_vin_alamos_red_blend,Alamos Red Blend Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,2400,true
+ins_vin_saint_felicien_malbec,Saint Felicien Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,5200,true
+ins_vin_saint_felicien_cabernet_sauvignon,Saint Felicien Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,5200,true
+ins_vin_saint_felicien_chardonnay,Saint Felicien Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Catena Zapata Winery,4900,true
+ins_vin_saint_felicien_sauvignon_blanc,Saint Felicien Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Catena Zapata Winery,4900,true
+ins_vin_nicasia_red_blend,Nicasia Red Blend Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,4500,true
+ins_vin_nicasia_malbec,Nicasia Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,4500,true
+ins_vin_padrillo_malbec,Padrillo Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,3100,true
+ins_vin_padrillo_pinot_noir,Padrillo Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,3100,true
+ins_vin_dv_catena_malbec,DV Catena Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,8900,true
+ins_vin_dv_catena_cabernet_sauvignon,DV Catena Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,8900,true
+ins_vin_dv_catena_pinot_noir,DV Catena Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,9200,true
+ins_vin_el_enemigo_malbec,El Enemigo Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,9800,true
+ins_vin_el_enemigo_cabernet_franc,El Enemigo Cabernet Franc Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,9800,true
+ins_vin_tikal_natural_malbec,Tikal Natural Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,7500,true
+ins_vin_angelica_zapata_malbec,Angélica Zapata Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,14500,true
+ins_vin_angelica_zapata_merlot,Angélica Zapata Merlot Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,14500,true
+ins_vin_angelica_zapata_chardonnay,Angélica Zapata Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Catena Zapata Winery,14000,true
+ins_vin_catena_zapata_argentino_malbec,Catena Zapata Argentino Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,28000,true
+ins_vin_luca_malbec,Luca Malbec Botella,20,4,unidades,bodega,Vinos tintos,Catena Zapata Winery,8200,true
+ins_vin_luca_chardonnay,Luca Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Catena Zapata Winery,8200,true
+ins_vin_las_perdices_malbec,Las Perdices Malbec Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,3400,true
+ins_vin_las_perdices_cabernet_sauvignon,Las Perdices Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,3400,true
+ins_vin_las_perdices_sauvignon_blanc,Las Perdices Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,3200,true
+ins_vin_las_perdices_torrontes,Las Perdices Torrontes Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,3200,true
+ins_vin_las_perdices_torrontes_dulce,Las Perdices Torrontes Dulce Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,3300,true
+ins_vin_las_perdices_reserva_malbec,Las Perdices Reserva Malbec Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,4800,true
+ins_vin_las_perdices_reserva_cabernet_sauvignon,Las Perdices Reserva Cabernet Sauvignon Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,4800,true
+ins_vin_las_perdices_reserva_pinot_noir,Las Perdices Reserva Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,5000,true
+ins_vin_las_perdices_reserva_chardonnay,Las Perdices Reserva Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,4600,true
+ins_vin_las_perdices_reserva_sauvignon_blanc,Las Perdices Reserva Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,4600,true
+ins_vin_las_perdices_don_juan_malbec,Las Perdices Don Juan Malbec Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,16000,true
+ins_vin_las_perdices_exploracion_las_compuertas,Las Perdices Exploración Las Compuertas Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,6500,true
+ins_vin_las_perdices_exploracion_chacayes,Las Perdices Exploración Chacayes Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,6500,true
+ins_vin_las_perdices_exploracion_albarino,Las Perdices Exploración Albariño Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,5800,true
+ins_vin_las_perdices_exploracion_riesling,Las Perdices Exploración Riesling Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,5800,true
+ins_vin_las_perdices_exploracion_gewurztraminer,Las Perdices Exploración Gewurztraminer Botella,20,4,unidades,bodega,Vinos blancos,Las Perdices S.A.,5900,true
+ins_vin_las_perdices_ala_colorada_ancelotta,Las Perdices Ala Colorada Ancelotta Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,7200,true
+ins_vin_las_perdices_ala_colorada_cabernet_franc,Las Perdices Ala Colorada Cabernet Franc Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,7200,true
+ins_vin_las_perdices_ala_colorada_tannat,Las Perdices Ala Colorada Tannat Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,7200,true
+ins_vin_las_perdices_ala_colorada_petit_verdot,Las Perdices Ala Colorada Petit Verdot Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,7200,true
+ins_vin_las_perdices_alae_malbec,Las Perdices Alae Malbec Botella,20,4,unidades,bodega,Vinos tintos,Las Perdices S.A.,28000,true
+ins_vin_portillo_malbec,Portillo Malbec Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,2100,true
+ins_vin_portillo_sauvignon_blanc,Portillo Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Salentein S.A.,2100,true
+ins_vin_salentein_reserva_malbec,Salentein Reserva Malbec Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,4400,true
+ins_vin_salentein_reserva_pinot_noir,Salentein Reserva Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,4600,true
+ins_vin_salentein_reserva_chardonnay,Salentein Reserva Chardonnay Botella,20,4,unidades,bodega,Vinos blancos,Salentein S.A.,4400,true
+ins_vin_salentein_reserva_sauvignon_blanc,Salentein Reserva Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Salentein S.A.,4400,true
+ins_vin_pyros_malbec,Pyros Malbec Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,6900,true
+ins_vin_pyros_sauvignon_blanc,Pyros Sauvignon Blanc Botella,20,4,unidades,bodega,Vinos blancos,Salentein S.A.,6500,true
+ins_vin_salentein_numina_malbec,Salentein Numina Malbec Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,8100,true
+ins_vin_salentein_numina_cabernet_franc,Salentein Numina Cabernet Franc Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,8100,true
+ins_vin_salentein_numina_pinot_noir,Salentein Numina Pinot Noir Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,8400,true
+ins_vin_salentein_primus_malbec,Salentein Primus Malbec Botella,20,4,unidades,bodega,Vinos tintos,Salentein S.A.,22000,true
+ins_champ_baron_b_brut_nature,Baron B Brut Nature Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,12000,true
+ins_champ_baron_b_extra_brut,Baron B Extra Brut Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,12000,true
+ins_champ_alyda_extra_brut,Alyda Extra Brut Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,8500,true
+ins_champ_encuentro_extra_brut,Encuentro Extra Brut Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,5800,true
+ins_champ_salentein_extra_brut,Salentein Extra Brut Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,4600,true
+ins_champ_chandon_extra_brut,Chandon Extra Brut Botella,20,4,unidades,bodega,Espumantes / Champagne,Champagne S.A.,5400,true
+ins_spir_whisky_macallan_12_anos,Whisky Macallan 12 Años Botella,20,4,unidades,bodega,Whisky,Spirits S.A.,45000,true
+ins_spir_gin_tonic_heraclito,Gin Tonic Heráclito Botella,20,4,unidades,bodega,Gin,Spirits S.A.,3500,true
+ins_spir_fernet_branca,Fernet Branca Botella,20,4,unidades,bodega,Fernet,Spirits S.A.,3800,true
+ins_spir_aperol_spritz,Aperol Spritz Botella,20,4,unidades,bodega,Aperitivos,Spirits S.A.,2900,true
+ins_beb_gaseosa,Lata Gaseosa Cola 354ml,120,30,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_coca_cola_original,Lata Coca-Cola Original 354ml,150,30,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_coca_cola_zero,Lata Coca-Cola Sin Azúcar 354ml,120,30,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_sprite,Lata Sprite Limón 354ml,100,20,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_sprite_zero,Lata Sprite Sin Azúcar 354ml,80,20,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_fanta,Lata Fanta Naranja 354ml,90,20,unidades,bodega,Gaseosas,Coca-Cola Andina,650,true
+ins_beb_agua,Botella Agua de Manantial 500ml,150,40,unidades,bodega,Agua,Cervecería Quilmes,450,true
+ins_cafe_grano,Café de especialidad grano tostado,10000,2000,g,secos,Cafetería,Caffé Zatti,15,false
+ins_beb_gius_blonde_runner_blonde_ale,GIUS Blonde runner (Blonde Ale) ,120,30,unidades,bodega,Cervezas,Distribuidora Río Cuarto,1530,true
+ins_beb_gius_indomable_dry_stout,GIUS Indomable (Dry Stout),120,30,unidades,bodega,Cervezas,Distribuidora Río Cuarto,1665,true
+ins_beb_gius_ojo_loco_irish_red_ale,GIUS Ojo Loco (Irish Red Ale),120,30,unidades,bodega,Cervezas,Distribuidora Río Cuarto,1575,true
+ins_beb_gius_anda_pa_alla_honey_ale,GIUS Anda pa alla (Honey Ale),120,30,unidades,bodega,Cervezas,Distribuidora Río Cuarto,1552.5,true
+ins_beb_coca_cola_500cc,Coca Cola 500cc,120,30,unidades,bodega,Gaseosas,Distribuidora Río Cuarto,1125,true
+ins_beb_bonaqua_500cc,Bonaqua 500cc,120,30,unidades,bodega,Gaseosas,Distribuidora Río Cuarto,1125,true
+ins_beb_gius_gente_despierta_light_lager,GIUS Gente despierta (Light Lager),120,30,unidades,bodega,Cervezas,Distribuidora Río Cuarto,1530,true
+ins_beb_sprite_500cc,Sprite 500cc,120,30,unidades,bodega,Gaseosas,Distribuidora Río Cuarto,1125,true
+ins_beb_coca_cola_zero_500cc,Coca Cola Zero 500cc,120,30,unidades,bodega,Gaseosas,Distribuidora Río Cuarto,1125,true
+ins_beb_fanta_500cc,Fanta 500cc,120,30,unidades,bodega,Gaseosas,Distribuidora Río Cuarto,1125,true
+ins_masa_pizza,Masa,10000,2000,g,secos,Masas,Cocina Central,1,false
+ins_pesto_albahaca,Pesto de albahaca,10000,2000,g,frescos,Salsas,General,1,false
+I-069,Pepperoni,10000,2000,g,frescos,Fiambres,General,1,false
+I-054,Salsa de hongos,10000,2000,g,frescos,Salsas,General,1,false
+I-026,Portobellos,10000,2000,g,frescos,Verduras,General,1,false
+I-075,Cebolla morada,10000,2000,g,frescos,Verduras,General,1,false
+I-010,Queso fynbo,10000,2000,g,frescos,Quesos,General,1,false
+ins_tomates_confit,Tomates secos,10000,2000,g,frescos,Verduras,General,1,false
+I-017,Rúcula,10000,2000,g,frescos,Verduras,General,1,false
+I-014,Langostinos,10000,2000,g,frescos,Mariscos,General,1,false
+I-022,Fugazza,10000,2000,g,frescos,Preparados,General,1,false
+ins_palta,Palta,10000,2000,g,frescos,Verduras,General,1,false
+ins_leche,Leche,10000,2000,ml,frescos,Lácteos,General,1,false
+ins_limon,Limón,10000,2000,g,frescos,Verduras,General,1,false
+I-042,Milanesa,10000,2000,unidades,frescos,Carnes,General,1,false
+ins_papas_rusticas,Papa,10000,2000,g,frescos,Verduras,General,1,false
+I-034,Tomate,10000,2000,g,frescos,Verduras,General,1,false
+I-033,Lechuga,10000,2000,g,frescos,Verduras,General,1,false
+I-035,Mayonesa,10000,2000,g,frescos,Salsas,General,1,false
+ins_huevo_fresco,Huevo,10000,2000,unidades,frescos,Huevos,General,1,false
+I-040,Mortadela,10000,2000,g,frescos,Fiambres,General,1,false
+ins_queso_mantecoso,Queso mantecoso,10000,2000,g,frescos,Quesos,General,1,false
+ins_nalga,Nalga,10000,2000,g,frescos,Carnes,General,1,false
+I-056,Salsa Napo,10000,2000,g,frescos,Salsas,General,1,false
+ins_hummus,Hummus,10000,2000,g,frescos,Preparados,General,1,false
+I-031,Disco empanada,10000,2000,unidades,frescos,Masas,General,1,false
+I-063,Carne picada,10000,2000,g,frescos,Carnes,General,1,false
+ins_manteca,Manteca,10000,2000,g,frescos,Lácteos,General,1,false
+ins_sal,Sal,10000,2000,g,frescos,Almacén,General,1,false
+ins_comino,Comino,10000,2000,g,frescos,Especias,General,1,false
+ins_pimienta,Pimienta,10000,2000,g,frescos,Especias,General,1,false
+ins_laurel,Laurel,10000,2000,unidades,frescos,Aromáticos,General,1,false
+ins_romero,Romero,10000,2000,g,frescos,Aromáticos,General,1,false
+ins_ajo,Ajo,10000,2000,g,frescos,Verduras,General,1,false
+ins_aji_molido,Ají molido,10000,2000,g,frescos,Especias,General,1,false
+ins_pimenton,Pimentón,10000,2000,g,frescos,Especias,General,1,false
+ins_verdeo,Verdeo,10000,2000,g,frescos,Verduras,General,1,false
+ins_mascarpone,Mascarpone,10000,2000,g,frescos,Lácteos,General,1,false
+ins_crema_leche,Crema de leche,10000,2000,g,frescos,Lácteos,General,1,false
+ins_yema,Yema,10000,2000,unidades,frescos,Huevos,General,1,false
+ins_azucar,Azúcar,10000,2000,g,frescos,Almacén,General,1,false
+ins_vainillas,Vainillas,10000,2000,g,frescos,Almacén,General,1,false
+ins_cafe,Café listo,10000,2000,ml,frescos,Bebidas,General,1,false
+ins_amaretto,Amaretto,10000,2000,ml,frescos,Bebidas,General,1,false
+ins_harina,Harina 0000,10000,2000,g,frescos,Almacén,General,1,false
+ins_ricota,Ricota,10000,2000,g,frescos,Lácteos,General,1,false
+ins_ralladura_naranja,Ralladura de naranja,10000,2000,g,frescos,Aromáticos,General,1,false
+ins_esencia_vainilla,Esencia de vainilla,10000,2000,ml,frescos,Almacén,General,1,false
+I-059,Cebolla,10000,2000,g,frescos,Verduras,General,1,false

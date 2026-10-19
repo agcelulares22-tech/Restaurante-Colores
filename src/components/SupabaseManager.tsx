@@ -129,10 +129,10 @@ export default function SupabaseManager({
 
     // Initial load
     const config = getSupabaseConfig();
-    const defaultUrl = 'https://msmaksbtetcmoaiyywto.supabase.co';
-    const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDA5ODgsImV4cCI6MjA4OTIxNjk4OH0.Qvw26EVpCyyYS631WZ3T6LN3x__4xFliYvfSjZJCmsc';
-    const effectiveUrl = config.url.startsWith('https://msmaksbtetcmoaiyywto') ? config.url : defaultUrl;
-    const effectiveKey = config.key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zbWFrc2J0ZXRjbW9haXl5d3Rv') ? config.key : defaultKey;
+    const defaultUrl = 'https://rasisomlemuaxpxlzqsg.supabase.co';
+    const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhc2lzb21sZW11YXhweGx6cXNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MTE5ODcsImV4cCI6MjEwNzk4Nzk4N30.ZhCJsDu-SGZxwIOM0pwL2mZotsBjwwJuId0uD8HlG8M';
+    const effectiveUrl = config.url.startsWith('https://rasisomlemuaxpxlzqsg') ? config.url : defaultUrl;
+    const effectiveKey = config.key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhc2lzb21sZW11YXhweGx6cXNn') ? config.key : defaultKey;
 
     if (effectiveUrl !== config.url || effectiveKey !== config.key) {
       if (typeof window !== 'undefined') {

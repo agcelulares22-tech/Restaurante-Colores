@@ -1,5 +1,6 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Cliente } from '../types';
+import { sheetsService } from './sheetsService';
 
 const LOCAL_STORAGE_KEY = 'colores_pizzeria_clientes';
 
@@ -58,6 +59,22 @@ const saveLocalClientes = (clientes: Cliente[]): void => {
 
 export const clientesService = {
   async list(): Promise<Cliente[]> {
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<any>('clientes');
+        if (rows && rows.length > 0) {
+          const mapped: Cliente[] = rows.map((c: any) => ({
+            ...c,
+            fecha_registro: new Date(c.fecha_registro || Date.now())
+          }));
+          saveLocalClientes(mapped);
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for clientes failed, falling back:', err);
+      }
+    }
+
     const supabase = tryGetActiveSupabaseClient();
     if (!supabase) {
       return getLocalClientes();

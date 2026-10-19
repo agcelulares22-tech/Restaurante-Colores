@@ -1,0 +1,4 @@
+﻿id_cliente,dni_cuit,nombre,email,telefono,puntos,fecha_registro
+cli_001,20-35492817-9,Juan Carlos Perez,juan.perez@email.com,+54 358 555-1234,150,2026-01-15T12:00:00Z
+cli_002,27-40283948-4,Maria Laura Rodriguez,maria.rodriguez@email.com,+54 358 444-5678,320,2026-02-10T14:30:00Z
+cli_003,30-71649251-4,Colores Pizza S.A.S.,administracion@pizzeriacolores.com.ar,+54 358 412-3456,1200,2026-03-01T09:00:00Z

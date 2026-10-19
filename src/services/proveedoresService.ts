@@ -1,5 +1,6 @@
-import { getActiveSupabaseClient } from '../lib/supabaseClient';
+import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Proveedor } from '../types';
+import { sheetsService } from './sheetsService';
 
 const toDbProveedor = (prov: Partial<Proveedor>) => ({
   ...(prov.id_proveedor !== undefined ? { id_proveedor: prov.id_proveedor } : {}),
@@ -11,6 +12,29 @@ const toDbProveedor = (prov: Partial<Proveedor>) => ({
 
 export const proveedoresService = {
   async list(): Promise<Proveedor[]> {
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<Proveedor>('Proveedores');
+        if (rows && rows.length > 0) {
+          const mapped = rows.map(p => ({
+            id_proveedor: p.id_proveedor,
+            nombre: p.nombre,
+            contacto: p.contacto,
+            telefono: p.telefono || '',
+            categoria: p.categoria || 'viveres',
+            correo: p.correo || '',
+            tiempo_entrega_dias: p.tiempo_entrega_dias !== undefined && p.tiempo_entrega_dias !== null ? Number(p.tiempo_entrega_dias) : 2
+          }));
+          try {
+            localStorage.setItem('colores_pizzeria_cache_proveedores', JSON.stringify(mapped));
+          } catch {}
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for Proveedores failed, falling back:', err);
+      }
+    }
+
     const cached = localStorage.getItem('colores_pizzeria_cache_proveedores');
     if (cached) {
       setTimeout(async () => {

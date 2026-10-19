@@ -1,0 +1,3 @@
+﻿id,id_usuario,nombre_empleado,tipo,fecha_hora,latitud,longitud,precision,dispositivo,direccion
+asist_1,4,Enzo Fernández,ingreso,2026-10-16 11:45:00,-33.1234,-64.3456,12,Android Mobile,"Alvear 1362, Río Cuarto"
+asist_2,5,Micaela Gómez,ingreso,2026-10-16 11:50:00,-33.1234,-64.3456,10,iOS Mobile,"Alvear 1362, Río Cuarto"

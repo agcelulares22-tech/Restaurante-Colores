@@ -1,0 +1,3 @@
+id_reserva,cliente,personas,fecha,hora,id_mesa,estado,telefono,email,observaciones,lista_espera,prioridad_espera
+res_demo_1,Juan Pérez,4,2026-10-19,21:30 hs,1,confirmada,+54 9 3584 112233,juan@example.com,Mesa cerca de la ventana,false,0
+res_demo_2,María Gómez,2,2026-10-19,22:00 hs,5,confirmada,+54 9 3584 445566,,Cumpleaños,false,0

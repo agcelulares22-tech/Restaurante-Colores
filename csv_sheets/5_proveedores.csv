@@ -1,0 +1,9 @@
+﻿id_proveedor,nombre,contacto,telefono,categoria,insumo_principal,correo,tiempo_entrega_dias
+prov_1,Molino Cañuelas,Ventas Cañuelas,+54 358 450-1001,Secos,Harinas,ventas@molinoccanuelas.com.ar,2
+prov_2,Distribuidora Altiplano,Carlos Gómez,+54 358 450-1002,Secos,Levaduras y Conservas,pedidos@altiplano.com.ar,1
+prov_3,Mercado de Abasto Río Cuarto,Puesto 14,+54 358 450-1003,Frescos,Vegetales y Frutas,abasto@riocuarto.gov.ar,1
+prov_4,Lácteos La Bocha,Esteban Bocha,+54 358 450-1004,Frescos,Mozzarella y Quesos,ventas@labocha.com.ar,1
+prov_5,Frigorífico El Triunfo,Martín Fierro,+54 358 450-1005,Frescos,Jamón y Fiambres,triunfo@frigorifico.com.ar,1
+prov_6,Gourmet Imports,Ana Clara,+54 358 450-1006,Especialidades,Aceite de oliva y Chocolate,gourmet@imports.com.ar,3
+prov_7,Distribuidora Río Cuarto,Lucas GIUS,+54 358 450-1007,Bebidas,Cervezas GIUS y Gaseosas,distribuidora@riocuarto.com,1
+prov_8,Coca-Cola Andina,Preventista Coca,+54 358 450-1008,Bebidas,Gaseosas y Aguas,pedidos@andina.com.ar,2

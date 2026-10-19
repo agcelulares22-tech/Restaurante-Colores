@@ -1,15 +1,32 @@
-import { getActiveSupabaseClient } from '../lib/supabaseClient';
+import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { RecetaEscandallo } from '../types';
+import { INITIAL_RECETAS_ESCANDALLO } from '../data/initialData';
+import { sheetsService } from './sheetsService';
 
 export const recetasService = {
   async list(): Promise<RecetaEscandallo[]> {
-    const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('recetas_escandallo').select('*').order('id_receta', { ascending: true });
-    if (error) {
-      console.error('Error fetching recetas_escandallo:', error);
-      throw error;
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<RecetaEscandallo>('recetas_escandallo');
+        if (rows && rows.length > 0) {
+          return rows;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for recetas_escandallo failed, falling back:', err);
+      }
     }
-    return data || [];
+
+    const client = tryGetActiveSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client.from('recetas_escandallo').select('*').order('id_receta', { ascending: true });
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        console.warn('Supabase recetas_escandallo fetch failed:', e);
+      }
+    }
+
+    return INITIAL_RECETAS_ESCANDALLO;
   },
 
   async create(receta: RecetaEscandallo): Promise<RecetaEscandallo> {

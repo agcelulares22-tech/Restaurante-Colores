@@ -1,0 +1,2 @@
+﻿id_factura,id_pedido,numero_factura,total,tipo_comprobante,metodo_pago,cuit_cliente,fecha_emision,afip_cae,afip_vto,afip_qr,afip_resultado
+fac_1001,1021,B-00001-00000042,19360,Factura B,Efectivo,99-99999999-9,2026-07-27T13:00:00Z,74012345678901,2026-08-06,,A

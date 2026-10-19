@@ -1,0 +1,3 @@
+﻿id_movimiento,id_cierre,tipo,monto,concepto,fecha
+mov_101,cie_901,ingreso,10000,Fondo de cambio inicial,2026-06-11 08:15
+mov_102,cie_901,egreso,3500,Compra de hielo de urgencia,2026-06-11 11:30

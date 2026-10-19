@@ -1,5 +1,6 @@
 import { getActiveSupabaseClient } from '../lib/supabaseClient';
 import { EventoLog } from '../types';
+import { sheetsService } from './sheetsService';
 
 export const auditoriaService = {
   async list(): Promise<EventoLog[]> {

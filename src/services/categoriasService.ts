@@ -1,5 +1,6 @@
 import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
 import { Categoria } from '../types';
+import { sheetsService } from './sheetsService';
 
 export const DEFAULT_CATEGORIAS: Categoria[] = [
   { id: 'cat_bebidas_alcohol', nombre: 'Bebidas c/a', slug: 'bebidas-con-alcohol', orden: 1, activa: true, icono: 'Wine' },
@@ -12,6 +13,21 @@ export const DEFAULT_CATEGORIAS: Categoria[] = [
 
 export const categoriasService = {
   async list(): Promise<Categoria[]> {
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<Categoria>('categorias');
+        if (rows && rows.length > 0) {
+          const active = rows.filter(c => c.activa !== false);
+          try {
+            localStorage.setItem('colores_pizzeria_cache_categorias', JSON.stringify(active));
+          } catch {}
+          return active;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for categorias failed, falling back:', err);
+      }
+    }
+
     const cached = localStorage.getItem('colores_pizzeria_cache_categorias');
     const client = tryGetActiveSupabaseClient();
 

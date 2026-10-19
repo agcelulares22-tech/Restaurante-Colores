@@ -1,0 +1,7 @@
+﻿id,nombre,slug,orden,activa,icono,created_at
+cat_1,Bebidas,bebidas,1,true,Wine,2026-06-12T00:00:00Z
+cat_2,Calzones y empanadas,calzones-y-empanadas,2,true,UtensilsCrossed,2026-06-12T00:00:00Z
+cat_3,Pizzas,pizzas,3,true,Pizza,2026-06-12T00:00:00Z
+cat_4,Postres,postres,4,true,Coffee,2026-06-12T00:00:00Z
+cat_5,Sandwiches,sandwiches,5,true,UtensilsCrossed,2026-06-12T00:00:00Z
+cat_6,Focaccias,focaccias,6,true,UtensilsCrossed,2026-06-12T00:00:00Z

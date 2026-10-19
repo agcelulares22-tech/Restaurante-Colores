@@ -1,4 +1,5 @@
 import { getActiveSupabaseClient } from '../lib/supabaseClient';
+import { sheetsService } from './sheetsService';
 
 export interface Factura {
   id_factura: string;
@@ -122,6 +123,9 @@ export const facturacionService = {
       if (error) {
         console.error('Error creating invoice:', error);
         throw error;
+      }
+      if (sheetsService.isConfigured()) {
+        sheetsService.append('facturas', dbPayload).catch(() => {});
       }
       return {
         ...factura,

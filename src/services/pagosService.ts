@@ -1,5 +1,6 @@
 import { getActiveSupabaseClient } from '../lib/supabaseClient';
 import { PagoDb } from '../types';
+import { sheetsService } from './sheetsService';
 
 export const pagosService = {
   async list(idFactura?: string): Promise<PagoDb[]> {
@@ -42,6 +43,10 @@ export const pagosService = {
       }]);
     } catch (err) {
       console.warn('DB payments persistence offline, using local storage cache:', err);
+    }
+
+    if (sheetsService.isConfigured()) {
+      sheetsService.append('pagos', pago).catch(() => {});
     }
 
     // Always cache locally as backup

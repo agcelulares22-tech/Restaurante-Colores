@@ -89,7 +89,13 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
             .select('*')
             .order('id_usuario', { ascending: true });
 
-          if (!dbErr && dbUsers && dbUsers.length > 0) {
+          if (dbErr) {
+            console.error('Error al consultar usuarios en Supabase live:', dbErr);
+            setError(`Error del servidor: ${dbErr.message}`);
+            return;
+          }
+
+          if (dbUsers && dbUsers.length > 0) {
             const matchedUser = findLocalLoginUser(dbUsers as Usuario[], email, password);
             if (matchedUser) {
               if (!canLogin(matchedUser as Usuario)) {
@@ -100,8 +106,10 @@ export default function PythonStreamlitLogin({ onLoginSuccess, onBackToCover }: 
               return;
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           console.warn('Error al consultar usuarios en Supabase live:', err);
+          setError(`Error de conexión: ${err?.message || 'Fallo de red'}`);
+          return;
         }
       }
 

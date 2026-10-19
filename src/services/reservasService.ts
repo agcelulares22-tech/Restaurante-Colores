@@ -1,9 +1,10 @@
-import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { tryGetActiveSupabaseClient } from '../lib/supabaseClient';
+import { sheetsService } from './sheetsService';
 import { Reserva } from '../types';
 
 // ---------------------------------------------------------------------------
 // Normalización de fechas
-// Supabase puede devolver fechas en ISO (YYYY-MM-DD) o DD/MM/YYYY.
+// Supabase/Sheets puede devolver fechas en ISO (YYYY-MM-DD) o DD/MM/YYYY.
 // Esta función las unifica siempre a ISO.
 // ---------------------------------------------------------------------------
 function normalizarFecha(valor: string | null | undefined): string {
@@ -25,7 +26,7 @@ function normalizarFecha(valor: string | null | undefined): string {
 }
 
 // ---------------------------------------------------------------------------
-// Mapeo DB → Reserva
+// Mapeo DB/Sheet → Reserva
 // Centralizado para no duplicar la lógica en list() y listByFecha().
 // ---------------------------------------------------------------------------
 function asString(value: unknown, fallback = ''): string {
@@ -63,7 +64,7 @@ function normalizarEstado(value: unknown): Reserva['estado'] {
 
 function mapRowToReserva(r: Record<string, unknown>): Reserva {
     const idMesa = asOptionalNumber(r.id_mesa);
-    const listaEspera = Boolean(r.lista_espera);
+    const listaEspera = Boolean(r.lista_espera === true || r.lista_espera === 'true');
     return {
           id_reserva:     asString(r.id_reserva, `r_${Date.now()}`),
           nombre_cliente: asString(r.cliente ?? r.nombre_cliente),
@@ -82,9 +83,8 @@ function mapRowToReserva(r: Record<string, unknown>): Reserva {
 }
 
 // ---------------------------------------------------------------------------
-// Payload DB ← Reserva
+// Payload DB / Sheets ← Reserva
 // Centralizado para no duplicar en create() y update().
-// Solo incluye los campos que la tabla acepta.
 // ---------------------------------------------------------------------------
 function toDbPayload(res: Partial<Reserva> & { id_reserva?: string }) {
     const payload: Record<string, unknown> = {};
@@ -126,59 +126,69 @@ export const reservasService = {
     /** Devuelve todas las reservas ordenadas por fecha y hora. */
     async list(): Promise<Reserva[]> {
           const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(CACHE_KEY) : null;
-          const client = tryGetActiveSupabaseClient();
 
-          if (cached) {
-            if (client) {
-              // Stale-While-Revalidate: fetch updated data in background
+          // 1. Google Sheets como almacenamiento principal
+          if (sheetsService.isConfigured()) {
+            if (cached) {
+              // Stale-While-Revalidate en segundo plano
               setTimeout(async () => {
                 try {
-                  const { data, error } = await client
-                    .from('reservas')
-                    .select('*')
-                    .order('fecha', { ascending: true })
-                    .order('hora',  { ascending: true });
-                  if (!error && data) {
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                  const rows = await sheetsService.getRows('reservas');
+                  if (rows && Array.isArray(rows)) {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(rows));
                   }
                 } catch (e) {
-                  console.warn('Background reservas cache refresh failed:', e);
+                  console.warn('Background sheets reservas refresh failed:', e);
                 }
               }, 500);
+
+              try {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed)) return parsed.map(mapRowToReserva);
+              } catch {}
             }
 
             try {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed)) {
-                return parsed.map(mapRowToReserva);
+              const rows = await sheetsService.getRows('reservas');
+              if (rows && Array.isArray(rows)) {
+                if (typeof localStorage !== 'undefined') {
+                  localStorage.setItem(CACHE_KEY, JSON.stringify(rows));
+                }
+                return rows.map(mapRowToReserva);
               }
-            } catch (e) {
-              console.warn('Failed parsing reservas cache:', e);
+            } catch (err) {
+              console.warn('[reservasService] Fallo lectura de Google Sheets, intentando fallback:', err);
             }
           }
 
-          if (!client) {
-            return [];
-          }
-
-          const { data, error } = await client
-            .from('reservas')
-            .select('*')
-            .order('fecha', { ascending: true })
-            .order('hora',  { ascending: true });
-
-          if (error) {
-                  console.error('reservasService.list:', error);
-                  throw error;
-          }
-
-          if (typeof localStorage !== 'undefined' && data) {
+          // 2. Fallback a Supabase si existiera la tabla
+          const client = tryGetActiveSupabaseClient();
+          if (client) {
             try {
-              localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+              const { data, error } = await client
+                .from('reservas')
+                .select('*')
+                .order('fecha', { ascending: true })
+                .order('hora',  { ascending: true });
+
+              if (!error && data) {
+                if (typeof localStorage !== 'undefined') {
+                  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                }
+                return data.map(mapRowToReserva);
+              }
             } catch {}
           }
 
-          return (data ?? []).map(mapRowToReserva);
+          // 3. Fallback a cache local
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) return parsed.map(mapRowToReserva);
+            } catch {}
+          }
+
+          return [];
     },
 
     /**
@@ -196,17 +206,22 @@ export const reservasService = {
      */
     async create(res: Reserva): Promise<Reserva> {
           invalidateCache();
-          const supabase = getActiveSupabaseClient();
-          const { data, error } = await supabase
-            .from('reservas')
-            .insert([toDbPayload(res)])
-            .select()
-            .single();
-          if (error) {
-                  console.error('reservasService.create:', error);
-                  throw error;
+          const payload = toDbPayload(res);
+
+          // 1. Google Sheets
+          if (sheetsService.isConfigured()) {
+            await sheetsService.append('reservas', payload);
           }
-          return mapRowToReserva(data);
+
+          // 2. Supabase si está disponible
+          const supabase = tryGetActiveSupabaseClient();
+          if (supabase) {
+            try {
+              await supabase.from('reservas').insert([payload]);
+            } catch {}
+          }
+
+          return res;
     },
 
     /**
@@ -214,51 +229,63 @@ export const reservasService = {
      */
     async update(id: string, fields: Partial<Reserva>): Promise<void> {
           invalidateCache();
-          const supabase = getActiveSupabaseClient();
           const payload = toDbPayload(fields);
-          // Nunca actualizar el id_reserva vía update
           delete payload.id_reserva;
-          const { error } = await supabase
-            .from('reservas')
-            .update(payload)
-            .eq('id_reserva', id);
-          if (error) {
-                  console.error('reservasService.update:', error);
-                  throw error;
+
+          // 1. Google Sheets
+          if (sheetsService.isConfigured()) {
+            await sheetsService.upsert('reservas', { ...payload, id_reserva: id }, 'id_reserva');
+          }
+
+          // 2. Supabase si está disponible
+          const supabase = tryGetActiveSupabaseClient();
+          if (supabase) {
+            try {
+              await supabase.from('reservas').update(payload).eq('id_reserva', id);
+            } catch {}
           }
     },
 
     /**
-     * Upsert masivo (usado en sync con Supabase).
+     * Upsert masivo.
      */
     async upsert(reservas: Reserva[]): Promise<void> {
           invalidateCache();
-          const supabase = getActiveSupabaseClient();
-          const { error } = await supabase
-            .from('reservas')
-            .upsert(reservas.map(r => toDbPayload(r)));
-          if (error) {
-                  console.error('reservasService.upsert:', error);
-                  throw error;
+          const payloads = reservas.map(r => toDbPayload(r));
+
+          // 1. Google Sheets
+          if (sheetsService.isConfigured()) {
+            await sheetsService.upsert('reservas', payloads, 'id_reserva');
+          }
+
+          // 2. Supabase si está disponible
+          const supabase = tryGetActiveSupabaseClient();
+          if (supabase) {
+            try {
+              await supabase.from('reservas').upsert(payloads);
+            } catch {}
           }
     },
 
     /**
-     * Elimina una reserva por ID.
+     * Elimina o cancela una reserva por ID.
      */
     async remove(id: string): Promise<boolean> {
           invalidateCache();
-          const supabase = getActiveSupabaseClient();
-          console.log(`[reservasService] Eliminando reserva id=${id}`);
-          const { error } = await supabase
-            .from('reservas')
-            .delete()
-            .eq('id_reserva', id);
-          if (error) {
-                  console.error('reservasService.remove:', error);
-                  return false;
+
+          // 1. Google Sheets: marcamos como cancelada para persistencia contable/operativa
+          if (sheetsService.isConfigured()) {
+            await sheetsService.upsert('reservas', { id_reserva: id, estado: 'cancelada' }, 'id_reserva');
           }
-          console.log(`[reservasService] Reserva ${id} eliminada OK`);
+
+          // 2. Supabase si está disponible
+          const supabase = tryGetActiveSupabaseClient();
+          if (supabase) {
+            try {
+              await supabase.from('reservas').delete().eq('id_reserva', id);
+            } catch {}
+          }
+
           return true;
     },
 };

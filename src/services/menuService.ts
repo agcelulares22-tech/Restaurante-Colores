@@ -2,6 +2,7 @@ import { getActiveSupabaseClient, tryGetActiveSupabaseClient } from '../lib/supa
 import { ProductoMenu } from '../types';
 import { RECIPES_DETAILS } from '../data/recipesData';
 import { INITIAL_PRODUCTOS_MENU } from '../data/initialData';
+import { sheetsService } from './sheetsService';
 
 type DbProductoMenu = Record<string, unknown>;
 
@@ -53,6 +54,21 @@ const toDbProductoMenu = (prod: ProductoMenu | Partial<ProductoMenu>) => ({
 
 export const menuService = {
   async list(): Promise<ProductoMenu[]> {
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows('Productos_menu');
+        if (rows && rows.length > 0) {
+          const normalized = rows.map(normalizeProductoMenu);
+          try {
+            localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(normalized));
+          } catch {}
+          return normalized;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for productos_menu failed, falling back:', err);
+      }
+    }
+
     const cached = localStorage.getItem('colores_pizzeria_cache_menu');
     const client = tryGetActiveSupabaseClient();
 
