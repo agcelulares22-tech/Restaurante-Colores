@@ -66,8 +66,43 @@ const cacheFactura = (factura: Factura) => {
 export const facturacionService = {
   async list(): Promise<Factura[]> {
     const local = readLocalFacturas();
+
+    // 1. Google Sheets si está configurado
+    if (sheetsService.isConfigured()) {
+      try {
+        const rows = await sheetsService.getRows<any>('facturas');
+        if (rows && Array.isArray(rows) && rows.length > 0) {
+          const remote: Factura[] = rows.map(f => {
+            const tipoComprobante = String(f.tipo_comprobante || f.estado || '');
+            return {
+              id_factura: String(f.id_factura || `fac_${Date.now()}`),
+              id_pedido: f.id_pedido ? String(f.id_pedido) : undefined,
+              nro_ticket: String(f.numero_factura || f.nro_ticket || 'T-0001'),
+              cliente: f.cuit_cliente ? `Clien_CUIT_${f.cuit_cliente}` : (f.cliente || 'Consumidor Final'),
+              cuit: String(f.cuit_cliente || f.cuit || '99-99999999-9'),
+              total: parseFloat(f.total) || 0,
+              iva_veintiuno: parseFloat((Number(f.total || 0) * 0.21).toFixed(2)),
+              medio_pago: mapMetodoPagoFromDb(f.metodo_pago || f.medio_pago),
+              fecha: f.fecha_emision ? new Date(f.fecha_emision).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs' : (f.fecha || ''),
+              estado: tipoComprobante.toLowerCase().includes('nota') ? 'nota_credito' as const : 'emitido' as const,
+              afip_cae: f.afip_cae,
+              afip_vto: f.afip_vto,
+              afip_qr: f.afip_qr,
+              afip_resultado: f.afip_resultado,
+              fecha_emision: f.fecha_emision
+            };
+          });
+          return mergeFacturas(remote, local);
+        }
+      } catch (err) {
+        console.warn('Sheets fetch facturas failed, falling back:', err);
+      }
+    }
+
     try {
       const supabase = getActiveSupabaseClient();
+      if (!supabase) return local;
+
       const { data, error } = await supabase.from('facturas').select('*').order('fecha_emision', { ascending: false });
       if (error) throw error;
 
@@ -102,7 +137,6 @@ export const facturacionService = {
 
   async create(factura: Factura, fromSyncQueue: boolean = false): Promise<Factura> {
     cacheFactura(factura);
-    const supabase = getActiveSupabaseClient();
     const dbPayload = {
       id_factura: factura.id_factura,
       id_pedido: factura.id_pedido || null,
@@ -118,32 +152,45 @@ export const facturacionService = {
       afip_resultado: factura.afip_resultado
     };
     
-    try {
-      const { data, error } = await supabase.from('facturas').insert([dbPayload]).select().single();
-      if (error) {
-        console.error('Error creating invoice:', error);
-        throw error;
+    let saved = false;
+
+    // 1. Google Sheets como almacenamiento principal
+    if (sheetsService.isConfigured()) {
+      try {
+        await sheetsService.upsert('facturas', dbPayload, 'id_factura');
+        saved = true;
+      } catch (sheetsErr) {
+        console.warn('facturacionService.create Sheets upsert error:', sheetsErr);
       }
-      if (sheetsService.isConfigured()) {
-        sheetsService.append('facturas', dbPayload).catch(() => {});
-      }
-      return {
-        ...factura,
-        id_factura: data.id_factura
-      };
-    } catch (err) {
-      console.warn('facturacionService.create failed remote push, enqueued for sync:', err);
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        syncQueueService.enqueue('upsert_factura', factura);
-      }
-      throw err;
     }
+
+    // 2. Supabase como almacenamiento secundario si existe la tabla
+    try {
+      const supabase = getActiveSupabaseClient();
+      if (supabase) {
+        const { data, error } = await supabase.from('facturas').insert([dbPayload]).select().maybeSingle();
+        if (!error && data) {
+          saved = true;
+          return {
+            ...factura,
+            id_factura: data.id_factura
+          };
+        }
+      }
+    } catch (err) {
+      // Ignorar si la tabla no está en Supabase
+    }
+
+    if (!saved && !fromSyncQueue) {
+      const { syncQueueService } = await import('./syncQueueService');
+      syncQueueService.enqueue('upsert_factura', factura);
+    }
+
+    return factura;
   },
 
   async upsert(facturas: Factura[], fromSyncQueue: boolean = false): Promise<void> {
     writeLocalFacturas(mergeFacturas([], [...facturas, ...readLocalFacturas()]));
-    const supabase = getActiveSupabaseClient();
     const dbPayloads = facturas.map(f => {
       return {
         id_factura: f.id_factura,
@@ -161,19 +208,32 @@ export const facturacionService = {
       };
     });
 
+    let saved = false;
+
+    // 1. Guardar en Google Sheets
+    if (sheetsService.isConfigured()) {
+      try {
+        await sheetsService.upsert('facturas', dbPayloads, 'id_factura');
+        saved = true;
+      } catch (sheetsErr) {
+        console.warn('facturacionService.upsert Sheets error:', sheetsErr);
+      }
+    }
+
+    // 2. Supabase si existiera la tabla
     try {
-      const { error } = await supabase.from('facturas').upsert(dbPayloads);
-      if (error) {
-        console.error('Error upserting invoices:', error);
-        throw error;
+      const supabase = getActiveSupabaseClient();
+      if (supabase) {
+        await supabase.from('facturas').upsert(dbPayloads);
+        saved = true;
       }
     } catch (err) {
-      console.warn('facturacionService.upsert failed remote push, enqueued for sync:', err);
-      if (!fromSyncQueue) {
-        const { syncQueueService } = await import('./syncQueueService');
-        facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
-      }
-      throw err;
+      // Ignorado si la tabla no existe en Supabase
+    }
+
+    if (!saved && !fromSyncQueue) {
+      const { syncQueueService } = await import('./syncQueueService');
+      facturas.forEach(f => syncQueueService.enqueue('upsert_factura', f));
     }
   },
 
