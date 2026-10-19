@@ -65,8 +65,8 @@ export const getSupabaseConfig = (): SupabaseConfig => {
     localKey = '';
   }
 
-  let envUrl = readEnvString(env, 'VITE_SUPABASE_URL');
-  let envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') || readEnvString(env, 'VITE_SUPABASE_ANON_KEY');
+  let envUrl = readEnvString(env, 'VITE_SUPABASE_URL') || readEnvString(env, 'SUPABASE_URL');
+  let envKey = readEnvString(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') || readEnvString(env, 'VITE_SUPABASE_ANON_KEY') || readEnvString(env, 'SUPABASE_ANON_KEY');
 
   if (envUrl && envUrl.includes('msmaksbtetcmoaiyywto')) {
     envUrl = '';

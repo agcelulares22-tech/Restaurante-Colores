@@ -6,6 +6,8 @@
 
 const STORAGE_KEY = 'colores_pizzeria_sheets_url';
 
+const DEFAULT_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxKdeDaT28ilE-MQzkJEJAtxYLFUaGz7QGTpShutietIiCHU7jeH7eRHPmSuJzBPypr/exec';
+
 export const getSheetsApiUrl = (): string => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -14,7 +16,7 @@ export const getSheetsApiUrl = (): string => {
     }
   }
   const env = (import.meta as any).env || {};
-  return (env.VITE_GOOGLE_SHEETS_API_URL || '').trim();
+  return (env.VITE_GOOGLE_SHEETS_API_URL || env.GOOGLE_SHEETS_API_URL || DEFAULT_SHEETS_URL).trim();
 };
 
 export const setSheetsApiUrl = (url: string) => {
