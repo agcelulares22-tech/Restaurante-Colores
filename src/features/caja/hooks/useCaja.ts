@@ -205,6 +205,7 @@ export function useCaja({
   // Success transaction modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{ nro: string, total: number, vuelto: number } | null>(null);
+  const [lastTicketData, setLastTicketData] = useState<TicketData | null>(null);
 
   // Printer configuration states
   const [printerConfig, setPrinterConfig] = useState<PrinterConfig>(printerService.getDefaultConfig());
@@ -1043,10 +1044,9 @@ export function useCaja({
     addLog('sistema', `CAJA: Cobro finalizado correctamente para Mesa ${selectedPedido.numero_mesa}. Transacción Fiscal ${compiledTicketNo} registrada. `);
 
     try {
-      await pdfService.exportToPDF(dataTicket, printerConfig.paperWidth === '58mm' ? 58 : 80);
       await printerService.sendToPrinter(dataTicket, printerConfig);
     } catch (e: any) {
-      toast.warning(`Cobro registrado, pero hubo un error al generar el PDF/impresión: ${e.message}`);
+      console.warn('Printer bridge warning:', e);
     }
 
     if (remainsTableOpen) {
@@ -1095,6 +1095,7 @@ export function useCaja({
       loadCajaState();
     }
 
+    setLastTicketData(dataTicket);
     setSuccessDetails({
       nro: compiledTicketNo,
       total: currentInvoiceTotal,
@@ -1166,8 +1167,16 @@ export function useCaja({
       descuentoFidelidad: puntosRedimidos
     };
 
-    const res = await printerService.sendToPrinter(dataTicket, printerConfig);
-    toast.success(res.message);
+    setLastTicketData(dataTicket);
+    setSuccessDetails({
+      nro: dataTicket.nroComprobante,
+      total: currentInvoiceTotal,
+      vuelto: calculatedChange
+    });
+    setShowSuccessModal(true);
+    try {
+      await printerService.sendToPrinter(dataTicket, printerConfig);
+    } catch {}
   };
 
   const triggerPDFDownloadOnly = async () => {
@@ -1629,6 +1638,8 @@ export function useCaja({
     showSuccessModal,
     setShowSuccessModal,
     successDetails,
+    lastTicketData,
+    setLastTicketData,
     printerConfig,
     setPrinterConfig,
     showPrinterSettings,

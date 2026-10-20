@@ -138,6 +138,8 @@ function CajaModule({
     showSuccessModal,
     setShowSuccessModal,
     successDetails,
+    lastTicketData,
+    setLastTicketData,
     printerConfig,
     setPrinterConfig,
     showPrinterSettings,
@@ -1437,207 +1439,6 @@ function CajaModule({
                       </div>
                     )}
 
-                {/* CLIENT & AFIP TYPE SYSTEM */}
-                <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-2">
-                  <h4 className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Información Tributaria</h4>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">Tipo de Factura</label>
-                      <select
-                        value={tipoComprobante}
-                        onChange={e => setTipoComprobante(e.target.value as TipoComprobante)}
-                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
-                      >
-                        <option value="factura_b" className="bg-white text-stone-900">Factura B (Cons. Final)</option>
-                        <option value="factura_a" className="bg-white text-stone-900">Factura A (Inscripto)</option>
-                        <option value="ticket_interno" className="bg-white text-stone-900">Ticket Interno (Mesa)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">DNI/CUIT Cliente</label>
-                      <input 
-                        type="text" 
-                        value={cuitCliente}
-                        onChange={e => {
-                          const val = e.target.value;
-                          setCuitCliente(val);
-                          if (val === '99-99999999-9' || val === '') {
-                            setNombreCliente('Consumidor Final');
-                          }
-                        }}
-                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        placeholder="Ej. 20-38449102-1"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-stone-600 block mb-0.5">Razón Social Cliente</label>
-                      <input 
-                        type="text" 
-                        value={nombreCliente}
-                        onChange={e => setNombreCliente(e.target.value)}
-                        className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        placeholder="Ej. José de San Martín"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* FIDELIZACION Y CLUB EL PATRON */}
-                <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-2">
-                  <h4 className="text-[10px] font-black text-stone-850 uppercase tracking-widest flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-amber-700" /> Fidelización de Clientes (Club Colores Pizza)
-                  </h4>
-                  
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={dniCuitBuscar}
-                      onChange={e => setDniCuitBuscar(e.target.value)}
-                      placeholder="Buscar DNI/CUIT de cliente"
-                      className="flex-1 min-h-11 text-sm p-2 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleBuscarCliente}
-                      className="px-4 min-h-11 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 text-xs font-black rounded-lg cursor-pointer transition-colors active:scale-95 btn-premium"
-                    >
-                      Buscar
-                    </button>
-                  </div>
-                  {selectedCliente ? (
-                    <div className="p-3 bg-emerald-50 border border-emerald-500/20 rounded-lg space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs font-bold text-emerald-800">{selectedCliente.nombre}</p>
-                            {(() => {
-                              const lvl = selectedCliente.puntos >= 500 ? { l: 'Oro', c: 'bg-yellow-500/20 text-yellow-450 border-yellow-500/30', s: '⭐' } :
-                                          selectedCliente.puntos >= 105 ? { l: 'Plata', c: 'bg-stone-200 text-stone-700 border-stone-300', s: '🥈' } :
-                                          { l: 'Bronce', c: 'bg-amber-750/15 text-amber-800 border-amber-600/30', s: '🥉' };
-                              return (
-                                <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${lvl.c}`} title={`Nivel ${lvl.l}`}>
-                                  {lvl.s} {lvl.l}
-                                </span>
-                              );
-                            })()}
-                          </div>
-                          <p className="text-[10px] text-stone-500 font-mono">{selectedCliente.dni_cuit}</p>
-                          <p className="text-[10px] text-amber-700 font-bold mt-0.5">
-                            Puntos Disponibles: {selectedCliente.puntos} (ARS ${(selectedCliente.puntos * 10).toLocaleString('es-AR')} de descuento)
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedCliente(null);
-                            setPuntosRedimidos(0);
-                            setDniCuitBuscar('');
-                          }}
-                          className="text-stone-500 hover:text-stone-700 text-[10px] font-bold transition-colors cursor-pointer"
-                        >
-                          Deseleccionar
-                        </button>
-                      </div>
-
-                      {/* Historial simulado */}
-                      <div className="bg-white p-2 rounded-lg border border-stone-200 text-[9px] text-stone-700 space-y-1">
-                        <span className="font-bold uppercase text-[8px] text-stone-450 block">Historial de Fidelización</span>
-                        <div className="flex justify-between font-mono">
-                          <span>• Alta de Cliente</span>
-                          <span className="text-emerald-700 font-bold">+0 ptos</span>
-                        </div>
-                        {selectedCliente.puntos > 0 && (
-                          <div className="flex justify-between font-mono">
-                            <span>• Consumos Acumulados</span>
-                            <span className="text-emerald-700 font-bold">+{selectedCliente.puntos} ptos</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-2 pt-1.5 border-t border-stone-200">
-                        {selectedCliente.puntos > 0 && (
-                          <div className="flex items-center gap-2">
-                            <label className="text-[9px] font-bold text-stone-700 uppercase">Canjear Puntos:</label>
-                            <input 
-                              type="number"
-                              min="0"
-                              max={Math.min(selectedCliente.puntos, Math.floor((orderBreakdowns.finalTotal + (puntosRedimidos * 10)) / 10))}
-                              value={puntosRedimidos || ''}
-                              onChange={e => {
-                                const pts = Math.max(0, parseInt(e.target.value) || 0);
-                                const limit = Math.min(selectedCliente.puntos, Math.floor((orderBreakdowns.finalTotal + (puntosRedimidos * 10)) / 10));
-                                if (pts > limit) {
-                                  setPuntosRedimidos(limit);
-                                  toast.warning(`El límite de canje para esta cuenta es de ${limit} puntos.`);
-                                } else {
-                                  setPuntosRedimidos(pts);
-                                }
-                              }}
-                              className="w-16 p-1 bg-white border border-stone-300 rounded font-mono text-xs text-stone-900 text-center focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            />
-                            <span className="text-[9px] text-stone-500 font-bold">1 pt = $10 descuento</span>
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (puntosRedimidos <= 0) {
-                                toast.warning('Debe canjear por lo menos 1 punto para generar un voucher de recompensa.');
-                              } else {
-                                setShowVoucherModal(true);
-                              }
-                            }}
-                            className="flex-1 py-1.5 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 text-[9px] font-black uppercase rounded flex items-center justify-center gap-1 cursor-pointer transition-colors border-0 btn-premium active:scale-95"
-                          >
-                            <QrCode className="w-3.5 h-3.5" /> Generar Voucher QR
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : dniCuitBuscar.trim() !== '' && (
-                    <div className="p-3 bg-stone-50 border border-stone-200 rounded-lg space-y-2">
-                      <p className="text-[10px] text-stone-500 font-bold italic">Cliente no registrado. Registrar comensal:</p>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="Nombre Completo"
-                          value={nombreNuevoCliente}
-                          onChange={e => setNombreNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        />
-                        <input 
-                          type="email" 
-                          placeholder="Email"
-                          value={emailNuevoCliente}
-                          onChange={e => setEmailNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Teléfono"
-                          value={telNuevoCliente}
-                          onChange={e => setTelNuevoCliente(e.target.value)}
-                          className="p-1.5 bg-white border border-stone-300 rounded text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleRegistrarCliente}
-                        className="w-full py-1.5 bg-stone-700 hover:bg-stone-850 text-white text-[10px] font-black uppercase rounded transition-colors cursor-pointer btn-premium active:scale-95"
-                      >
-                        Registrar y Seleccionar Cliente
-                      </button>
-                    </div>
-                  )}
-                </div>
-
                 {/* Standard split comensales (Rule 3) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
@@ -1774,216 +1575,11 @@ function CajaModule({
                       </div>
                     </div>
 
-                    {/* Ajustes Rápidos */}
-                    <div className="border-t border-stone-200 pt-2 mt-1 space-y-2">
-                      <span className="text-[8px] font-bold text-stone-500 uppercase tracking-widest block">Ajustes Rápidos</span>
-                      
-                      <div className="flex flex-col gap-2">
-                        {/* Fila Descuentos / Recargos */}
-                        <div className="flex flex-wrap gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTipoDescuento('porcentaje');
-                              setDescuentoMonto(0);
-                              setDescuentoPorcentaje(0);
-                              toast.info('Sin descuento manual.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 0
-                                ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
-                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                            }`}
-                          >
-                            Sin Desc.
-                          </button>
-                          
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTipoDescuento('porcentaje');
-                              setDescuentoMonto(0);
-                              setDescuentoPorcentaje(10);
-                              toast.success('Descuento de 10% aplicado.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 10
-                                ? 'bg-emerald-600 text-white border-emerald-600'
-                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                            }`}
-                          >
-                            10% Off
-                          </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTipoDescuento('porcentaje');
-                              setDescuentoMonto(0);
-                              setDescuentoPorcentaje(15);
-                              toast.success('Descuento de 15% aplicado.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === 15
-                                ? 'bg-emerald-600 text-white border-emerald-600'
-                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                            }`}
-                          >
-                            15% Off
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTipoDescuento('porcentaje');
-                              setDescuentoMonto(0);
-                              setDescuentoPorcentaje(-10);
-                              toast.warning('Recargo de 10% por Tarjeta aplicado.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              tipoDescuento === 'porcentaje' && descuentoPorcentaje === -10
-                                ? 'bg-rose-700 text-white border-rose-700'
-                                : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                            }`}
-                            title="Recargo por pago con tarjeta"
-                          >
-                            +10% Tarjeta
-                          </button>
-                        </div>
-
-                        {/* Fila Propinas */}
-                        <div className="flex flex-wrap gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPropinaPorcentaje(0);
-                              toast.info('Propina removida.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              propinaPorcentaje === 0
-                                ? 'bg-[#E8B800] text-zinc-950 border-[#E8B800]'
-                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
-                            }`}
-                          >
-                            Sin Propina
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPropinaPorcentaje(10);
-                              toast.success('Propina del 10% aplicada.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              propinaPorcentaje === 10
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
-                            }`}
-                          >
-                            10% Propina
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPropinaPorcentaje(15);
-                              toast.success('Propina del 15% aplicada.');
-                            }}
-                            className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer ${
-                              propinaPorcentaje === 15
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white border-stone-300 text-stone-650 hover:bg-stone-50'
-                            }`}
-                          >
-                            15% Propina
-                          </button>
-                        </div>
-
-                        {/* Fila Promociones Vigentes */}
-                        {activePromos.length > 0 && (
-                          <div className="border-t border-stone-200 pt-2 mt-1 space-y-1">
-                            <span className="text-[8px] font-bold text-emerald-700 uppercase tracking-widest block">Campañas Activas (Aplicar)</span>
-                            <div className="flex flex-wrap gap-1">
-                              {activePromos.map(promo => {
-                                const isApplied = tipoDescuento === 'porcentaje' && descuentoPorcentaje === promo.descuento_porcentaje;
-                                return (
-                                  <button
-                                    key={promo.id_promo}
-                                    type="button"
-                                    onClick={() => {
-                                      setTipoDescuento('porcentaje');
-                                      setDescuentoMonto(0);
-                                      setDescuentoPorcentaje(promo.descuento_porcentaje);
-                                      toast.success(`Campaña "${promo.nombre}" (-${promo.descuento_porcentaje}%) aplicada.`);
-                                    }}
-                                    className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all cursor-pointer flex items-center gap-1 ${
-                                      isApplied
-                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-md animate-pulse'
-                                        : 'bg-white border-stone-300 text-emerald-700 hover:bg-emerald-50'
-                                    }`}
-                                    title={promo.descripcion}
-                                  >
-                                    <Tag className="w-2.5 h-2.5" />
-                                    {promo.nombre.split(' ')[0]} (-{promo.descuento_porcentaje}%)
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                {/* Coupon discount codes panel (Area 3) */}
-                <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2.5 font-sans">
-                  <h5 className="text-[10px] font-black text-stone-700 flex items-center gap-1 uppercase tracking-wider">
-                    <Tag className="w-3.5 h-3.5 text-amber-700" /> Cuponera & Promociones
-                  </h5>
-                  {appliedCoupon ? (
-                    <div className="flex justify-between items-center bg-emerald-50 border border-emerald-500/20 p-2.5 rounded-xl">
-                      <div>
-                        <p className="text-xs font-bold text-emerald-800 font-sans">Cupón Activo: {appliedCoupon.code}</p>
-                        <p className="text-[10px] text-stone-500 font-mono">
-                          Descuento: {appliedCoupon.type === 'porcentaje' ? `${appliedCoupon.value}%` : `$${appliedCoupon.value}`}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRemoveCoupon}
-                        className="text-rose-700 hover:text-rose-800 text-xs font-black transition-colors cursor-pointer"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Ingresar código de cupón"
-                          value={couponInput}
-                          onChange={e => setCouponInput(e.target.value)}
-                          className="flex-1 min-h-11 text-xs p-2.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder-stone-400"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          className="px-4 min-h-11 bg-stone-700 hover:bg-stone-850 border border-stone-300 text-white text-xs font-black rounded-xl cursor-pointer transition-colors active:scale-95"
-                        >
-                          Aplicar
-                        </button>
-                      </div>
-                      {couponError && (
-                        <p className="text-[10px] text-rose-700 font-semibold">{couponError}</p>
-                      )}
-                      <p className="text-[9px] text-stone-500 leading-relaxed">
-                        Probá con: <span className="font-mono text-stone-600 font-bold">PROMO10</span> (10%), <span className="font-mono text-stone-600 font-bold">BIENVENIDA</span> ($500), <span className="font-mono text-stone-600 font-bold">PIZZALOVER</span> (15%).
-                      </p>
-                    </div>
-                  )}
-                </div>
+
 
                 {/* PAYMENT TYPE / MIXED PAYMENTS LAYOUT (Rule 4) */}
                 <div className="bg-stone-50 border border-stone-200 p-3 sm:p-4 rounded-xl space-y-3.5">
@@ -2761,45 +2357,202 @@ function CajaModule({
         )}
       </div>
 
-      {/* SUCCESS MODAL FOR TRANSACTION POLISH (Step 3) */}
-      {showSuccessModal && successDetails && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn font-sans">
-          <div className="glass-card rounded-2xl border border-stone-250 max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative text-stone-900">
-            <button 
-              onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300 transition-all cursor-pointer border-0 bg-transparent"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            
-            <div className="mx-auto w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-400 border border-emerald-500/20 animate-bounce">
-              <CheckCircle className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base font-black text-stone-900 uppercase tracking-tight">Cobro Completado</h3>
-              <p className="text-xs text-stone-500 font-semibold">Comprobante Nº: {successDetails.nro}</p>
-            </div>
-
-            <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2 font-mono text-sm">
-              <div className="flex justify-between text-stone-600">
-                <span className="text-xs font-sans font-bold">Monto Cobrado:</span>
-                <span className="font-extrabold text-[#E8B800]">${successDetails.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-              </div>
-              {successDetails.vuelto > 0 && (
-                <div className="flex justify-between text-[#22C55E] pt-2 border-t border-white/10 border-dotted">
-                  <span className="text-xs font-sans font-bold">Vuelto Entregado:</span>
-                  <span className="font-extrabold">${successDetails.vuelto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+      {/* MODAL VISTA PREVIA DEL TICKET & COBRO COMPLETADO */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 animate-fadeIn font-sans">
+          <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 max-w-md w-full shadow-2xl flex flex-col max-h-[92vh] overflow-hidden text-stone-900 dark:text-stone-100">
+            {/* Header del Modal */}
+            <div className="p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5" />
                 </div>
-              )}
+                <div>
+                  <h3 className="text-sm font-black uppercase text-stone-900 dark:text-white">
+                    Cobro Completado
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">
+                    Comprobante: {lastTicketData?.nroComprobante || successDetails?.nro}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setLastTicketData(null);
+                }}
+                className="w-8 h-8 rounded-lg bg-stone-200/60 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 flex items-center justify-center text-stone-500 dark:text-stone-400 cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full min-h-11 py-2.5 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 text-xs font-black uppercase rounded-xl shadow transition-all cursor-pointer border-0 btn-premium glow-yellow active:scale-95"
-            >
-              Cerrar y Continuar
-            </button>
+            {/* Vista Previa del Ticket Térmico (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-4 bg-stone-100 dark:bg-stone-950/70 flex justify-center">
+              <div className="w-full max-w-[340px] bg-white keep-white text-zinc-950 p-4 shadow-md font-mono text-[10px] leading-relaxed border border-stone-200 relative">
+                {/* Borde dentado superior */}
+                <div className="absolute top-0 inset-x-0 h-1 bg-stone-300 flex overflow-hidden">
+                  {Array.from({ length: 40 }).map((_, i) => (
+                    <div key={i} className="w-1.5 h-1.5 shrink-0 bg-stone-200 rotate-45 transform -translate-y-0.5" />
+                  ))}
+                </div>
+
+                {/* Cabecera del Comercio */}
+                <div className="text-center pt-2 pb-2 border-b border-dotted border-stone-300 space-y-0.5">
+                  <span className="font-black text-xs block uppercase tracking-tight">
+                    {lastTicketData?.nombreComercial || restaurante.nombreComercial}
+                  </span>
+                  <span className="block text-[9px] text-stone-600">
+                    Raz. Soc: {lastTicketData?.razonSocial || restaurante.razonSocial}
+                  </span>
+                  <span className="block text-[9px] text-stone-600">
+                    CUIT: {lastTicketData?.cuit || restaurante.cuit}
+                  </span>
+                  <span className="block text-[9px] text-stone-600">
+                    {lastTicketData?.direccion || restaurante.direccion}
+                  </span>
+                  <span className="block text-[9px] text-stone-600">
+                    Tel: {lastTicketData?.telefono || restaurante.telefono}
+                  </span>
+                </div>
+
+                {/* Datos del Comprobante */}
+                <div className="py-2 border-b border-dotted border-stone-300 space-y-0.5 text-[9px]">
+                  <p>COMPROB.: <span className="font-bold">{lastTicketData?.nroComprobante || successDetails?.nro}</span></p>
+                  <p>FECHA: {lastTicketData?.fechaHora || new Date().toLocaleString('es-AR')}</p>
+                  <p>MESA: <span className="font-bold">{(lastTicketData?.mesa || selectedPedido?.numero_mesa || '').toUpperCase()}</span> • MOZO: {lastTicketData?.mozo || selectedPedido?.mozo}</p>
+                  <p>CAJERO: {(lastTicketData?.cajero || cajaSession?.usuario_cajero || 'CAJA').toUpperCase()}</p>
+                  <p>CLIENTE: {(lastTicketData?.clienteNombre || nombreCliente || 'CONSUMIDOR FINAL').toUpperCase()}</p>
+                </div>
+
+                {/* Ítems del Pedido */}
+                <div className="py-2 border-b border-dotted border-stone-300 space-y-1">
+                  <div className="flex justify-between font-bold text-[9px] border-b border-dotted border-stone-200 pb-1">
+                    <span>CANT / DESCRIPCIÓN</span>
+                    <span>TOTAL ($)</span>
+                  </div>
+                  {lastTicketData?.items?.map((it, idx) => (
+                    <div key={idx} className="flex justify-between text-[9px]">
+                      <span className="truncate pr-2 font-sans">{it.cantidad}x {it.descripcion}</span>
+                      <span className="font-mono font-bold">${it.subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Totales y Descuentos */}
+                <div className="py-2 border-b border-dotted border-stone-300 space-y-1 font-sans text-[10px]">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">${(lastTicketData?.subtotal || successDetails?.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  {(lastTicketData?.descuento || 0) > 0 && (
+                    <div className="flex justify-between text-emerald-800 font-bold">
+                      <span>Descuento:</span>
+                      <span className="font-mono">-${lastTicketData!.descuento.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {(lastTicketData?.propina || 0) > 0 && (
+                    <div className="flex justify-between text-stone-600">
+                      <span>Propina:</span>
+                      <span className="font-mono">${lastTicketData!.propina.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-black text-sm text-stone-900 border-t border-dashed border-stone-300 pt-1 mt-1 font-mono">
+                    <span>TOTAL:</span>
+                    <span>${(lastTicketData?.total || successDetails?.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+
+                {/* Medios de Pago */}
+                <div className="py-2 border-b border-dotted border-stone-300 space-y-0.5 text-[9px]">
+                  <span className="font-bold block uppercase text-[8px] text-stone-500">Forma de Pago:</span>
+                  {lastTicketData?.metodosPago?.map((mp, idx) => (
+                    <div key={idx} className="flex justify-between uppercase">
+                      <span>{mp.metodo}:</span>
+                      <span className="font-mono font-bold">${mp.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+                  {(lastTicketData?.vuelto || successDetails?.vuelto || 0) > 0 && (
+                    <div className="flex justify-between text-emerald-800 font-bold pt-1">
+                      <span>VUELTO:</span>
+                      <span className="font-mono">${(lastTicketData?.vuelto || successDetails?.vuelto || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* QR y Pie */}
+                <div className="text-center pt-2 space-y-1">
+                  <div className="w-14 h-14 bg-stone-50 border border-stone-200 mx-auto flex items-center justify-center relative">
+                    <div className="grid grid-cols-4 gap-0.5 p-1 w-full h-full opacity-60">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div key={i} className={`w-full h-full ${i % 3 === 0 || i % 7 === 1 ? 'bg-stone-900' : 'bg-transparent'}`} />
+                      ))}
+                    </div>
+                    <span className="absolute bg-white px-0.5 text-[5px] font-bold text-stone-800 uppercase ring-1 ring-stone-900/5">AFIP QR</span>
+                  </div>
+                  <p className="text-[8px] text-stone-500 font-sans mt-1">
+                    {lastTicketData?.mensajePie || restaurante.mensajePie || '¡Muchas gracias por su visita!'}
+                  </p>
+                </div>
+
+                {/* Borde dentado inferior */}
+                <div className="absolute bottom-0 inset-x-0 h-1 bg-stone-300 flex overflow-hidden">
+                  {Array.from({ length: 40 }).map((_, i) => (
+                    <div key={i} className="w-1.5 h-1.5 shrink-0 bg-stone-200 rotate-45 transform translate-y-0.5" />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Acciones del Modal */}
+            <div className="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (lastTicketData) {
+                    printerService.printToBrowser(lastTicketData, printerConfig.paperWidth);
+                    printerService.sendToPrinter(lastTicketData, printerConfig);
+                  } else {
+                    window.print();
+                  }
+                }}
+                className="w-full py-3 bg-[#E8B800] hover:bg-[#D4A700] text-zinc-950 text-xs font-black uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 btn-premium glow-yellow active:scale-95"
+              >
+                <Printer className="w-4 h-4 text-zinc-950" />
+                Imprimir en Ticketera
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (lastTicketData) {
+                      try {
+                        await pdfService.exportToPDF(lastTicketData, printerConfig.paperWidth === '58mm' ? 58 : 80);
+                        toast.success('PDF del comprobante descargado.');
+                      } catch (err: any) {
+                        toast.error('Error al generar PDF: ' + err.message);
+                      }
+                    }
+                  }}
+                  className="flex-1 py-2 bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Descargar PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    setLastTicketData(null);
+                  }}
+                  className="flex-1 py-2 bg-stone-100 dark:bg-stone-850 hover:bg-stone-200 dark:hover:bg-stone-750 text-stone-600 dark:text-stone-400 text-xs font-bold rounded-xl transition-colors cursor-pointer text-center"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
