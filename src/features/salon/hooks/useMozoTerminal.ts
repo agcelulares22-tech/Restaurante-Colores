@@ -126,7 +126,7 @@ export function useMozoTerminal({
     });
 
     const activeDeliveryPedido = pedidos.find(p =>
-      p && p.id_mesa === 999 &&
+      p && (p.id_mesa === 999 || String(p.numero_mesa || '').toUpperCase().startsWith('DELIVERY')) &&
       ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
     );
 
@@ -139,7 +139,7 @@ export function useMozoTerminal({
     };
 
     const activeRetiroPedido = pedidos.find(p =>
-      p && p.id_mesa === 998 &&
+      p && (p.id_mesa === 998 || String(p.numero_mesa || '').toUpperCase().startsWith('RETIRO')) &&
       ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado'].includes(p.estado_comanda)
     );
 
@@ -268,8 +268,10 @@ export function useMozoTerminal({
     const tablePedidos = pedidos.filter(p => {
       if (!p) return false;
       const matchMesaId = String(p.id_mesa) === String(selectedMesaId);
+      const isDeliveryMatch = selectedMesaId === 999 && (p.id_mesa === 999 || String(p.numero_mesa || '').toUpperCase().startsWith('DELIVERY'));
+      const isRetiroMatch = selectedMesaId === 998 && (p.id_mesa === 998 || String(p.numero_mesa || '').toUpperCase().startsWith('RETIRO'));
       const matchMesaNum = selectedMesa ? String(p.numero_mesa || '').toLowerCase().replace(/mesa\s+/gi, '').trim() === String(selectedMesa.numero_mesa || '').toLowerCase().replace(/mesa\s+/gi, '').trim() : false;
-      return (matchMesaId || matchMesaNum) && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado';
+      return (matchMesaId || isDeliveryMatch || isRetiroMatch || matchMesaNum) && p.estado_comanda !== 'entregado_cobrado' && p.estado_comanda !== 'cancelado';
     });
     return mergePedidos(tablePedidos);
   }, [selectedMesaId, selectedMesa, pedidos]);

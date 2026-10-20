@@ -4,16 +4,36 @@ import type { ZonaEnvio, CalleEnvio } from '../types';
 export async function fetchZonasEnvio(): Promise<ZonaEnvio[]> {
   try {
     const client = getActiveSupabaseClient();
+    // 1. Intentar delivery_zonas que contiene las zonas activas
+    const { data: dzData, error: dzError } = await client
+      .from('delivery_zonas')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre', { ascending: true });
+
+    if (!dzError && dzData && dzData.length > 0) {
+      return dzData.map((d: any, index: number) => ({
+        id: index + 1,
+        nombre_zona: d.nombre,
+        color_hex: d.color_hex || '#E8B800',
+        descripcion: d.descripcion,
+        costo_envio: Number(d.precio_fijo) || 0,
+        minimo_pedido: 0,
+        activo: d.activo !== false
+      }));
+    }
+
+    // 2. Fallback a zonas_envio
     const { data, error } = await client
       .from('zonas_envio')
       .select('*')
       .eq('activo', true)
       .order('id', { ascending: true });
 
-    if (error) throw error;
+    if (error) return [];
     return (data || []) as ZonaEnvio[];
   } catch (err) {
-    console.error('[zonasEnvioService] fetchZonasEnvio error:', err);
+    console.warn('[zonasEnvioService] fetchZonasEnvio fallback:', err);
     return [];
   }
 }
@@ -26,10 +46,9 @@ export async function fetchCallesEnvio(): Promise<CalleEnvio[]> {
       .select('*')
       .eq('activo', true);
 
-    if (error) throw error;
+    if (error) return [];
     return (data || []) as CalleEnvio[];
-  } catch (err) {
-    console.error('[zonasEnvioService] fetchCallesEnvio error:', err);
+  } catch {
     return [];
   }
 }

@@ -67,23 +67,27 @@ export const proveedoresService = {
       }
     }
 
-    const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('proveedores').select('*').order('nombre', { ascending: true });
-    if (error) {
-      console.error('Error fetching proveedores:', error);
-      throw error;
+    const supabase = tryGetActiveSupabaseClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase.from('proveedores').select('*').order('nombre', { ascending: true });
+      if (error) {
+        return [];
+      }
+      const mapped = (data || []).map(p => ({
+        id_proveedor: p.id_proveedor,
+        nombre: p.nombre,
+        contacto: p.contacto,
+        telefono: p.telefono || '',
+        categoria: p.categoria || 'viveres',
+        correo: p.correo || '',
+        tiempo_entrega_dias: p.tiempo_entrega_dias !== undefined && p.tiempo_entrega_dias !== null ? p.tiempo_entrega_dias : 2
+      }));
+      localStorage.setItem('colores_pizzeria_cache_proveedores', JSON.stringify(data || []));
+      return mapped;
+    } catch {
+      return [];
     }
-    const mapped = (data || []).map(p => ({
-      id_proveedor: p.id_proveedor,
-      nombre: p.nombre,
-      contacto: p.contacto,
-      telefono: p.telefono || '',
-      categoria: p.categoria || 'viveres',
-      correo: p.correo || '',
-      tiempo_entrega_dias: p.tiempo_entrega_dias !== undefined && p.tiempo_entrega_dias !== null ? p.tiempo_entrega_dias : 2
-    }));
-    localStorage.setItem('colores_pizzeria_cache_proveedores', JSON.stringify(data || []));
-    return mapped;
   },
 
   async create(prov: Proveedor): Promise<Proveedor> {

@@ -369,10 +369,14 @@ export function useAppState() {
               if (existsIndex >= 0) {
                 // Order exists -> update it with newRow values
                 const existing = prev[existsIndex];
+                const isDelivery = (newRow.id_mesa === null || newRow.id_mesa === 999) && String(newRow.numero_mesa || existing.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+                const isRetiro = (newRow.id_mesa === null || newRow.id_mesa === 998) && String(newRow.numero_mesa || existing.numero_mesa || '').toUpperCase().startsWith('RETIRO');
+                const idMesa = isDelivery ? 999 : (isRetiro ? 998 : (newRow.id_mesa ?? existing.id_mesa));
                 const updated = {
                   ...existing,
                   ...newRow,
                   id_pedido: targetId,
+                  id_mesa: idMesa,
                   estado_comanda: newRow.estado_comanda || existing.estado_comanda,
                   items: Array.isArray(parsedItems) && parsedItems.length > 0 ? parsedItems : existing.items
                 };
@@ -381,8 +385,9 @@ export function useAppState() {
                 return copy;
               } else {
                 // Order is NEW (INSERT) -> Construct and append immediately!
-                const isDelivery = newRow.id_mesa === null && String(newRow.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
-                const idMesa = isDelivery ? 999 : newRow.id_mesa;
+                const isDelivery = (newRow.id_mesa === null || newRow.id_mesa === 999) && String(newRow.numero_mesa || '').toUpperCase().startsWith('DELIVERY');
+                const isRetiro = (newRow.id_mesa === null || newRow.id_mesa === 998) && String(newRow.numero_mesa || '').toUpperCase().startsWith('RETIRO');
+                const idMesa = isDelivery ? 999 : (isRetiro ? 998 : newRow.id_mesa);
                 const newPedidoObj: Pedido = {
                   id_pedido: targetId,
                   idempotency_key: newRow.idempotency_key ?? undefined,
