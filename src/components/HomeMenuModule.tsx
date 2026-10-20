@@ -172,7 +172,7 @@ export default function HomeMenuModule({
       alerts.push({
         text: `${lowStockCount} insumo(s) con stock crítico`,
         type: 'danger',
-        action: 'inventario'
+        action: 'proveedores'
       });
     }
     if (pendingCooking > 0) {
@@ -252,17 +252,6 @@ export default function HomeMenuModule({
       badge: {
         text: 'COSTOS',
         type: 'neutral'
-      }
-    },
-    {
-      id: 'inventario',
-      title: 'Inventario',
-      description: 'Control de stock, alertas de reposición, y movimientos de insumos por producción.',
-      icon: Database,
-      iconColor: 'text-emerald-500',
-      badge: {
-        text: lowStockCount > 0 ? `${lowStockCount} CRÍTICOS` : 'STOK OK',
-        type: lowStockCount > 0 ? 'rose' : 'emerald'
       }
     },
     {
@@ -619,14 +608,6 @@ export default function HomeMenuModule({
           >
             <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
             Registrar Pago en Caja
-          </button>
-          
-          <button
-            onClick={() => onNavigate('inventario')}
-            className="flex items-center gap-1.5 bg-white dark:bg-zinc-950 hover:bg-slate-100 dark:hover:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-zinc-100 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-98 transition-colors duration-300"
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            Insumos Críticos
           </button>
  
           <button

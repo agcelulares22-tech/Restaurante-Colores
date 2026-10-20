@@ -32,7 +32,6 @@ import { AppView } from './lib/permissions';
 const HomeMenuModule = lazy(() => import('./components/HomeMenuModule'));
 const MozoTerminal = lazy(() => import('./components/MozoTerminal'));
 const KitchenMonitor = lazy(() => import('./components/KitchenMonitor'));
-const InventoryModule = lazy(() => import('./components/InventoryModule'));
 const CajaModule = lazy(() => import('./components/CajaModule'));
 const SistemaModule = lazy(() => import('./components/SistemaModule'));
 const UsuariosModule = lazy(() => import('./components/UsuariosModule'));
@@ -228,7 +227,6 @@ export default function App() {
             { id: 'menu', label: 'Menú', icon: '📖' },
             { id: 'recetas', label: 'Recetas', icon: '⚖️' },
             { id: 'mesas', label: 'Delivery', icon: '🛵' },
-            { id: 'inventario', label: 'Inventario', icon: '📦' },
             { id: 'proveedores', label: 'Proveedores', icon: '🚚' },
             { id: 'promociones', label: 'Promociones', icon: '🏷️' },
             { id: 'reservas', label: 'Reservas', icon: '📅' },
@@ -345,13 +343,6 @@ export default function App() {
             )}
             {activeView === 'caja' && (
               <CajaModule pedidos={pedidos} productosMenu={productosMenu} onFacturarMesa={handleFacturarMesa} onCambiarEstadoPedido={handleCambiarEstadoPedido} addLog={addLog} />
-            )}
-            {activeView === 'inventario' && (
-              <InventoryModule insumos={insumos} productosMenu={productosMenu} recetas={recetas} mermas={mermas}
-                onRegistrarMerma={handleRegistrarMerma}
-                onRestockInsumo={handleRestockInsumo}
-                addLog={addLog}
-              />
             )}
             {activeView === 'usuarios' && (
               <UsuariosModule usuarios={usuarios} onUsuariosChange={setUsuarios} addLog={addLog} activeUser={activeUser} />

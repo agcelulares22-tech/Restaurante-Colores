@@ -960,7 +960,6 @@ export default function PanelDashboard({
           { view: 'mozo', icon: <Smartphone className="w-4 h-4" />, label: 'Terminal Mozo', desc: 'Tomar pedidos y mesas' },
           { view: 'cocina', icon: <ChefHat className="w-4 h-4" />, label: 'Horno y Elaboración', desc: 'Cocción y semáforo de pizzas' },
           { view: 'caja', icon: <Receipt className="w-4 h-4" />, label: 'Módulo Caja', desc: 'Cobros y cierre de turno' },
-          { view: 'inventario', icon: <Package className="w-4 h-4" />, label: 'Inventario', desc: 'Stock y mermas' },
                       ].filter(({ view }) => allowedViews.includes(view as AppView)).map(({ view, icon, label, desc }) => (
                                       <button
                                                         key={view}
