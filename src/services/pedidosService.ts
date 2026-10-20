@@ -181,13 +181,16 @@ async function safeUpsertHeader(supabase: any, cabeceraObj: Record<string, any>)
   return res;
 }
 
-async function safeUpdateHeader(supabase: any, id_pedido: string, headerFields: Record<string, any>): Promise<{ data: any; error: any }> {
+async function safeUpdateHeader(supabase: any, id_pedido: string | number, headerFields: Record<string, any>): Promise<{ data: any; error: any }> {
   const payload: Record<string, any> = { ...headerFields };
   if (payload.costo_envio == null) delete payload.costo_envio;
   if (payload.zona_envio_id == null) delete payload.zona_envio_id;
   if (payload.idempotency_key == null) delete payload.idempotency_key;
 
-  let res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', id_pedido).select();
+  const numId = Number(id_pedido);
+  const idFilter = !isNaN(numId) && numId > 0 ? numId : id_pedido;
+
+  let res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', idFilter).select();
 
   let attempts = 0;
   while (res.error && attempts < 5) {
@@ -201,7 +204,7 @@ async function safeUpdateHeader(supabase: any, id_pedido: string, headerFields: 
       const missingCol = match[1];
       console.warn(`[pedidosService] Auto-stripping missing schema column '${missingCol}' from update and retrying (attempt ${attempts})...`);
       delete payload[missingCol];
-      res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', id_pedido).select();
+      res = await supabase.from('pedidos_cabecera').update(payload).eq('id_pedido', idFilter).select();
     } else {
       break;
     }

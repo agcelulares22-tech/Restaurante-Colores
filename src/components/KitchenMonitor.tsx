@@ -86,7 +86,7 @@ function KitchenMonitor({
         const minutes = Math.max(0, Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000));
 
         return {
-          id_pedido: String(o.id + 10000000),
+          id_pedido: `quick_deliv_${o.id}`,
           idempotency_key: `quick_deliv_db_${o.id}`,
           id_mesa: 999,
           numero_mesa: `DELIVERY: ${o.nombre_cliente.toUpperCase()} - ${o.direccion.toUpperCase()}`,
@@ -113,12 +113,11 @@ function KitchenMonitor({
   }, [pedidos, quickOrders]);
 
   const handleCambiarEstadoPedidoCustom = useCallback(async (idPedido: string, nuevoEstado: Pedido['estado_comanda']) => {
-    const numericId = Number(idPedido);
-    console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Inicio id=${numericId}, nuevoEstado=${nuevoEstado}`);
-    // Los IDs de delivery rápido son id_real + 10000000 (rango controlado < 1e9).
-    // Los IDs de pedidos normales son timestamps enormes (~1e15) y deben ir por la rama normal.
-    if (!isNaN(numericId) && numericId >= 10000000 && numericId < 1000000000) {
-      const realId = numericId - 10000000;
+    console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Inicio id=${idPedido}, nuevoEstado=${nuevoEstado}`);
+    
+    // 1. Si es un pedido de delivery rápido (pedidos_delivery_rapido)
+    if (String(idPedido).startsWith('quick_deliv_')) {
+      const realId = Number(String(idPedido).replace('quick_deliv_', ''));
       let dbEstado: 'nuevo' | 'horno' | 'delivery' | 'entregado' = 'nuevo';
       if (nuevoEstado === 'en_cocina') dbEstado = 'horno';
       else if (nuevoEstado === 'listo') dbEstado = 'delivery';
@@ -126,14 +125,16 @@ function KitchenMonitor({
 
       await pedidosDeliveryRapidoService.updateEstado(realId, dbEstado);
       setQuickOrders(prev => prev.map(o => o.id === realId ? { ...o, estado: dbEstado } : o));
-    } else {
-      console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Llamando onCambiarEstadoPedido (App.tsx) id=${idPedido}, estado=${nuevoEstado}`);
-      try {
-        await onCambiarEstadoPedido(idPedido, nuevoEstado);
-        console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] onCambiarEstadoPedido completado`);
-      } catch (err) {
-        console.error(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Error en onCambiarEstadoPedido:`, err);
-      }
+      return;
+    }
+
+    // 2. Pedido normal de pedidos_cabecera (salón, mostrador, o delivery de mozo)
+    console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Llamando onCambiarEstadoPedido (pedidos_cabecera) id=${idPedido}, estado=${nuevoEstado}`);
+    try {
+      await onCambiarEstadoPedido(idPedido, nuevoEstado);
+      console.log(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] onCambiarEstadoPedido completado`);
+    } catch (err) {
+      console.error(`[KitchenMonitor.handleCambiarEstadoPedidoCustom] Error en onCambiarEstadoPedido:`, err);
     }
   }, [onCambiarEstadoPedido]);
 
