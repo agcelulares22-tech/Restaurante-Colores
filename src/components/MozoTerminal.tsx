@@ -31,7 +31,9 @@ import {
   Mic,
   MicOff,
   Volume2,
-  Store
+  Store,
+  Trash2,
+  Save
 } from 'lucide-react';
 import { Mesa, Insumo, ProductoMenu, RecetaEscandallo, Pedido, PedidoItem, Usuario, EventoLog } from '../types';
 import { useMenu, useSalon, useInventario, usePedidos } from '../context/AppContext';
@@ -526,6 +528,131 @@ function MozoTerminal({
   const [toppingsBaseProduct, setToppingsBaseProduct] = React.useState<any>(null);
   const [selectedToppings, setSelectedToppings] = React.useState<string[]>([]);
 
+  // Estados y logica para Modal de Edicion de Comanda
+  const [editingComandaPedido, setEditingComandaPedido] = React.useState<Pedido | null>(null);
+  const [editingComandaItems, setEditingComandaItems] = React.useState<PedidoItem[]>([]);
+  const [editingComandaObs, setEditingComandaObs] = React.useState<string>('');
+  const [editingProductSearch, setEditingProductSearch] = React.useState<string>('');
+  const [editingSelectedCat, setEditingSelectedCat] = React.useState<string>('todos');
+  const [isSavingComandaEdit, setIsSavingComandaEdit] = React.useState<boolean>(false);
+
+  const handleAbrirEditarComanda = (pedido: Pedido) => {
+    setEditingComandaPedido(pedido);
+    setEditingComandaItems((pedido.items || []).map(item => ({
+      ...item,
+      precio_unitario: item.precio_unitario ?? productosMenu.find(p => p.id_producto === item.id_producto)?.precio_venta ?? 0
+    })));
+    setEditingComandaObs(pedido.observaciones || '');
+    setEditingProductSearch('');
+    setEditingSelectedCat('todos');
+  };
+
+  const handleModificarCantidadEdicion = (index: number, delta: number) => {
+    setEditingComandaItems(prev => {
+      const copy = [...prev];
+      const item = { ...copy[index] };
+      const newQty = item.cantidad + delta;
+      if (newQty <= 0) {
+        copy.splice(index, 1);
+      } else {
+        item.cantidad = newQty;
+        copy[index] = item;
+      }
+      return copy;
+    });
+  };
+
+  const handleEliminarItemEdicion = (index: number) => {
+    setEditingComandaItems(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleAgregarProductoAEdicion = (producto: ProductoMenu) => {
+    setEditingComandaItems(prev => {
+      const existingIdx = prev.findIndex(item => item.id_producto === producto.id_producto);
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        copy[existingIdx] = {
+          ...copy[existingIdx],
+          cantidad: copy[existingIdx].cantidad + 1
+        };
+        return copy;
+      } else {
+        const newItem: PedidoItem = {
+          id_producto: producto.id_producto,
+          nombre: producto.nombre,
+          cantidad: 1,
+          categoria: producto.categoria,
+          precio_unitario: producto.precio_venta
+        };
+        return [...prev, newItem];
+      }
+    });
+    toast.success(`+1 ${producto.nombre}`);
+  };
+
+  const handleGuardarEdicionComanda = async () => {
+    if (!editingComandaPedido) return;
+
+    if (editingComandaItems.length === 0) {
+      toast.warning('La comanda debe contener al menos un producto.');
+      return;
+    }
+
+    setIsSavingComandaEdit(true);
+    try {
+      const updatedPedido: Pedido = {
+        ...editingComandaPedido,
+        items: editingComandaItems,
+        observaciones: editingComandaObs.trim()
+      };
+
+      await pedidosService.update(editingComandaPedido.id_pedido, {
+        items: editingComandaItems,
+        observaciones: editingComandaObs.trim()
+      });
+
+      ctxPedidos.setPedidos(prev =>
+        prev.map(p => p.id_pedido === editingComandaPedido.id_pedido ? updatedPedido : p)
+      );
+
+      addLog('sistema', `COMANDAS: Se edito comanda #${editingComandaPedido.id_pedido} (Mesa ${editingComandaPedido.numero_mesa})`);
+      toast.success('¡Comanda actualizada correctamente!');
+      setEditingComandaPedido(null);
+    } catch (err: any) {
+      console.error('Error al guardar edicion de comanda:', err);
+      toast.error('Error al guardar la comanda: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setIsSavingComandaEdit(false);
+    }
+  };
+
+  const editingComandaTotal = useMemo(() => {
+    return editingComandaItems.reduce((acc, item) => {
+      const price = item.precio_unitario ?? productosMenu.find(p => p.id_producto === item.id_producto)?.precio_venta ?? 0;
+      return acc + (item.cantidad * price);
+    }, 0);
+  }, [editingComandaItems, productosMenu]);
+
+  const filteredProductsForEdit = useMemo(() => {
+    return productosMenu.filter(p => {
+      if (!p.activo) return false;
+      if (editingSelectedCat !== 'todos' && p.categoria !== editingSelectedCat) return false;
+      if (editingProductSearch.trim()) {
+        const q = editingProductSearch.toLowerCase();
+        return p.nombre.toLowerCase().includes(q) || (p.categoria && p.categoria.toLowerCase().includes(q));
+      }
+      return true;
+    });
+  }, [productosMenu, editingSelectedCat, editingProductSearch]);
+
+  const availableCategoriesForEdit = useMemo(() => {
+    const cats = new Set<string>();
+    productosMenu.forEach(p => {
+      if (p.categoria) cats.add(p.categoria);
+    });
+    return Array.from(cats);
+  }, [productosMenu]);
+
   const getToppingStock = useCallback((insumoId: string) => {
     const ins = insumos.find(i => i.id_insumo === insumoId);
     return ins ? ins.stock_actual : 0;
@@ -929,52 +1056,14 @@ function MozoTerminal({
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setSplittingPedidoId(activePedidoDeMesa.id_pedido)}
-                      className="flex-1 py-1 px-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <Receipt className="w-3 h-3 text-slate-500" />
-                      Dividir
-                    </button>
-                    <button
-                      onClick={() => {
-                        setTransferTargetTableId(null);
-                        setShowTransferModal(true);
-                      }}
-                      className="flex-1 py-1 px-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <ArrowRightLeft className="w-3 h-3 text-slate-500" />
-                      Traspasar
-                    </button>
-                    <button
-                      onClick={() => onFacturarMesa(activePedidoDeMesa.id_pedido)}
-                      className="flex-1 py-1.5 px-2 bg-slate-900 border border-transparent hover:bg-slate-800 text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
-                    >
-                      Cobrar
-                    </button>
-                  </div>
                   <button
-                    onClick={() => handleDownloadPreTicket(activePedidoDeMesa)}
-                    className="w-full mt-2 py-2 px-3 bg-zinc-100 hover:bg-brand-yellow hover:text-brand-black text-zinc-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-zinc-200 cursor-pointer"
+                    type="button"
+                    onClick={() => handleAbrirEditarComanda(activePedidoDeMesa)}
+                    className="w-full py-2.5 px-3 bg-brand-yellow hover:bg-amber-400 text-stone-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
                   >
-                    <Printer className="w-3.5 h-3.5" />
-                    Descargar / Imprimir Pre-Ticket
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar Comanda
                   </button>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => handlePrintSplitTicket(activePedidoDeMesa, 'cocina')}
-                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-brand-yellow hover:text-brand-black text-stone-700 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
-                    >
-                      🍳 Comanda Cocina
-                    </button>
-                    <button
-                      onClick={() => handlePrintSplitTicket(activePedidoDeMesa, 'barra')}
-                      className="flex-1 py-1.5 px-2 bg-stone-100 hover:bg-brand-yellow hover:text-brand-black text-stone-700 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors border border-stone-200 cursor-pointer"
-                    >
-                      🍷 Comanda Barra
-                    </button>
-                  </div>
                 </div>
               ) : (
                 <p className="text-xs text-slate-400 italic bg-amber-50/50 border border-amber-100/30 p-2 text-center rounded-lg">
@@ -2344,6 +2433,270 @@ function MozoTerminal({
                 <CheckCircle className="w-3.5 h-3.5" />
                 Confirmar y Cargar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDITAR COMANDA */}
+      {editingComandaPedido && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-slate-800 dark:text-stone-100">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-brand-yellow flex items-center justify-center shrink-0">
+                  <Pencil className="w-5 h-5 text-amber-600 dark:text-brand-yellow" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                    Editar Comanda #{editingComandaPedido.id_pedido}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-stone-400 font-medium">
+                    Mesa: <span className="font-bold text-slate-700 dark:text-stone-200">{editingComandaPedido.numero_mesa}</span> • Mozo: <span className="font-bold text-slate-700 dark:text-stone-200">{editingComandaPedido.mozo || 'Sin asignar'}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingComandaPedido(null)}
+                className="w-9 h-9 rounded-xl bg-slate-200/60 dark:bg-stone-800 hover:bg-slate-300 dark:hover:bg-stone-700 flex items-center justify-center text-slate-500 dark:text-stone-400 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: 2 Columns */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Items in Order */}
+              <div className="lg:col-span-7 flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-stone-400">
+                    Productos en la comanda ({editingComandaItems.length})
+                  </span>
+                  <span className="text-xs font-mono font-bold text-amber-600 dark:text-brand-yellow">
+                    Subtotal: ${editingComandaTotal.toLocaleString('es-AR')}
+                  </span>
+                </div>
+
+                {editingComandaItems.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 dark:bg-stone-950/50 rounded-2xl border border-dashed border-slate-200 dark:border-stone-800 text-slate-400 dark:text-stone-500 text-xs">
+                    No hay productos en esta comanda. Agrega platos o bebidas desde el panel de la derecha.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                    {editingComandaItems.map((item, idx) => {
+                      const unitPrice = item.precio_unitario ?? productosMenu.find(p => p.id_producto === item.id_producto)?.precio_venta ?? 0;
+                      const itemSubtotal = item.cantidad * unitPrice;
+                      return (
+                        <div
+                          key={`${item.id_producto}-${idx}`}
+                          className="flex items-center justify-between p-3 bg-white dark:bg-stone-800/80 border border-slate-200 dark:border-stone-700/60 rounded-2xl hover:border-amber-400/50 transition-colors shadow-xs"
+                        >
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className="text-xs font-bold text-slate-900 dark:text-stone-100 truncate">
+                              {item.nombre}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] text-slate-500 dark:text-stone-400 font-mono">
+                                ${unitPrice.toLocaleString('es-AR')} c/u
+                              </span>
+                              {item.categoria && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-stone-700 text-slate-600 dark:text-stone-300">
+                                  {item.categoria}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {/* Quantity Controls */}
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-stone-900 p-1 rounded-xl border border-slate-200 dark:border-stone-700">
+                              <button
+                                type="button"
+                                onClick={() => handleModificarCantidadEdicion(idx, -1)}
+                                className="w-6 h-6 rounded-lg bg-white dark:bg-stone-800 hover:bg-slate-200 dark:hover:bg-stone-700 text-slate-700 dark:text-stone-200 flex items-center justify-center font-bold text-xs cursor-pointer transition-colors shadow-xs"
+                                title="Disminuir cantidad"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center font-black font-mono text-xs text-slate-900 dark:text-white">
+                                {item.cantidad}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleModificarCantidadEdicion(idx, 1)}
+                                className="w-6 h-6 rounded-lg bg-white dark:bg-stone-800 hover:bg-slate-200 dark:hover:bg-stone-700 text-slate-700 dark:text-stone-200 flex items-center justify-center font-bold text-xs cursor-pointer transition-colors shadow-xs"
+                                title="Aumentar cantidad"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+
+                            {/* Subtotal */}
+                            <span className="w-20 text-right font-black font-mono text-xs text-slate-800 dark:text-stone-200">
+                              ${itemSubtotal.toLocaleString('es-AR')}
+                            </span>
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleEliminarItemEdicion(idx)}
+                              className="w-8 h-8 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center cursor-pointer transition-colors"
+                              title="Eliminar item"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Observaciones */}
+                <div className="pt-2">
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-stone-400 mb-1">
+                    Observaciones / Notas de cocina
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editingComandaObs}
+                    onChange={(e) => setEditingComandaObs(e.target.value)}
+                    placeholder="Ej: Plato 1 sin cebolla, traer todo junto..."
+                    className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-950 text-slate-800 dark:text-stone-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Add Items from Menu */}
+              <div className="lg:col-span-5 flex flex-col space-y-3 lg:border-l lg:border-slate-200 lg:dark:border-stone-800 lg:pl-6">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-stone-400">
+                  Agregar productos a la comanda
+                </span>
+
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={editingProductSearch}
+                    onChange={(e) => setEditingProductSearch(e.target.value)}
+                    placeholder="Buscar plato, pizza, bebida..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-950 text-slate-800 dark:text-stone-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                  />
+                  {editingProductSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingProductSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-stone-200"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pills */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  <button
+                    type="button"
+                    onClick={() => setEditingSelectedCat('todos')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-colors cursor-pointer ${
+                      editingSelectedCat === 'todos'
+                        ? 'bg-amber-500 text-white font-black'
+                        : 'bg-slate-100 dark:bg-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {availableCategoriesForEdit.map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setEditingSelectedCat(cat)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-colors cursor-pointer ${
+                        editingSelectedCat === cat
+                          ? 'bg-amber-500 text-white font-black'
+                          : 'bg-slate-100 dark:bg-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Product List */}
+                <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                  {filteredProductsForEdit.length === 0 ? (
+                    <p className="text-xs text-center py-6 text-slate-400 italic">
+                      No se encontraron productos coincidentes.
+                    </p>
+                  ) : (
+                    filteredProductsForEdit.map(prod => (
+                      <div
+                        key={prod.id_producto}
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-stone-950/60 border border-slate-200 dark:border-stone-800 hover:border-amber-400/50 transition-colors"
+                      >
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="text-xs font-bold text-slate-800 dark:text-stone-200 truncate">
+                            {prod.nombre}
+                          </p>
+                          <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-brand-yellow">
+                            ${prod.precio_venta.toLocaleString('es-AR')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleAgregarProductoAEdicion(prod)}
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all shadow-xs shrink-0"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Agregar
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 dark:text-stone-400">Total Comanda:</span>
+                <span className="text-lg sm:text-xl font-black font-mono text-slate-900 dark:text-white">
+                  ${editingComandaTotal.toLocaleString('es-AR')}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  disabled={isSavingComandaEdit}
+                  onClick={() => setEditingComandaPedido(null)}
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-200 dark:bg-stone-800 hover:bg-slate-300 dark:hover:bg-stone-700 text-slate-700 dark:text-stone-300 rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isSavingComandaEdit || editingComandaItems.length === 0}
+                  onClick={handleGuardarEdicionComanda}
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-brand-yellow hover:bg-amber-400 text-stone-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingComandaEdit ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Guardar Cambios
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
