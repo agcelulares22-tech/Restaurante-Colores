@@ -123,5 +123,24 @@ export const sheetsService = {
       console.warn(`[sheetsService] Error upserting to sheet ${sheetName}:`, err);
       return false;
     }
+  },
+
+  async deleteRow(sheetName: string, id: string, keyCol?: string): Promise<boolean> {
+    const url = getSheetsApiUrl();
+    if (!url) return false;
+
+    try {
+      const actualSheet = await resolveSheetName(sheetName, url);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ sheet: actualSheet, action: 'delete', key: keyCol, id })
+      });
+      const json = await res.json();
+      return Boolean(json.success);
+    } catch (err) {
+      console.warn(`[sheetsService] Error deleting row from sheet ${sheetName}:`, err);
+      return false;
+    }
   }
 };

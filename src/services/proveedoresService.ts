@@ -166,7 +166,25 @@ export const proveedoresService = {
   },
 
   async remove(id: string): Promise<boolean> {
-    localStorage.removeItem('colores_pizzeria_cache_proveedores');
+    try {
+      const cached = localStorage.getItem('colores_pizzeria_cache_proveedores');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter((p: any) => p.id_proveedor !== id);
+          localStorage.setItem('colores_pizzeria_cache_proveedores', JSON.stringify(filtered));
+        }
+      }
+    } catch {}
+
+    if (sheetsService.isConfigured()) {
+      try {
+        await sheetsService.deleteRow('Proveedores', id, 'id_proveedor');
+      } catch (err) {
+        console.warn('Failed deleting proveedor from Google Sheets:', err);
+      }
+    }
+
     const supabase = tryGetActiveSupabaseClient();
     if (supabase) {
       try {

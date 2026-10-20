@@ -94,6 +94,25 @@ function doPost(e) {
       return jsonResponse({ success: true, message: "Upsert completado exitosamente" });
     }
 
+    if (action === 'delete') {
+      const idKey = body.key || headers[0];
+      const valToDelete = String(body.id !== undefined ? body.id : (body.data && body.data[idKey]) || '');
+      const existingData = sheet.getDataRange().getValues();
+      const idColIdx = headers.indexOf(idKey);
+      let deleted = 0;
+
+      if (idColIdx >= 0 && valToDelete) {
+        for (let r = existingData.length - 1; r >= 1; r--) {
+          if (String(existingData[r][idColIdx]).trim() === valToDelete.trim()) {
+            sheet.deleteRow(r + 1);
+            deleted++;
+          }
+        }
+      }
+
+      return jsonResponse({ success: true, message: deleted + " filas eliminadas" });
+    }
+
     return jsonResponse({ success: false, error: "Acción no reconocida" }, 400);
 
   } catch (err) {
