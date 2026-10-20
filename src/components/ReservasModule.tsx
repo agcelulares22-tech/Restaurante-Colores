@@ -151,7 +151,6 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
   const [observaciones, setObservaciones] = useState('');
   const [formularioDate, setFormularioDate] = useState(formatDate(new Date()));
   const [forceEspera, setForceEspera] = useState(false);
-  const [enviarWhatsApp, setEnviarWhatsApp] = useState(true);
 
   // ── Helpers de disponibilidad ──────────────────────────────────────────────
   const reservasEnFecha = useCallback((fecha: string, excluirId?: string) => {
@@ -230,10 +229,6 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
         if (!enviarEspera && updated.id_mesa) onEstadoChange(updated, updated.estado);
         addLog('sistema', `RESERVAS: Modificada reserva de '${updated.nombre_cliente}'`);
         toast.success('Reserva actualizada correctamente.');
-        if (enviarWhatsApp && updated.telefono) {
-          const url = getWhatsAppLink(updated.nombre_cliente, updated.telefono, updated.fecha, updated.hora, updated.pax);
-          window.open(url, '_blank');
-        }
         resetForm();
       } catch {
         setReservas(prev => prev.map(r => r.id_reserva === editingId ? current : r));
@@ -270,10 +265,6 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
         addLog('sistema', `RESERVAS: Creada reserva de '${saved.nombre_cliente}' para el ${saved.fecha} a las ${saved.hora}`);
         toast.success('Reserva creada y guardada.');
         if (!enviarEspera && saved.id_mesa) onEstadoChange(saved, 'confirmada');
-        if (enviarWhatsApp && saved.telefono) {
-          const url = getWhatsAppLink(saved.nombre_cliente, saved.telefono, saved.fecha, saved.hora, saved.pax);
-          window.open(url, '_blank');
-        }
       } catch {
         setReservas(previous);
         addLog('sistema', `RESERVAS: Error al crear reserva de '${newRes.nombre_cliente}'`);
@@ -544,15 +535,9 @@ function ReservasModule({ mesas, onEstadoChange, addLog = () => {} }: ReservasMo
                   rows={2}
                   className="w-full text-xs p-2.5 rounded-xl border border-stone-200 bg-stone-50/50 focus:outline-none focus:ring-1 focus:ring-[#624A3E] resize-none" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <input id="forceEspera" type="checkbox" checked={forceEspera} onChange={e => setForceEspera(e.target.checked)} className="rounded border-stone-300 text-[#624A3E] focus:ring-1 focus:ring-[#624A3E]" />
-                  <label htmlFor="forceEspera" className="text-[10px] font-bold text-stone-600">Enviar a lista de espera</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input id="enviarWhatsApp" type="checkbox" checked={enviarWhatsApp} onChange={e => setEnviarWhatsApp(e.target.checked)} className="rounded border-stone-300 text-[#624A3E] focus:ring-1 focus:ring-[#624A3E]" />
-                  <label htmlFor="enviarWhatsApp" className="text-[10px] font-bold text-stone-600 flex items-center gap-1">📲 Enviar confirmación por WhatsApp</label>
-                </div>
+              <div className="flex items-center gap-2">
+                <input id="forceEspera" type="checkbox" checked={forceEspera} onChange={e => setForceEspera(e.target.checked)} className="rounded border-stone-300 text-[#624A3E] focus:ring-1 focus:ring-[#624A3E]" />
+                <label htmlFor="forceEspera" className="text-[10px] font-bold text-stone-600">Enviar a lista de espera</label>
               </div>
               <button type="submit" disabled={pendingAction !== null}
                 className="w-full py-2.5 bg-[#624A3E] hover:bg-[#503C32] disabled:bg-stone-300 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer active:scale-[0.98]">
