@@ -188,7 +188,9 @@ export function useCaja({
   const [tipoDescuento, setTipoDescuento] = useState<'porcentaje' | 'monto'>('porcentaje');
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState<number>(0);
   const [descuentoMonto, setDescuentoMonto] = useState<number>(0);
+  const [tipoPropina, setTipoPropina] = useState<'porcentaje' | 'monto'>('porcentaje');
   const [propinaPorcentaje, setPropinaPorcentaje] = useState<number>(10); // Standard 10%
+  const [propinaMonto, setPropinaMonto] = useState<number>(0);
 
   // Splits for payment
   const [splitPayerCount, setSplitPayerCount] = useState<number>(1);
@@ -650,7 +652,9 @@ export function useCaja({
       ? subtotal * (descuentoPorcentaje / 100)
       : descuentoMonto;
     let baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction);
-    let propinaValue = baseTotal * (propinaPorcentaje / 100);
+    let propinaValue = tipoPropina === 'monto'
+      ? propinaMonto
+      : baseTotal * (propinaPorcentaje / 100);
     let ivaValue = baseTotal * 0.21;
     let finalTotal = Math.max(0, baseTotal + propinaValue - (puntosRedimidos * 10));
     return {
@@ -665,7 +669,7 @@ export function useCaja({
       itemsCalculados: lineItems,
       appliedPromosList
     };
-  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, propinaPorcentaje, splitByProducts, selectedProductsForSplit, puntosRedimidos, promociones, metodoPago, appliedCoupon]);
+  }, [selectedPedido, productosMenu, tipoDescuento, descuentoPorcentaje, descuentoMonto, tipoPropina, propinaPorcentaje, propinaMonto, splitByProducts, selectedProductsForSplit, puntosRedimidos, promociones, metodoPago, appliedCoupon]);
 
   const invoiceTotal = useMemo(() => {
     return splitPayerCount > 1 ? (orderBreakdowns.finalTotal / splitPayerCount) : orderBreakdowns.finalTotal;
@@ -1060,7 +1064,9 @@ export function useCaja({
       setTipoDescuento('porcentaje');
       setDescuentoPorcentaje(0);
       setDescuentoMonto(0);
+      setTipoPropina('porcentaje');
       setPropinaPorcentaje(10);
+      setPropinaMonto(0);
       setSelectedCliente(null);
       setPuntosRedimidos(0);
       setDniCuitBuscar('');
@@ -1078,7 +1084,9 @@ export function useCaja({
       setTipoDescuento('porcentaje');
       setDescuentoPorcentaje(0);
       setDescuentoMonto(0);
+      setTipoPropina('porcentaje');
       setPropinaPorcentaje(10);
+      setPropinaMonto(0);
       setSplitByProducts(false);
       setSelectedProductsForSplit([]);
       setSelectedCliente(null);
@@ -1347,7 +1355,7 @@ export function useCaja({
     const manualDeduction = orderBreakdowns.manualDeduction * ratio;
     const couponDeduction = orderBreakdowns.couponDeduction * ratio;
     const baseTotal = Math.max(0, subtotal - promoDeduction - manualDeduction - couponDeduction);
-    const propinaValue = baseTotal * (propinaPorcentaje / 100);
+    const propinaValue = tipoPropina === 'monto' ? propinaMonto * ratio : baseTotal * (propinaPorcentaje / 100);
     const fidelidadDeduction = (puntosRedimidos * 10) * ratio;
     const finalTotal = Math.max(0, baseTotal + propinaValue - fidelidadDeduction);
     const ivaValue = baseTotal * 0.21;
@@ -1627,6 +1635,10 @@ export function useCaja({
     setDescuentoMonto,
     propinaPorcentaje,
     setPropinaPorcentaje,
+    tipoPropina,
+    setTipoPropina,
+    propinaMonto,
+    setPropinaMonto,
     splitPayerCount,
     setSplitPayerCount,
     activePayerIndex,

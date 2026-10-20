@@ -127,6 +127,10 @@ function CajaModule({
     setDescuentoMonto,
     propinaPorcentaje,
     setPropinaPorcentaje,
+    tipoPropina,
+    setTipoPropina,
+    propinaMonto,
+    setPropinaMonto,
     splitPayerCount,
     setSplitPayerCount,
     activePayerIndex,
@@ -1343,7 +1347,7 @@ function CajaModule({
                                   </div>
                                 )}
                                 <div className="flex justify-between text-stone-600">
-                                  <span>Propina ({propinaPorcentaje}%):</span>
+                                  <span>Propina ({tipoPropina === 'monto' ? 'Manual' : `${propinaPorcentaje}%`}):</span>
                                   <span className="font-mono">${breakdowns.propinaValue.toLocaleString('es-AR')}</span>
                                 </div>
                                 <div className="flex justify-between text-stone-800 font-black border-t border-stone-200 pt-1 text-xs">
@@ -1487,91 +1491,146 @@ function CajaModule({
                       <Percent className="w-3.5 h-3.5 text-amber-700" /> Bonificación & Propinas
                     </h5>
                     
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-stone-600 block uppercase">Tipo de Descuento</label>
-                      <div className="flex gap-1 p-0.5 bg-white border border-stone-300 rounded-lg w-full">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTipoDescuento('porcentaje');
-                            setDescuentoMonto(0);
-                          }}
-                          className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
-                            tipoDescuento === 'porcentaje'
-                              ? 'bg-stone-200 text-stone-900 shadow-xs'
-                              : 'text-stone-500 hover:text-stone-850'
-                          }`}
-                        >
-                          % Porcentaje
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTipoDescuento('monto');
-                            setDescuentoPorcentaje(0);
-                          }}
-                          className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
-                            tipoDescuento === 'monto'
-                              ? 'bg-stone-200 text-stone-900 shadow-xs'
-                              : 'text-stone-500 hover:text-stone-850'
-                          }`}
-                        >
-                          $ Monto Fijo
-                        </button>
-                      </div>
-                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Descuento */}
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-stone-600 block uppercase">Tipo de Descuento</label>
+                        <div className="flex gap-1 p-0.5 bg-white border border-stone-300 rounded-lg w-full">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('porcentaje');
+                              setDescuentoMonto(0);
+                            }}
+                            className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                              tipoDescuento === 'porcentaje'
+                                ? 'bg-stone-200 text-stone-900 shadow-xs'
+                                : 'text-stone-500 hover:text-stone-850'
+                            }`}
+                          >
+                            % Porcentaje
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoDescuento('monto');
+                              setDescuentoPorcentaje(0);
+                            }}
+                            className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                              tipoDescuento === 'monto'
+                                ? 'bg-stone-200 text-stone-900 shadow-xs'
+                                : 'text-stone-500 hover:text-stone-850'
+                            }`}
+                          >
+                            $ Monto Fijo
+                          </button>
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        {tipoDescuento === 'porcentaje' ? (
-                          <>
-                            <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento (%)</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={descuentoPorcentaje || ''}
-                              onChange={e => {
-                                const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                                setDescuentoPorcentaje(val);
-                              }}
-                              className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              placeholder="Ej. 10"
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento ($)</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max={Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction)}
-                              value={descuentoMonto || ''}
-                              onChange={e => {
-                                const maxMonto = Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction);
-                                const val = Math.min(maxMonto, Math.max(0, parseFloat(e.target.value) || 0));
-                                setDescuentoMonto(val);
-                              }}
-                              className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                              placeholder="Monto $"
-                            />
-                          </>
-                        )}
+                        <div>
+                          {tipoDescuento === 'porcentaje' ? (
+                            <>
+                              <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento (%)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={descuentoPorcentaje || ''}
+                                onChange={e => {
+                                  const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                                  setDescuentoPorcentaje(val);
+                                }}
+                                className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                placeholder="Ej. 10"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Descuento ($)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max={Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction)}
+                                value={descuentoMonto || ''}
+                                onChange={e => {
+                                  const maxMonto = Math.max(0, orderBreakdowns.subtotal - orderBreakdowns.promoDeduction);
+                                  const val = Math.min(maxMonto, Math.max(0, parseFloat(e.target.value) || 0));
+                                  setDescuentoMonto(val);
+                                }}
+                                className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                placeholder="Monto $"
+                              />
+                            </>
+                          )}
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="text-[9px] font-bold text-stone-650 block mb-0.5">Propina %</label>
-                        <select
-                          value={propinaPorcentaje}
-                          onChange={e => setPropinaPorcentaje(parseInt(e.target.value) || 0)}
-                          className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        >
-                          <option value="0" className="bg-white text-stone-900">0%</option>
-                          <option value="5" className="bg-white text-stone-900">5%</option>
-                          <option value="10" className="bg-white text-stone-900">10% (Rec.)</option>
-                          <option value="15" className="bg-white text-stone-900">15%</option>
-                          <option value="20" className="bg-white text-stone-900">20%</option>
-                        </select>
+                      {/* Propina */}
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-stone-600 block uppercase">Tipo de Propina</label>
+                        <div className="flex gap-1 p-0.5 bg-white border border-stone-300 rounded-lg w-full">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoPropina('porcentaje');
+                              setPropinaMonto(0);
+                            }}
+                            className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                              tipoPropina === 'porcentaje'
+                                ? 'bg-stone-200 text-stone-900 shadow-xs'
+                                : 'text-stone-500 hover:text-stone-850'
+                            }`}
+                          >
+                            % Porcentaje
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTipoPropina('monto');
+                              setPropinaPorcentaje(0);
+                            }}
+                            className={`flex-1 py-1 text-[9px] font-bold uppercase rounded-md transition-all cursor-pointer ${
+                              tipoPropina === 'monto'
+                                ? 'bg-stone-200 text-stone-900 shadow-xs'
+                                : 'text-stone-500 hover:text-stone-850'
+                            }`}
+                          >
+                            $ A Mano
+                          </button>
+                        </div>
+
+                        <div>
+                          {tipoPropina === 'porcentaje' ? (
+                            <>
+                              <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Propina (%)</label>
+                              <select
+                                value={propinaPorcentaje}
+                                onChange={e => setPropinaPorcentaje(parseInt(e.target.value) || 0)}
+                                className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              >
+                                <option value="0" className="bg-white text-stone-900">0%</option>
+                                <option value="5" className="bg-white text-stone-900">5%</option>
+                                <option value="10" className="bg-white text-stone-900">10% (Rec.)</option>
+                                <option value="15" className="bg-white text-stone-900">15%</option>
+                                <option value="20" className="bg-white text-stone-900">20%</option>
+                              </select>
+                            </>
+                          ) : (
+                            <>
+                              <label className="text-[9px] font-bold text-stone-600 block mb-0.5">Propina a mano ($)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={propinaMonto || ''}
+                                onChange={e => {
+                                  const val = Math.max(0, parseFloat(e.target.value) || 0);
+                                  setPropinaMonto(val);
+                                }}
+                                className="w-full min-h-11 text-sm p-2 bg-white border border-stone-300 rounded font-mono text-center font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                placeholder="Ej. 1000"
+                              />
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1944,7 +2003,7 @@ function CajaModule({
 
                     {orderBreakdowns.propinaValue > 0 && (
                       <div className="flex justify-between text-stone-600">
-                        <span>Propina ({propinaPorcentaje}%):</span>
+                        <span>Propina ({tipoPropina === 'monto' ? 'Manual' : `${propinaPorcentaje}%`}):</span>
                         <span className="font-mono">${orderBreakdowns.propinaValue.toLocaleString('es-AR')}</span>
                       </div>
                     )}
