@@ -12,6 +12,11 @@ interface ElPatronLogoProps {
 
 const readStoredLogo = () => {
   try {
+    if (localStorage.getItem('colores_pizzeria_custom_logo_v2') !== 'true') {
+      localStorage.removeItem(LOGO_STORAGE_KEY);
+      localStorage.setItem('colores_pizzeria_custom_logo_v2', 'true');
+      return null;
+    }
     return localStorage.getItem(LOGO_STORAGE_KEY);
   } catch {
     return null;
@@ -26,7 +31,7 @@ const updateFavicon = (srcUrl: string) => {
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.type = 'image/jpeg';
+    link.type = 'image/png';
     link.href = srcUrl;
   } catch {
     // Favicon sync is cosmetic; the logo render path still works.
@@ -89,12 +94,12 @@ export default function ElPatronLogo({ className = 'w-16 h-16', color = '#5C4033
   }
 
   return (
-    <div className={`relative ${className} select-none overflow-hidden flex items-center justify-center`} id="el-patron-image-logo">
+    <div className={`relative ${className} select-none flex items-center justify-center`} id="el-patron-image-logo">
       <img
         src={logoSrc}
         alt="Colores Pizza"
         loading="lazy" decoding="async"
-        className="w-full h-full object-contain rounded-full bg-white border-4 border-white p-1 shadow-md"
+        className="w-full h-full object-contain drop-shadow-xs transition-transform"
         onError={() => {
           if (logoSrc !== DEFAULT_LOGO_SRC) {
             setLogoSrc(DEFAULT_LOGO_SRC);
