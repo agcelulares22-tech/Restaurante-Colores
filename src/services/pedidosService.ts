@@ -220,24 +220,27 @@ async function fetchAndAssemblePedidosColores(client: any): Promise<Pedido[]> {
     .order('fecha_hora', { ascending: false });
     
   if (hError) {
-    console.error('Error fetching pedidos headers:', hError);
+    console.error('Error fetching pedidos headers from Supabase:', hError);
     throw hError;
   }
   
   if (!headers || headers.length === 0) return [];
 
   const headerIds = headers.map(h => h.id_pedido);
-  const { data: details, error: dError } = await client
-    .from('pedido_detalle')
-    .select('*')
-    .in('id_pedido', headerIds);
-    
-  if (dError) {
-    console.error('Error fetching pedido details:', dError);
-    throw dError;
+  let details: any[] = [];
+  try {
+    const { data: dData, error: dError } = await client
+      .from('pedido_detalle')
+      .select('*')
+      .in('id_pedido', headerIds);
+    if (!dError && dData) {
+      details = dData;
+    }
+  } catch (dErr) {
+    console.warn('[pedidosService] pedido_detalle no disponible en Supabase, usando items de cabecera');
   }
 
-  return headers.map(header => hydratePedido(header, details || []));
+  return headers.map(header => hydratePedido(header, details));
 }
 
 async function fetchAndAssemblePedidosFromSheets(): Promise<Pedido[]> {
@@ -254,78 +257,29 @@ async function fetchAndAssemblePedidosFromSheets(): Promise<Pedido[]> {
   }
 }
 
-let lastFreshSheetsFetch = 0;
-const SHEETS_FETCH_THROTTLE_MS = 4000;
-
 export const pedidosService = {
   async list(forceFresh: boolean = false): Promise<Pedido[]> {
     const cached = (!forceFresh && typeof localStorage !== 'undefined') ? localStorage.getItem(CACHE_KEY) : null;
     const client = tryGetActiveSupabaseClient();
 
-    // 1. Google Sheets como almacenamiento de pedidos
-    if (sheetsService.isConfigured()) {
-      const now = Date.now();
-      const isThrottled = (now - lastFreshSheetsFetch) < SHEETS_FETCH_THROTTLE_MS;
-
-      if (cached && (!forceFresh || isThrottled)) {
-        if (!isThrottled) {
-          setTimeout(async () => {
-            try {
-              const assembled = await fetchAndAssemblePedidosFromSheets();
-              if (assembled.length > 0) {
-                lastFreshSheetsFetch = Date.now();
-                localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
-              }
-            } catch (e) {
-              console.warn('Background sheets pedidos cache refresh failed:', e);
-            }
-          }, 500);
-        }
-
-        try {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed)) {
-            return parsed.map(p => ({
-              ...p,
-              fecha_hora: new Date(p.fecha_hora),
-              fecha_descuento_stock: p.fecha_descuento_stock ? new Date(p.fecha_descuento_stock) : undefined,
-              fecha_inicio_cocina: p.fecha_inicio_cocina ? new Date(p.fecha_inicio_cocina) : undefined,
-              fecha_listo: p.fecha_listo ? new Date(p.fecha_listo) : undefined
-            }));
-          }
-        } catch {}
-      }
-
-      try {
-        const assembled = await fetchAndAssemblePedidosFromSheets();
-        if (assembled.length > 0) {
-          lastFreshSheetsFetch = Date.now();
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
-          }
-          return assembled;
-        }
-      } catch (err) {
-        console.warn('Sheets fetch for pedidos failed, falling back:', err);
-      }
-    }
-
-    if (cached) {
-      if (client) {
-        // Stale-While-Revalidate: fetch updated data in background
-        setTimeout(async () => {
-          try {
-            const assembled = await fetchAndAssemblePedidosColores(client);
-            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
-          } catch (e) {
-            console.warn('Background pedidos cache refresh failed:', e);
-          }
-        }, 500);
-      }
-
+    // Stale-While-Revalidate: si hay datos en caché, devolver de inmediato y refrescar
+    if (cached && !forceFresh) {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
+          if (client) {
+            setTimeout(async () => {
+              try {
+                const assembled = await fetchAndAssemblePedidosColores(client);
+                if (assembled.length > 0 && typeof localStorage !== 'undefined') {
+                  localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+                }
+              } catch (e) {
+                console.warn('Background Supabase pedidos cache refresh failed:', e);
+              }
+            }, 500);
+          }
+
           return parsed.map(p => ({
             ...p,
             fecha_hora: new Date(p.fecha_hora),
@@ -339,58 +293,72 @@ export const pedidosService = {
       }
     }
 
-    if (!client) {
-      return [];
+    // 1. Supabase como almacenamiento prioritario para pedidos_cabecera
+    if (client) {
+      try {
+        const assembled = await fetchAndAssemblePedidosColores(client);
+        if (typeof localStorage !== 'undefined') {
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+          } catch {}
+        }
+        return assembled;
+      } catch (supaErr) {
+        console.warn('[pedidosService.list] Error en Supabase pedidos_cabecera, recurriendo a Sheets:', supaErr);
+      }
     }
 
-    try {
-      const assembled = await fetchAndAssemblePedidosColores(client);
-      if (typeof localStorage !== 'undefined') {
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
-        } catch {}
+    // 2. Google Sheets como respaldo si Supabase no está configurado o falla
+    if (sheetsService.isConfigured()) {
+      try {
+        const assembled = await fetchAndAssemblePedidosFromSheets();
+        if (assembled.length > 0) {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(assembled));
+          }
+          return assembled;
+        }
+      } catch (err) {
+        console.warn('Sheets fetch for pedidos failed:', err);
       }
-      return assembled;
-    } catch {
-      return [];
     }
+
+    return [];
   },
 
   async fetchSingle(id: string): Promise<Pedido | null> {
+    const client = tryGetActiveSupabaseClient();
+    if (client) {
+      try {
+        const { data: header, error: hError } = await client
+          .from('pedidos_cabecera')
+          .select('*')
+          .eq('id_pedido', id)
+          .maybeSingle();
+
+        if (!hError && header) {
+          let details: any[] = [];
+          try {
+            const { data: dData } = await client
+              .from('pedido_detalle')
+              .select('*')
+              .eq('id_pedido', id);
+            if (dData) details = dData;
+          } catch {}
+
+          return hydratePedido(header, details);
+        }
+      } catch (err) {
+        console.warn(`[pedidosService.fetchSingle] Error consultando Supabase #${id}:`, err);
+      }
+    }
+
     if (sheetsService.isConfigured()) {
       const list = await this.list();
       return list.find(p => String(p.id_pedido) === String(id)) || null;
     }
 
-    const client = tryGetActiveSupabaseClient();
-    if (!client) return null;
-
-    try {
-      const { data: header, error: hError } = await client
-        .from('pedidos_cabecera')
-        .select('*')
-        .eq('id_pedido', id)
-        .maybeSingle();
-
-      if (hError || !header) {
-        console.warn(`[pedidosService.fetchSingle] Error or no header found for order #${id}:`, hError);
-        return null;
-      }
-
-      const { data: details, error: dError } = await client
-        .from('pedido_detalle')
-        .select('*')
-        .eq('id_pedido', id);
-
-      if (dError) {
-        console.error(`[pedidosService.fetchSingle] Error fetching details for order #${id}:`, dError);
-        return null;
-      }
-
-      return hydratePedido(header, details || []);
-    } catch {
-      return null;
-    }
+    return null;
   },
 
   async getById(id: string): Promise<Pedido | null> {
@@ -452,9 +420,65 @@ export const pedidosService = {
 
     console.log(`[pedidosService.update] Inicio id=${cleanId}, campos:`, Object.keys(headerFields));
 
-    let savedToSheets = false;
+    let savedToSupabase = false;
 
-    // 1. Guardar en Google Sheets como almacenamiento de pedidos
+    // 1. Supabase como almacenamiento prioritario para pedidos_cabecera
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      try {
+        if (Object.keys(headerFields).length > 0) {
+          let { error, data } = await safeUpdateHeader(supabase, cleanId, headerFields);
+          if (!error && (!data || data.length === 0)) {
+            const headerObj = {
+              id_pedido: cleanId,
+              numero_mesa: fields.numero_mesa || 'Mesa',
+              mozo: fields.mozo || 'Mozo',
+              estado_comanda: fields.estado_comanda || 'pendiente',
+              items: fields.items ? (typeof fields.items === 'string' ? fields.items : JSON.stringify(fields.items)) : '[]',
+              fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
+              ...headerFields
+            };
+            await safeUpsertHeader(supabase, headerObj);
+          }
+          savedToSupabase = true;
+        }
+
+        if (fields.items !== undefined) {
+          try {
+            const details = serializePedidoDetails({
+              ...fields,
+              id_pedido: id,
+              id_mesa: fields.id_mesa ?? 0,
+              numero_mesa: fields.numero_mesa ?? '',
+              mozo: fields.mozo ?? '',
+              estado_comanda: fields.estado_comanda ?? 'pendiente',
+              items: fields.items,
+              fecha_hora: fields.fecha_hora ?? new Date(),
+              minutos_transcurridos: fields.minutos_transcurridos ?? 0,
+              origen: fields.origen ?? 'Mozo'
+            });
+
+            await supabase.from('pedido_detalle').delete().eq('id_pedido', id);
+            if (details.length > 0) {
+              let { error: detError } = await supabase.from('pedido_detalle').insert(details);
+              if (detError && detError.message?.includes('precio_unitario')) {
+                const fallbackDetails = details.map(d => {
+                  const copy = { ...d };
+                  delete copy.precio_unitario;
+                  return copy;
+                });
+                await supabase.from('pedido_detalle').insert(fallbackDetails);
+              }
+            }
+          } catch {}
+        }
+      } catch (supaErr) {
+        console.warn('[pedidosService.update] Error actualizando en Supabase:', supaErr);
+      }
+    }
+
+    // 2. Google Sheets como respaldo / espejo secundario
+    let savedToSheets = false;
     if (sheetsService.isConfigured()) {
       try {
         const sheetHeader: any = { id_pedido: cleanId, ...headerFields };
@@ -480,63 +504,11 @@ export const pedidosService = {
         }
         savedToSheets = true;
       } catch (sheetsErr) {
-        console.warn('[pedidosService.update] Error guardando en Google Sheets:', sheetsErr);
+        console.warn('[pedidosService.update] Error guardando respaldo en Google Sheets:', sheetsErr);
       }
     }
 
-    // 2. Intentar Supabase si aún existen las tablas
-    const supabase = tryGetActiveSupabaseClient();
-    if (supabase) {
-      try {
-        if (Object.keys(headerFields).length > 0) {
-          let { error, data } = await safeUpdateHeader(supabase, cleanId, headerFields);
-          if (!error && (!data || data.length === 0)) {
-            const headerObj = {
-              id_pedido: cleanId,
-              numero_mesa: fields.numero_mesa || 'Mesa',
-              mozo: fields.mozo || 'Mozo',
-              estado_comanda: fields.estado_comanda || 'pendiente',
-              items: fields.items ? (typeof fields.items === 'string' ? fields.items : JSON.stringify(fields.items)) : '[]',
-              fecha_hora: fields.fecha_hora ? new Date(fields.fecha_hora).toISOString() : new Date().toISOString(),
-              ...headerFields
-            };
-            await safeUpsertHeader(supabase, headerObj);
-          }
-        }
-
-        if (fields.items !== undefined) {
-          const details = serializePedidoDetails({
-            ...fields,
-            id_pedido: id,
-            id_mesa: fields.id_mesa ?? 0,
-            numero_mesa: fields.numero_mesa ?? '',
-            mozo: fields.mozo ?? '',
-            estado_comanda: fields.estado_comanda ?? 'pendiente',
-            items: fields.items,
-            fecha_hora: fields.fecha_hora ?? new Date(),
-            minutos_transcurridos: fields.minutos_transcurridos ?? 0,
-            origen: fields.origen ?? 'Mozo'
-          });
-
-          await supabase.from('pedido_detalle').delete().eq('id_pedido', id);
-          if (details.length > 0) {
-            let { error: detError } = await supabase.from('pedido_detalle').insert(details);
-            if (detError && detError.message?.includes('precio_unitario')) {
-              const fallbackDetails = details.map(d => {
-                const copy = { ...d };
-                delete copy.precio_unitario;
-                return copy;
-              });
-              await supabase.from('pedido_detalle').insert(fallbackDetails);
-            }
-          }
-        }
-      } catch (supaErr) {
-        console.log('[pedidosService.update] Supabase update skipped/migrated:', supaErr);
-      }
-    }
-
-    if (!supabase && !savedToSheets && !fromSyncQueue) {
+    if (!savedToSupabase && !savedToSheets && !fromSyncQueue) {
       const { syncQueueService } = await import('./syncQueueService');
       syncQueueService.enqueue('update_pedido_estado', { id: cleanId, fields });
     }
@@ -556,7 +528,101 @@ export const pedidosService = {
     }
     invalidateCache();
 
-    // 1. Guardar en Google Sheets como almacenamiento de pedidos
+    // 1. Supabase como almacenamiento prioritario para pedidos_cabecera
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      for (const ped of pedidos) {
+        try {
+          let activeId: string | null = null;
+          let isExisting = false;
+
+          const { data: existingHeader } = await supabase
+            .from('pedidos_cabecera')
+            .select('id_pedido')
+            .eq('id_pedido', ped.id_pedido)
+            .maybeSingle();
+
+          if (existingHeader) {
+            isExisting = true;
+            activeId = existingHeader.id_pedido;
+          } else if (
+            ped.estado_comanda !== 'entregado_cobrado' &&
+            ped.estado_comanda !== 'cancelado' &&
+            ped.id_mesa !== 999 &&
+            ped.id_mesa !== 998 &&
+            !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY') &&
+            !String(ped.numero_mesa || '').toUpperCase().startsWith('RETIRO')
+          ) {
+            const { data: activeHeaders } = await supabase
+              .from('pedidos_cabecera')
+              .select('id_pedido')
+              .eq('id_mesa', ped.id_mesa)
+              .in('estado_comanda', ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado']);
+
+            if (activeHeaders && activeHeaders.length > 0) {
+              isExisting = true;
+              activeId = activeHeaders[0].id_pedido;
+            }
+          }
+
+          if (isExisting && activeId !== null) {
+            const { data: dbHeader } = await supabase
+              .from('pedidos_cabecera')
+              .select('estado_comanda')
+              .eq('id_pedido', activeId)
+              .maybeSingle();
+
+            if (dbHeader && ['entregado_cobrado', 'cancelado'].includes(dbHeader.estado_comanda)) {
+              continue;
+            }
+
+            const cabeceraUpdate = serializePedidoHeader(ped);
+            delete (cabeceraUpdate as any).idempotency_key;
+
+            await safeUpdateHeader(supabase, activeId, cabeceraUpdate);
+
+            try {
+              await supabase.from('pedido_detalle').delete().eq('id_pedido', activeId);
+
+              if (ped.items && ped.items.length > 0) {
+                const details = serializePedidoDetails({ ...ped, id_pedido: activeId });
+                let { error: dError } = await supabase.from('pedido_detalle').insert(details);
+                if (dError && dError.message?.includes('precio_unitario')) {
+                  const fallbackDetails = details.map(d => {
+                    const copy = { ...d };
+                    delete copy.precio_unitario;
+                    return copy;
+                  });
+                  await supabase.from('pedido_detalle').insert(fallbackDetails);
+                }
+              }
+            } catch {}
+          } else {
+            const cabecera = serializePedidoHeader(ped);
+            await safeUpsertHeader(supabase, cabecera);
+
+            try {
+              if (ped.items && ped.items.length > 0) {
+                const details = serializePedidoDetails(ped);
+                let { error: dError } = await supabase.from('pedido_detalle').insert(details);
+                if (dError && dError.message?.includes('precio_unitario')) {
+                  const fallbackDetails = details.map(d => {
+                    const copy = { ...d };
+                    delete copy.precio_unitario;
+                    return copy;
+                  });
+                  await supabase.from('pedido_detalle').insert(fallbackDetails);
+                }
+              }
+            } catch {}
+          }
+        } catch (err) {
+          console.warn(`[pedidosService.upsert] Supabase upsert error para pedido ${ped.id_pedido}:`, err);
+        }
+      }
+    }
+
+    // 2. Google Sheets como respaldo / espejo secundario
     if (sheetsService.isConfigured()) {
       try {
         const headers = pedidos.map(serializePedidoHeader);
@@ -566,97 +632,7 @@ export const pedidosService = {
           await sheetsService.upsert('pedido_detalle', details, 'id_detalle');
         }
       } catch (sheetErr) {
-        console.warn('[pedidosService.upsert] Error guardando pedidos en Google Sheets:', sheetErr);
-      }
-    }
-
-    // 2. Supabase como almacenamiento si estuvieran las tablas
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) return;
-
-    for (const ped of pedidos) {
-      try {
-        let activeId: string | null = null;
-        let isExisting = false;
-
-        const { data: existingHeader } = await supabase
-          .from('pedidos_cabecera')
-          .select('id_pedido')
-          .eq('id_pedido', ped.id_pedido)
-          .maybeSingle();
-
-        if (existingHeader) {
-          isExisting = true;
-          activeId = existingHeader.id_pedido;
-        } else if (
-          ped.estado_comanda !== 'entregado_cobrado' &&
-          ped.estado_comanda !== 'cancelado' &&
-          ped.id_mesa !== 999 &&
-          ped.id_mesa !== 998 &&
-          !String(ped.numero_mesa || '').toUpperCase().startsWith('DELIVERY') &&
-          !String(ped.numero_mesa || '').toUpperCase().startsWith('RETIRO')
-        ) {
-          const { data: activeHeaders } = await supabase
-            .from('pedidos_cabecera')
-            .select('id_pedido')
-            .eq('id_mesa', ped.id_mesa)
-            .in('estado_comanda', ['abierta', 'pendiente', 'en_cocina', 'listo', 'entregado']);
-
-          if (activeHeaders && activeHeaders.length > 0) {
-            isExisting = true;
-            activeId = activeHeaders[0].id_pedido;
-          }
-        }
-
-        if (isExisting && activeId !== null) {
-          const { data: dbHeader } = await supabase
-            .from('pedidos_cabecera')
-            .select('estado_comanda')
-            .eq('id_pedido', activeId)
-            .maybeSingle();
-
-          if (dbHeader && ['entregado_cobrado', 'cancelado'].includes(dbHeader.estado_comanda)) {
-            continue;
-          }
-
-          const cabeceraUpdate = serializePedidoHeader(ped);
-          delete (cabeceraUpdate as any).idempotency_key;
-
-          await safeUpdateHeader(supabase, activeId, cabeceraUpdate);
-
-          await supabase.from('pedido_detalle').delete().eq('id_pedido', activeId);
-
-          if (ped.items && ped.items.length > 0) {
-            const details = serializePedidoDetails({ ...ped, id_pedido: activeId });
-            let { error: dError } = await supabase.from('pedido_detalle').insert(details);
-            if (dError && dError.message?.includes('precio_unitario')) {
-              const fallbackDetails = details.map(d => {
-                const copy = { ...d };
-                delete copy.precio_unitario;
-                return copy;
-              });
-              await supabase.from('pedido_detalle').insert(fallbackDetails);
-            }
-          }
-        } else {
-          const cabecera = serializePedidoHeader(ped);
-          await safeUpsertHeader(supabase, cabecera);
-
-          if (ped.items && ped.items.length > 0) {
-            const details = serializePedidoDetails(ped);
-            let { error: dError } = await supabase.from('pedido_detalle').insert(details);
-            if (dError && dError.message?.includes('precio_unitario')) {
-              const fallbackDetails = details.map(d => {
-                const copy = { ...d };
-                delete copy.precio_unitario;
-                return copy;
-              });
-              await supabase.from('pedido_detalle').insert(fallbackDetails);
-            }
-          }
-        }
-      } catch (err) {
-        console.warn(`[pedidosService.upsert] Supabase upsert skipped/migrated for order ${ped.id_pedido}:`, err);
+        console.warn('[pedidosService.upsert] Error guardando respaldo en Google Sheets:', sheetErr);
       }
     }
   },
@@ -664,7 +640,49 @@ export const pedidosService = {
   async agregarItemsAComandaExistente(idPedido: string, nuevosItems: PedidoItem[], fromSyncQueue: boolean = false): Promise<void> {
     invalidateCache();
 
-    // 1. Google Sheets
+    // 1. Supabase como almacenamiento prioritario
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      try {
+        const { data: dbHeader } = await supabase
+          .from('pedidos_cabecera')
+          .select('items')
+          .eq('id_pedido', idPedido)
+          .maybeSingle();
+
+        let currentItems: PedidoItem[] = [];
+        if (dbHeader && dbHeader.items) {
+          try {
+            currentItems = typeof dbHeader.items === 'string' ? JSON.parse(dbHeader.items) : dbHeader.items;
+            if (!Array.isArray(currentItems)) currentItems = [];
+          } catch {}
+        }
+
+        const combinedItems = [...currentItems, ...nuevosItems];
+        await supabase
+          .from('pedidos_cabecera')
+          .update({ items: JSON.stringify(combinedItems) })
+          .eq('id_pedido', idPedido);
+
+        try {
+          const rows = nuevosItems.map((item, index) => ({
+            id_detalle: `${idPedido}_${item.id_producto}_${Date.now()}_${index}`,
+            id_pedido: idPedido,
+            id_producto: item.id_producto,
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            categoria: item.categoria,
+            precio_unitario: item.precio_unitario ?? 0,
+            estado: 'pendiente'
+          }));
+          await supabase.from('pedido_detalle').insert(rows);
+        } catch {}
+      } catch (err) {
+        console.warn('[pedidosService.agregarItems] Supabase warning:', err);
+      }
+    }
+
+    // 2. Google Sheets como respaldo / espejo secundario
     if (sheetsService.isConfigured()) {
       try {
         const rows = nuevosItems.map((item, index) => ({
@@ -692,55 +710,24 @@ export const pedidosService = {
         console.warn('[pedidosService] Sheets agregarItems warning:', e);
       }
     }
-
-    // 2. Supabase
-    const supabase = tryGetActiveSupabaseClient();
-    if (!supabase) return;
-
-    try {
-      const rows = nuevosItems.map((item, index) => ({
-        id_detalle: `${idPedido}_${item.id_producto}_${Date.now()}_${index}`,
-        id_pedido: idPedido,
-        id_producto: item.id_producto,
-        nombre: item.nombre,
-        cantidad: item.cantidad,
-        categoria: item.categoria,
-        precio_unitario: item.precio_unitario ?? 0,
-        estado: 'pendiente'
-      }));
-
-      await supabase.from('pedido_detalle').insert(rows);
-
-      const { data: todosLosDetalles } = await supabase
-        .from('pedido_detalle')
-        .select('*')
-        .eq('id_pedido', idPedido);
-
-      if (todosLosDetalles) {
-        const updatedItems = todosLosDetalles.map(d => ({
-          id_producto: d.id_producto || '',
-          nombre: d.nombre,
-          readonly: true,
-          cantidad: d.cantidad,
-          categoria: d.categoria,
-          precio_unitario: d.precio_unitario ?? undefined
-        }));
-
-        await supabase
-          .from('pedidos_cabecera')
-          .update({ items: JSON.stringify(updatedItems) })
-          .eq('id_pedido', idPedido);
-      }
-    } catch (err) {
-      console.warn('[pedidosService] Supabase agregarItems skipped/migrated:', err);
-    }
   },
 
   async remove(id: string): Promise<boolean> {
     invalidateCache();
     let handled = false;
 
-    // 1. Google Sheets
+    // 1. Supabase como almacenamiento prioritario
+    const supabase = tryGetActiveSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
+        handled = true;
+      } catch (err) {
+        console.warn('[pedidosService.remove] Supabase delete warning:', err);
+      }
+    }
+
+    // 2. Google Sheets como respaldo
     if (sheetsService.isConfigured()) {
       try {
         await sheetsService.upsert('pedidos_cabecera', {
@@ -753,16 +740,6 @@ export const pedidosService = {
       }
     }
 
-    // 2. Supabase
-    const supabase = tryGetActiveSupabaseClient();
-    if (supabase) {
-      try {
-        await supabase.from('pedidos_cabecera').delete().eq('id_pedido', id.toString());
-        handled = true;
-      } catch (err) {
-        // Ignored if table dropped
-      }
-    }
     return handled;
   },
 
