@@ -150,13 +150,22 @@ export const menuService = {
   },
 
   async create(prod: ProductoMenu): Promise<ProductoMenu> {
-    const supabase = getActiveSupabaseClient();
-    const { data, error } = await supabase.from('productos_menu').insert([toDbProductoMenu(prod)]).select().single();
-    if (error) {
-      console.error('Error creating product:', error);
-      throw error;
+    let createdData: any = null;
+    try {
+      const client = tryGetActiveSupabaseClient();
+      if (client) {
+        const { data, error } = await client.from('productos_menu').insert([toDbProductoMenu(prod)]).select().single();
+        if (!error && data) {
+          createdData = data;
+        } else {
+          console.warn('Supabase insert failed, fallback to local item:', error);
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase create failed or not available:', e);
     }
-    const normalized = normalizeProductoMenu(data);
+
+    const normalized = createdData ? normalizeProductoMenu(createdData) : prod;
     
     // Update local cache
     const cached = localStorage.getItem('colores_pizzeria_cache_menu');
@@ -164,7 +173,7 @@ export const menuService = {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
-          parsed.push(data);
+          parsed.unshift(createdData || toDbProductoMenu(prod));
           try {
             localStorage.setItem('colores_pizzeria_cache_menu', JSON.stringify(parsed));
           } catch (storageError) {
@@ -275,11 +284,16 @@ export const menuService = {
   },
 
   async remove(id: string): Promise<boolean> {
-    const supabase = getActiveSupabaseClient();
-    const { error } = await supabase.from('productos_menu').delete().eq('id_producto', id);
-    if (error) {
-      console.error('Error deleting product:', error);
-      return false;
+    try {
+      const client = tryGetActiveSupabaseClient();
+      if (client) {
+        const { error } = await client.from('productos_menu').delete().eq('id_producto', id);
+        if (error) {
+          console.warn('Error deleting product in Supabase:', error);
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase remove failed or not available:', e);
     }
     
     // Update local cache
